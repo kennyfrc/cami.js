@@ -10,7 +10,7 @@ Nanodux was created with the following objectives in mind:
 - Async Support: It has built-in support for async functions like fetch, simplifying asynchronous state management.
 - Singleton Store: It uses a singleton store, making state management straightforward and consistent.
 - Redux DevTools Integration: It integrates with Redux DevTools for easy debugging.
-- Immer-like Produce Function: It uses an immer-like produce function for immutability, making state changes predictable and easy to reason about.
+- Immer-like Produce Function: Reduce boilerplate & get automatic immutability with the built-in produce function, which acts as a replacement for the reducer.
 - Framework-Agnostic: It doesn't tie you to a specific framework, giving you the flexibility to use it in any JavaScript project.
 - Server Dispatches: It has built-in support for server dispatches, reducing boilerplate and simplifying server-side state management.
 
