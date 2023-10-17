@@ -29,3 +29,4 @@ TODO
 
 - Schema Setup: We plan to add support for setting up a schema for your state.
 - Automatic Schema Validation: We plan to add automatic schema validation to ensure your state always matches the defined schema.
+- Async queue: We plan to add support for an async queue, which will allow you to dispatch async functions in a queue, ensuring they are executed in order with no overwrites.
