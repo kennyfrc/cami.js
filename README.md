@@ -2,6 +2,10 @@
 
 A minimalist & flexible toolkit for interactive islands & state management in web applications.
 
+## Motivation
+
+Another javascript framework, you say? Well hear me out: I wanted a minimalist javascript library that had no build steps, had minimal abstractions, had great debuggability, does not take over my front-end, and is not a way to prime me up to subscribe to a cloud service. I just wanted a simple library that I can import into my applications, and use it to create better user experiences without cruft. I honestly couldn't find one, so I made one :)
+
 ## Key Features:
 
 - No Build Step: Reduce complexity in your projects. Just import the module and start using it.
@@ -23,96 +27,110 @@ A minimalist & flexible toolkit for interactive islands & state management in we
 ### Example 1: Simple Counter App, just uses ReactiveElement
 
 ```html
-<todo-list-component></todo-list-component>
-<script type="module">
-  import { html, ReactiveElement } from './cami.module.js';
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+  <body>
+    <todo-list-component></todo-list-component>
+    <script type="module">
+      import { html, ReactiveElement } from './cami.module.js';
 
-  class CounterElement extends ReactiveElement {
-    state = { count: 0 };
+      class CounterElement extends ReactiveElement {
+        state = { count: 0 };
 
-    increment() {
-      this.setState({ count: this.state.count + 1 });
-    }
+        increment() {
+          this.setState({ count: this.state.count + 1 });
+        }
 
-    decrement() {
-      this.setState({ count: this.state.count - 1 });
-    }
+        decrement() {
+          this.setState({ count: this.state.count - 1 });
+        }
 
-    template(state) {
-      return html`
-        <button @click=${() => this.decrement()}>-</button>
-        <span>${state.count}</span>
-        <button @click=${() => this.increment()}>+</button>
-      `;
-    }
-  }
+        template(state) {
+          return html`
+            <button @click=${() => this.decrement()}>-</button>
+            <span>${state.count}</span>
+            <button @click=${() => this.increment()}>+</button>
+          `;
+        }
+      }
 
-  customElements.define('counter-component', CounterElement);
-</script>
+      customElements.define('counter-component', CounterElement);
+    </script>
+  </body>
+</html>
 ```
 
 ### Example 2: Todo List App, uses createStore, ReactiveElement, & html tagged literals
 
 ```html
-<todo-list-component></todo-list-component>
-<script type="module">
-  import { createStore, html, ReactiveElement } from './cami.module.js';
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <todo-list-component></todo-list-component>
+  <script type="module">
+    import { createStore, html, ReactiveElement } from './cami.module.js';
 
-  // Step 1: Define the initial state of our store
-  const todoStore = createStore({
-    todos: [],
-  });
+    // Step 1: Define the initial state of our store
+    const todoStore = createStore({
+      todos: [],
+    });
 
-  // Step 2: Register reducers for adding and removing todo items
-  todoStore.register('add', (draftStore, payload) => {
-    draftStore.todos.push(payload);
-  });
+    // Step 2: Register reducers for adding and removing todo items
+    todoStore.register('add', (draftStore, payload) => {
+      draftStore.todos.push(payload);
+    });
 
-  todoStore.register('delete', (draftStore, payload) => {
-    draftStore.todos = draftStore.todos.filter(todo => todo !== payload);
-  });
+    todoStore.register('delete', (draftStore, payload) => {
+      draftStore.todos = draftStore.todos.filter(todo => todo !== payload);
+    });
 
-  const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
-    console.log('Before dispatching:', getState());
-    const result = next(action, payload);
-    console.log('After dispatching:', getState());
-    return result;
-  };
+    const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
+      console.log('Before dispatching:', getState());
+      const result = next(action, payload);
+      console.log('After dispatching:', getState());
+      return result;
+    };
 
-  todoStore.use(loggingMiddleware);
+    todoStore.use(loggingMiddleware);
 
-  // Define the native Web Component
-  class TodoListElement extends ReactiveElement {
-    state = { todos: [] };
+    // Define the native Web Component
+    class TodoListElement extends ReactiveElement {
+      state = { todos: [] };
 
-    connectedCallback() {
-      super.connectedCallback();
-      todoStore.subscribe((draftStore) => {
-        this.setState({ todos: draftStore.todos });
-      });
+      connectedCallback() {
+        super.connectedCallback();
+        todoStore.subscribe((draftStore) => {
+          this.setState({ todos: draftStore.todos });
+        });
+      }
+
+      template(state) {
+        return html`
+          <input id="newTodo" type="text" />
+          <button @click=${() => {
+            const newTodo = document.getElementById('newTodo').value;
+            todoStore.dispatch("add", newTodo);
+          }}>Add</button>
+          <ul>
+            ${state.todos.map(todo => html`
+              <li>
+                ${todo}
+                <button @click=${() => todoStore.dispatch("delete", todo)}>Delete</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
     }
 
-    template(state) {
-      return html`
-        <input id="newTodo" type="text" />
-        <button @click=${() => {
-          const newTodo = document.getElementById('newTodo').value;
-          todoStore.dispatch("add", newTodo);
-        }}>Add</button>
-        <ul>
-          ${state.todos.map(todo => html`
-            <li>
-              ${todo}
-              <button @click=${() => todoStore.dispatch("delete", todo)}>Delete</button>
-            </li>
-          `)}
-        </ul>
-      `;
-    }
-  }
-
-  customElements.define('todo-list-component', TodoListElement);
-</script>
+    customElements.define('todo-list-component', TodoListElement);
+  </script>
+</body>
+</html>
 ```
 
 ## API
