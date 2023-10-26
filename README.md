@@ -1,4 +1,6 @@
-# 🏝️ Cami, a minimalist & flexible toolkit for interactive islands & state management in web applications
+# 🏝️ Cami.js
+
+A minimalist & flexible toolkit for interactive islands & state management in web applications.
 
 ## Key Features:
 
@@ -111,6 +113,27 @@
 
   customElements.define('todo-list-component', TodoListElement);
 </script>
+```
+
+## Dev Usage
+
+### Install Dependencies
+
+```bash
+bun install
+```
+
+### Building
+
+```bash
+bun run build:module
+bun run build:cdn
+```
+
+### Typechecking (uses jsdoc)
+
+```bash
+bun run type-check
 ```
 
 ## Roadmap
