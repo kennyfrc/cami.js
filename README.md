@@ -10,7 +10,7 @@ A minimalist & flexible toolkit for interactive islands & state management in we
 - Singleton Store: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state, allowing for time-travel debugging with its Redux DevTools integration.
 - Middleware: You can use middleware to add functionality like logging.
 - Backend Agnostic: You don't have to turn everything into a javascript project. You can use Cami with any backend technology. It's just a module that you can import into your project.
-- Minimalist: It's lightweight and simple, focusing on core functionality.
+- Minimalist: It's lightweight and simple, with minimal abstractions.
 
 ## Philosophy
 
