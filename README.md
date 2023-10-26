@@ -14,8 +14,8 @@ A minimalist & flexible toolkit for interactive islands & state management in we
 
 ## Philosophy
 
-- **[Hypermedia-friendly Scripting](https://htmx.org/essays/hypermedia-friendly-scripting/)**: Most applications are best driven by the server, with views mostly consisting of HTML & CSS templates. The server should generally be the source of truth. For highly interactive areas such as chat, text editors, and calculators, you can then use Cami to help you build those interactive islands.
-- **[Islands Architecture](https://www.patterns.dev/posts/islands-architecture)**: Using any backend technology you like (ruby, haskell, rust, etc), you first serve your pages with HTML & CSS templates. When your application needs more interactivity, you can use Hypermedia-friendly libraries like HTMX and Unpoly. And when you really need to build highly interactive islands, you can use Cami. Just because you have a requirement, it should not mean a whole rewrite of your frontend with a heavy javascript framework.
+- **Hypermedia-friendly Scripting**: Most applications are best driven by the server, with views mostly consisting of HTML & CSS templates. The server should generally be the source of truth. For highly interactive areas such as chat, text editors, and calculators, you can then use Cami to help you build those interactive islands.
+- **Islands Architecture**: Using any backend technology you like (ruby, haskell, rust, etc), you first serve your pages with HTML & CSS templates. When your application needs more interactivity, you can use Hypermedia-friendly libraries like HTMX and Unpoly. And when you really need to build highly interactive islands, you can use Cami. Just because you have a requirement, it should not mean a whole rewrite of your frontend with a heavy javascript framework.
 - **Portable & Flexible Tools**: You can import Cami into any javascript project. If you like our state management (`createStore()`), you can use it with React, Vue, or any other framework. If you like our reactive web component (`ReactiveElement`), you can use them with any other state management library.
 
 ## Usage
