@@ -220,3 +220,7 @@ bun run type-check
 
 - Immer
 - Redux
+
+## Why "Cami"?
+
+It's short for [Camiguin](https://www.google.com/search?q=camiguin&sca_esv=576910264&tbm=isch&source=lnms&sa=X&sqi=2&ved=2ahUKEwjM_6rOp5SCAxV-9zgGHSW6CjYQ_AUoAnoECAMQBA&biw=1920&bih=944&dpr=1), a nice island in the Philippines.
