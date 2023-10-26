@@ -115,6 +115,76 @@ A minimalist & flexible toolkit for interactive islands & state management in we
 </script>
 ```
 
+## API
+
+### `ReactiveElement` (`class`)
+
+A class that extends `HTMLElement` to create reactive web components that can automatically update their view when their state changes.
+
+**Methods:**
+
+- `setState(newState)`: Updates the state and triggers a view update.
+- `getState()`: Returns the current state.
+- `template(state)`: A method that should be implemented to return the template to be rendered. It receives the current state as a parameter.
+
+- `connectedCallback()`: Called each time the element is added to the document.
+- `disconnectedCallback()`: Called each time the element is removed from the document.
+- `adoptedCallback()`: Called each time the element is moved to a new document.
+- `attributeChangedCallback(name, oldValue, newValue)`: Called when attributes are changed, added, removed, or replaced.
+
+Note: These lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
+
+**Example:**
+
+```javascript
+import { ReactiveElement, html } from 'cami.js';
+
+class MyElement extends ReactiveElement {
+  state = { count: 0 };
+
+  increment() {
+    this.setState({ count: this.state.count + 1 });
+  }
+
+  template(state) {
+    return html`
+      <button @click=${this.increment}>Count: ${state.count}</button>
+    `;
+  }
+}
+
+customElements.define('my-element', MyElement);
+```
+
+
+
+### `createStore(initialState)`
+
+Creates a new store with the provided initial state. The store is a singleton, meaning that if it has already been created, the existing instance will be returned.
+
+**Parameters:**
+
+- `initialState` (Object): The initial state of the store.
+
+**Returns:**
+
+A store object with the following methods:
+
+- `state`: The current state of the store.
+- `subscribe(listener)`: Adds a listener to the store and returns an unsubscribe function.
+- `register(action, reducer)`: Adds a reducer to the store.
+- `dispatch(action, payload)`: Adds an action to the dispatch queue and starts processing if not already doing so.
+- `use(middleware)`: Adds a middleware to the store.
+
+**Example:**
+
+```javascript
+import { createStore } from 'cami.js';
+
+const initialState = { count: 0 };
+const store = createStore(initialState);
+```
+
 ## Dev Usage
 
 ### Install Dependencies
@@ -139,8 +209,6 @@ bun run type-check
 ## Roadmap
 
 - Tests
-- Schema Setup: We plan to add support for setting up a schema for your state.
-- Automatic Schema Validation: We plan to add automatic schema validation to ensure your state always matches the defined schema.
 
 ## Prior Art
 
