@@ -1,0 +1,19 @@
+{
+  "name": "cami",
+  "module": "cami.js",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build:module": "esbuild src/cami.js --bundle --target=es2015 --format=esm --outfile=dist/cami.module.js",
+    "build:cdn": "esbuild src/cami.js --bundle --target=es2015 --format=iife --global-name=cami --outfile=dist/cami.cdn.js",
+    "type-check": "tsc --noEmit --allowJs --checkJs"
+  },
+  "type": "module",
+  "dependencies": {
+    "lit-html": "^3.0.0"
+  }
+}
