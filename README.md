@@ -185,6 +185,12 @@ const initialState = { count: 0 };
 const store = createStore(initialState);
 ```
 
+### `html`
+
+A template literal tag used to create declarative templates with directives like `@click`, attribute binding, composability, caching, custom directives, and more.
+
+It's based on lit-html, so best to check their docs for more info: [docs](https://lit.dev/docs/templates/overview/)
+
 ## Dev Usage
 
 ### Install Dependencies
