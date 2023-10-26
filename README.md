@@ -51,7 +51,7 @@ A minimalist & flexible toolkit for interactive islands & state management in we
 </script>
 ```
 
-### Example 2: Todo List App, uses ReactiveElement & createStore
+### Example 2: Todo List App, uses createStore, ReactiveElement, & html tagged literals
 
 ```html
 <todo-list-component></todo-list-component>
