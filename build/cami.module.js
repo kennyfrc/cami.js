@@ -341,7 +341,6 @@ var ReactiveElement = class extends HTMLElement {
   constructor() {
     super();
     /**
-     * @private
      * @type {State}
      * The internal state object for reactive behavior.
      */

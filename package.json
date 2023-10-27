@@ -9,10 +9,9 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "build:module": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=esm --outfile=dist/cami.module.js && cp dist/cami.module.js examples/build/cami.module.js",
-    "build:cdn": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=iife --global-name=cami --outfile=dist/cami.cdn.js && cp dist/cami.cdn.js examples/build/cami.cdn.js",
+    "build": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && cp build/cami.module.js tests/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js tests/build/cami.cdn.js",
     "type-check": "tsc --noEmit --allowJs --checkJs",
-    "test": "bunx playwright test"
+    "test": "bunx serve tests"
   },
   "type": "module",
   "dependencies": {

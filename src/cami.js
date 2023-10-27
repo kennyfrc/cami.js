@@ -25,7 +25,6 @@ import { html, render } from 'lit-html';
  */
 class ReactiveElement extends HTMLElement {
   /**
-   * @private
    * @type {State}
    * The internal state object for reactive behavior.
    */

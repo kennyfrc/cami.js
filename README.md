@@ -213,10 +213,6 @@ bun run build:cdn
 bun run type-check
 ```
 
-## Roadmap
-
-- Tests
-
 ## Prior Art
 
 - Immer
