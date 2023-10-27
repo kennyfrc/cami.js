@@ -1,4 +1,9 @@
 /**
+ * @license
+ * Copyright (c) 2023 Kenn Costales
+ * MIT License
+ */
+/**
  * @module cami
  * @requires 'lit-html'
  */
