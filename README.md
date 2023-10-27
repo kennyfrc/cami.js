@@ -207,10 +207,20 @@ bun run build:module
 bun run build:cdn
 ```
 
-### Typechecking (uses jsdoc)
+### Typechecking
+
+JSDoc is used for typechecking & documentation.
 
 ```bash
 bun run type-check
+```
+
+### Testing
+
+We use Qunit for testing.
+
+```bash
+bun run test
 ```
 
 ## Prior Art
