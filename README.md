@@ -167,29 +167,6 @@ A class that extends `HTMLElement` to create reactive web components that can au
 
 Note: These lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
 
-**Example:**
-
-```javascript
-import { ReactiveElement, html } from 'cami.js';
-
-class MyElement extends ReactiveElement {
-  state = { count: 0 };
-
-  increment() {
-    this.setState({ count: this.state.count + 1 });
-  }
-
-  template(state) {
-    return html`
-      <button @click=${this.increment}>Count: ${state.count}</button>
-    `;
-  }
-}
-
-customElements.define('my-element', MyElement);
-```
-
-
 
 ### `createStore(initialState)`
 
@@ -208,15 +185,6 @@ A store object with the following methods:
 - `register(action, reducer)`: Adds a reducer to the store.
 - `dispatch(action, payload)`: Adds an action to the dispatch queue and starts processing if not already doing so.
 - `use(middleware)`: Adds a middleware to the store.
-
-**Example:**
-
-```javascript
-import { createStore } from 'cami.js';
-
-const initialState = { count: 0 };
-const store = createStore(initialState);
-```
 
 ### `html`
 
