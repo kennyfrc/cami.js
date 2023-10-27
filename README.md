@@ -24,7 +24,7 @@ Another javascript framework, you say? Well hear me out: I wanted a minimalist j
 
 ## Usage
 
-### Example 1: Simple Counter App, just uses ReactiveElement
+### Example 1: Simple Counter App, just uses ReactiveElement & html tagged literals
 
 ```html
 <html>
