@@ -32,7 +32,7 @@ Another javascript framework, you say? Well hear me out: I wanted a minimalist j
     <!-- ... -->
   </head>
   <body>
-    <todo-list-component></todo-list-component>
+    <counter-component></counter-component>
     <script type="module">
       import { html, ReactiveElement } from './cami.module.js';
 
