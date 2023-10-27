@@ -14,6 +14,24 @@ var __spreadValues = (a2, b2) => {
     }
   return a2;
 };
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -52,7 +70,7 @@ var d = "[ 	\n\f\r]";
 var f = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
 var v = /-->/g;
 var _ = />/g;
-var m = RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^
+var m = RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g");
 var p = /'/g;
 var g = /"/g;
@@ -315,20 +333,26 @@ var j = (t2, i2, s2) => {
 };
 
 // src/cami.js
+var _state;
 var ReactiveElement = class extends HTMLElement {
   /**
    * @constructor
    */
   constructor() {
     super();
-    this.state = {};
+    /**
+     * @private
+     * @type {State}
+     * The internal state object for reactive behavior.
+     */
+    __privateAdd(this, _state, {});
   }
   /**
    * @method
    * @param {State} newState - The new state object
    */
   setState(newState) {
-    this.state = __spreadValues(__spreadValues({}, this.state), newState);
+    __privateSet(this, _state, __spreadValues(__spreadValues({}, __privateGet(this, _state)), newState));
     this.updateView();
   }
   /**
@@ -336,7 +360,7 @@ var ReactiveElement = class extends HTMLElement {
    * @returns {State} The current state
    */
   getState() {
-    return __spreadValues({}, this.state);
+    return __spreadValues({}, __privateGet(this, _state));
   }
   /**
    * @method
@@ -350,7 +374,7 @@ var ReactiveElement = class extends HTMLElement {
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
    */
   updateView() {
-    const template = this.template(this.state);
+    const template = this.template(__privateGet(this, _state));
     j(template, this);
   }
   /**
@@ -362,6 +386,7 @@ var ReactiveElement = class extends HTMLElement {
     throw new Error("You have to implement the method template()!");
   }
 };
+_state = new WeakMap();
 var produce = (base, recipe) => {
   if (typeof recipe !== "function") {
     throw new Error("Recipe should be a function");
@@ -492,3 +517,4 @@ lit-html/lit-html.js:
    * SPDX-License-Identifier: BSD-3-Clause
    *)
 */
+//# sourceMappingURL=cami.module.js.map

@@ -172,4 +172,6 @@ out
 
 # Finder (MacOS) folder config
 .DS_Store
-
+/test-results/
+/playwright-report/
+/playwright/.cache/

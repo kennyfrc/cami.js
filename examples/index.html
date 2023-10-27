@@ -19,23 +19,26 @@
       <todo-list-component></todo-list-component>
     </article>
     <script type="module">
-      import { createStore, html, ReactiveElement } from './js/cami.module.js';
+      import { createStore, html, ReactiveElement } from './build/cami.module.js';
 
       class CounterElement extends ReactiveElement {
-        state = { count: 0 };
+        constructor() {
+          super();
+          this.setState({ count: 0 });
+        }
 
         increment() {
-          this.setState({ count: this.state.count + 1 });
+          this.setState({ count: this.getState().count + 1 });
         }
 
         decrement() {
-          this.setState({ count: this.state.count - 1 });
+          this.setState({ count: this.getState().count - 1 });
         }
 
         template(state) {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>${state.count}</span>
+            <span>${this.getState().count}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }
@@ -69,7 +72,10 @@
 
       // Define the native Web Component
       class TodoListElement extends ReactiveElement {
-        state = { todos: [] };
+        constructor() {
+          super();
+          this.setState({ todos: [] });
+        }
 
         connectedCallback() {
           super.connectedCallback();

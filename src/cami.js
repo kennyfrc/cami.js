@@ -25,12 +25,17 @@ import { html, render } from 'lit-html';
  */
 class ReactiveElement extends HTMLElement {
   /**
+   * @private
+   * @type {State}
+   * The internal state object for reactive behavior.
+   */
+  #state = {};
+
+  /**
    * @constructor
    */
   constructor() {
     super();
-    /** @type {State} */
-    this.state = {};
   }
 
   /**
@@ -38,7 +43,7 @@ class ReactiveElement extends HTMLElement {
    * @param {State} newState - The new state object
    */
   setState(newState) {
-    this.state = { ...this.state, ...newState };
+    this.#state = { ...this.#state, ...newState };
     this.updateView();
   }
 
@@ -47,7 +52,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {State} The current state
    */
   getState() {
-    return {...this.state}
+    return { ...this.#state };
   }
 
   /**
@@ -63,7 +68,7 @@ class ReactiveElement extends HTMLElement {
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
    */
   updateView() {
-    const template = this.template(this.state);
+    const template = this.template(this.#state);
     render(template, this);
   }
 

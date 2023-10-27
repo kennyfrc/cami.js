@@ -1,10 +1,10 @@
 # README
 
-To try the example, just serve this directory with a web server. For example:
+To try the examples, just go to the project root and run:
 
 ```bash
 bun install --global serve
 bunx serve
 ```
 
-Then open http://localhost:3000 in your browser.
+Then open http://localhost:3000 in your browser, then navigate to the examples folder.

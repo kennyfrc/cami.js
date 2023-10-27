@@ -24,6 +24,15 @@ Another javascript framework, you say? Well hear me out: I wanted a minimalist j
 
 ## Usage
 
+To try the examples, just go to the project root and run:
+
+```bash
+bun install --global serve
+bunx serve
+```
+
+Then open http://localhost:3000 in your browser, then navigate to the examples folder.
+
 ### Example 1: Simple Counter App, just uses ReactiveElement & html tagged literals
 
 ```html
@@ -37,20 +46,23 @@ Another javascript framework, you say? Well hear me out: I wanted a minimalist j
       import { html, ReactiveElement } from './cami.module.js';
 
       class CounterElement extends ReactiveElement {
-        state = { count: 0 };
+        constructor() {
+          super();
+          this.setState({ count: 0 });
+        }
 
         increment() {
-          this.setState({ count: this.state.count + 1 });
+          this.setState({ count: this.getState().count + 1 });
         }
 
         decrement() {
-          this.setState({ count: this.state.count - 1 });
+          this.setState({ count: this.getState().count - 1 });
         }
 
         template(state) {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>${state.count}</span>
+            <span>${this.getState().count}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }
@@ -99,7 +111,10 @@ Another javascript framework, you say? Well hear me out: I wanted a minimalist j
 
     // Define the native Web Component
     class TodoListElement extends ReactiveElement {
-      state = { todos: [] };
+      constructor() {
+        super();
+        this.setState({ todos: [] });
+      }
 
       connectedCallback() {
         super.connectedCallback();
