@@ -1097,10 +1097,9 @@ var ReactiveElement = class extends HTMLElement {
   }
   /**
    * @method
-   * @param {State} state - The current state
    * @throws {Error} If the method template() is not implemented
    */
-  template(state) {
+  template() {
     throw new Error("You have to implement the method template()!");
   }
 };

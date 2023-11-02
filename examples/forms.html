@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <form-component></form-component>
+    <script type="module">
+      import { html, ReactiveElement } from './build/cami.module.js';
+
+      class FormElement extends ReactiveElement {
+        constructor() {
+          super();
+          this.observable('email', '');
+          this.observable('password', '');
+          this.observable('emailError', '');
+          this.observable('passwordError', '');
+        }
+
+        validateEmail() {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(this.email)) {
+            this.emailError = 'Please enter a valid email address.';
+          } else {
+            this.emailError = '';
+          }
+        }
+
+        validatePassword() {
+          if (this.password.length < 8) {
+            this.passwordError = 'Password must be at least 8 characters long.';
+          } else {
+            this.passwordError = '';
+          }
+        }
+
+        template() {
+          return html`
+            <form action="/submit" method="POST">
+              <label>
+                Email:
+                <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
+                <span style="color: red;">${this.emailError}</span>
+              </label>
+              <label>
+                Password:
+                <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
+                <span style="color: red;">${this.passwordError}</span>
+              </label>
+              <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
+            </form>
+          `;
+        }
+      }
+
+      customElements.define('form-component', FormElement);
+    </script>
+    <script src="./js/pico-theme-switch.js"></script>
+</body>
+</html>

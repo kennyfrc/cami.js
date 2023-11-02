@@ -367,6 +367,136 @@ Normally, the reducer functions in the stores would do this well. But if you wan
 </html>
 ```
 
+### Example 6: Reactive Client-side Form Validation
+
+```html
+```html
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <form-component></form-component>
+  <script type="module">
+    import { html, ReactiveElement } from './cami.module.js';
+
+    class FormElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.observable('email', '');
+        this.observable('password', '');
+        this.observable('emailError', '');
+        this.observable('passwordError', '');
+      }
+
+      validateEmail() {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(this.email)) {
+          this.emailError = 'Please enter a valid email address.';
+        } else {
+          this.emailError = '';
+        }
+      }
+
+      validatePassword() {
+        if (this.password.length < 8) {
+          this.passwordError = 'Password must be at least 8 characters long.';
+        } else {
+          this.passwordError = '';
+        }
+      }
+
+      template() {
+        return html`
+          <form action="/submit" method="POST">
+            <label>
+              Email:
+              <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
+              <span>${this.emailError}</span>
+            </label>
+            <label>
+              Password:
+              <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
+              <span>${this.passwordError}</span>
+            </label>
+            <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
+          </form>
+        `;
+      }
+    }
+
+    customElements.define('form-component', FormElement);
+  </script>
+</body>
+</html>
+```
+
+### Example 7: Nested Comopnents and Async Fetching
+
+```html
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <blog-component></blog-component>
+  <script type="module">
+    import { html, ReactiveElement } from './cami.module.js';
+
+    class PostElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.observable('title', '');
+        this.observable('body', '');
+      }
+
+      template() {
+        return html`
+          <article>
+            <h2>${this.title}</h2>
+            <p>${this.body}</p>
+          </article>
+        `;
+      }
+    }
+
+    customElements.define('post-component', PostElement);
+
+    class BlogElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.observable('posts', []);
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.fetchPosts();
+      }
+
+      async fetchPosts() {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+        const posts = await response.json();
+        this.posts = posts;
+      }
+
+      template() {
+        return html`
+          <section>
+            ${this.posts.map(post => html`
+              <post-component .title=${post.title} .body=${post.body}></post-component>
+            `)}
+          </section>
+        `;
+      }
+    }
+
+    customElements.define('blog-component', BlogElement);
+  </script>
+</body>
+</html>
+```
+
+
 
 ## API
 
@@ -447,3 +577,11 @@ TBD
 ## Why "Cami"?
 
 It's short for [Camiguin](https://www.google.com/search?q=camiguin&sca_esv=576910264&tbm=isch&source=lnms&sa=X&sqi=2&ved=2ahUKEwjM_6rOp5SCAxV-9zgGHSW6CjYQ_AUoAnoECAMQBA&biw=1920&bih=944&dpr=1), a pretty nice island.
+
+
+## Roadmap
+
+- [ ] Add Tests
+- [ ] State Sharing Across Components
+- [ ] Middleware usage Example
+- [ ] Real-time Updates Example
