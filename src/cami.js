@@ -51,24 +51,27 @@ class ReactiveElement extends HTMLElement {
     if (this._observables.has(key)) {
       throw new Error(`Observable "${key}" is already defined`);
     }
-    let value = Array.isArray(initialValue) ? [...initialValue] : initialValue;
-    if (Array.isArray(value)) {
-      value = new Proxy(value, {
-        set: (target, prop, newValue) => {
-          target[prop] = newValue;
-          this.react();
-          return true;
-        }
-      });
-    }
+    let value = produce(initialValue, draft => {});
     Object.defineProperty(this, key, {
       get: () => value,
       set: newValue => {
-        value = newValue;
+        value = produce(newValue, draft => {});
         this.react();
       },
     });
     this._observables.set(key, value);
+  }
+
+  /**
+   * @method
+   * @param {string} key - The key for the field to update
+   * @param {Function} updater - The function to produce the new value
+   * This method is used to update the value of a field using an updater function.
+   */
+  setFields(key, updater) {
+    const oldValue = this[key];
+    const newValue = produce(oldValue, updater);
+    this[key] = newValue;
   }
 
   /**

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+    <article>
+      <h1>User Form</h1>
+      <user-form-component></user-form-component>
+    </article>
+    <article>
+      <h1>Edit Deeply Nested Observable</h1>
+      <nested-observable-element></nested-observable-element>
+    </article>
+    <article>
+      <h1>Edit Deeply Nested Store</h1>
+      <user-list-component></user-list-component>
+    </article>
+    <script type="module">
+      import { createStore, html, ReactiveElement } from './build/cami.module.js';
+
+      class UserFormElement extends ReactiveElement {
+        constructor() {
+          super();
+          this.observable('user', { name: 'Kenn', age: 34 });
+        }
+
+        handleInput(event, key) {
+          this.setFields('user', draftUser => {
+            draftUser[key] = event.target.value;
+          });
+        }
+
+        template() {
+          return html`
+            <form>
+              <label>
+                Name: ${this.user.name}
+                <input type="text" .value=${this.user.name} @input=${(e) => this.handleInput(e, 'name')} />
+              </label>
+              <label>
+                Age: ${this.user.age}
+                <input type="number" .value=${this.user.age} @input=${(e) => this.handleInput(e, 'age')} />
+              </label>
+            </form>
+          `;
+        }
+      }
+
+      customElements.define('user-form-component', UserFormElement);
+
+      class NestedObservableElement extends ReactiveElement {
+        constructor() {
+          super();
+          this.observable('user', {
+            name: 'John',
+            age: 30,
+            address: {
+              street: '123 Main St',
+              city: 'Anytown',
+              country: 'USA',
+              postalCode: '12345',
+              coordinates: {
+                lat: '40.7128',
+                long: '74.0060'
+              }
+            }
+          });
+        }
+
+        changeUser() {
+          this.setFields('user', draftUser => {
+            if (draftUser.name == 'John') {
+              draftUser.name = 'Jane';
+              draftUser.age = 31;
+              draftUser.address.street = '456 Elm St';
+              draftUser.address.city = 'Othertown';
+              draftUser.address.country = 'Canada';
+              draftUser.address.postalCode = '67890';
+              draftUser.address.coordinates.lat = '51.5074';
+              draftUser.address.coordinates.long = '0.1278';
+            } else {
+              draftUser.name = 'John';
+              draftUser.age = 30;
+              draftUser.address.street = '123 Main St';
+              draftUser.address.city = 'Anytown';
+              draftUser.address.country = 'USA';
+              draftUser.address.postalCode = '12345';
+              draftUser.address.coordinates.lat = '40.7128';
+              draftUser.address.coordinates.long = '74.0060';
+            }
+          });
+        }
+
+        changeName() {
+          this.setFields('user', draftUser => {
+            if (draftUser.name == 'John') draftUser.name = 'Jane';
+            else draftUser.name = 'John';
+          });
+        }
+
+        changeStreet() {
+          this.setFields('user', draftUser => {
+            if (draftUser.address.street == '123 Main St') draftUser.address.street = '456 Elm St';
+            else draftUser.address.street = '123 Main St';
+          });
+        }
+
+        changeLat() {
+          this.setFields('user', draftUser => {
+            if (draftUser.address.coordinates.lat == '40.7128') draftUser.address.coordinates.lat = '51.5074';
+            else draftUser.address.coordinates.lat = '40.7128';
+          });
+        }
+
+        template() {
+          return html`
+            <div>Name: ${this.user.name}</div>
+            <div>Street: ${this.user.address.street}</div>
+            <div>Latitude: ${this.user.address.coordinates.lat}</div>
+            <button @click=${() => this.changeUser()}>Change User</button>
+            <button @click=${() => this.changeName()}>Change Name</button>
+            <button @click=${() => this.changeStreet()}>Change Street</button>
+            <button @click=${() => this.changeLat()}>Change Latitude</button>
+          `;
+        }
+      }
+
+
+      customElements.define('nested-observable-element', NestedObservableElement);
+
+      // Step 1: Define the initial state of our store
+      const userStore = createStore({
+        users: [
+          {
+            id: 1,
+            name: "Alice",
+            status: "Active",
+            address: {
+              street: '123 Main St',
+              city: 'Anytown',
+              coordinates: {
+                lat: '40.7128',
+                long: '74.0060'
+              }
+            }
+          },
+          {
+            id: 2,
+            name: "Bob",
+            status: "Inactive",
+            address: {
+              street: '456 Elm St',
+              city: 'Othertown',
+              coordinates: {
+                lat: '51.5074',
+                long: '0.1278'
+              }
+            }
+          },
+        ],
+      });
+
+      // Step 2: Register a reducer for updating a user's status
+      userStore.register('updateStatus', (draftStore, payload) => {
+        const user = draftStore.users.find(user => user.id === payload.id);
+        if (user) {
+          user.status = payload.status;
+        }
+      });
+      userStore.register('updateStreet', (draftStore, payload) => {
+        const user = draftStore.users.find(user => user.id === payload.id);
+        if (user) {
+          user.address.street = payload.street;
+        }
+      });
+      userStore.register('updateLat', (draftStore, payload) => {
+        const user = draftStore.users.find(user => user.id === payload.id);
+        if (user) {
+          user.address.coordinates.lat = payload.lat;
+        }
+      });
+
+      // Step 3: Define a custom element that uses the store
+      class UserListElement extends ReactiveElement {
+        constructor() {
+          super();
+          this.subscribe('users', userStore);
+        }
+
+        template() {
+          return html`
+            <ul>
+              ${this.users.map(user => html`
+                <li>
+                  ${user.name} - ${user.status}<br />
+                  ${user.address.street} - ${user.address.coordinates.lat}
+                  <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
+                  <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
+                  <button @click=${() => this.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
+                  <button @click=${() => this.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+                </li>
+              `)}
+            </ul>
+          `;
+        }
+      }
+
+      customElements.define('user-list-component', UserListElement);
+
+    </script>
+    <script src="./js/pico-theme-switch.js"></script>
+</body>
+</html>
