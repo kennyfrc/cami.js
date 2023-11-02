@@ -34,7 +34,7 @@
       class UserListElement extends ReactiveElement {
         constructor() {
           super();
-          this.bindStore('users', userStore);
+          this.subscribe('users', userStore);
         }
 
         template() {

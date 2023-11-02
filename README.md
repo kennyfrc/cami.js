@@ -121,7 +121,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
     class TodoListElement extends ReactiveElement {
       constructor() {
         super();
-        this.bindStore('todos', todoStore);
+        this.subscribe('todos', todoStore);
       }
 
       template() {
@@ -182,7 +182,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
     class UserListElement extends ReactiveElement {
       constructor() {
         super();
-        this.bindStore('users', userStore);
+        this.subscribe('users', userStore);
       }
 
       template() {
@@ -215,7 +215,7 @@ A class that extends `HTMLElement` to create reactive web components that can au
 **Methods:**
 
 - `observable(key, initialValue)`: Defines an observable property. Throws an error if the key is already defined.
-- `bindStore(key, store)`: Binds a store to an observable property. The property will automatically update when the state of the store changes.
+- `subscribe(key, store)`:
 - `template()`: A method that should be implemented to return the template to be rendered.
 - `connectedCallback()`: Called each time the element is added to the document. Sets up initial state and triggers initial rendering.
 

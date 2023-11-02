@@ -3,7 +3,6 @@
   "version": "0.0.5",
   "main": "src/cami.js",
   "devDependencies": {
-    "better-docs": "2.7.2",
     "bun-types": "latest",
     "concurrently": "^8.2.2",
     "nodemon": "^3.0.1"
