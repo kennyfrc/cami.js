@@ -1,5 +1,499 @@
-var pt=Object.defineProperty;var q=Object.getOwnPropertySymbols;var ft=Object.prototype.hasOwnProperty;var gt=Object.prototype.propertyIsEnumerable;var G=(n,t,e)=>t in n?pt(n,t,{enumerable:true,configurable:true,writable:true,value:e}):n[t]=e;var E=(n,t)=>{for(var e in t||(t={}))if(ft.call(t,e))G(n,e,t[e]);if(q)for(var e of q(t)){if(gt.call(t,e))G(n,e,t[e])}return n};var J=(n,t,e)=>{if(!t.has(n))throw TypeError("Cannot "+e)};var U=(n,t,e)=>{J(n,t,"read from private field");return e?e.call(n):t.get(n)};var K=(n,t,e)=>{if(t.has(n))throw TypeError("Cannot add the same private member more than once");t instanceof WeakSet?t.add(n):t.set(n,e)};var tt=(n,t,e,s)=>{J(n,t,"write to private field");s?s.call(n,e):t.set(n,e);return e};var k=(n,t,e)=>{return new Promise((s,i)=>{var h=o=>{try{l(e.next(o))}catch(a){i(a)}};var r=o=>{try{l(e.throw(o))}catch(a){i(a)}};var l=o=>o.done?s(o.value):Promise.resolve(o.value).then(h,r);l((e=e.apply(n,t)).next())})};var C=globalThis;var B=C.trustedTypes;var et=B?B.createPolicy("lit-html",{createHTML:n=>n}):void 0;var lt="$lit$";var f=`lit$${(Math.random()+"").slice(9)}$`;var ct="?"+f;var mt=`<${ct}>`;var y=document;var M=()=>y.createComment("");var I=n=>null===n||"object"!=typeof n&&"function"!=typeof n;var at=Array.isArray;var yt=n=>at(n)||"function"==typeof(n==null?void 0:n[Symbol.iterator]);var W="[ 	\n\f\r]";var S=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;var st=/-->/g;var it=/>/g;var g=RegExp(`>|${W}(?:([^\\s"'>=/]+)(${W}*=${W}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`,"g");var nt=/'/g;var rt=/"/g;var $t=/^(?:script|style|textarea|title)$/i;var dt=n=>(t,...e)=>({_$litType$:n,strings:t,values:e});var vt=dt(1);var Nt=dt(2);var P=Symbol.for("lit-noChange");var u=Symbol.for("lit-nothing");var ot=new WeakMap;var m=y.createTreeWalker(y,129);function ut(n,t){if(!Array.isArray(n)||!n.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==et?et.createHTML(t):t}var xt=(n,t)=>{const e=n.length-1,s=[];let i,h=2===t?"<svg>":"",r=S;for(let l=0;l<e;l++){const o=n[l];let a,$,c=-1,_=0;for(;_<o.length&&(r.lastIndex=_,$=r.exec(o),null!==$);)_=r.lastIndex,r===S?"!--"===$[1]?r=st:void 0!==$[1]?r=it:void 0!==$[2]?($t.test($[2])&&(i=RegExp("</"+$[2],"g")),r=g):void 0!==$[3]&&(r=g):r===g?">"===$[0]?(r=i!=null?i:S,c=-1):void 0===$[1]?c=-2:(c=r.lastIndex-$[2].length,a=$[1],r=void 0===$[3]?g:'"'===$[3]?rt:nt):r===rt||r===nt?r=g:r===st||r===it?r=S:(r=g,i=void 0);const p=r===g&&n[l+1].startsWith("/>")?" ":"";h+=r===S?o+mt:c>=0?(s.push(a),o.slice(0,c)+lt+o.slice(c)+f+p):o+f+(-2===c?l:p)}return[ut(n,h+(n[e]||"<?>")+(2===t?"</svg>":"")),s]};var D=class n{constructor({strings:t,_$litType$:e},s){let i;this.parts=[];let h=0,r=0;const l=t.length-1,o=this.parts,[a,$]=xt(t,e);if(this.el=n.createElement(a,s),m.currentNode=this.el.content,2===e){const c=this.el.content.firstChild;c.replaceWith(...c.childNodes)}for(;null!==(i=m.nextNode())&&o.length<l;){if(1===i.nodeType){if(i.hasAttributes())for(const c of i.getAttributeNames())if(c.endsWith(lt)){const _=$[r++],p=i.getAttribute(c).split(f),x=/([.?@])?(.*)/.exec(_);o.push({type:1,index:h,name:x[2],strings:p,ctor:"."===x[1]?Q:"?"===x[1]?F:"@"===x[1]?Y:H}),i.removeAttribute(c)}else c.startsWith(f)&&(o.push({type:6,index:h}),i.removeAttribute(c));if($t.test(i.tagName)){const c=i.textContent.split(f),_=c.length-1;if(_>0){i.textContent=B?B.emptyScript:"";for(let p=0;p<_;p++)i.append(c[p],M()),m.nextNode(),o.push({type:2,index:++h});i.append(c[_],M())}}}else if(8===i.nodeType)if(i.data===ct)o.push({type:2,index:h});else{let c=-1;for(;-1!==(c=i.data.indexOf(f,c+1));)o.push({type:7,index:h}),c+=f.length-1}h++}}static createElement(t,e){const s=y.createElement("template");return s.innerHTML=t,s}};function w(n,t,e=n,s){var r,l,o;if(t===P)return t;let i=void 0!==s?(r=e._$Co)==null?void 0:r[s]:e._$Cl;const h=I(t)?void 0:t._$litDirective$;return(i==null?void 0:i.constructor)!==h&&((l=i==null?void 0:i._$AO)==null?void 0:l.call(i,false),void 0===h?i=void 0:(i=new h(n),i._$AT(n,e,s)),void 0!==s?((o=e._$Co)!=null?o:e._$Co=[])[s]=i:e._$Cl=i),void 0!==i&&(t=w(n,i._$AS(n,t.values),i,s)),t}var X=class{constructor(t,e){this._$AV=[],this._$AN=void 0,this._$AD=t,this._$AM=e}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(t){var a;const{el:{content:e},parts:s}=this._$AD,i=((a=t==null?void 0:t.creationScope)!=null?a:y).importNode(e,true);m.currentNode=i;let h=m.nextNode(),r=0,l=0,o=s[0];for(;void 0!==o;){if(r===o.index){let $;2===o.type?$=new O(h,h.nextSibling,this,t):1===o.type?$=new o.ctor(h,o.name,o.strings,this,t):6===o.type&&($=new Z(h,this,t)),this._$AV.push($),o=s[++l]}r!==(o==null?void 0:o.index)&&(h=m.nextNode(),r++)}return m.currentNode=y,i}p(t){let e=0;for(const s of this._$AV)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,e),e+=s.strings.length-2):s._$AI(t[e])),e++}};var O=class n{get _$AU(){var t,e;return(e=(t=this._$AM)==null?void 0:t._$AU)!=null?e:this._$Cv}constructor(t,e,s,i){var h;this.type=2,this._$AH=u,this._$AN=void 0,this._$AA=t,this._$AB=e,this._$AM=s,this.options=i,this._$Cv=(h=i==null?void 0:i.isConnected)!=null?h:true}get parentNode(){let t=this._$AA.parentNode;const e=this._$AM;return void 0!==e&&11===(t==null?void 0:t.nodeType)&&(t=e.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,e=this){t=w(this,t,e),I(t)?t===u||null==t||""===t?(this._$AH!==u&&this._$AR(),this._$AH=u):t!==this._$AH&&t!==P&&this._(t):void 0!==t._$litType$?this.g(t):void 0!==t.nodeType?this.$(t):yt(t)?this.T(t):this._(t)}k(t){return this._$AA.parentNode.insertBefore(t,this._$AB)}$(t){this._$AH!==t&&(this._$AR(),this._$AH=this.k(t))}_(t){this._$AH!==u&&I(this._$AH)?this._$AA.nextSibling.data=t:this.$(y.createTextNode(t)),this._$AH=t}g(t){var h;const{values:e,_$litType$:s}=t,i="number"==typeof s?this._$AC(t):(void 0===s.el&&(s.el=D.createElement(ut(s.h,s.h[0]),this.options)),s);if(((h=this._$AH)==null?void 0:h._$AD)===i)this._$AH.p(e);else{const r=new X(i,this),l=r.u(this.options);r.p(e),this.$(l),this._$AH=r}}_$AC(t){let e=ot.get(t.strings);return void 0===e&&ot.set(t.strings,e=new D(t)),e}T(t){at(this._$AH)||(this._$AH=[],this._$AR());const e=this._$AH;let s,i=0;for(const h of t)i===e.length?e.push(s=new n(this.k(M()),this.k(M()),this,this.options)):s=e[i],s._$AI(h),i++;i<e.length&&(this._$AR(s&&s._$AB.nextSibling,i),e.length=i)}_$AR(t=this._$AA.nextSibling,e){var s;for((s=this._$AP)==null?void 0:s.call(this,false,true,e);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i}}setConnected(t){var e;void 0===this._$AM&&(this._$Cv=t,(e=this._$AP)==null?void 0:e.call(this,t))}};var H=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(t,e,s,i,h){this.type=1,this._$AH=u,this._$AN=void 0,this.element=t,this.name=e,this._$AM=i,this.options=h,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=u}_$AI(t,e=this,s,i){const h=this.strings;let r=false;if(void 0===h)t=w(this,t,e,0),r=!I(t)||t!==this._$AH&&t!==P,r&&(this._$AH=t);else{const l=t;let o,a;for(t=h[0],o=0;o<h.length-1;o++)a=w(this,l[s+o],e,o),a===P&&(a=this._$AH[o]),r||(r=!I(a)||a!==this._$AH[o]),a===u?t=u:t!==u&&(t+=(a!=null?a:"")+h[o+1]),this._$AH[o]=a}r&&!i&&this.j(t)}j(t){t===u?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,t!=null?t:"")}};var Q=class extends H{constructor(){super(...arguments),this.type=3}j(t){this.element[this.name]=t===u?void 0:t}};var F=class extends H{constructor(){super(...arguments),this.type=4}j(t){this.element.toggleAttribute(this.name,!!t&&t!==u)}};var Y=class extends H{constructor(t,e,s,i,h){super(t,e,s,i,h),this.type=5}_$AI(t,e=this){var r;if((t=(r=w(this,t,e,0))!=null?r:u)===P)return;const s=this._$AH,i=t===u&&s!==u||t.capture!==s.capture||t.once!==s.once||t.passive!==s.passive,h=t!==u&&(s===u||i);i&&this.element.removeEventListener(this.name,this,s),h&&this.element.addEventListener(this.name,this,t),this._$AH=t}handleEvent(t){var e,s;"function"==typeof this._$AH?this._$AH.call((s=(e=this.options)==null?void 0:e.host)!=null?s:this.element,t):this._$AH.handleEvent(t)}};var Z=class{constructor(t,e,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=e,this.options=s}get _$AU(){return this._$AM._$AU}_$AI(t){w(this,t)}};var z=C.litHtmlPolyfillSupport;var ht;z==null?void 0:z(D,O),((ht=C.litHtmlVersions)!=null?ht:C.litHtmlVersions=[]).push("3.0.0");var _t=(n,t,e)=>{var h,r;const s=(h=e==null?void 0:e.renderBefore)!=null?h:t;let i=s._$litPart$;if(void 0===i){const l=(r=e==null?void 0:e.renderBefore)!=null?r:null;s._$litPart$=i=new O(t.insertBefore(M(),l),l,void 0,e!=null?e:{})}return i._$AI(n),i};var v;var At=class extends HTMLElement{constructor(){super();K(this,v,{})}setState(e){tt(this,v,E(E({},U(this,v)),e));this.updateView()}getState(){return E({},U(this,v))}connectedCallback(){this.updateView()}updateView(){const e=this.template(U(this,v));_t(e,this)}template(e){throw new Error("You have to implement the method template()!")}};v=new WeakMap;var wt=(n,t)=>{if(typeof t!=="function"){throw new Error("Recipe should be a function")}const e=r=>r&&typeof r==="object"&&!Object.isFrozen(r);const s=new WeakMap;const i=r=>{if(!e(r))return r;if(s.has(r)){return s.get(r)}const l=Array.isArray(r)?r.slice():E({},r);s.set(r,l);return new Proxy(l,{get(o,a,$){return i(Reflect.get(o,a,$))},set(o,a,$,c){return Reflect.set(o,a,$,c)}})};const h=i(n);t(h);return h};var L=null;var Et=n=>{if(L){return L}let t=n;let e=[];let s={};let i=[];let h=[];let r=false;const l=window["__REDUX_DEVTOOLS_EXTENSION__"]&&window["__REDUX_DEVTOOLS_EXTENSION__"].connect();const o=d=>{i.push(d)};const a=d=>{e.push(d);return()=>{const A=e.indexOf(d);if(A>-1){e.splice(A,1)}}};const $=(d,A)=>{if(s[d]){throw new Error(`Action type ${d} is already registered.`)}s[d]=A};const c=()=>k(void 0,null,function*(){if(h.length===0){r=false;return}r=true;const{action:d,payload:A}=h.shift();const N=s[d];if(!N){console.warn(`No reducer found for action ${d}`);return}const b={getState:()=>t,dispatch:(T,j)=>_(T,j)};const V=i.map(T=>T(b));const R=V.reduce((T,j)=>j(T),p);yield R(d,A);c()});const _=(d,A)=>{h.push({action:d,payload:A});if(!r){c()}};const p=(d,A)=>k(void 0,null,function*(){let N;let b=null;N=wt(t,V=>{const R=s[d](V,A);if(R instanceof Promise){b=R;return}});if(b){yield b}t=N;x(d);return N});const x=d=>{for(const A of e){A(t,d)}l&&l.send(d,t)};L={state:t,subscribe:a,register:$,dispatch:_,use:o};return L};export{At as ReactiveElement,Et as createStore,vt as html};
+var __defProp = Object.defineProperty;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a2, b2) => {
+  for (var prop in b2 || (b2 = {}))
+    if (__hasOwnProp.call(b2, prop))
+      __defNormalProp(a2, prop, b2[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b2)) {
+      if (__propIsEnum.call(b2, prop))
+        __defNormalProp(a2, prop, b2[prop]);
+    }
+  return a2;
+};
+var __async = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e2) {
+        reject(e2);
+      }
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e2) {
+        reject(e2);
+      }
+    };
+    var step = (x2) => x2.done ? resolve(x2.value) : Promise.resolve(x2.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
+
+// node_modules/lit-html/lit-html.js
+var t = globalThis;
+var i = t.trustedTypes;
+var s = i ? i.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0;
+var e = "$lit$";
+var h = `lit$${(Math.random() + "").slice(9)}$`;
+var o = "?" + h;
+var n = `<${o}>`;
+var r = document;
+var l = () => r.createComment("");
+var c = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2;
+var a = Array.isArray;
+var u = (t2) => a(t2) || "function" == typeof (t2 == null ? void 0 : t2[Symbol.iterator]);
+var d = "[ 	\n\f\r]";
+var f = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
+var v = /-->/g;
+var _ = />/g;
+var m = RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g");
+var p = /'/g;
+var g = /"/g;
+var $ = /^(?:script|style|textarea|title)$/i;
+var y = (t2) => (i2, ...s2) => ({ _$litType$: t2, strings: i2, values: s2 });
+var x = y(1);
+var b = y(2);
+var w = Symbol.for("lit-noChange");
+var T = Symbol.for("lit-nothing");
+var A = /* @__PURE__ */ new WeakMap();
+var E = r.createTreeWalker(r, 129);
+function C(t2, i2) {
+  if (!Array.isArray(t2) || !t2.hasOwnProperty("raw"))
+    throw Error("invalid template strings array");
+  return void 0 !== s ? s.createHTML(i2) : i2;
+}
+var P = (t2, i2) => {
+  const s2 = t2.length - 1, o2 = [];
+  let r2, l2 = 2 === i2 ? "<svg>" : "", c2 = f;
+  for (let i3 = 0; i3 < s2; i3++) {
+    const s3 = t2[i3];
+    let a2, u2, d2 = -1, y2 = 0;
+    for (; y2 < s3.length && (c2.lastIndex = y2, u2 = c2.exec(s3), null !== u2); )
+      y2 = c2.lastIndex, c2 === f ? "!--" === u2[1] ? c2 = v : void 0 !== u2[1] ? c2 = _ : void 0 !== u2[2] ? ($.test(u2[2]) && (r2 = RegExp("</" + u2[2], "g")), c2 = m) : void 0 !== u2[3] && (c2 = m) : c2 === m ? ">" === u2[0] ? (c2 = r2 != null ? r2 : f, d2 = -1) : void 0 === u2[1] ? d2 = -2 : (d2 = c2.lastIndex - u2[2].length, a2 = u2[1], c2 = void 0 === u2[3] ? m : '"' === u2[3] ? g : p) : c2 === g || c2 === p ? c2 = m : c2 === v || c2 === _ ? c2 = f : (c2 = m, r2 = void 0);
+    const x2 = c2 === m && t2[i3 + 1].startsWith("/>") ? " " : "";
+    l2 += c2 === f ? s3 + n : d2 >= 0 ? (o2.push(a2), s3.slice(0, d2) + e + s3.slice(d2) + h + x2) : s3 + h + (-2 === d2 ? i3 : x2);
+  }
+  return [C(t2, l2 + (t2[s2] || "<?>") + (2 === i2 ? "</svg>" : "")), o2];
+};
+var V = class _V {
+  constructor({ strings: t2, _$litType$: s2 }, n2) {
+    let r2;
+    this.parts = [];
+    let c2 = 0, a2 = 0;
+    const u2 = t2.length - 1, d2 = this.parts, [f2, v2] = P(t2, s2);
+    if (this.el = _V.createElement(f2, n2), E.currentNode = this.el.content, 2 === s2) {
+      const t3 = this.el.content.firstChild;
+      t3.replaceWith(...t3.childNodes);
+    }
+    for (; null !== (r2 = E.nextNode()) && d2.length < u2; ) {
+      if (1 === r2.nodeType) {
+        if (r2.hasAttributes())
+          for (const t3 of r2.getAttributeNames())
+            if (t3.endsWith(e)) {
+              const i2 = v2[a2++], s3 = r2.getAttribute(t3).split(h), e2 = /([.?@])?(.*)/.exec(i2);
+              d2.push({ type: 1, index: c2, name: e2[2], strings: s3, ctor: "." === e2[1] ? k : "?" === e2[1] ? H : "@" === e2[1] ? I : R }), r2.removeAttribute(t3);
+            } else
+              t3.startsWith(h) && (d2.push({ type: 6, index: c2 }), r2.removeAttribute(t3));
+        if ($.test(r2.tagName)) {
+          const t3 = r2.textContent.split(h), s3 = t3.length - 1;
+          if (s3 > 0) {
+            r2.textContent = i ? i.emptyScript : "";
+            for (let i2 = 0; i2 < s3; i2++)
+              r2.append(t3[i2], l()), E.nextNode(), d2.push({ type: 2, index: ++c2 });
+            r2.append(t3[s3], l());
+          }
+        }
+      } else if (8 === r2.nodeType)
+        if (r2.data === o)
+          d2.push({ type: 2, index: c2 });
+        else {
+          let t3 = -1;
+          for (; -1 !== (t3 = r2.data.indexOf(h, t3 + 1)); )
+            d2.push({ type: 7, index: c2 }), t3 += h.length - 1;
+        }
+      c2++;
+    }
+  }
+  static createElement(t2, i2) {
+    const s2 = r.createElement("template");
+    return s2.innerHTML = t2, s2;
+  }
+};
+function N(t2, i2, s2 = t2, e2) {
+  var _a2, _b, _c;
+  if (i2 === w)
+    return i2;
+  let h2 = void 0 !== e2 ? (_a2 = s2._$Co) == null ? void 0 : _a2[e2] : s2._$Cl;
+  const o2 = c(i2) ? void 0 : i2._$litDirective$;
+  return (h2 == null ? void 0 : h2.constructor) !== o2 && ((_b = h2 == null ? void 0 : h2._$AO) == null ? void 0 : _b.call(h2, false), void 0 === o2 ? h2 = void 0 : (h2 = new o2(t2), h2._$AT(t2, s2, e2)), void 0 !== e2 ? ((_c = s2._$Co) != null ? _c : s2._$Co = [])[e2] = h2 : s2._$Cl = h2), void 0 !== h2 && (i2 = N(t2, h2._$AS(t2, i2.values), h2, e2)), i2;
+}
+var S = class {
+  constructor(t2, i2) {
+    this._$AV = [], this._$AN = void 0, this._$AD = t2, this._$AM = i2;
+  }
+  get parentNode() {
+    return this._$AM.parentNode;
+  }
+  get _$AU() {
+    return this._$AM._$AU;
+  }
+  u(t2) {
+    var _a2;
+    const { el: { content: i2 }, parts: s2 } = this._$AD, e2 = ((_a2 = t2 == null ? void 0 : t2.creationScope) != null ? _a2 : r).importNode(i2, true);
+    E.currentNode = e2;
+    let h2 = E.nextNode(), o2 = 0, n2 = 0, l2 = s2[0];
+    for (; void 0 !== l2; ) {
+      if (o2 === l2.index) {
+        let i3;
+        2 === l2.type ? i3 = new M(h2, h2.nextSibling, this, t2) : 1 === l2.type ? i3 = new l2.ctor(h2, l2.name, l2.strings, this, t2) : 6 === l2.type && (i3 = new L(h2, this, t2)), this._$AV.push(i3), l2 = s2[++n2];
+      }
+      o2 !== (l2 == null ? void 0 : l2.index) && (h2 = E.nextNode(), o2++);
+    }
+    return E.currentNode = r, e2;
+  }
+  p(t2) {
+    let i2 = 0;
+    for (const s2 of this._$AV)
+      void 0 !== s2 && (void 0 !== s2.strings ? (s2._$AI(t2, s2, i2), i2 += s2.strings.length - 2) : s2._$AI(t2[i2])), i2++;
+  }
+};
+var M = class _M {
+  get _$AU() {
+    var _a2, _b;
+    return (_b = (_a2 = this._$AM) == null ? void 0 : _a2._$AU) != null ? _b : this._$Cv;
+  }
+  constructor(t2, i2, s2, e2) {
+    var _a2;
+    this.type = 2, this._$AH = T, this._$AN = void 0, this._$AA = t2, this._$AB = i2, this._$AM = s2, this.options = e2, this._$Cv = (_a2 = e2 == null ? void 0 : e2.isConnected) != null ? _a2 : true;
+  }
+  get parentNode() {
+    let t2 = this._$AA.parentNode;
+    const i2 = this._$AM;
+    return void 0 !== i2 && 11 === (t2 == null ? void 0 : t2.nodeType) && (t2 = i2.parentNode), t2;
+  }
+  get startNode() {
+    return this._$AA;
+  }
+  get endNode() {
+    return this._$AB;
+  }
+  _$AI(t2, i2 = this) {
+    t2 = N(this, t2, i2), c(t2) ? t2 === T || null == t2 || "" === t2 ? (this._$AH !== T && this._$AR(), this._$AH = T) : t2 !== this._$AH && t2 !== w && this._(t2) : void 0 !== t2._$litType$ ? this.g(t2) : void 0 !== t2.nodeType ? this.$(t2) : u(t2) ? this.T(t2) : this._(t2);
+  }
+  k(t2) {
+    return this._$AA.parentNode.insertBefore(t2, this._$AB);
+  }
+  $(t2) {
+    this._$AH !== t2 && (this._$AR(), this._$AH = this.k(t2));
+  }
+  _(t2) {
+    this._$AH !== T && c(this._$AH) ? this._$AA.nextSibling.data = t2 : this.$(r.createTextNode(t2)), this._$AH = t2;
+  }
+  g(t2) {
+    var _a2;
+    const { values: i2, _$litType$: s2 } = t2, e2 = "number" == typeof s2 ? this._$AC(t2) : (void 0 === s2.el && (s2.el = V.createElement(C(s2.h, s2.h[0]), this.options)), s2);
+    if (((_a2 = this._$AH) == null ? void 0 : _a2._$AD) === e2)
+      this._$AH.p(i2);
+    else {
+      const t3 = new S(e2, this), s3 = t3.u(this.options);
+      t3.p(i2), this.$(s3), this._$AH = t3;
+    }
+  }
+  _$AC(t2) {
+    let i2 = A.get(t2.strings);
+    return void 0 === i2 && A.set(t2.strings, i2 = new V(t2)), i2;
+  }
+  T(t2) {
+    a(this._$AH) || (this._$AH = [], this._$AR());
+    const i2 = this._$AH;
+    let s2, e2 = 0;
+    for (const h2 of t2)
+      e2 === i2.length ? i2.push(s2 = new _M(this.k(l()), this.k(l()), this, this.options)) : s2 = i2[e2], s2._$AI(h2), e2++;
+    e2 < i2.length && (this._$AR(s2 && s2._$AB.nextSibling, e2), i2.length = e2);
+  }
+  _$AR(t2 = this._$AA.nextSibling, i2) {
+    var _a2;
+    for ((_a2 = this._$AP) == null ? void 0 : _a2.call(this, false, true, i2); t2 && t2 !== this._$AB; ) {
+      const i3 = t2.nextSibling;
+      t2.remove(), t2 = i3;
+    }
+  }
+  setConnected(t2) {
+    var _a2;
+    void 0 === this._$AM && (this._$Cv = t2, (_a2 = this._$AP) == null ? void 0 : _a2.call(this, t2));
+  }
+};
+var R = class {
+  get tagName() {
+    return this.element.tagName;
+  }
+  get _$AU() {
+    return this._$AM._$AU;
+  }
+  constructor(t2, i2, s2, e2, h2) {
+    this.type = 1, this._$AH = T, this._$AN = void 0, this.element = t2, this.name = i2, this._$AM = e2, this.options = h2, s2.length > 2 || "" !== s2[0] || "" !== s2[1] ? (this._$AH = Array(s2.length - 1).fill(new String()), this.strings = s2) : this._$AH = T;
+  }
+  _$AI(t2, i2 = this, s2, e2) {
+    const h2 = this.strings;
+    let o2 = false;
+    if (void 0 === h2)
+      t2 = N(this, t2, i2, 0), o2 = !c(t2) || t2 !== this._$AH && t2 !== w, o2 && (this._$AH = t2);
+    else {
+      const e3 = t2;
+      let n2, r2;
+      for (t2 = h2[0], n2 = 0; n2 < h2.length - 1; n2++)
+        r2 = N(this, e3[s2 + n2], i2, n2), r2 === w && (r2 = this._$AH[n2]), o2 || (o2 = !c(r2) || r2 !== this._$AH[n2]), r2 === T ? t2 = T : t2 !== T && (t2 += (r2 != null ? r2 : "") + h2[n2 + 1]), this._$AH[n2] = r2;
+    }
+    o2 && !e2 && this.j(t2);
+  }
+  j(t2) {
+    t2 === T ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t2 != null ? t2 : "");
+  }
+};
+var k = class extends R {
+  constructor() {
+    super(...arguments), this.type = 3;
+  }
+  j(t2) {
+    this.element[this.name] = t2 === T ? void 0 : t2;
+  }
+};
+var H = class extends R {
+  constructor() {
+    super(...arguments), this.type = 4;
+  }
+  j(t2) {
+    this.element.toggleAttribute(this.name, !!t2 && t2 !== T);
+  }
+};
+var I = class extends R {
+  constructor(t2, i2, s2, e2, h2) {
+    super(t2, i2, s2, e2, h2), this.type = 5;
+  }
+  _$AI(t2, i2 = this) {
+    var _a2;
+    if ((t2 = (_a2 = N(this, t2, i2, 0)) != null ? _a2 : T) === w)
+      return;
+    const s2 = this._$AH, e2 = t2 === T && s2 !== T || t2.capture !== s2.capture || t2.once !== s2.once || t2.passive !== s2.passive, h2 = t2 !== T && (s2 === T || e2);
+    e2 && this.element.removeEventListener(this.name, this, s2), h2 && this.element.addEventListener(this.name, this, t2), this._$AH = t2;
+  }
+  handleEvent(t2) {
+    var _a2, _b;
+    "function" == typeof this._$AH ? this._$AH.call((_b = (_a2 = this.options) == null ? void 0 : _a2.host) != null ? _b : this.element, t2) : this._$AH.handleEvent(t2);
+  }
+};
+var L = class {
+  constructor(t2, i2, s2) {
+    this.element = t2, this.type = 6, this._$AN = void 0, this._$AM = i2, this.options = s2;
+  }
+  get _$AU() {
+    return this._$AM._$AU;
+  }
+  _$AI(t2) {
+    N(this, t2);
+  }
+};
+var Z = t.litHtmlPolyfillSupport;
+var _a;
+Z == null ? void 0 : Z(V, M), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.0.0");
+var j = (t2, i2, s2) => {
+  var _a2, _b;
+  const e2 = (_a2 = s2 == null ? void 0 : s2.renderBefore) != null ? _a2 : i2;
+  let h2 = e2._$litPart$;
+  if (void 0 === h2) {
+    const t3 = (_b = s2 == null ? void 0 : s2.renderBefore) != null ? _b : null;
+    e2._$litPart$ = h2 = new M(i2.insertBefore(l(), t3), t3, void 0, s2 != null ? s2 : {});
+  }
+  return h2._$AI(t2), h2;
+};
+
+// src/cami.js
+var ReactiveElement = class extends HTMLElement {
+  constructor() {
+    super();
+    this._observables = /* @__PURE__ */ new Map();
+  }
+  observable(key, initialValue) {
+    if (this._observables.has(key)) {
+      throw new Error(`Observable "${key}" is already defined`);
+    }
+    let value = Array.isArray(initialValue) ? [...initialValue] : initialValue;
+    if (Array.isArray(value)) {
+      value = new Proxy(value, {
+        set: (target, prop, newValue) => {
+          target[prop] = newValue;
+          this.updateView();
+          return true;
+        }
+      });
+    }
+    Object.defineProperty(this, key, {
+      get: () => value,
+      set: (newValue) => {
+        value = newValue;
+        this.updateView();
+      }
+    });
+    this._observables.set(key, value);
+  }
+  bindStore(key, store) {
+    this.observable(key, store.state[key]);
+    store.subscribe((newState) => {
+      this[key] = newState[key];
+    });
+  }
+  /**
+   * @method
+   * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
+   */
+  connectedCallback() {
+    this.updateView();
+  }
+  /**
+   * @method
+   * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+   */
+  updateView() {
+    const template = this.template(this.state);
+    j(template, this);
+  }
+  /**
+   * @method
+   * @param {State} state - The current state
+   * @throws {Error} If the method template() is not implemented
+   */
+  template(state) {
+    throw new Error("You have to implement the method template()!");
+  }
+};
+var produce = (base, recipe) => {
+  if (typeof recipe !== "function") {
+    throw new Error("Recipe should be a function");
+  }
+  const isDraftable = (value) => value && typeof value === "object" && !Object.isFrozen(value);
+  const drafts = /* @__PURE__ */ new WeakMap();
+  const createDraft = (target) => {
+    if (!isDraftable(target))
+      return target;
+    if (drafts.has(target)) {
+      return drafts.get(target);
+    }
+    const draft2 = Array.isArray(target) ? target.slice() : __spreadValues({}, target);
+    drafts.set(target, draft2);
+    return new Proxy(draft2, {
+      get(target2, prop, receiver) {
+        return createDraft(Reflect.get(target2, prop, receiver));
+      },
+      set(target2, prop, value, receiver) {
+        return Reflect.set(target2, prop, value, receiver);
+      }
+    });
+  };
+  const draft = createDraft(base);
+  recipe(draft);
+  return draft;
+};
+var instance = null;
+var createStore = (initialState) => {
+  if (instance) {
+    return instance;
+  }
+  let state = initialState;
+  let listeners = [];
+  let reducers = {};
+  let middlewares = [];
+  let dispatchQueue = [];
+  let isProcessingQueue = false;
+  const devTools = window["__REDUX_DEVTOOLS_EXTENSION__"] && window["__REDUX_DEVTOOLS_EXTENSION__"].connect();
+  const use = (middleware) => {
+    middlewares.push(middleware);
+  };
+  const subscribe = (listener) => {
+    listeners.push(listener);
+    return () => {
+      const index = listeners.indexOf(listener);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    };
+  };
+  const register = (action, reducer) => {
+    if (reducers[action]) {
+      throw new Error(`Action type ${action} is already registered.`);
+    }
+    reducers[action] = reducer;
+  };
+  const processQueue = () => __async(void 0, null, function* () {
+    if (dispatchQueue.length === 0) {
+      isProcessingQueue = false;
+      return;
+    }
+    isProcessingQueue = true;
+    const { action, payload } = dispatchQueue.shift();
+    const reducer = reducers[action];
+    if (!reducer) {
+      console.warn(`No reducer found for action ${action}`);
+      return;
+    }
+    const middlewareAPI = {
+      getState: () => state,
+      dispatch: (action2, payload2) => dispatch(action2, payload2)
+    };
+    const chain = middlewares.map((middleware) => middleware(middlewareAPI));
+    const dispatchWithMiddleware = chain.reduce((next, middleware) => middleware(next), baseDispatch);
+    yield dispatchWithMiddleware(action, payload);
+    processQueue();
+  });
+  const dispatch = (action, payload) => {
+    dispatchQueue.push({ action, payload });
+    if (!isProcessingQueue) {
+      processQueue();
+    }
+  };
+  const baseDispatch = (action, payload) => __async(void 0, null, function* () {
+    let newState;
+    let asyncTask = null;
+    newState = produce(state, (draft) => {
+      const result = reducers[action](draft, payload);
+      if (result instanceof Promise) {
+        asyncTask = result;
+        return;
+      }
+    });
+    if (asyncTask) {
+      yield asyncTask;
+    }
+    state = newState;
+    notify(action);
+    return newState;
+  });
+  const notify = (action) => {
+    for (const listener of listeners) {
+      listener(state, action);
+    }
+    devTools && devTools.send(action, state);
+  };
+  instance = {
+    state,
+    subscribe,
+    register,
+    dispatch,
+    use
+  };
+  return instance;
+};
+export {
+  ReactiveElement,
+  createStore,
+  x as html
+};
 /**
  * @license
  * Copyright (c) 2023 Kenn Costales

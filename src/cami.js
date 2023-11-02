@@ -29,34 +29,40 @@ import { html, render } from 'lit-html';
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
 class ReactiveElement extends HTMLElement {
-  /**
-   * @type {State}
-   * The internal state object for reactive behavior.
-   */
-  #state = {};
-
-  /**
-   * @constructor
-   */
   constructor() {
     super();
+    this._observables = new Map();
   }
 
-  /**
-   * @method
-   * @param {State} newState - The new state object
-   */
-  setState(newState) {
-    this.#state = { ...this.#state, ...newState };
-    this.updateView();
+  observable(key, initialValue) {
+    if (this._observables.has(key)) {
+      throw new Error(`Observable "${key}" is already defined`);
+    }
+    let value = Array.isArray(initialValue) ? [...initialValue] : initialValue;
+    if (Array.isArray(value)) {
+      value = new Proxy(value, {
+        set: (target, prop, newValue) => {
+          target[prop] = newValue;
+          this.updateView();
+          return true;
+        }
+      });
+    }
+    Object.defineProperty(this, key, {
+      get: () => value,
+      set: newValue => {
+        value = newValue;
+        this.updateView();
+      },
+    });
+    this._observables.set(key, value);
   }
 
-  /**
-   * @method
-   * @returns {State} The current state
-   */
-  getState() {
-    return { ...this.#state };
+  bindStore(key, store) {
+    this.observable(key, store.state[key]);
+    store.subscribe(newState => {
+      this[key] = newState[key];
+    });
   }
 
   /**
@@ -72,7 +78,7 @@ class ReactiveElement extends HTMLElement {
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
    */
   updateView() {
-    const template = this.template(this.#state);
+    const template = this.template(this.state);
     render(template, this);
   }
 

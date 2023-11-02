@@ -1,5 +1,9 @@
 # 🏝️ Cami.js
 
+⚠️ Expect API changes until v1.0.0 ⚠️
+
+Current version: 0.0.5
+
 A minimalist & flexible toolkit for interactive islands & state management in web applications.
 
 ## Motivation
@@ -48,21 +52,21 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
       class CounterElement extends ReactiveElement {
         constructor() {
           super();
-          this.setState({ count: 0 });
+          this.observable('count', 0);
         }
 
         increment() {
-          this.setState({ count: this.getState().count + 1 });
+          this.count++;
         }
 
         decrement() {
-          this.setState({ count: this.getState().count - 1 });
+          this.count--;
         }
 
-        template(state) {
+        template() {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>${this.getState().count}</span>
+            <span>${this.count}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }
@@ -109,21 +113,13 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 
     todoStore.use(loggingMiddleware);
 
-    // Define the native Web Component
     class TodoListElement extends ReactiveElement {
       constructor() {
         super();
-        this.setState({ todos: [] });
+        this.bindStore('todos', todoStore);
       }
 
-      connectedCallback() {
-        super.connectedCallback();
-        todoStore.subscribe((draftStore) => {
-          this.setState({ todos: draftStore.todos });
-        });
-      }
-
-      template(state) {
+      template() {
         return html`
           <input id="newTodo" type="text" />
           <button @click=${() => {
@@ -131,7 +127,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
             todoStore.dispatch("add", newTodo);
           }}>Add</button>
           <ul>
-            ${state.todos.map(todo => html`
+            ${this.todos.map(todo => html`
               <li>
                 ${todo}
                 <button @click=${() => todoStore.dispatch("delete", todo)}>Delete</button>
@@ -217,7 +213,7 @@ bun run type-check
 
 ### Testing
 
-We use Qunit for testing.
+TBD
 
 ```bash
 bun run test
