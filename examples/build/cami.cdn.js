@@ -1041,6 +1041,12 @@ var cami = (() => {
       });
       this._observables.set(key, value);
     }
+    /**
+     * @method
+     * @param {string} key - The key for the field to update
+     * @param {Function} updater - The function to produce the new value
+     * This method is used to update the value of a field using an updater function.
+     */
     setFields(key, updater) {
       const oldValue = this[key];
       const newValue = produce(oldValue, updater);

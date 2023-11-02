@@ -206,6 +206,56 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 </html>
 ```
 
+### Example 4: Asynchronous Actions
+
+```html
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <article>
+    <h1>Fetch Posts with ReactiveElement and Store</h1>
+    <posts-component></posts-component>
+  </article>
+  <script type="module">
+    import { createStore, html, ReactiveElement } from './build/cami.module.js';
+
+    class PostsElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.observable('posts', []);
+        this.observable('loading', true);
+      }
+
+      async connectedCallback() {
+        this.loading = true;
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+        const posts = await response.json();
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        await sleep(500);
+        this.posts = posts.slice(0, 3);
+        this.loading = false;
+      }
+
+      template() {
+        if (this.loading) {
+          return html`<div>Loading...</div>`;
+        } else {
+          return html`
+            <ul>
+              ${this.posts.map(post => html`<li>${post.title}</li>`)}
+            </ul>
+          `;
+        }
+      }
+    }
+
+    customElements.define('posts-component', PostsElement);
+  </script>
+</body>
+</html>
+
 ## API
 
 ### `ReactiveElement` (`class`)
