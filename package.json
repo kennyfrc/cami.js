@@ -3,8 +3,10 @@
   "version": "0.0.5",
   "main": "src/cami.js",
   "devDependencies": {
+    "better-docs": "2.7.2",
     "bun-types": "latest",
-    "better-docs": "2.7.2"
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.1"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -14,10 +16,13 @@
     "build:minify": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && cp build/cami.module.js tests/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js tests/build/cami.cdn.js",
     "type-check": "tsc --noEmit --allowJs --checkJs",
     "test": "bunx serve tests",
-    "docs": "jsdoc -c jsdoc.json"
+    "docs": "jsdoc -c jsdoc.json",
+    "watch": "nodemon --watch src/cami.js --exec \"bun run build\"",
+    "dev": "concurrently \"bunx serve\" \"npm run watch\""
   },
   "type": "module",
   "dependencies": {
+    "immer": "^10.0.3",
     "lit-html": "^3.0.0"
   }
 }

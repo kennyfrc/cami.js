@@ -81,13 +81,14 @@
             <input id="newTodo" type="text" />
             <button @click=${() => {
               const newTodo = document.getElementById('newTodo').value;
-              todoStore.dispatch("add", newTodo);
+              this.dispatch("add", newTodo);
+              document.getElementById('newTodo').value = '';
             }}>Add</button>
             <ul>
               ${this.todos.map(todo => html`
                 <li>
                   ${todo}
-                  <button @click=${() => todoStore.dispatch("delete", todo)}>Delete</button>
+                  <button @click=${() => this.dispatch("delete", todo)}>Delete</button> <!-- Use this.dispatch instead of todoStore.dispatch -->
                 </li>
               `)}
             </ul>

@@ -8,6 +8,7 @@
  * @requires 'lit-html'
  */
 import { html, render } from 'lit-html';
+import { produce } from "immer"
 
 /**
  * @typedef {Object} State
@@ -29,11 +30,20 @@ import { html, render } from 'lit-html';
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
 class ReactiveElement extends HTMLElement {
+  /**
+   * @constructor
+   */
   constructor() {
     super();
     this._observables = new Map();
+    this.store = null;
   }
 
+  /**
+   * @method
+   * @param {string} key - The key for the observable
+   * @param {any} initialValue - The initial value for the observable
+   */
   observable(key, initialValue) {
     if (this._observables.has(key)) {
       throw new Error(`Observable "${key}" is already defined`);
@@ -58,11 +68,26 @@ class ReactiveElement extends HTMLElement {
     this._observables.set(key, value);
   }
 
+  /**
+   * @method
+   * @param {string} key - The key for the store
+   * @param {Store} store - The store to bind
+   */
   bindStore(key, store) {
+    this.store = store;
     this.observable(key, store.state[key]);
     store.subscribe(newState => {
       this[key] = newState[key];
     });
+  }
+
+  /**
+   * @method
+   * @param {string} action - The action to dispatch
+   * @param {any} payload - The payload for the action
+   */
+  dispatch(action, payload) {
+    this.store.dispatch(action, payload);
   }
 
   /**
@@ -90,49 +115,6 @@ class ReactiveElement extends HTMLElement {
   template(state) {
     throw new Error('You have to implement the method template()!');
   }
-}
-
-/**
- * @function
- * @param {Object} base - The base object
- * @param {Function} recipe - The function to produce the new state
- * @returns {Object} The new state, which is a Proxy that intercepts get and set operations on the draft object
- */
-const produce = (base, recipe) => {
-    if (typeof recipe !== "function") {
-        throw new Error("Recipe should be a function");
-    }
-
-    const isDraftable = value => value && typeof value === "object" && !Object.isFrozen(value);
-
-    // Drafts Storage: WeakMap is used to store drafts for automatic garbage collection of unused drafts
-    const drafts = new WeakMap();
-
-    const createDraft = target => {
-        if (!isDraftable(target)) return target;
-
-        if (drafts.has(target)) {
-            return drafts.get(target);
-        }
-
-        const draft = Array.isArray(target) ? target.slice() : { ...target };
-
-        drafts.set(target, draft);
-
-        return new Proxy(draft, {
-            get(target, prop, receiver) {
-                return createDraft(Reflect.get(target, prop, receiver));
-            },
-            set(target, prop, value, receiver) {
-                return Reflect.set(target, prop, value, receiver);
-            }
-        });
-    };
-
-    const draft = createDraft(base);
-    recipe(draft);
-
-    return draft;
 }
 
 let instance = null;

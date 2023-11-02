@@ -124,13 +124,14 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
           <input id="newTodo" type="text" />
           <button @click=${() => {
             const newTodo = document.getElementById('newTodo').value;
-            todoStore.dispatch("add", newTodo);
+            this.dispatch("add", newTodo);
+            document.getElementById('newTodo').value = '';
           }}>Add</button>
           <ul>
             ${this.todos.map(todo => html`
               <li>
                 ${todo}
-                <button @click=${() => todoStore.dispatch("delete", todo)}>Delete</button>
+                <button @click=${() => this.dispatch("delete", todo)}>Delete</button> <!-- Use this.dispatch instead of todoStore.dispatch -->
               </li>
             `)}
           </ul>
@@ -144,24 +145,76 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 </html>
 ```
 
+
+### Example 3: Nested Objects, uses createStore, ReactiveElement, & html tagged literals
+
+```html
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <user-list-component></user-list-component>
+  <script type="module">
+    import { createStore, html, ReactiveElement } from './cami.module.js';
+    // Step 1: Define the initial state of our store
+    const userStore = createStore({
+      users: [
+        { id: 1, name: "Alice", status: "Active" },
+        { id: 2, name: "Bob", status: "Inactive" },
+      ],
+    });
+
+    // Step 2: Register a reducer for updating a user's status
+    userStore.register('updateStatus', (draftStore, payload) => {
+      const user = draftStore.users.find(user => user.id === payload.id);
+      if (user) {
+        user.status = payload.status;
+      }
+    });
+
+    // Step 3: Define a custom element that uses the store
+    class UserListElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.bindStore('users', userStore);
+      }
+
+      template() {
+        return html`
+          <ul>
+            ${this.users.map(user => html`
+              <li>
+                ${user.name} - ${user.status}
+                <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
+                <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    customElements.define('user-list-component', UserListElement);
+  </script>
+</body>
+</html>
+```
+
 ## API
 
 ### `ReactiveElement` (`class`)
 
-A class that extends `HTMLElement` to create reactive web components that can automatically update their view when their state changes.
+A class that extends `HTMLElement` to create reactive web components that can automatically update their view when their state changes. It uses observables to track changes in state.
 
 **Methods:**
 
-- `setState(newState)`: Updates the state and triggers a view update.
-- `getState()`: Returns the current state.
-- `template(state)`: A method that should be implemented to return the template to be rendered. It receives the current state as a parameter.
+- `observable(key, initialValue)`: Defines an observable property. Throws an error if the key is already defined.
+- `bindStore(key, store)`: Binds a store to an observable property. The property will automatically update when the state of the store changes.
+- `template()`: A method that should be implemented to return the template to be rendered.
+- `connectedCallback()`: Called each time the element is added to the document. Sets up initial state and triggers initial rendering.
 
-- `connectedCallback()`: Called each time the element is added to the document.
-- `disconnectedCallback()`: Called each time the element is removed from the document.
-- `adoptedCallback()`: Called each time the element is moved to a new document.
-- `attributeChangedCallback(name, oldValue, newValue)`: Called when attributes are changed, added, removed, or replaced.
-
-Note: These lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
+Note: Lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
 
 
 ### `createStore(initialState)`
