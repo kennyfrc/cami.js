@@ -8,23 +8,32 @@ A minimalist & flexible toolkit for interactive islands & state management in we
 
 ## Motivation
 
-Another javascript framework, you say? Well hear me out: I wanted a minimalist javascript library that had no build steps, had minimal abstractions, had great debuggability, does not take over my front-end, and is not a way to prime me up to subscribe to a cloud service. I just wanted a simple library that I can import into my applications, and use it to create better user experiences without cruft. I honestly couldn't find one, so I made one :)
+I wanted a minimalist javascript library that has no build steps, great debuggability, and didn't take over my front-end.
+
+My workflow is simple: I want to start any application with normal HTML/CSS, and if there were fragments or islands that needed to be interactive (such as dashboards & calculators), I needed a powerful enough library that I could easily drop in without rewriting my whole front-end. Unfortunately, the latter is the case for the majority of javascript libraries out there.
+
+That said, I like the idea of declarative templates, uni-directional data flow, time-travel debugging, and fine-grained reactivity. But I wanted no build steps (or at least make 'no build' the default). So I created Cami.
 
 ## Key Features:
 
 - No Build Step: Reduce complexity in your projects. Just import the module and start using it.
-- Reactive Web Components (Light DOM): Create interactive islands in web applications, and doesn't take over your frontend. Based on Web Standards. No Shadow DOM.
+- Reactive Web Components (Light DOM, Observables): Create interactive islands in web applications, and doesn't take over your frontend. Based on Web Standards. No Shadow DOM. Fine-grained reactivity with observables, computed properties, and effects. For deeply nested objects, you can use `setFields()` to update them.
 - Lit-HTML Templates: Declarative & powerful templates with directives like `@click`, attribute binding, composability, caching, custom directives, and more.
 - Singleton Store: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state, allowing for time-travel debugging with its Redux DevTools integration.
 - Middleware: You can use middleware to add functionality like logging.
 - Backend Agnostic: You don't have to turn everything into a javascript project. You can use Cami with any backend technology. It's just a module that you can import into your project.
 - Minimalist: It's lightweight and simple, with minimal abstractions.
 
+## Who is this for?
+
+- **Developers of Small to Medium-sized Applications**: If you're building a small to medium-sized application, you can use Cami as your main frontend framework. It's a great choice for dashboards, calculators, and other interactive islands. If you're working in more complex applications, you may need something more componentized with a large ecosystem, so we're not a good fit for that.
+- **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, that's mostly static, you can use Cami to add interactive islands to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
+
 ## Philosophy
 
+- **Built for Any Backend / MPA**: Cami is built for Multi-Page Applications, using any backend technology you like (ruby, haskell, rust, etc). Write HTML/CSS for layouts and static content, and use Cami for interactive islands. You don't have to turn everything into a javascript project. It's just a module that you can import into your project with no build steps. It doesn't have a router as we recommend prefer server-driven navigation. If you don't like full page reloads, you can use HTMX, Unpoly, Turbo, or TwinSpark, and Cami will still work with them.
 - **Hypermedia-friendly Scripting**: Most applications are best driven by the server, with views mostly consisting of HTML & CSS templates. The server should generally be the source of truth. For highly interactive areas such as chat, text editors, and calculators, you can then use Cami to help you build those interactive islands.
-- **Islands Architecture**: Using any backend technology you like (ruby, haskell, rust, etc), you first serve your pages with HTML & CSS templates. When your application needs more interactivity, you can use Hypermedia-friendly libraries like HTMX and Unpoly. And when you really need to build highly interactive islands, you can use Cami. Just because you have a requirement, it should not mean a whole rewrite of your frontend with a heavy javascript framework.
-- **Portable & Flexible Tools**: You can import Cami into any javascript project. If you like our state management (`createStore()`), you can use it with React, Vue, or any other framework. If you like our reactive web component (`ReactiveElement`), you can use them with any other state management library.
+- **Portable & Flexible Tools**: You can import Cami into any javascript project. If you like our state management (`createStore()`), you can use it with React, Vue, or any other framework. If you like our reactive web component (`ReactiveElement`), you can use it alone.
 
 ## Usage
 
@@ -257,6 +266,108 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 </html>
 ```
 
+### Example 5: Deeply Nested Objects
+
+Normally, the reducer functions in the stores would do this well. But if you want to do it in the component, you can do it using `setFields()`.
+
+```html
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <article>
+    <h1>Deeply Nested Objects</h1>
+    <nested-observable-element></nested-observable-element>
+  </article>
+  <script type="module">
+    import { html, ReactiveElement } from './cami.module.js';
+
+    class NestedObservableElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.observable('user', {
+          name: 'John',
+          age: 30,
+          address: {
+            street: '123 Main St',
+            city: 'Anytown',
+            country: 'USA',
+            postalCode: '12345',
+            coordinates: {
+              lat: '40.7128',
+              long: '74.0060'
+            }
+          }
+        });
+      }
+
+      changeUser() {
+        this.setFields('user', draftUser => {
+          if (draftUser.name == 'John') {
+            draftUser.name = 'Jane';
+            draftUser.age = 31;
+            draftUser.address.street = '456 Elm St';
+            draftUser.address.city = 'Othertown';
+            draftUser.address.country = 'Canada';
+            draftUser.address.postalCode = '67890';
+            draftUser.address.coordinates.lat = '51.5074';
+            draftUser.address.coordinates.long = '0.1278';
+          } else {
+            draftUser.name = 'John';
+            draftUser.age = 30;
+            draftUser.address.street = '123 Main St';
+            draftUser.address.city = 'Anytown';
+            draftUser.address.country = 'USA';
+            draftUser.address.postalCode = '12345';
+            draftUser.address.coordinates.lat = '40.7128';
+            draftUser.address.coordinates.long = '74.0060';
+          }
+        });
+      }
+
+      changeName() {
+        this.setFields('user', draftUser => {
+          if (draftUser.name == 'John') draftUser.name = 'Jane';
+          else draftUser.name = 'John';
+        });
+      }
+
+      changeStreet() {
+        this.setFields('user', draftUser => {
+          if (draftUser.address.street == '123 Main St') draftUser.address.street = '456 Elm St';
+          else draftUser.address.street = '123 Main St';
+        });
+      }
+
+      changeLat() {
+        this.setFields('user', draftUser => {
+          if (draftUser.address.coordinates.lat == '40.7128') draftUser.address.coordinates.lat = '51.5074';
+          else draftUser.address.coordinates.lat = '40.7128';
+        });
+      }
+
+      template() {
+        return html`
+          <div>Name: ${this.user.name}</div>
+          <div>Street: ${this.user.address.street}</div>
+          <div>Latitude: ${this.user.address.coordinates.lat}</div>
+          <button @click=${() => this.changeUser()}>Change User</button>
+          <button @click=${() => this.changeName()}>Change Name</button>
+          <button @click=${() => this.changeStreet()}>Change Street</button>
+          <button @click=${() => this.changeLat()}>Change Latitude</button>
+        `;
+      }
+    }
+
+
+    customElements.define('nested-observable-element', NestedObservableElement);
+  </script>
+</body>
+</html>
+```
+
+
 ## API
 
 ### `ReactiveElement` (`class`)
@@ -266,7 +377,11 @@ A class that extends `HTMLElement` to create reactive web components that can au
 **Methods:**
 
 - `observable(key, initialValue)`: Defines an observable property. Throws an error if the key is already defined.
-- `subscribe(key, store)`:
+- `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Throws an error if the key is already defined.
+- `computed(key, fn)`: Defines a computed property. Throws an error if the key is already defined.
+- `effect(fn)`: Defines an effect. Throws an error if the key is already defined.
+- `dispatch(action, payload)`: Dispatches an action to the store.
+- `setFields(key, fn)`: Sets deeply nested fields in an observable property, beyond the first level. Throws an error if the key is not defined.
 - `template()`: A method that should be implemented to return the template to be rendered.
 - `connectedCallback()`: Called each time the element is added to the document. Sets up initial state and triggers initial rendering.
 
@@ -323,10 +438,6 @@ bun run type-check
 ### Testing
 
 TBD
-
-```bash
-bun run test
-```
 
 ## Prior Art
 
