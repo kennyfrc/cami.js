@@ -219,7 +219,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
     <posts-component></posts-component>
   </article>
   <script type="module">
-    import { createStore, html, ReactiveElement } from './build/cami.module.js';
+    import { html, ReactiveElement } from './cami.module.js';
 
     class PostsElement extends ReactiveElement {
       constructor() {
@@ -255,6 +255,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
   </script>
 </body>
 </html>
+```
 
 ## API
 
