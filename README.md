@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.7
+Current version: 0.0.8
 
 A minimalist & flexible toolkit for interactive islands & state management in web applications.
 
@@ -136,7 +136,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
             ${this.todos.map(todo => html`
               <li>
                 ${todo}
-                <button @click=${() => this.dispatch("delete", todo)}>Delete</button> <!-- Use this.dispatch instead of todoStore.dispatch -->
+                <button @click=${() => this.dispatch("delete", todo)}>Delete</button>
               </li>
             `)}
           </ul>

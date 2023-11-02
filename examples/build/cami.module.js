@@ -992,6 +992,7 @@ var ReactiveElement = class extends HTMLElement {
   constructor() {
     super();
     this._observables = /* @__PURE__ */ new Map();
+    this._unsubscribers = /* @__PURE__ */ new Map();
     this.store = null;
     this._effects = [];
   }
@@ -1040,7 +1041,9 @@ var ReactiveElement = class extends HTMLElement {
    * This method is used to register a function that will be called whenever an observable changes.
    */
   effect(effectFn) {
-    this._effects.push(effectFn);
+    const cleanup = effectFn.call(this) || (() => {
+    });
+    this._effects.push({ effectFn, cleanup });
   }
   /**
    * @method
@@ -1050,9 +1053,10 @@ var ReactiveElement = class extends HTMLElement {
   subscribe(key, store) {
     this.store = store;
     this.observable(key, store.state[key]);
-    store.subscribe((newState) => {
+    const unsubscribe = store.subscribe((newState) => {
       this[key] = newState[key];
     });
+    this._unsubscribers.set(key, unsubscribe);
   }
   /**
    * @method
@@ -1071,13 +1075,21 @@ var ReactiveElement = class extends HTMLElement {
   }
   /**
    * @method
+   * Invoked when the custom element is disconnected from the document's DOM.
+   */
+  disconnectedCallback() {
+    this._unsubscribers.forEach((unsubscribe) => unsubscribe());
+    this._effects.forEach(({ cleanup }) => cleanup && cleanup());
+  }
+  /**
+   * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
    * This also triggers all effects.
    */
   react() {
     const template = this.template(this.state);
     j(template, this);
-    this._effects.forEach((effectFn) => effectFn.call(this));
+    this._effects.forEach(({ effectFn }) => effectFn.call(this));
   }
   /**
    * @method
