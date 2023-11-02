@@ -1091,7 +1091,7 @@ var ReactiveElement = class extends HTMLElement {
    * This also triggers all effects.
    */
   react() {
-    const template = this.template(this.state);
+    const template = this.template();
     j(template, this);
     this._effects.forEach(({ effectFn }) => effectFn.call(this));
   }

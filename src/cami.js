@@ -142,17 +142,16 @@ class ReactiveElement extends HTMLElement {
    * This also triggers all effects.
    */
   react() {
-    const template = this.template(this.state);
+    const template = this.template();
     render(template, this);
     this._effects.forEach(({ effectFn }) => effectFn.call(this));
   }
 
   /**
    * @method
-   * @param {State} state - The current state
    * @throws {Error} If the method template() is not implemented
    */
-  template(state) {
+  template() {
     throw new Error('You have to implement the method template()!');
   }
 }
