@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.6
+Current version: 0.0.7
 
 A minimalist & flexible toolkit for interactive islands & state management in web applications.
 
@@ -53,6 +53,10 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
         constructor() {
           super();
           this.observable('count', 0);
+          this.computed('countSquared', () => {
+            return this.count * this.count
+          });
+          this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
         }
 
         increment() {
@@ -66,7 +70,8 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
         template() {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>${this.count}</span>
+            <span>Base: ${this.count}</span>
+            <span>Squared: ${this.countSquared}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }

@@ -25,6 +25,10 @@
         constructor() {
           super();
           this.observable('count', 0);
+          this.computed('countSquared', () => {
+            return this.count * this.count
+          });
+          this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
         }
 
         increment() {
@@ -38,7 +42,8 @@
         template() {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>${this.count}</span>
+            <span>Base: ${this.count}</span>
+            <span>Squared: ${this.countSquared}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }
@@ -73,7 +78,7 @@
       class TodoListElement extends ReactiveElement {
         constructor() {
           super();
-          this.bindStore('todos', todoStore);
+          this.subscribe('todos', todoStore);
         }
 
         template() {

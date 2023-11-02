@@ -6,6 +6,7 @@
 /**
  * @module cami
  * @requires 'lit-html'
+ * @requires 'immer'
  */
 import { html, render } from 'lit-html';
 import { produce } from "immer"
@@ -37,6 +38,7 @@ class ReactiveElement extends HTMLElement {
     super();
     this._observables = new Map();
     this.store = null;
+    this._effects = [];
   }
 
   /**
@@ -53,7 +55,7 @@ class ReactiveElement extends HTMLElement {
       value = new Proxy(value, {
         set: (target, prop, newValue) => {
           target[prop] = newValue;
-          this.updateView();
+          this.react();
           return true;
         }
       });
@@ -62,7 +64,7 @@ class ReactiveElement extends HTMLElement {
       get: () => value,
       set: newValue => {
         value = newValue;
-        this.updateView();
+        this.react();
       },
     });
     this._observables.set(key, value);
@@ -70,10 +72,31 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
+   * @param {string} key - The key for the computed property
+   * @param {Function} computeFn - The function to compute the value of the property
+   * This method is used to define a computed property that depends on other observables.
+   */
+  computed(key, computeFn) {
+    Object.defineProperty(this, key, {
+      get: () => computeFn.call(this),
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} effectFn - The function to be called when an observable changes
+   * This method is used to register a function that will be called whenever an observable changes.
+   */
+  effect(effectFn) {
+    this._effects.push(effectFn);
+  }
+
+  /**
+   * @method
    * @param {string} key - The key for the store
    * @param {Store} store - The store to bind
    */
-  bindStore(key, store) {
+  subscribe(key, store) {
     this.store = store;
     this.observable(key, store.state[key]);
     store.subscribe(newState => {
@@ -95,16 +118,18 @@ class ReactiveElement extends HTMLElement {
    * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
    */
   connectedCallback() {
-    this.updateView();
+    this.react();
   }
 
   /**
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+   * This also triggers all effects.
    */
-  updateView() {
+  react() {
     const template = this.template(this.state);
     render(template, this);
+    this._effects.forEach(effectFn => effectFn.call(this));
   }
 
   /**
