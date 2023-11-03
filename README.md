@@ -31,8 +31,8 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 ## Philosophy
 
+- **Hypermedia-driven API**: We recommend using a hypermedia-driven API, or in other words, never return JSON responses. Instead, return HTML. The purpose of Cami is to add interactivity to your application.
 - **Built for Any Backend / MPA**: Cami is built for Multi-Page Applications, using any backend technology you like (ruby, haskell, rust, etc). Write HTML/CSS for layouts and static content, and use Cami for interactive islands. You don't have to turn everything into a javascript project. It's just a module that you can import into your project with no build steps. It doesn't have a router as we recommend prefer server-driven navigation. If you don't like full page reloads, you can use HTMX, Unpoly, Turbo, or TwinSpark, and Cami will still work with them.
-- **Hypermedia-friendly Scripting**: Most applications are best driven by the server, with views mostly consisting of HTML & CSS templates. The server should generally be the source of truth. For highly interactive areas such as chat, text editors, and calculators, you can then use Cami to help you build those interactive islands.
 - **Portable & Flexible Tools**: You can import Cami into any javascript project. If you like our state management (`createStore()`), you can use it with React, Vue, or any other framework. If you like our reactive web component (`ReactiveElement`), you can use it alone.
 
 ## Usage
@@ -215,58 +215,8 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 </html>
 ```
 
-### Example 4: Asynchronous Actions
 
-```html
-<html>
-  <head>
-    <!-- ... -->
-  </head>
-<body>
-  <article>
-    <h1>Fetch Posts with ReactiveElement and Store</h1>
-    <posts-component></posts-component>
-  </article>
-  <script type="module">
-    import { html, ReactiveElement } from './cami.module.js';
-
-    class PostsElement extends ReactiveElement {
-      constructor() {
-        super();
-        this.observable('posts', []);
-        this.observable('loading', true);
-      }
-
-      async connectedCallback() {
-        this.loading = true;
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-        const posts = await response.json();
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-        await sleep(500);
-        this.posts = posts.slice(0, 3);
-        this.loading = false;
-      }
-
-      template() {
-        if (this.loading) {
-          return html`<div>Loading...</div>`;
-        } else {
-          return html`
-            <ul>
-              ${this.posts.map(post => html`<li>${post.title}</li>`)}
-            </ul>
-          `;
-        }
-      }
-    }
-
-    customElements.define('posts-component', PostsElement);
-  </script>
-</body>
-</html>
-```
-
-### Example 5: Deeply Nested Objects
+### Example 4: Deeply Nested Objects
 
 Normally, the reducer functions in the stores would do this well. But if you want to do it in the component, you can do it using `setFields()`.
 
@@ -367,9 +317,8 @@ Normally, the reducer functions in the stores would do this well. But if you wan
 </html>
 ```
 
-### Example 6: Reactive Client-side Form Validation
+### Example 5: Reactive Client-side Form Validation
 
-```html
 ```html
 <html>
   <head>
@@ -431,72 +380,7 @@ Normally, the reducer functions in the stores would do this well. But if you wan
 </html>
 ```
 
-### Example 7: Nested Comopnents and Async Fetching
-
-```html
-<html>
-  <head>
-    <!-- ... -->
-  </head>
-<body>
-  <blog-component></blog-component>
-  <script type="module">
-    import { html, ReactiveElement } from './cami.module.js';
-
-    class PostElement extends ReactiveElement {
-      constructor() {
-        super();
-        this.observable('title', '');
-        this.observable('body', '');
-      }
-
-      template() {
-        return html`
-          <article>
-            <h2>${this.title}</h2>
-            <p>${this.body}</p>
-          </article>
-        `;
-      }
-    }
-
-    customElements.define('post-component', PostElement);
-
-    class BlogElement extends ReactiveElement {
-      constructor() {
-        super();
-        this.observable('posts', []);
-      }
-
-      connectedCallback() {
-        super.connectedCallback();
-        this.fetchPosts();
-      }
-
-      async fetchPosts() {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-        const posts = await response.json();
-        this.posts = posts;
-      }
-
-      template() {
-        return html`
-          <section>
-            ${this.posts.map(post => html`
-              <post-component .title=${post.title} .body=${post.body}></post-component>
-            `)}
-          </section>
-        `;
-      }
-    }
-
-    customElements.define('blog-component', BlogElement);
-  </script>
-</body>
-</html>
-```
-
-### Example 8: Shared Store Between Components
+### Example 7: Shared Store Between Components
 
 ```html
 <html>
@@ -697,6 +581,6 @@ It's short for [Camiguin](https://www.google.com/search?q=camiguin&sca_esv=57691
 ## Roadmap
 
 - [ ] Add Tests
-- [ ] State Sharing Across Components
 - [ ] Middleware usage Example
 - [ ] Real-time Updates Example
+- [ ] Own devtools
