@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && cp build/cami.module.js tests/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js tests/build/cami.cdn.js",
-    "build:minify": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && cp build/cami.module.js tests/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js tests/build/cami.cdn.js",
+    "build:minify": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && cp build/cami.module.js tests/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js tests/build/cami.cdn.js && bun run gzip.js",
     "type-check": "tsc --noEmit --allowJs --checkJs",
     "test": "bunx serve tests",
     "docs": "jsdoc -c jsdoc.json",

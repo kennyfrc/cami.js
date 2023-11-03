@@ -17,7 +17,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 ## Key Features:
 
 - No Build Step: Reduce complexity in your projects. Just import the module and start using it.
-- Reactive Web Components (Light DOM, Observables): Create interactive islands in web applications, and doesn't take over your frontend. Based on Web Standards. No Shadow DOM. Fine-grained reactivity with observables, computed properties, and effects. For deeply nested objects, you can use `setFields()` to update them.
+- Reactive Web Components (Light DOM, Observables): Create interactive islands in web applications, and doesn't take over your frontend. Based on Web Standards. No Shadow DOM. Fine-grained reactivity with observables, computed properties, and effects. For deeply nested objects, you can use `update()` to update them.
 - Lit-HTML Templates: Declarative & powerful templates with directives like `@click`, attribute binding, composability, caching, custom directives, and more.
 - Singleton Store: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state, allowing for time-travel debugging with its Redux DevTools integration.
 - Middleware: You can use middleware to add functionality like logging.
@@ -268,7 +268,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 
 ### Example 5: Deeply Nested Objects
 
-Normally, the reducer functions in the stores would do this well. But if you want to do it in the component, you can do it using `setFields()`.
+Normally, the reducer functions in the stores would do this well. But if you want to do it in the component, you can do it using `update()`.
 
 ```html
 <html>
@@ -303,7 +303,7 @@ Normally, the reducer functions in the stores would do this well. But if you wan
       }
 
       changeUser() {
-        this.setFields('user', draftUser => {
+        this.update('user', draftUser => {
           if (draftUser.name == 'John') {
             draftUser.name = 'Jane';
             draftUser.age = 31;
@@ -327,21 +327,21 @@ Normally, the reducer functions in the stores would do this well. But if you wan
       }
 
       changeName() {
-        this.setFields('user', draftUser => {
+        this.update('user', draftUser => {
           if (draftUser.name == 'John') draftUser.name = 'Jane';
           else draftUser.name = 'John';
         });
       }
 
       changeStreet() {
-        this.setFields('user', draftUser => {
+        this.update('user', draftUser => {
           if (draftUser.address.street == '123 Main St') draftUser.address.street = '456 Elm St';
           else draftUser.address.street = '123 Main St';
         });
       }
 
       changeLat() {
-        this.setFields('user', draftUser => {
+        this.update('user', draftUser => {
           if (draftUser.address.coordinates.lat == '40.7128') draftUser.address.coordinates.lat = '51.5074';
           else draftUser.address.coordinates.lat = '40.7128';
         });
@@ -511,7 +511,7 @@ A class that extends `HTMLElement` to create reactive web components that can au
 - `computed(key, fn)`: Defines a computed property. Throws an error if the key is already defined.
 - `effect(fn)`: Defines an effect. Throws an error if the key is already defined.
 - `dispatch(action, payload)`: Dispatches an action to the store.
-- `setFields(key, fn)`: Sets deeply nested fields in an observable property, beyond the first level. Throws an error if the key is not defined.
+- `update(key, fn)`: Sets deeply nested fields in an observable property, beyond the first level. Throws an error if the key is not defined.
 - `template()`: A method that should be implemented to return the template to be rendered.
 - `connectedCallback()`: Called each time the element is added to the document. Sets up initial state and triggers initial rendering.
 
