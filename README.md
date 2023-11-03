@@ -496,7 +496,122 @@ Normally, the reducer functions in the stores would do this well. But if you wan
 </html>
 ```
 
+### Example 8: Shared Store Between Components
 
+```html
+<html>
+  <head>
+    <!-- ... -->
+  </head>
+<body>
+  <article>
+    <h2>Products</h2>
+    <product-list-component></product-list-component>
+  </article>
+  <article>
+    <h2>Cart</h2>
+    <cart-component></cart-component>
+  </article>
+
+  <script type="module">
+    import { html, ReactiveElement } from './cami.module.js';
+
+      const cartStore = createStore({
+        cartItems: [],
+        products: [
+          { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
+          { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
+          { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
+        ]
+      });
+
+      cartStore.register('add', (state, product) => {
+        const cartItem = { ...product, cartItemId: Date.now() };
+        state.cartItems.push(cartItem);
+        state.products = state.products.map(p => {
+          if (p.id === product.id) {
+            p.stock--;
+          }
+          return p;
+        });
+      });
+      cartStore.register('remove', (state, product) => {
+        state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+        state.products = state.products.map(p => {
+          if (p.id === product.id) {
+            p.stock++;
+          }
+          return p;
+        });
+      });
+
+      class ProductListElement extends ReactiveElement {
+        constructor() {
+          super();
+          this.subscribe('cartItems', cartStore);
+          this.subscribe('products', cartStore);
+        }
+
+        addToCart(product) {
+          this.dispatch('add', product);
+        }
+
+        isProductInCart(product) {
+          return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+        }
+
+        isOutOfStock(product) {
+          return product.stock === 0;
+        }
+
+        template() {
+          return html`
+            <ul>
+              ${this.products.map(product => html`
+                <li>
+                  ${product.name} - ${product.price} | Stock: ${product.stock}
+                  <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
+                    Add to cart
+                  </button>
+                </li>
+              `)}
+            </ul>
+          `;
+        }
+      }
+
+      customElements.define('product-list-component', ProductListElement);
+
+      class CartElement extends ReactiveElement {
+        constructor() {
+          super();
+          this.subscribe('cartItems', cartStore);
+          this.computed('cartValue', () => {
+            return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+          });
+        }
+
+        removeFromCart(product) {
+          this.dispatch('remove', product);
+        }
+
+        template() {
+          return html`
+            <p>Cart value: ${this.cartValue}</p>
+            <ul>
+              ${this.cartItems.map(item => html`
+                <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
+              `)}
+            </ul>
+          `;
+        }
+      }
+
+      customElements.define('cart-component', CartElement);
+    </script>
+  </body>
+</html>
+```
 
 ## API
 
