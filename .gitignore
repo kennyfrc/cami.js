@@ -175,3 +175,8 @@ out
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# Hide build files
+/build/
+/examples/build/
+/tests/build/
