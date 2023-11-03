@@ -29,7 +29,7 @@
         }
 
         handleInput(event, key) {
-          this.update('user', draftUser => {
+          this.setFields('user', draftUser => {
             draftUser[key] = event.target.value;
           });
         }
@@ -72,7 +72,7 @@
         }
 
         changeUser() {
-          this.update('user', draftUser => {
+          this.setFields('user', draftUser => {
             if (draftUser.name == 'John') {
               draftUser.name = 'Jane';
               draftUser.age = 31;
@@ -96,21 +96,21 @@
         }
 
         changeName() {
-          this.update('user', draftUser => {
+          this.setFields('user', draftUser => {
             if (draftUser.name == 'John') draftUser.name = 'Jane';
             else draftUser.name = 'John';
           });
         }
 
         changeStreet() {
-          this.update('user', draftUser => {
+          this.setFields('user', draftUser => {
             if (draftUser.address.street == '123 Main St') draftUser.address.street = '456 Elm St';
             else draftUser.address.street = '123 Main St';
           });
         }
 
         changeLat() {
-          this.update('user', draftUser => {
+          this.setFields('user', draftUser => {
             if (draftUser.address.coordinates.lat == '40.7128') draftUser.address.coordinates.lat = '51.5074';
             else draftUser.address.coordinates.lat = '40.7128';
           });
