@@ -28,55 +28,33 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 - **Solo Developers or Lean Teams**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
 - **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivactivity to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
 
+## Get Started & View Examples
+
+To see some examples, just go to the project root and run:
+
+```bash
+bun install --global serve
+bunx serve
+```
+
+Open http://localhost:3000 in your browser, then navigate to the examples folder. In the examples folder, you will find a series of examples that illustrate the key concepts of Cami.js. These examples are numbered & ordered by complexity.
+
 ## Key Concepts / API
 
-### `Observable State`
+### `ReactiveElement Class`, `Observable` Objects, and `Templates`
 
-An observable in Cami.js is a unique object that enables the creation of reactive properties. These properties are immutable, meaning their state cannot be directly altered. Instead, changes to their state are made through the `update` method, which in turn automatically updates the view. Here's how you can interact with an observable:
+`ReactiveElement` is a class that extends `HTMLElement` to create reactive web components. These components can automatically update their view (the `template`) when their state changes.
 
-**Creating an Observable:**
+Automatic updates are done by observables. An observable is an object that can be observed for state changes, and when it changes, it triggers an effect (a function that runs in response to changes in observables).
 
-In the context of a `ReactiveElement`, you can create an observable using the `this.observable()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
+Cami's observables have the following characteristics:
 
-```javascript
-this.count = this.observable(0);
-```
+* It has a `value` property that holds the current value of the observable.
+* It has an `update` method that allows you to update the value of the observable.
 
-**Getting the Value:**
+When you update the value of an observable, it will automatically trigger a re-render of the component's `html tagged template`. This is what makes the component reactive.
 
-You can get the current value of an observable by accessing its `value` property. For example, you can get the value of `count` like this:
-
-```javascript
-this.count.value;
-```
-
-**Setting the Value:**
-
-To update the value of an observable, you use the `update` method. This method accepts a function that receives the current value and returns the new value. For example, to increment `count`, you would do:
-
-```javascript
-this.count.update(value => value + 1);
-```
-
-**Deeply Nested Updates:**
-
-Cami.js observables support deeply nested updates. This means that if your observable's value is an object, you can update nested properties within that object.
-
-```javascript
-let user = this.observable({ name: { first: 'John', last: 'Doe' } });
-user.update(state => {
-  state.name.first = 'Jane';
-});
-```
-
-In this example, only the `first` property of the `name` object is updated. The rest of the `user` object remains the same.
-
-
-### `ReactiveElement` (`class`)
-
-`ReactiveElement` is a class that extends `HTMLElement` to create reactive web components. These components can automatically update their view when their state changes. This is achieved by using observables to track changes in state. The class provides a set of methods to interact with these observables and the component's lifecycle.
-
-Let's illustrate this with a counter example:
+Let's illustrate these three concepts with an example. Here's a simple counter component:
 
 ```html
 <counter-element></counter-element>
@@ -107,11 +85,71 @@ customElements.define('counter-element', CounterElement);
 
 In this example, `CounterElement` is a reactive web component that maintains an internal state (`count`) and updates its view whenever the state changes.
 
-#### Computed Properties and Effects
+### Basics of Observables & Templates
+
+**Creating an Observable:**
+
+In the context of a `ReactiveElement`, you can create an observable using the `this.observable()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
+
+```javascript
+this.count = this.observable(0);
+```
+
+**Getting the Value:**
+
+You can get the current value of an observable by accessing its `value` property. For example, you can get the value of `count` like this:
+
+```javascript
+this.count.value;
+```
+
+**Setting the Value:**
+
+To update the value of an observable, you use the `update` method. This method accepts a function that receives the current value and returns the new value. For example, to increment `count`, you would do:
+
+```javascript
+this.count.update(value => value + 1);
+```
+
+**Deeply Nested Updates:**
+
+An interesting thing to note (which many libaries have struggle supporting) is that Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Example:
+
+```javascript
+let user = this.observable({ name: { first: 'John', last: 'Doe' } });
+user.update(state => {
+  state.name.first = 'Jane';
+});
+```
+
+Here, only the `first` property of the `name` object is updated. The rest of the `user` object remains the same.
+
+**Template Rendering:**
+
+Cami.js uses lit-html for its template rendering. This allows you to write HTML templates in JavaScript using tagged template literals. Think of it as fancy string interpolation.
+
+Here's the example from above:
+
+```javascript
+  template() {
+    return html`
+      <button @click=${() => this.increment()}>Increment</button>
+      <p>Count: ${this.count.value}</p>
+    `;
+  }
+```
+
+In this example, `html` is a function that gets called with the template literal. It processes the template literal and creates a template instance that can be efficiently updated and rendered.
+
+The `${}` syntax inside the template literal is used to embed JavaScript expressions. These expressions can be variables, properties, or even functions. In the example above, `${this.count.value}` will be replaced with the current value of the `count` observable, and `${() => this.count.update(value => value + 1)}` is a function that increments the count when the button is clicked.
+
+The `@click` syntax is used to attach event listeners to elements. In this case, a click event listener is attached to the button element.
+
+### Basics of Computed Properties & Effects
 
 **Computed Properties:**
 
-Computed properties are a powerful feature in Cami.js that allow you to create properties that are derived from other observable properties. These properties automatically update whenever their dependencies change. This is particularly useful for calculations that depend on one or more parts of the state.
+Computed properties are a powerful feature in Cami.js that allow you to create properties that are derived from other observables. These properties automatically update whenever their dependencies change. This is particularly useful for calculations that depend on one or more parts of the state.
 
 For instance, in the `CounterElement` example from `_001_counter.html`, a computed property `countSquared` is defined as the square of the `count` observable:
 
@@ -145,8 +183,7 @@ this.effect(() => {
 
 In this example, a 'count-reached-ten' event is dispatched whenever the count reaches 10. This can be useful for integrating with non-reactive parts of your application or for triggering specific actions in response to state changes like with
 
-
-**Methods:**
+**ReactiveElement Methods:**
 
 - `observable(initialValue)`: Defines an observable property with an initial value. Returns an object with `value` property and `update` method.
 - `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Returns the observable.
@@ -220,16 +257,16 @@ For more detailed information, refer to the lit-html documentation: [docs](https
 
 ## Examples
 
-To try the examples, just go to the project root and run:
+To see some examples, just go to the project root and run:
 
 ```bash
 bun install --global serve
 bunx serve
 ```
 
-Then open http://localhost:3000 in your browser, then navigate to the examples folder.
+Open http://localhost:3000 in your browser, then navigate to the examples folder. In the examples folder, you will find a series of examples that illustrate the key concepts of Cami.js. These examples are numbered & ordered by complexity.
 
-It's recommended to view these examples through localhost (see above).
+They are also listed below:
 
 ```html
 <!-- ./examples/_001_counter.html -->
