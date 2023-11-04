@@ -24,7 +24,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 ## Key Anti-Features:
 
-No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, returning HTML responses & not JSON. Then add islands of interactivity as needed.
+- No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, returning HTML responses & not JSON. Then add islands of interactivity as needed.
 
 ## Who is this for?
 
