@@ -61,26 +61,24 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
       class CounterElement extends ReactiveElement {
         constructor() {
           super();
-          this.observable('count', 0);
-          this.computed('countSquared', () => {
-            return this.count * this.count
-          });
-          this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
+          this.count = this.observable(0);
+          this.countSquared = this.computed(() => this.count.value * this.count.value);
+          this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
         }
 
         increment() {
-          this.count++;
+          this.count.update(value => value + 1);
         }
 
         decrement() {
-          this.count--;
+          this.count.update(value => value - 1);
         }
 
         template() {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>Base: ${this.count}</span>
-            <span>Squared: ${this.countSquared}</span>
+            <span>Base: ${this.count.value}</span>
+            <span>Squared: ${this.countSquared.value}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }
@@ -110,12 +108,12 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
     });
 
     // Step 2: Register reducers for adding and removing todo items
-    todoStore.register('add', (draftStore, payload) => {
-      draftStore.todos.push(payload);
+    todoStore.register('add', (store, payload) => {
+      store.todos.push(payload);
     });
 
-    todoStore.register('delete', (draftStore, payload) => {
-      draftStore.todos = draftStore.todos.filter(todo => todo !== payload);
+    todoStore.register('delete', (store, payload) => {
+      store.todos = store.todos.filter(todo => todo !== payload);
     });
 
     const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
@@ -142,7 +140,7 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
             document.getElementById('newTodo').value = '';
           }}>Add</button>
           <ul>
-            ${this.todos.map(todo => html`
+            ${this.todos.value.map(todo => html`
               <li>
                 ${todo}
                 <button @click=${() => this.dispatch("delete", todo)}>Delete</button>
@@ -174,16 +172,52 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
     // Step 1: Define the initial state of our store
     const userStore = createStore({
       users: [
-        { id: 1, name: "Alice", status: "Active" },
-        { id: 2, name: "Bob", status: "Inactive" },
+        {
+          id: 1,
+          name: "Alice",
+          status: "Active",
+          address: {
+            street: '123 Main St',
+            city: 'Anytown',
+            coordinates: {
+              lat: '40.7128',
+              long: '74.0060'
+            }
+          }
+        },
+        {
+          id: 2,
+          name: "Bob",
+          status: "Inactive",
+          address: {
+            street: '456 Elm St',
+            city: 'Othertown',
+            coordinates: {
+              lat: '51.5074',
+              long: '0.1278'
+            }
+          }
+        },
       ],
     });
 
     // Step 2: Register a reducer for updating a user's status
-    userStore.register('updateStatus', (draftStore, payload) => {
-      const user = draftStore.users.find(user => user.id === payload.id);
+    userStore.register('updateStatus', (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
       if (user) {
         user.status = payload.status;
+      }
+    });
+    userStore.register('updateStreet', (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.address.street = payload.street;
+      }
+    });
+    userStore.register('updateLat', (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.address.coordinates.lat = payload.lat;
       }
     });
 
@@ -191,17 +225,20 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
     class UserListElement extends ReactiveElement {
       constructor() {
         super();
-        this.subscribe('users', userStore);
+        this.users = this.subscribe('users', userStore);
       }
 
       template() {
         return html`
           <ul>
-            ${this.users.map(user => html`
+            ${this.users.value.map(user => html`
               <li>
-                ${user.name} - ${user.status}
+                ${user.name} - ${user.status}<br />
+                ${user.address.street} - ${user.address.coordinates.lat}
                 <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
                 <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
+                <button @click=${() => this.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
+                <button @click=${() => this.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
               </li>
             `)}
           </ul>
@@ -233,10 +270,40 @@ Normally, the reducer functions in the stores would do this well. But if you wan
   <script type="module">
     import { html, ReactiveElement } from './cami.module.js';
 
+    class UserFormElement extends ReactiveElement {
+      constructor() {
+        super();
+        this.user = this.observable({ name: 'Kenn', age: 34 });
+      }
+
+      handleInput(event, key) {
+        this.user.update(value => {
+          value[key] = event.target.value;
+        });
+      }
+
+      template() {
+        return html`
+          <form>
+            <label>
+              Name: ${this.user.value.name}
+              <input type="text" .value=${this.user.value.name} @input=${(e) => this.handleInput(e, 'name')} />
+            </label>
+            <label>
+              Age: ${this.user.value.age}
+              <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
+            </label>
+          </form>
+        `;
+      }
+    }
+
+    customElements.define('user-form-component', UserFormElement);
+
     class NestedObservableElement extends ReactiveElement {
       constructor() {
         super();
-        this.observable('user', {
+        this.user = this.observable({
           name: 'John',
           age: 30,
           address: {
@@ -253,55 +320,55 @@ Normally, the reducer functions in the stores would do this well. But if you wan
       }
 
       changeUser() {
-        this.setFields('user', draftUser => {
-          if (draftUser.name == 'John') {
-            draftUser.name = 'Jane';
-            draftUser.age = 31;
-            draftUser.address.street = '456 Elm St';
-            draftUser.address.city = 'Othertown';
-            draftUser.address.country = 'Canada';
-            draftUser.address.postalCode = '67890';
-            draftUser.address.coordinates.lat = '51.5074';
-            draftUser.address.coordinates.long = '0.1278';
+        this.user.update(value => {
+          if (value.name == 'John') {
+            value.name = 'Jane';
+            value.age = 31;
+            value.address.street = '456 Elm St';
+            value.address.city = 'Othertown';
+            value.address.country = 'Canada';
+            value.address.postalCode = '67890';
+            value.address.coordinates.lat = '51.5074';
+            value.address.coordinates.long = '0.1278';
           } else {
-            draftUser.name = 'John';
-            draftUser.age = 30;
-            draftUser.address.street = '123 Main St';
-            draftUser.address.city = 'Anytown';
-            draftUser.address.country = 'USA';
-            draftUser.address.postalCode = '12345';
-            draftUser.address.coordinates.lat = '40.7128';
-            draftUser.address.coordinates.long = '74.0060';
+            value.name = 'John';
+            value.age = 30;
+            value.address.street = '123 Main St';
+            value.address.city = 'Anytown';
+            value.address.country = 'USA';
+            value.address.postalCode = '12345';
+            value.address.coordinates.lat = '40.7128';
+            value.address.coordinates.long = '74.0060';
           }
         });
       }
 
       changeName() {
-        this.setFields('user', draftUser => {
-          if (draftUser.name == 'John') draftUser.name = 'Jane';
-          else draftUser.name = 'John';
+        this.user.update(value => {
+          if (value.name == 'John') value.name = 'Jane';
+          else value.name = 'John';
         });
       }
 
       changeStreet() {
-        this.setFields('user', draftUser => {
-          if (draftUser.address.street == '123 Main St') draftUser.address.street = '456 Elm St';
-          else draftUser.address.street = '123 Main St';
+        this.user.update(value => {
+          if (value.address.street == '123 Main St') value.address.street = '456 Elm St';
+          else value.address.street = '123 Main St';
         });
       }
 
       changeLat() {
-        this.setFields('user', draftUser => {
-          if (draftUser.address.coordinates.lat == '40.7128') draftUser.address.coordinates.lat = '51.5074';
-          else draftUser.address.coordinates.lat = '40.7128';
+        this.user.update(value => {
+          if (value.address.coordinates.lat == '40.7128') value.address.coordinates.lat = '51.5074';
+          else value.address.coordinates.lat = '40.7128';
         });
       }
 
       template() {
         return html`
-          <div>Name: ${this.user.name}</div>
-          <div>Street: ${this.user.address.street}</div>
-          <div>Latitude: ${this.user.address.coordinates.lat}</div>
+          <div>Name: ${this.user.value.name}</div>
+          <div>Street: ${this.user.value.address.street}</div>
+          <div>Latitude: ${this.user.value.address.coordinates.lat}</div>
           <button @click=${() => this.changeUser()}>Change User</button>
           <button @click=${() => this.changeName()}>Change Name</button>
           <button @click=${() => this.changeStreet()}>Change Street</button>
@@ -309,7 +376,6 @@ Normally, the reducer functions in the stores would do this well. But if you wan
         `;
       }
     }
-
 
     customElements.define('nested-observable-element', NestedObservableElement);
   </script>
@@ -332,26 +398,26 @@ Normally, the reducer functions in the stores would do this well. But if you wan
     class FormElement extends ReactiveElement {
       constructor() {
         super();
-        this.observable('email', '');
-        this.observable('password', '');
-        this.observable('emailError', '');
-        this.observable('passwordError', '');
+        this.email = this.observable('');
+        this.password = this.observable('');
+        this.emailError = this.observable('');
+        this.passwordError = this.observable('');
       }
 
       validateEmail() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(this.email)) {
-          this.emailError = 'Please enter a valid email address.';
+        if (!emailRegex.test(this.email.value)) {
+          this.emailError.update(() => 'Please enter a valid email address.');
         } else {
-          this.emailError = '';
+          this.emailError.update(() => '');
         }
       }
 
       validatePassword() {
-        if (this.password.length < 8) {
-          this.passwordError = 'Password must be at least 8 characters long.';
+        if (this.password.value.length < 8) {
+          this.passwordError.update(() => 'Password must be at least 8 characters long.');
         } else {
-          this.passwordError = '';
+          this.passwordError.update(() => '');
         }
       }
 
@@ -360,15 +426,15 @@ Normally, the reducer functions in the stores would do this well. But if you wan
           <form action="/submit" method="POST">
             <label>
               Email:
-              <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
-              <span>${this.emailError}</span>
+              <input type="email" @input=${(e) => { this.email.update(() => e.target.value); this.validateEmail(); }} value=${this.email.value}>
+              <span>${this.emailError.value}</span>
             </label>
             <label>
               Password:
-              <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
-              <span>${this.passwordError}</span>
+              <input type="password" @input=${(e) => { this.password.update(() => e.target.value); this.validatePassword(); }} value=${this.password.value}>
+              <span>${this.passwordError.value}</span>
             </label>
-            <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
+            <input type="submit" value="Submit" ?disabled=${this.emailError.value || this.passwordError.value}>
           </form>
         `;
       }
@@ -387,18 +453,18 @@ Normally, the reducer functions in the stores would do this well. But if you wan
   <head>
     <!-- ... -->
   </head>
-<body>
-  <article>
-    <h2>Products</h2>
-    <product-list-component></product-list-component>
-  </article>
-  <article>
-    <h2>Cart</h2>
-    <cart-component></cart-component>
-  </article>
+  <body>
+    <article>
+      <h2>Products</h2>
+      <product-list-component></product-list-component>
+    </article>
+    <article>
+      <h2>Cart</h2>
+      <cart-component></cart-component>
+    </article>
 
-  <script type="module">
-    import { html, ReactiveElement } from './cami.module.js';
+    <script type="module">
+      import { html, ReactiveElement } from './cami.module.js';
 
       const cartStore = createStore({
         cartItems: [],
@@ -409,19 +475,19 @@ Normally, the reducer functions in the stores would do this well. But if you wan
         ]
       });
 
-      cartStore.register('add', (state, product) => {
+      cartStore.register('add', (store, product) => {
         const cartItem = { ...product, cartItemId: Date.now() };
-        state.cartItems.push(cartItem);
-        state.products = state.products.map(p => {
+        store.cartItems.push(cartItem);
+        store.products = store.products.map(p => {
           if (p.id === product.id) {
             p.stock--;
           }
           return p;
         });
       });
-      cartStore.register('remove', (state, product) => {
-        state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-        state.products = state.products.map(p => {
+      cartStore.register('remove', (store, product) => {
+        store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+        store.products = store.products.map(p => {
           if (p.id === product.id) {
             p.stock++;
           }
@@ -441,7 +507,7 @@ Normally, the reducer functions in the stores would do this well. But if you wan
         }
 
         isProductInCart(product) {
-          return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+          return this.cartItems.value ? this.cartItems.value.some(item => item.id === product.id) : false;
         }
 
         isOutOfStock(product) {
@@ -451,7 +517,7 @@ Normally, the reducer functions in the stores would do this well. But if you wan
         template() {
           return html`
             <ul>
-              ${this.products.map(product => html`
+              ${this.products.value.map(product => html`
                 <li>
                   ${product.name} - ${product.price} | Stock: ${product.stock}
                   <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
@@ -470,8 +536,8 @@ Normally, the reducer functions in the stores would do this well. But if you wan
         constructor() {
           super();
           this.subscribe('cartItems', cartStore);
-          this.computed('cartValue', () => {
-            return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+          this.cartValue = this.computed(() => {
+            return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
           });
         }
 
@@ -481,9 +547,9 @@ Normally, the reducer functions in the stores would do this well. But if you wan
 
         template() {
           return html`
-            <p>Cart value: ${this.cartValue}</p>
+            <p>Cart value: ${this.cartValue.value}</p>
             <ul>
-              ${this.cartItems.map(item => html`
+              ${this.cartItems.value.map(item => html`
                 <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
               `)}
             </ul>
@@ -501,18 +567,18 @@ Normally, the reducer functions in the stores would do this well. But if you wan
 
 ### `ReactiveElement` (`class`)
 
-A class that extends `HTMLElement` to create reactive web components that can automatically update their view when their state changes. It uses observables to track changes in state.
+A class that extends `HTMLElement` to create reactive web components that can automatically update their view when their state changes. It uses observables to track changes in state and provides a set of methods to interact with these observables and the component's lifecycle.
 
 **Methods:**
 
-- `observable(key, initialValue)`: Defines an observable property. Throws an error if the key is already defined.
-- `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Throws an error if the key is already defined.
-- `computed(key, fn)`: Defines a computed property. Throws an error if the key is already defined.
-- `effect(fn)`: Defines an effect. Throws an error if the key is already defined.
+- `observable(initialValue)`: Defines an observable property with an initial value. Returns an object with `value` property and `update` method.
+- `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Returns the observable.
+- `computed(computeFn)`: Defines a computed property that depends on other observables. Returns an object with a `value` getter.
+- `effect(effectFn)`: Defines an effect that is triggered when an observable changes. The effect function can optionally return a cleanup function.
 - `dispatch(action, payload)`: Dispatches an action to the store.
-- `setFields(key, fn)`: Sets deeply nested fields in an observable property, beyond the first level. Throws an error if the key is not defined.
 - `template()`: A method that should be implemented to return the template to be rendered.
-- `connectedCallback()`: Called each time the element is added to the document. Sets up initial state and triggers initial rendering.
+- `connectedCallback()`: Lifecycle method called each time the element is added to the document. Sets up initial state and triggers initial rendering.
+- `disconnectedCallback()`: Lifecycle method called each time the element is removed from the document. Cleans up listeners and effects.
 
 Note: Lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
 

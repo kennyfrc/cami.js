@@ -47,31 +47,18 @@ class ReactiveElement extends HTMLElement {
    * @param {string} key - The key for the observable
    * @param {any} initialValue - The initial value for the observable
    */
-  observable(key, initialValue) {
-    if (this._observables.has(key)) {
-      throw new Error(`Observable "${key}" is already defined`);
-    }
+  observable(initialValue) {
     let value = produce(initialValue, draft => {});
-    Object.defineProperty(this, key, {
-      get: () => value,
-      set: newValue => {
-        value = produce(newValue, draft => {});
-        this.react();
+    const react = this.react.bind(this);
+    return {
+      get value() {
+        return value;
       },
-    });
-    this._observables.set(key, value);
-  }
-
-  /**
-   * @method
-   * @param {string} key - The key for the field to update
-   * @param {Function} updater - The function to produce the new value
-   * This method is used to update the value of a field using an updater function.
-   */
-  setFields(key, updater) {
-    const oldValue = this[key];
-    const newValue = produce(oldValue, updater);
-    this[key] = newValue;
+      update(updater) {
+        value = produce(value, updater);
+        react();
+      },
+    };
   }
 
   /**
@@ -80,10 +67,12 @@ class ReactiveElement extends HTMLElement {
    * @param {Function} computeFn - The function to compute the value of the property
    * This method is used to define a computed property that depends on other observables.
    */
-  computed(key, computeFn) {
-    Object.defineProperty(this, key, {
-      get: () => computeFn.call(this),
-    });
+  computed(computeFn) {
+    return {
+      get value() {
+        return computeFn.call(this);
+      },
+    };
   }
 
   /**
@@ -103,11 +92,13 @@ class ReactiveElement extends HTMLElement {
    */
   subscribe(key, store) {
     this.store = store;
-    this.observable(key, store.state[key]);
+    const observable = this.observable(store.state[key]);
+    this._observables.set(key, observable);
     const unsubscribe = store.subscribe(newState => {
-      this[key] = newState[key];
+      this._observables.get(key).update(() => newState[key]);
     });
     this._unsubscribers.set(key, unsubscribe);
+    this[key] = observable;
   }
 
   /**

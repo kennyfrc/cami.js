@@ -28,19 +28,19 @@
         ]
       });
 
-      cartStore.register('add', (state, product) => {
+      cartStore.register('add', (store, product) => {
         const cartItem = { ...product, cartItemId: Date.now() };
-        state.cartItems.push(cartItem);
-        state.products = state.products.map(p => {
+        store.cartItems.push(cartItem);
+        store.products = store.products.map(p => {
           if (p.id === product.id) {
             p.stock--;
           }
           return p;
         });
       });
-      cartStore.register('remove', (state, product) => {
-        state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-        state.products = state.products.map(p => {
+      cartStore.register('remove', (store, product) => {
+        store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+        store.products = store.products.map(p => {
           if (p.id === product.id) {
             p.stock++;
           }
@@ -60,7 +60,7 @@
         }
 
         isProductInCart(product) {
-          return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+          return this.cartItems.value ? this.cartItems.value.some(item => item.id === product.id) : false;
         }
 
         isOutOfStock(product) {
@@ -70,7 +70,7 @@
         template() {
           return html`
             <ul>
-              ${this.products.map(product => html`
+              ${this.products.value.map(product => html`
                 <li>
                   ${product.name} - ${product.price} | Stock: ${product.stock}
                   <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
@@ -89,8 +89,8 @@
         constructor() {
           super();
           this.subscribe('cartItems', cartStore);
-          this.computed('cartValue', () => {
-            return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+          this.cartValue = this.computed(() => {
+            return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
           });
         }
 
@@ -100,9 +100,9 @@
 
         template() {
           return html`
-            <p>Cart value: ${this.cartValue}</p>
+            <p>Cart value: ${this.cartValue.value}</p>
             <ul>
-              ${this.cartItems.map(item => html`
+              ${this.cartItems.value.map(item => html`
                 <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
               `)}
             </ul>

@@ -25,12 +25,12 @@
       class UserFormElement extends ReactiveElement {
         constructor() {
           super();
-          this.observable('user', { name: 'Kenn', age: 34 });
+          this.user = this.observable({ name: 'Kenn', age: 34 });
         }
 
         handleInput(event, key) {
-          this.setFields('user', draftUser => {
-            draftUser[key] = event.target.value;
+          this.user.update(value => {
+            value[key] = event.target.value;
           });
         }
 
@@ -38,12 +38,12 @@
           return html`
             <form>
               <label>
-                Name: ${this.user.name}
-                <input type="text" .value=${this.user.name} @input=${(e) => this.handleInput(e, 'name')} />
+                Name: ${this.user.value.name}
+                <input type="text" .value=${this.user.value.name} @input=${(e) => this.handleInput(e, 'name')} />
               </label>
               <label>
-                Age: ${this.user.age}
-                <input type="number" .value=${this.user.age} @input=${(e) => this.handleInput(e, 'age')} />
+                Age: ${this.user.value.age}
+                <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
               </label>
             </form>
           `;
@@ -55,7 +55,7 @@
       class NestedObservableElement extends ReactiveElement {
         constructor() {
           super();
-          this.observable('user', {
+          this.user = this.observable({
             name: 'John',
             age: 30,
             address: {
@@ -72,55 +72,55 @@
         }
 
         changeUser() {
-          this.setFields('user', draftUser => {
-            if (draftUser.name == 'John') {
-              draftUser.name = 'Jane';
-              draftUser.age = 31;
-              draftUser.address.street = '456 Elm St';
-              draftUser.address.city = 'Othertown';
-              draftUser.address.country = 'Canada';
-              draftUser.address.postalCode = '67890';
-              draftUser.address.coordinates.lat = '51.5074';
-              draftUser.address.coordinates.long = '0.1278';
+          this.user.update(value => {
+            if (value.name == 'John') {
+              value.name = 'Jane';
+              value.age = 31;
+              value.address.street = '456 Elm St';
+              value.address.city = 'Othertown';
+              value.address.country = 'Canada';
+              value.address.postalCode = '67890';
+              value.address.coordinates.lat = '51.5074';
+              value.address.coordinates.long = '0.1278';
             } else {
-              draftUser.name = 'John';
-              draftUser.age = 30;
-              draftUser.address.street = '123 Main St';
-              draftUser.address.city = 'Anytown';
-              draftUser.address.country = 'USA';
-              draftUser.address.postalCode = '12345';
-              draftUser.address.coordinates.lat = '40.7128';
-              draftUser.address.coordinates.long = '74.0060';
+              value.name = 'John';
+              value.age = 30;
+              value.address.street = '123 Main St';
+              value.address.city = 'Anytown';
+              value.address.country = 'USA';
+              value.address.postalCode = '12345';
+              value.address.coordinates.lat = '40.7128';
+              value.address.coordinates.long = '74.0060';
             }
           });
         }
 
         changeName() {
-          this.setFields('user', draftUser => {
-            if (draftUser.name == 'John') draftUser.name = 'Jane';
-            else draftUser.name = 'John';
+          this.user.update(value => {
+            if (value.name == 'John') value.name = 'Jane';
+            else value.name = 'John';
           });
         }
 
         changeStreet() {
-          this.setFields('user', draftUser => {
-            if (draftUser.address.street == '123 Main St') draftUser.address.street = '456 Elm St';
-            else draftUser.address.street = '123 Main St';
+          this.user.update(value => {
+            if (value.address.street == '123 Main St') value.address.street = '456 Elm St';
+            else value.address.street = '123 Main St';
           });
         }
 
         changeLat() {
-          this.setFields('user', draftUser => {
-            if (draftUser.address.coordinates.lat == '40.7128') draftUser.address.coordinates.lat = '51.5074';
-            else draftUser.address.coordinates.lat = '40.7128';
+          this.user.update(value => {
+            if (value.address.coordinates.lat == '40.7128') value.address.coordinates.lat = '51.5074';
+            else value.address.coordinates.lat = '40.7128';
           });
         }
 
         template() {
           return html`
-            <div>Name: ${this.user.name}</div>
-            <div>Street: ${this.user.address.street}</div>
-            <div>Latitude: ${this.user.address.coordinates.lat}</div>
+            <div>Name: ${this.user.value.name}</div>
+            <div>Street: ${this.user.value.address.street}</div>
+            <div>Latitude: ${this.user.value.address.coordinates.lat}</div>
             <button @click=${() => this.changeUser()}>Change User</button>
             <button @click=${() => this.changeName()}>Change Name</button>
             <button @click=${() => this.changeStreet()}>Change Street</button>
@@ -128,7 +128,6 @@
           `;
         }
       }
-
 
       customElements.define('nested-observable-element', NestedObservableElement);
 
@@ -165,20 +164,20 @@
       });
 
       // Step 2: Register a reducer for updating a user's status
-      userStore.register('updateStatus', (draftStore, payload) => {
-        const user = draftStore.users.find(user => user.id === payload.id);
+      userStore.register('updateStatus', (store, payload) => {
+        const user = store.users.find(user => user.id === payload.id);
         if (user) {
           user.status = payload.status;
         }
       });
-      userStore.register('updateStreet', (draftStore, payload) => {
-        const user = draftStore.users.find(user => user.id === payload.id);
+      userStore.register('updateStreet', (store, payload) => {
+        const user = store.users.find(user => user.id === payload.id);
         if (user) {
           user.address.street = payload.street;
         }
       });
-      userStore.register('updateLat', (draftStore, payload) => {
-        const user = draftStore.users.find(user => user.id === payload.id);
+      userStore.register('updateLat', (store, payload) => {
+        const user = store.users.find(user => user.id === payload.id);
         if (user) {
           user.address.coordinates.lat = payload.lat;
         }
@@ -188,13 +187,13 @@
       class UserListElement extends ReactiveElement {
         constructor() {
           super();
-          this.subscribe('users', userStore);
+          this.users = this.subscribe('users', userStore);
         }
 
         template() {
           return html`
             <ul>
-              ${this.users.map(user => html`
+              ${this.users.value.map(user => html`
                 <li>
                   ${user.name} - ${user.status}<br />
                   ${user.address.street} - ${user.address.coordinates.lat}

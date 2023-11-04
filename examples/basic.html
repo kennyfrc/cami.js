@@ -20,35 +20,27 @@
     </article>
     <script type="module">
       import { createStore, html, ReactiveElement } from './build/cami.module.js';
-
       class CounterElement extends ReactiveElement {
         constructor() {
           super();
-          this.observable('count', 0);
-          this.computed('countSquared', () => {
-            return this.count * this.count
-          });
-          this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
-        }
-
-        connectedCallback() {
-          super.connectedCallback();
-          this.count = this.getAttribute('count');
+          this.count = this.observable(0);
+          this.countSquared = this.computed(() => this.count.value * this.count.value);
+          this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
         }
 
         increment() {
-          this.count++;
+          this.count.update(value => value + 1);
         }
 
         decrement() {
-          this.count--;
+          this.count.update(value => value - 1);
         }
 
         template() {
           return html`
             <button @click=${() => this.decrement()}>-</button>
-            <span>Base: ${this.count}</span>
-            <span>Squared: ${this.countSquared}</span>
+            <span>Base: ${this.count.value}</span>
+            <span>Squared: ${this.countSquared.value}</span>
             <button @click=${() => this.increment()}>+</button>
           `;
         }
@@ -63,12 +55,12 @@
       });
 
       // Step 2: Register reducers for adding and removing todo items
-      todoStore.register('add', (draftStore, payload) => {
-        draftStore.todos.push(payload);
+      todoStore.register('add', (store, payload) => {
+        store.todos.push(payload);
       });
 
-      todoStore.register('delete', (draftStore, payload) => {
-        draftStore.todos = draftStore.todos.filter(todo => todo !== payload);
+      todoStore.register('delete', (store, payload) => {
+        store.todos = store.todos.filter(todo => todo !== payload);
       });
 
       const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
@@ -95,10 +87,10 @@
               document.getElementById('newTodo').value = '';
             }}>Add</button>
             <ul>
-              ${this.todos.map(todo => html`
+              ${this.todos.value.map(todo => html`
                 <li>
                   ${todo}
-                  <button @click=${() => this.dispatch("delete", todo)}>Delete</button> <!-- Use this.dispatch instead of todoStore.dispatch -->
+                  <button @click=${() => this.dispatch("delete", todo)}>Delete</button>
                 </li>
               `)}
             </ul>
