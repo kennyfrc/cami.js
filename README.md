@@ -2,9 +2,10 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.8
+Current version: 0.0.9.
+Bundle Size: 8kb minified & gzipped.
 
-A minimalist & flexible toolkit for interactive islands & state management in web applications.
+A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
 
 ## Motivation
 
@@ -17,23 +18,15 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 ## Key Features:
 
 - No Build Step: Reduce complexity in your projects. Just import the module and start using it.
-- Reactive Web Components (Light DOM, Observables): Create interactive islands in web applications, and doesn't take over your frontend. Based on Web Standards. No Shadow DOM. Fine-grained reactivity with observables, computed properties, and effects. For deeply nested objects, you can use `setFields()` to update them.
-- Lit-HTML Templates: Declarative & powerful templates with directives like `@click`, attribute binding, composability, caching, custom directives, and more.
-- Singleton Store: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state, allowing for time-travel debugging with its Redux DevTools integration.
-- Middleware: You can use middleware to add functionality like logging.
-- Backend Agnostic: You don't have to turn everything into a javascript project. You can use Cami with any backend technology. It's just a module that you can import into your project.
-- Minimalist: It's lightweight and simple, with minimal abstractions.
+- Reactive Web Components: We suggest to start any web application with normal HTML/CSS, then add interactive islands with Cami's reactive web components. Uses fine-grained reactivity with observables, computed properties, and effects. Also supports for deeply nested updates. Uses the Light DOM instead of Shadow DOM.
+- Tagged Templates: Declarative templates with lit-html. Supports event handling, attribute binding, composability, caching, and expressions.
+- Store / State Management: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state. Redux DevTools compatible.
+- Easy Immutable Updates: Uses Immer under the hood, so you can update your state immutably without excessive boilerplate.
 
 ## Who is this for?
 
-- **Developers of Small to Medium-sized Applications**: If you're building a small to medium-sized application, you can use Cami as your main frontend framework. It's a great choice for dashboards, calculators, and other interactive islands. If you're working in more complex applications, you may need something more componentized with a large ecosystem, so we're not a good fit for that.
-- **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, that's mostly static, you can use Cami to add interactive islands to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
-
-## Philosophy
-
-- **Hypermedia-driven API**: We recommend using a hypermedia-driven API, or in other words, never return JSON responses. Instead, return HTML. The purpose of Cami is to add interactivity to your application.
-- **Built for Any Backend / MPA**: Cami is built for Multi-Page Applications, using any backend technology you like (ruby, haskell, rust, etc). Write HTML/CSS for layouts and static content, and use Cami for interactive islands. You don't have to turn everything into a javascript project. It's just a module that you can import into your project with no build steps. It doesn't have a router as we recommend prefer server-driven navigation. If you don't like full page reloads, you can use HTMX, Unpoly, Turbo, or TwinSpark, and Cami will still work with them.
-- **Portable & Flexible Tools**: You can import Cami into any javascript project. If you like our state management (`createStore()`), you can use it with React, Vue, or any other framework. If you like our reactive web component (`ReactiveElement`), you can use it alone.
+- **Solo Developers or Lean Teams**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
+- **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivactivity to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
 
 ## Key Concepts / API
 
@@ -71,8 +64,8 @@ Cami.js observables support deeply nested updates. This means that if your obser
 
 ```javascript
 let user = this.observable({ name: { first: 'John', last: 'Doe' } });
-user.update(value => {
-  value.name.first = 'Jane';
+user.update(state => {
+  state.name.first = 'Jane';
 });
 ```
 
@@ -140,7 +133,7 @@ this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${thi
 
 This effect will run whenever `count` or `countSquared` changes, logging the new values to the console. This can be particularly useful for debugging.
 
-Effects can also be used to emit custom events after specific state changes. For instance, you could emit a custom event whenever the count reaches a certain value:
+Effects can also be used to emit custom events after specific state changes. For instance, you could emit a custom event whenever the count reaches a certain value. Here's a great essay on this topic: [Hypermedia-Friendly Scripting](https://htmx.org/essays/hypermedia-friendly-scripting/#events)
 
 ```javascript
 this.effect(() => {
@@ -150,7 +143,7 @@ this.effect(() => {
 });
 ```
 
-In this example, a 'count-reached-ten' event is dispatched whenever the count reaches 10. This can be useful for integrating with non-reactive parts of your application or for triggering specific actions in response to state changes.
+In this example, a 'count-reached-ten' event is dispatched whenever the count reaches 10. This can be useful for integrating with non-reactive parts of your application or for triggering specific actions in response to state changes like with
 
 
 **Methods:**
