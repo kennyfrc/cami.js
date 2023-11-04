@@ -17,15 +17,18 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 ## Key Features:
 
-- No Build Step: Reduce complexity in your projects. Just import the module and start using it.
 - Reactive Web Components: We suggest to start any web application with normal HTML/CSS, then add interactive islands with Cami's reactive web components. Uses fine-grained reactivity with observables, computed properties, and effects. Also supports for deeply nested updates. Uses the Light DOM instead of Shadow DOM.
 - Tagged Templates: Declarative templates with lit-html. Supports event handling, attribute binding, composability, caching, and expressions.
 - Store / State Management: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state. Redux DevTools compatible.
 - Easy Immutable Updates: Uses Immer under the hood, so you can update your state immutably without excessive boilerplate.
 
+## Key Anti-Features:
+
+No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, returning HTML responses & not JSON. Then add islands of interactivity as needed.
+
 ## Who is this for?
 
-- **Solo Developers or Lean Teams**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
+- **Lean Teams or Solo Devs**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
 - **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivactivity to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
 
 ## Get Started & View Examples
@@ -43,7 +46,7 @@ Open http://localhost:3000 in your browser, then navigate to the examples folder
 
 ## Key Concepts / API
 
-### `ReactiveElement Class`, `Observable` Objects, and `Templates`
+### `ReactiveElement Class`, `Observable` Objects, and `HTML Tagged Templates`
 
 `ReactiveElement` is a class that extends `HTMLElement` to create reactive web components. These components can automatically update their view (the `template`) when their state changes.
 
@@ -115,7 +118,7 @@ this.count.update(value => value + 1);
 
 **Deeply Nested Updates:**
 
-An interesting thing to note (which many libaries have struggle supporting) is that Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Example:
+An interesting thing to note (which many libaries don't support with one method/function) is that Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Example:
 
 ```javascript
 let user = this.observable({ name: { first: 'John', last: 'Doe' } });
