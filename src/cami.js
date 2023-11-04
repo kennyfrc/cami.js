@@ -90,7 +90,7 @@ class ReactiveElement extends HTMLElement {
    * @param {string} key - The key for the store
    * @param {Store} store - The store to bind
    */
-  subscribe(key, store) {
+  subscribe(store, key) {
     this.store = store;
     const observable = this.observable(store.state[key]);
     this._observables.set(key, observable);
@@ -98,7 +98,7 @@ class ReactiveElement extends HTMLElement {
       this._observables.get(key).update(() => newState[key]);
     });
     this._unsubscribers.set(key, unsubscribe);
-    this[key] = observable;
+    return observable;
   }
 
   /**

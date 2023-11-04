@@ -1,0 +1,85 @@
+<article>
+  <h1>User Update Page (Nested Observable)</h1>
+  <user-list-component></user-list-component>
+</article>
+<script type="module">
+  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+class NestedObservableElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.user = this.observable({
+        name: 'John',
+        age: 30,
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          country: 'USA',
+          postalCode: '12345',
+          coordinates: {
+            lat: '40.7128',
+            long: '74.0060'
+          }
+        }
+      });
+    }
+
+    changeUser() {
+      this.user.update(value => {
+        if (value.name == 'John') {
+          value.name = 'Jane';
+          value.age = 31;
+          value.address.street = '456 Elm St';
+          value.address.city = 'Othertown';
+          value.address.country = 'Canada';
+          value.address.postalCode = '67890';
+          value.address.coordinates.lat = '51.5074';
+          value.address.coordinates.long = '0.1278';
+        } else {
+          value.name = 'John';
+          value.age = 30;
+          value.address.street = '123 Main St';
+          value.address.city = 'Anytown';
+          value.address.country = 'USA';
+          value.address.postalCode = '12345';
+          value.address.coordinates.lat = '40.7128';
+          value.address.coordinates.long = '74.0060';
+        }
+      });
+    }
+
+    changeName() {
+      this.user.update(value => {
+        if (value.name == 'John') value.name = 'Jane';
+        else value.name = 'John';
+      });
+    }
+
+    changeStreet() {
+      this.user.update(value => {
+        if (value.address.street == '123 Main St') value.address.street = '456 Elm St';
+        else value.address.street = '123 Main St';
+      });
+    }
+
+    changeLat() {
+      this.user.update(value => {
+        if (value.address.coordinates.lat == '40.7128') value.address.coordinates.lat = '51.5074';
+        else value.address.coordinates.lat = '40.7128';
+      });
+    }
+
+    template() {
+      return html`
+        <div>Name: ${this.user.value.name}</div>
+        <div>Street: ${this.user.value.address.street}</div>
+        <div>Latitude: ${this.user.value.address.coordinates.lat}</div>
+        <button @click=${() => this.changeUser()}>Change User</button>
+        <button @click=${() => this.changeName()}>Change Name</button>
+        <button @click=${() => this.changeStreet()}>Change Street</button>
+        <button @click=${() => this.changeLat()}>Change Latitude</button>
+      `;
+    }
+  }
+
+  customElements.define('nested-observable-element', NestedObservableElement);
+</script>

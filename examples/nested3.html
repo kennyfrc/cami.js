@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>User Update Page (Nested Store)</h1>
+  <user-list-component></user-list-component>
+</article>
+<script type="module">
+  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  // Step 1: Define the initial state of our store
+  const userStore = createStore({
+    users: [
+      {
+        id: 1,
+        name: "Alice",
+        status: "Active",
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          coordinates: {
+            lat: '40.7128',
+            long: '74.0060'
+          }
+        }
+      },
+      {
+        id: 2,
+        name: "Bob",
+        status: "Inactive",
+        address: {
+          street: '456 Elm St',
+          city: 'Othertown',
+          coordinates: {
+            lat: '51.5074',
+            long: '0.1278'
+          }
+        }
+      },
+    ],
+  });
+
+  // Step 2: Register a reducer for updating a user's status
+  userStore.register('updateStatus', (store, payload) => {
+    const user = store.users.find(user => user.id === payload.id);
+    if (user) {
+      user.status = payload.status;
+    }
+  });
+  userStore.register('updateStreet', (store, payload) => {
+    const user = store.users.find(user => user.id === payload.id);
+    if (user) {
+      user.address.street = payload.street;
+    }
+  });
+  userStore.register('updateLat', (store, payload) => {
+    const user = store.users.find(user => user.id === payload.id);
+    if (user) {
+      user.address.coordinates.lat = payload.lat;
+    }
+  });
+
+  // Step 3: Define a custom element that uses the store
+  class UserListElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.users = this.subscribe(userStore, 'users');
+    }
+
+    template() {
+      return html`
+        <ul>
+          ${this.users.value.map(user => html`
+            <li>
+              ${user.name} - ${user.status}<br />
+              ${user.address.street} - ${user.address.coordinates.lat}
+              <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
+              <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
+              <button @click=${() => this.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
+              <button @click=${() => this.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('user-list-component', UserListElement);
+</script>
+
+  <script src="./js/pico-theme-switch.js"></script>
+</body>
+</html>

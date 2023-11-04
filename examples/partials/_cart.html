@@ -1,0 +1,105 @@
+<article>
+  <h2>Products</h2>
+  <product-list-component></product-list-component>
+</article>
+<article>
+  <h2>Cart</h2>
+  <cart-component></cart-component>
+</article>
+
+<script type="module">
+  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+
+  const cartStore = createStore({
+    cartItems: [],
+    products: [
+      { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
+      { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
+      { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
+    ]
+  });
+
+  cartStore.register('add', (store, product) => {
+    const cartItem = { ...product, cartItemId: Date.now() };
+    store.cartItems.push(cartItem);
+    store.products = store.products.map(p => {
+      if (p.id === product.id) {
+        p.stock--;
+      }
+      return p;
+    });
+  });
+  cartStore.register('remove', (store, product) => {
+    store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+    store.products = store.products.map(p => {
+      if (p.id === product.id) {
+        p.stock++;
+      }
+      return p;
+    });
+  });
+
+  class ProductListElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.cartItems = this.subscribe(cartStore, 'cartItems');
+      this.products = this.subscribe(cartStore, 'products');
+    }
+
+    addToCart(product) {
+      this.dispatch('add', product);
+    }
+
+    isProductInCart(product) {
+      return this.cartItems.value ? this.cartItems.value.some(item => item.id === product.id) : false;
+    }
+
+    isOutOfStock(product) {
+      return product.stock === 0;
+    }
+
+    template() {
+      return html`
+        <ul>
+          ${this.products.value.map(product => html`
+            <li>
+              ${product.name} - ${product.price} | Stock: ${product.stock}
+              <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
+                Add to cart
+              </button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('product-list-component', ProductListElement);
+
+  class CartElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.cartItems = this.subscribe(cartStore, 'cartItems');
+      this.cartValue = this.computed(() => {
+        return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
+      });
+    }
+
+    removeFromCart(product) {
+      this.dispatch('remove', product);
+    }
+
+    template() {
+      return html`
+        <p>Cart value: ${this.cartValue.value}</p>
+        <ul>
+          ${this.cartItems.value.map(item => html`
+            <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('cart-component', CartElement);
+</script>

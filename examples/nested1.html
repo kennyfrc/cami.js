@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>User Form (1 Layer Nested)</h1>
+  <user-form-component></user-form-component>
+</article>
+<script type="module">
+  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+
+  class UserFormElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.user = this.observable({ name: 'Kenn', age: 34 });
+    }
+
+    handleInput(event, key) {
+      this.user.update(value => {
+        value[key] = event.target.value;
+      });
+    }
+
+    template() {
+      return html`
+        <form>
+          <label>
+            Name: ${this.user.value.name}
+            <input type="text" .value=${this.user.value.name} @input=${(e) => this.handleInput(e, 'name')} />
+          </label>
+          <label>
+            Age: ${this.user.value.age}
+            <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
+          </label>
+        </form>
+      `;
+    }
+  }
+
+  customElements.define('user-form-component', UserFormElement);
+</script>
+
+  <script src="./js/pico-theme-switch.js"></script>
+</body>
+</html>
