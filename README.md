@@ -257,9 +257,11 @@ For more detailed information, refer to the lit-html documentation: [docs](https
 
 ## Examples
 
-To see some examples, just go to the project root and run:
+To see some examples, just do the following:
 
 ```bash
+git clone git@github.com:kennyfrc/cami.js.git
+cd cami.js
 bun install --global serve
 bunx serve
 ```
