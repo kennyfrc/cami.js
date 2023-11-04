@@ -71,8 +71,8 @@ Cami.js observables support deeply nested updates. This means that if your obser
 
 ```javascript
 let user = this.observable({ name: { first: 'John', last: 'Doe' } });
-user.update(state => {
-  state.name.first = 'Jane';
+user.update(value => {
+  value.name.first = 'Jane';
 });
 ```
 
