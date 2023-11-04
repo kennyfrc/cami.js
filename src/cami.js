@@ -44,8 +44,8 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @param {string} key - The key for the observable
    * @param {any} initialValue - The initial value for the observable
+   * @returns {Object} An object with a value property and an update method
    */
   observable(initialValue) {
     let value = produce(initialValue, draft => {});
@@ -63,9 +63,8 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @param {string} key - The key for the computed property
    * @param {Function} computeFn - The function to compute the value of the property
-   * This method is used to define a computed property that depends on other observables.
+   * @returns {Object} An object with a value getter
    */
   computed(computeFn) {
     return {
@@ -78,7 +77,7 @@ class ReactiveElement extends HTMLElement {
   /**
    * @method
    * @param {Function} effectFn - The function to be called when an observable changes
-   * This method is used to register a function that will be called whenever an observable changes.
+   * @returns {void}
    */
   effect(effectFn) {
     const cleanup = effectFn.call(this) || (() => {});
@@ -87,8 +86,9 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @param {string} key - The key for the store
    * @param {Store} store - The store to bind
+   * @param {string} key - The key for the store
+   * @returns {Object} The observable
    */
   subscribe(store, key) {
     this.store = store;
@@ -105,6 +105,7 @@ class ReactiveElement extends HTMLElement {
    * @method
    * @param {string} action - The action to dispatch
    * @param {any} payload - The payload for the action
+   * @returns {void}
    */
   dispatch(action, payload) {
     this.store.dispatch(action, payload);
@@ -113,6 +114,7 @@ class ReactiveElement extends HTMLElement {
   /**
    * @method
    * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
+   * @returns {void}
    */
   connectedCallback() {
     this.react();
@@ -121,6 +123,7 @@ class ReactiveElement extends HTMLElement {
   /**
    * @method
    * Invoked when the custom element is disconnected from the document's DOM.
+   * @returns {void}
    */
   disconnectedCallback() {
     this._unsubscribers.forEach(unsubscribe => unsubscribe());
@@ -131,6 +134,7 @@ class ReactiveElement extends HTMLElement {
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
    * This also triggers all effects.
+   * @returns {void}
    */
   react() {
     const template = this.template();
@@ -141,6 +145,7 @@ class ReactiveElement extends HTMLElement {
   /**
    * @method
    * @throws {Error} If the method template() is not implemented
+   * @returns {void}
    */
   template() {
     throw new Error('You have to implement the method template()!');

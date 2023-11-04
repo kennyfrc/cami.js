@@ -39,12 +39,12 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 ### `ReactiveElement` (`class`)
 
-A class that extends `HTMLElement` to create reactive web components that can automatically update their view when their state changes. It uses observables to track changes in state and provides a set of methods to interact with these observables and the component's lifecycle.
+This class extends `HTMLElement` to create reactive web components that automatically update their view when their state changes. It uses observables to track changes in state and provides a set of methods to interact with these observables and the component's lifecycle.
 
 **Methods:**
 
 - `observable(initialValue)`: Defines an observable property with an initial value. Returns an object with `value` property and `update` method.
-- `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Returns the observable.
+- `subscribe(store, key)`: Subscribes to a store and links it to an observable property. Returns the observable.
 - `computed(computeFn)`: Defines a computed property that depends on other observables. Returns an object with a `value` getter.
 - `effect(effectFn)`: Defines an effect that is triggered when an observable changes. The effect function can optionally return a cleanup function.
 - `dispatch(action, payload)`: Dispatches an action to the store.
