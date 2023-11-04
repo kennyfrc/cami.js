@@ -20,8 +20,8 @@ for file in "$examples_dir"/*.html; do
     base_name=$(basename "$file" .html)
 
     # Print the file name and content to the temporary file
-    echo "./examples/$base_name.html" >> "$temp_file"
     echo '```html' >> "$temp_file"
+    echo "./examples/$base_name.html" >> "$temp_file"
     cat "$file" >> "$temp_file"
     echo '```' >> "$temp_file"
     echo "" >> "$temp_file"

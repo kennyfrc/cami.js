@@ -92,8 +92,8 @@ Then open http://localhost:3000 in your browser, then navigate to the examples f
 
 It's recommended to view these examples through localhost (see above).
 
-./examples/_cart.html
 ```html
+./examples/_cart.html
 <article>
   <h2>Products</h2>
   <product-list-component></product-list-component>
@@ -201,8 +201,8 @@ It's recommended to view these examples through localhost (see above).
 </script>
 ```
 
-./examples/_counter.html
 ```html
+./examples/_counter.html
 <article>
   <h1>Counter</h1>
   <counter-component count="5"></counter-component>
@@ -240,8 +240,8 @@ It's recommended to view these examples through localhost (see above).
 
 ```
 
-./examples/_formval.html
 ```html
+./examples/_formval.html
 <article>
   <h1>Form Validation</h1>
   <form-component></form-component>
@@ -298,8 +298,8 @@ It's recommended to view these examples through localhost (see above).
 </script>
 ```
 
-./examples/_nested1.html
 ```html
+./examples/_nested1.html
 <article>
   <h1>User Form (1 Layer Nested)</h1>
   <user-form-component></user-form-component>
@@ -339,8 +339,8 @@ It's recommended to view these examples through localhost (see above).
 </script>
 ```
 
-./examples/_nested2.html
 ```html
+./examples/_nested2.html
 <article>
   <h1>User Update Page (Nested Observable)</h1>
   <user-list-component></user-list-component>
@@ -428,8 +428,8 @@ class NestedObservableElement extends ReactiveElement {
 </script>
 ```
 
-./examples/_nested3.html
 ```html
+./examples/_nested3.html
 <article>
   <h1>User Update Page (Nested Store)</h1>
   <user-list-component></user-list-component>
@@ -517,8 +517,8 @@ class NestedObservableElement extends ReactiveElement {
 </script>
 ```
 
-./examples/_todo.html
 ```html
+./examples/_todo.html
 <article>
   <h1>Todo List</h1>
   <todo-list-component></todo-list-component>
