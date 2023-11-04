@@ -177,8 +177,6 @@ out
 /playwright/.cache/
 
 # Hide build files
-/build/
-/examples/build/
 /tests/build/
 /docs
 /utils
