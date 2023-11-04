@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.8
+Current version: 0.0.9. Bundle size: 8kb (minified & gzipped).
 
 A minimalist & flexible toolkit for interactive islands & state management in web applications.
 
