@@ -24,7 +24,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 ## Key Anti-Features:
 
-- No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, returning HTML responses & not JSON. Then add islands of interactivity as needed.
+No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, returning HTML responses & not JSON. Then add islands of interactivity as needed.
 
 ## Who is this for?
 
@@ -122,8 +122,8 @@ An interesting thing to note (which many libaries don't support with one method/
 
 ```javascript
 let user = this.observable({ name: { first: 'John', last: 'Doe' } });
-user.update(state => {
-  state.name.first = 'Jane';
+user.update(value => {
+  value.name.first = 'Jane';
 });
 ```
 
