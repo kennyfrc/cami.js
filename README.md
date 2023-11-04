@@ -21,10 +21,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 - Tagged Templates: Declarative templates with lit-html. Supports event handling, attribute binding, composability, caching, and expressions.
 - Store / State Management: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state. Redux DevTools compatible.
 - Easy Immutable Updates: Uses Immer under the hood, so you can update your state immutably without excessive boilerplate.
-
-## Key Anti-Features:
-
-No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, returning HTML responses & not JSON. Then add islands of interactivity as needed.
+- Anti-Features: You can't be everything to everybody. So we made some hard choices: No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, and return HTML responses instead of JSON. Then add interactivity as needed.
 
 ## Who is this for?
 
