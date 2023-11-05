@@ -1,9 +1,9 @@
 <article>
   <h1>Counter</h1>
-  <counter-component count="5"></counter-component>
+  <counter-component></counter-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
   class CounterElement extends ReactiveElement {
     constructor() {
       super();

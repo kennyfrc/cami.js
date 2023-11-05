@@ -12,7 +12,7 @@
   <todo-list-component></todo-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
   // Step 1: Define the initial state of our store
   const todoStore = createStore({
     todos: [],
@@ -65,6 +65,5 @@
   customElements.define('todo-list-component', TodoListElement);
 </script>
 
-  <script src="./js/pico-theme-switch.js"></script>
 </body>
 </html>

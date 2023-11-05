@@ -1,7 +1,34 @@
 {
   "name": "cami",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "main": "src/cami.js",
+  "description": "A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.",
+  "files": [
+    "build"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/kennyfrc/cami",
+  "keywords": [
+    "observable",
+    "state",
+    "state management",
+    "redux",
+    "fine-grained",
+    "reactive",
+    "reactive programming",
+    "reactive state",
+    "reactive state management",
+    "web components",
+    "lit-html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kennyfrc/cami.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kennyfrc/cami.js/issues"
+  },
+  "author": "Kenn Costales <kenn@askmonolith.com>",
   "devDependencies": {
     "bun-types": "latest",
     "concurrently": "^8.2.2",

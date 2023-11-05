@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.9.
+Current version: 0.0.10.
 Bundle Size: 8kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
@@ -28,7 +28,132 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 - **Lean Teams or Solo Devs**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
 - **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivactivity to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
 
-## Get Started & View Examples
+## Get Started
+
+Below are a couple of examples: counter & client-side form validation.
+
+Just copy paste the following an HTML file and open it in your browser:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Counter</h1>
+  <counter-component></counter-component>
+</article>
+<script type="module">
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  class CounterElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.count = this.observable(0);
+      this.countSquared = this.computed(() => this.count.value * this.count.value);
+      this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
+    }
+
+    increment() {
+      this.count.update(value => value + 1);
+    }
+
+    decrement() {
+      this.count.update(value => value - 1);
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.decrement()}>-</button>
+        <span>Base: ${this.count.value}</span>
+        <span>Squared: ${this.countSquared.value}</span>
+        <button @click=${() => this.increment()}>+</button>
+      `;
+    }
+  }
+
+  customElements.define('counter-component', CounterElement);
+</script>
+</body>
+</html>
+```
+
+Client Side Form Validation:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Form Validation</h1>
+  <form-component></form-component>
+</article>
+<script type="module">
+  import { html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+
+  class FormElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.email = this.observable('');
+      this.password = this.observable('');
+      this.emailError = this.observable('');
+      this.passwordError = this.observable('');
+    }
+
+    validateEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.email.value)) {
+        this.emailError.update(() => 'Please enter a valid email address.');
+      } else {
+        this.emailError.update(() => '');
+      }
+    }
+
+    validatePassword() {
+      if (this.password.value.length < 8) {
+        this.passwordError.update(() => 'Password must be at least 8 characters long.');
+      } else {
+        this.passwordError.update(() => '');
+      }
+    }
+
+    template() {
+      return html`
+        <form action="/submit" method="POST">
+          <label>
+            Email:
+            <input type="email" @input=${(e) => { this.email.update(() => e.target.value); this.validateEmail(); }} value=${this.email.value}>
+            <span>${this.emailError.value}</span>
+          </label>
+          <label>
+            Password:
+            <input type="password" @input=${(e) => { this.password.update(() => e.target.value); this.validatePassword(); }} value=${this.password.value}>
+            <span>${this.passwordError.value}</span>
+          </label>
+          <input type="submit" value="Submit" ?disabled=${this.emailError.value || this.passwordError.value}>
+        </form>
+      `;
+    }
+  }
+
+  customElements.define('form-component', FormElement);
+</script>
+</body>
+</html>
+```
+
+
+### View Examples
 
 To see some examples, just do the following:
 
@@ -61,7 +186,7 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 ```html
 <counter-element></counter-element>
 <script type="module">
-import { html, ReactiveElement } from './build/cami.module.js';
+import { html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
 
 class CounterElement extends ReactiveElement {
   constructor() {
@@ -279,7 +404,7 @@ They are also listed below:
   <counter-component count="5"></counter-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
@@ -318,7 +443,7 @@ They are also listed below:
   <form-component></form-component>
 </article>
 <script type="module">
-  import { html, ReactiveElement } from './build/cami.module.js';
+  import { html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
 
   class FormElement extends ReactiveElement {
     constructor() {
@@ -376,7 +501,7 @@ They are also listed below:
   <todo-list-component></todo-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
   // Step 1: Define the initial state of our store
   const todoStore = createStore({
     todos: [],
@@ -442,7 +567,7 @@ They are also listed below:
 </article>
 
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
 
   const cartStore = createStore({
     cartItems: [],
@@ -546,7 +671,7 @@ They are also listed below:
   <user-form-component></user-form-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
 
   class UserFormElement extends ReactiveElement {
     constructor() {
@@ -587,7 +712,7 @@ They are also listed below:
   <user-list-component></user-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
 class NestedObservableElement extends ReactiveElement {
     constructor() {
       super();
@@ -676,7 +801,7 @@ class NestedObservableElement extends ReactiveElement {
   <user-list-component></user-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
   // Step 1: Define the initial state of our store
   const userStore = createStore({
     users: [

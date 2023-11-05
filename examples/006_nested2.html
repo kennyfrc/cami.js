@@ -9,10 +9,10 @@
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
   <article>
   <h1>User Update Page (Nested Observable)</h1>
-  <user-list-component></user-list-component>
+  <nested-observable-element></nested-observable-element>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
 class NestedObservableElement extends ReactiveElement {
     constructor() {
       super();
@@ -93,6 +93,5 @@ class NestedObservableElement extends ReactiveElement {
   customElements.define('nested-observable-element', NestedObservableElement);
 </script>
 
-  <script src="./js/pico-theme-switch.js"></script>
 </body>
 </html>
