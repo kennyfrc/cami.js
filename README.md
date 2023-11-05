@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.10.
+Current version: 0.0.11.
 Bundle Size: 8kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
@@ -33,7 +33,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 For the CDN links, use any of these:
 ```html
 <!-- IIFE -->
-<script src="https://unpkg.com/cami@0.0.10/build/cami.cdn.js">
+<script src="https://unpkg.com/cami@latest/build/cami.cdn.js">
 ```
 
 ```html
@@ -62,7 +62,7 @@ Just copy-paste the code into an HTML file and open it in your browser.
   <counter-component></counter-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
@@ -112,7 +112,7 @@ Client Side Form Validation:
   <form-component></form-component>
 </article>
 <script type="module">
-  import { html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 
   class FormElement extends ReactiveElement {
     constructor() {
@@ -199,7 +199,7 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 ```html
 <counter-element></counter-element>
 <script type="module">
-import { html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+import { html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 
 class CounterElement extends ReactiveElement {
   constructor() {
@@ -417,7 +417,7 @@ They are also listed below:
   <counter-component count="5"></counter-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
@@ -456,7 +456,7 @@ They are also listed below:
   <form-component></form-component>
 </article>
 <script type="module">
-  import { html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 
   class FormElement extends ReactiveElement {
     constructor() {
@@ -514,7 +514,7 @@ They are also listed below:
   <todo-list-component></todo-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
   // Step 1: Define the initial state of our store
   const todoStore = createStore({
     todos: [],
@@ -580,7 +580,7 @@ They are also listed below:
 </article>
 
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 
   const cartStore = createStore({
     cartItems: [],
@@ -684,7 +684,7 @@ They are also listed below:
   <user-form-component></user-form-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 
   class UserFormElement extends ReactiveElement {
     constructor() {
@@ -725,7 +725,7 @@ They are also listed below:
   <user-list-component></user-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 class NestedObservableElement extends ReactiveElement {
     constructor() {
       super();
@@ -814,7 +814,7 @@ class NestedObservableElement extends ReactiveElement {
   <user-list-component></user-list-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@0.0.10/build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
   // Step 1: Define the initial state of our store
   const userStore = createStore({
     users: [
