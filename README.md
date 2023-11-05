@@ -32,6 +32,19 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 Below are a couple of examples: counter & client-side form validation.
 
+For the CDN links, use any of these:
+```
+<!-- IIFE -->
+<script src="https://unpkg.com/cami@0.0.10/build/cami.cdn.js">
+```
+
+```
+<!-- ESM -->
+<script type="module">
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+</script>
+```
+
 Just copy paste the following an HTML file and open it in your browser:
 
 ```html
