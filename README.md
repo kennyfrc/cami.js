@@ -31,12 +31,12 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 ## Get Started
 
 For the CDN links, use any of these:
-```
+```html
 <!-- IIFE -->
 <script src="https://unpkg.com/cami@0.0.10/build/cami.cdn.js">
 ```
 
-```
+```html
 <!-- ESM -->
 <script type="module">
   import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
