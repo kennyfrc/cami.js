@@ -1,6 +1,6 @@
 {
   "name": "cami",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "src/cami.js",
   "description": "A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.",
   "files": [
