@@ -45,7 +45,7 @@ For the CDN links, use any of these:
 
 Below are a couple of examples: counter & client-side form validation.
 
-Just copy paste the following an HTML file and open it in your browser:
+Just copy-paste the code into an HTML file and open it in your browser.
 
 ```html
 <!DOCTYPE html>

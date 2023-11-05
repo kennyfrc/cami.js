@@ -34,6 +34,8 @@
     "concurrently": "^8.2.2",
     "nodemon": "^3.0.1"
   },
+  "module": "build/cami.module.js",
+  "unpkg": "build/cami.cdn.js",
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
