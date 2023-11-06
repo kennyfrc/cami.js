@@ -30,7 +30,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 ## Philosophy
 
-- **Less Code is Better**: In any organization, large or small, team shifts are inevitable. It's important that the codebase is easy to understand and maintain. Cami's API is small and easy to learn, and you can learn it in a weekend. It would be great for this library to disappear in the future, assuming that the web platform evolves to support observables natively.
+- **Less Code is Better**: In any organization, large or small, team shifts are inevitable. It's important that the codebase is easy to understand and maintain. This allows any enterprising developer to jump in, and expand the codebase that fits their specific problems.
 
 ## Get Started
 
