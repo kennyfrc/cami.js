@@ -28,6 +28,10 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 - **Lean Teams or Solo Devs**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
 - **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivactivity to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
 
+## Philosophy
+
+- **Less Code is Better**: In any organization, large or small, team shifts are inevitable. It's important that the codebase is easy to understand and maintain. Cami's API is small and easy to learn, and you can learn it in a weekend. It would be great for this library to disappear in the future, assuming that the web platform evolves to support observables natively.
+
 ## Get Started
 
 For the CDN links, use any of these:
