@@ -55,10 +55,10 @@ class ReactiveElement extends HTMLElement {
       get value() {
         return value;
       },
-      update(updater) {
+      update: (function(updater) {
         value = produce(value, updater);
         react();
-      },
+      }).bind(this),
     };
   }
 
@@ -86,26 +86,31 @@ class ReactiveElement extends HTMLElement {
   }
 
   /**
-   * Converts a property name to an attribute name.
-   * @param {string} prop - The property name to convert.
-   * @returns {string} The converted attribute name.
-   */
-  propertyToAttribute(prop) {
-    return prop.replace(/([A-Z])/g, '-$1').toLowerCase();
-  }
-
-  /**
    * Creates an observable property from an attribute.
-   * @param {string} propName - The name of the property.
+   * @param {string} attrName - The name of the attribute.
    * @param {Function} parseFn - The function to parse the attribute value. Defaults to identity function.
-   * @returns {void}
+   * @returns {Object} An object with a value property and an update method
+   * @description This method creates an observable property from an attribute. It first gets the attribute value, then uses the provided parse function to process the value. The processed value is then used to create an observable. The method finally converts the attribute name to a property name and returns the observable.
    */
-  observableProp(propName, parseFn = (v) => v) {
-    const attrName = this.propertyToAttribute(propName);
+  observableAttr(attrName, parseFn = (v) => v) {
     let attrValue = this.getAttribute(attrName);
     attrValue = produce(attrValue, parseFn);
     const observable = this.observable(attrValue);
-    this[propName] = observable;
+    return observable;
+  }
+
+  /**
+   * @method
+   * @param {Object} props - The properties to set
+   * @description This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
+   * @returns {void}
+   */
+  setObservables(props) {
+    Object.keys(props).forEach(key => {
+      if (this[key] && typeof this[key].update === 'function') {
+        this[key].update(() => props[key]);
+      }
+    });
   }
 
   /**

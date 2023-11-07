@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.13.
+Current version: 0.0.15.
 Bundle Size: 8kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
@@ -191,18 +191,17 @@ In this example, a 'count-reached-ten' event is dispatched whenever the count re
 
 **ReactiveElement Methods:**
 
-- `observable(initialValue)`: Defines an observable property with an initial value. Returns an object with `value` property and `update` method.
-- `observableProp(propName, parseFn)`: Creates an observable property from an attribute. `propName` is the name of the property and `parseFn` is the function to parse the attribute value. It defaults to identity function if not provided.
-- `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Returns the observable.
-- `computed(computeFn)`: Defines a computed property that depends on other observables. Returns an object with a `value` getter.
-- `effect(effectFn)`: Defines an effect that is triggered when an observable changes. The effect function can optionally return a cleanup function.
-- `dispatch(action, payload)`: Dispatches an action to the store.
-- `template()`: A method that should be implemented to return the template to be rendered.
-- `connectedCallback()`: Lifecycle method called each time the element is added to the document. Sets up initial state and triggers initial rendering.
-- `disconnectedCallback()`: Lifecycle method called each time the element is removed from the document. Cleans up listeners and effects.
-- `adoptedCallback()`: Lifecycle method called each time the element is moved to a new document. Can be used to reset or reinitialize internal state.
-- `attributeChangedCallback(name, oldValue, newValue)`: Lifecycle method called when an attribute of the element is added, removed, or changed. Useful for reacting to changes in attributes.
-- `static get observedAttributes()`: Static getter that returns an array of attribute names to monitor for changes. Used in conjunction with `attributeChangedCallback`.
+- `observable(initialValue)`: This method creates an observable property with an initial value. It returns an object that contains a `value` property and an `update` method.
+- `observableAttr(attrName, parseFn = (v) => v)`: This method creates an observable property from an attribute. `attrName` is the attribute's name and `parseFn` is a function that parses the attribute value. If `parseFn` is not provided, it defaults to an identity function.
+- `subscribe(store, key)`: This method subscribes to a store and links it to an observable property. It returns the observable.
+- `computed(computeFn)`: This method defines a computed property that depends on other observables. It returns an object with a `value` getter.
+- `effect(effectFn)`: This method defines an effect that is triggered when an observable changes. The `effectFn` can optionally return a cleanup function.
+- `dispatch(action, payload)`: This method dispatches an action to the store.
+- `template()`: This method should be implemented to return the template to be rendered.
+- `connectedCallback()`: This lifecycle method is called each time the element is added to the document. It sets up the initial state and triggers the initial rendering.
+- `disconnectedCallback()`: This lifecycle method is called each time the element is removed from the document. It cleans up listeners and effects.
+- `react()`: This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state. This also triggers all effects.
+- `setObservables(props)`: This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
 
 Note: Lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
 
@@ -771,12 +770,12 @@ class NestedObservableElement extends ReactiveElement {
   ></my-component>
 </article>
 <script type="module">
-  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
 
   class MyComponent extends ReactiveElement {
     constructor() {
       super();
-      this.observableProp('todos', (todos) => {
+      this.todos = this.observableAttr('todos', (todos) => {
         return JSON.parse(todos).data;
       });
     }

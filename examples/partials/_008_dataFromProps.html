@@ -9,7 +9,7 @@
   class MyComponent extends ReactiveElement {
     constructor() {
       super();
-      this.observableProp('todos', (todos) => {
+      this.todos = this.observableAttr('todos', (todos) => {
         return JSON.parse(todos).data;
       });
     }
