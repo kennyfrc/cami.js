@@ -1,0 +1,54 @@
+<article>
+  <my-component
+    todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
+  ></my-component>
+</article>
+<script type="module">
+  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+
+  class MyComponent extends ReactiveElement {
+    constructor() {
+      super();
+      this.observableProp('todos', (todos) => {
+        return JSON.parse(todos).data;
+      });
+    }
+
+    addTodo (todo) {
+      this.todos.update(value => {
+        value.push(todo);
+      });
+    }
+
+    deleteTodo (todo) {
+      this.todos.update(value => {
+        const index = value.indexOf(todo);
+        if (index > -1) {
+          value.splice(index, 1);
+        }
+      });
+    }
+
+    template() {
+      return html`
+        <input id="newTodo" type="text" />
+        <button @click=${() => {
+          this.addTodo(document.getElementById('newTodo').value); document.getElementById('newTodo').value = ''; }}
+        >Add</button>
+        <ul>
+          ${this.todos.value.map(todo => html`
+            <li>
+              ${todo}
+              <button @click=${() => this.deleteTodo(todo)
+              }>Delete</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+
+  }
+
+  customElements.define('my-component', MyComponent);
+
+</script>

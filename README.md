@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.12.
+Current version: 0.0.13.
 Bundle Size: 8kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
@@ -32,145 +32,7 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 - **Less Code is Better**: In any organization, large or small, team shifts are inevitable. It's important that the codebase is easy to understand and maintain. This allows any enterprising developer to jump in, and expand the codebase that fits their specific problems.
 
-## Get Started
-
-For the CDN links, use any of these:
-```html
-<!-- IIFE -->
-<script src="https://unpkg.com/cami@latest/build/cami.cdn.js">
-```
-
-```html
-<!-- ESM -->
-<script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
-</script>
-```
-
-Below are a couple of examples: counter & client-side form validation.
-
-Just copy-paste the code into an HTML file and open it in your browser.
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Shell</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
-  <h1>Counter</h1>
-  <counter-component></counter-component>
-</article>
-<script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
-  class CounterElement extends ReactiveElement {
-    constructor() {
-      super();
-      this.count = this.observable(0);
-      this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
-    }
-
-    increment() {
-      this.count.update(value => value + 1);
-    }
-
-    decrement() {
-      this.count.update(value => value - 1);
-    }
-
-    template() {
-      return html`
-        <button @click=${() => this.decrement()}>-</button>
-        <span>Base: ${this.count.value}</span>
-        <span>Squared: ${this.countSquared.value}</span>
-        <button @click=${() => this.increment()}>+</button>
-      `;
-    }
-  }
-
-  customElements.define('counter-component', CounterElement);
-</script>
-</body>
-</html>
-```
-
-Client Side Form Validation:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Shell</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
-  <h1>Form Validation</h1>
-  <form-component></form-component>
-</article>
-<script type="module">
-  import { html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
-
-  class FormElement extends ReactiveElement {
-    constructor() {
-      super();
-      this.email = this.observable('');
-      this.password = this.observable('');
-      this.emailError = this.observable('');
-      this.passwordError = this.observable('');
-    }
-
-    validateEmail() {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email.value)) {
-        this.emailError.update(() => 'Please enter a valid email address.');
-      } else {
-        this.emailError.update(() => '');
-      }
-    }
-
-    validatePassword() {
-      if (this.password.value.length < 8) {
-        this.passwordError.update(() => 'Password must be at least 8 characters long.');
-      } else {
-        this.passwordError.update(() => '');
-      }
-    }
-
-    template() {
-      return html`
-        <form action="/submit" method="POST">
-          <label>
-            Email:
-            <input type="email" @input=${(e) => { this.email.update(() => e.target.value); this.validateEmail(); }} value=${this.email.value}>
-            <span>${this.emailError.value}</span>
-          </label>
-          <label>
-            Password:
-            <input type="password" @input=${(e) => { this.password.update(() => e.target.value); this.validatePassword(); }} value=${this.password.value}>
-            <span>${this.passwordError.value}</span>
-          </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError.value || this.passwordError.value}>
-        </form>
-      `;
-    }
-  }
-
-  customElements.define('form-component', FormElement);
-</script>
-</body>
-</html>
-```
-
-
-### View Examples
+## Get Started & View Examples
 
 To see some examples, just do the following:
 
@@ -330,6 +192,7 @@ In this example, a 'count-reached-ten' event is dispatched whenever the count re
 **ReactiveElement Methods:**
 
 - `observable(initialValue)`: Defines an observable property with an initial value. Returns an object with `value` property and `update` method.
+- `observableProp(propName, parseFn)`: Creates an observable property from an attribute. `propName` is the name of the property and `parseFn` is the function to parse the attribute value. It defaults to identity function if not provided.
 - `subscribe(key, store)`: Subscribes to a store and links it to an observable property. Returns the observable.
 - `computed(computeFn)`: Defines a computed property that depends on other observables. Returns an object with a `value` getter.
 - `effect(effectFn)`: Defines an effect that is triggered when an observable changes. The effect function can optionally return a cleanup function.
@@ -418,7 +281,7 @@ They are also listed below:
 <!-- ./examples/_001_counter.html -->
 <article>
   <h1>Counter</h1>
-  <counter-component count="5"></counter-component>
+  <counter-component></counter-component>
 </article>
 <script type="module">
   import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
@@ -684,8 +547,8 @@ They are also listed below:
 ```html
 <!-- ./examples/_005_nested1.html -->
 <article>
-  <h1>User Form (1 Layer Nested)</h1>
-  <user-form-component></user-form-component>
+  <h1>Label Updates from Input Forms (Nested Observable)</h1>
+  <simple-input-component></simple-input-component>
 </article>
 <script type="module">
   import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
@@ -718,7 +581,7 @@ They are also listed below:
     }
   }
 
-  customElements.define('user-form-component', UserFormElement);
+  customElements.define('simple-input-component', UserFormElement);
 </script>
 ```
 
@@ -726,7 +589,7 @@ They are also listed below:
 <!-- ./examples/_006_nested2.html -->
 <article>
   <h1>User Update Page (Nested Observable)</h1>
-  <user-list-component></user-list-component>
+  <nested-observable-element></nested-observable-element>
 </article>
 <script type="module">
   import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
@@ -897,6 +760,64 @@ class NestedObservableElement extends ReactiveElement {
   }
 
   customElements.define('user-list-component', UserListElement);
+</script>
+```
+
+```html
+<!-- ./examples/_008_dataFromProps.html -->
+<article>
+  <my-component
+    todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
+  ></my-component>
+</article>
+<script type="module">
+  import { createStore, html, ReactiveElement } from './build/cami.module.js';
+
+  class MyComponent extends ReactiveElement {
+    constructor() {
+      super();
+      this.observableProp('todos', (todos) => {
+        return JSON.parse(todos).data;
+      });
+    }
+
+    addTodo (todo) {
+      this.todos.update(value => {
+        value.push(todo);
+      });
+    }
+
+    deleteTodo (todo) {
+      this.todos.update(value => {
+        const index = value.indexOf(todo);
+        if (index > -1) {
+          value.splice(index, 1);
+        }
+      });
+    }
+
+    template() {
+      return html`
+        <input id="newTodo" type="text" />
+        <button @click=${() => {
+          this.addTodo(document.getElementById('newTodo').value); document.getElementById('newTodo').value = ''; }}
+        >Add</button>
+        <ul>
+          ${this.todos.value.map(todo => html`
+            <li>
+              ${todo}
+              <button @click=${() => this.deleteTodo(todo)
+              }>Delete</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+
+  }
+
+  customElements.define('my-component', MyComponent);
+
 </script>
 ```
 

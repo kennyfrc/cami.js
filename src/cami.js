@@ -31,6 +31,7 @@ import { produce } from "immer"
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
 class ReactiveElement extends HTMLElement {
+  static observedAttributesList = [];
   /**
    * @constructor
    */
@@ -82,6 +83,29 @@ class ReactiveElement extends HTMLElement {
   effect(effectFn) {
     const cleanup = effectFn.call(this) || (() => {});
     this._effects.push({ effectFn, cleanup });
+  }
+
+  /**
+   * Converts a property name to an attribute name.
+   * @param {string} prop - The property name to convert.
+   * @returns {string} The converted attribute name.
+   */
+  propertyToAttribute(prop) {
+    return prop.replace(/([A-Z])/g, '-$1').toLowerCase();
+  }
+
+  /**
+   * Creates an observable property from an attribute.
+   * @param {string} propName - The name of the property.
+   * @param {Function} parseFn - The function to parse the attribute value. Defaults to identity function.
+   * @returns {void}
+   */
+  observableProp(propName, parseFn = (v) => v) {
+    const attrName = this.propertyToAttribute(propName);
+    let attrValue = this.getAttribute(attrName);
+    attrValue = produce(attrValue, parseFn);
+    const observable = this.observable(attrValue);
+    this[propName] = observable;
   }
 
   /**
