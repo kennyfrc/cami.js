@@ -24,7 +24,10 @@
   });
 
   todoStore.register('delete', (store, payload) => {
-    store.todos = store.todos.filter(todo => todo !== payload);
+    const index = store.todos.indexOf(payload);
+    if (index > -1) {
+      store.todos.splice(index, 1);
+    }
   });
 
   const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {

@@ -31,13 +31,11 @@ import { produce } from "immer"
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
 class ReactiveElement extends HTMLElement {
-  static observedAttributesList = [];
   /**
    * @constructor
    */
   constructor() {
     super();
-    this._observables = new Map();
     this._unsubscribers = new Map();
     this.store = null;
     this._effects = [];
@@ -95,8 +93,7 @@ class ReactiveElement extends HTMLElement {
   observableAttr(attrName, parseFn = (v) => v) {
     let attrValue = this.getAttribute(attrName);
     attrValue = produce(attrValue, parseFn);
-    const observable = this.observable(attrValue);
-    return observable;
+    return this.observable(attrValue);
   }
 
   /**
@@ -122,9 +119,8 @@ class ReactiveElement extends HTMLElement {
   subscribe(store, key) {
     this.store = store;
     const observable = this.observable(store.state[key]);
-    this._observables.set(key, observable);
     const unsubscribe = store.subscribe(newState => {
-      this._observables.get(key).update(() => newState[key]);
+      this[key].update(() => newState[key]);
     });
     this._unsubscribers.set(key, unsubscribe);
     return observable;
