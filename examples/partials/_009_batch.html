@@ -1,0 +1,37 @@
+<article>
+  <h1>Batch Updates</h1>
+  <batch-update-element></batch-update-element>
+</article>
+<script type="module">
+  import { html, ReactiveElement } from './build/cami.module.js';
+
+  class BatchUpdateElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.count = this.observable(0);
+      this.doubleCount = this.computed(() => this.count.value * 2);
+    }
+
+    increment() {
+      this.count.update(value => value + 1);
+    }
+
+    batchIncrement() {
+      this.batch(() => {
+        this.count.update(value => value + 1);
+        this.count.update(value => value + 1);
+      });
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.increment()}>Increment</button>
+        <button @click=${() => this.batchIncrement()}>Batch Increment</button>
+        <div>Count: ${this.count.value}</div>
+        <div>Double Count: ${this.doubleCount.value}</div>
+      `;
+    }
+  }
+
+  customElements.define('batch-update-element', BatchUpdateElement);
+</script>

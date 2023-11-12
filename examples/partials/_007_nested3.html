@@ -2,10 +2,11 @@
   <h1>User Update Page (Nested Store)</h1>
   <user-list-component></user-list-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
   // Step 1: Define the initial state of our store
-  const userStore = createStore({
+  const userStore = cami.store({
     users: [
       {
         id: 1,

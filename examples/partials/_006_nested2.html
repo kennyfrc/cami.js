@@ -2,9 +2,10 @@
   <h1>User Update Page (Nested Observable)</h1>
   <nested-observable-element></nested-observable-element>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
-class NestedObservableElement extends ReactiveElement {
+ const { html, ReactiveElement } = cami;
+  class NestedObservableElement extends ReactiveElement {
     constructor() {
       super();
       this.user = this.observable({

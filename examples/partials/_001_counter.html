@@ -2,14 +2,17 @@
   <h1>Counter</h1>
   <counter-component></counter-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
       this.count = this.observable(0);
       this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
+      this.effect(() => {
+        console.log('count', this.count.value);
+      });
     }
 
     increment() {

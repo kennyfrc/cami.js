@@ -7,10 +7,11 @@
   <cart-component></cart-component>
 </article>
 
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
 
-  const cartStore = createStore({
+  const cartStore = cami.store({
     cartItems: [],
     products: [
       { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
