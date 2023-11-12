@@ -1,5 +1,1364 @@
-var cami=(()=>{var G=Object.defineProperty;var nt=Object.getOwnPropertyDescriptor;var st=Object.getOwnPropertyNames;var Pe=Object.getOwnPropertySymbols;var Se=Object.prototype.hasOwnProperty;var it=Object.prototype.propertyIsEnumerable;var oe=(t,e,r)=>e in t?G(t,e,{enumerable:true,configurable:true,writable:true,value:r}):t[e]=r;var Ne=(t,e)=>{for(var r in e||(e={}))if(Se.call(e,r))oe(t,r,e[r]);if(Pe)for(var r of Pe(e)){if(it.call(e,r))oe(t,r,e[r])}return t};var ot=(t,e)=>{for(var r in e)G(t,r,{get:e[r],enumerable:true})};var ct=(t,e,r,n)=>{if(e&&typeof e==="object"||typeof e==="function"){for(let s of st(e))if(!Se.call(t,s)&&s!==r)G(t,s,{get:()=>e[s],enumerable:!(n=nt(e,s))||n.enumerable})}return t};var at=t=>ct(G({},"__esModule",{value:true}),t);var K=(t,e,r)=>{oe(t,typeof e!=="symbol"?e+"":e,r);return r};var ce=(t,e,r)=>{return new Promise((n,s)=>{var i=c=>{try{a(r.next(c))}catch(f){s(f)}};var o=c=>{try{a(r.throw(c))}catch(f){s(f)}};var a=c=>c.done?n(c.value):Promise.resolve(c.value).then(i,o);a((r=r.apply(t,e)).next())})};var St={};ot(St,{ReactiveElement:()=>xe,define:()=>Pt,html:()=>Be,store:()=>rt});var F=globalThis;var J=F.trustedTypes;var Oe=J?J.createPolicy("lit-html",{createHTML:t=>t}):void 0;var Ie="$lit$";var $=`lit$${(Math.random()+"").slice(9)}$`;var Fe="?"+$;var ut=`<${Fe}>`;var w=document;var U=()=>w.createComment("");var R=t=>null===t||"object"!=typeof t&&"function"!=typeof t;var Ue=Array.isArray;var ft=t=>Ue(t)||"function"==typeof(t==null?void 0:t[Symbol.iterator]);var ae="[ 	\n\f\r]";var I=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;var ze=/-->/g;var De=/>/g;var v=RegExp(`>|${ae}(?:([^\\s"'>=/]+)(${ae}*=${ae}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`,"g");var Me=/'/g;var Ce=/"/g;var Re=/^(?:script|style|textarea|title)$/i;var ke=t=>(e,...r)=>({_$litType$:t,strings:e,values:r});var Be=ke(1);var Ot=ke(2);var k=Symbol.for("lit-noChange");var d=Symbol.for("lit-nothing");var Te=new WeakMap;var b=w.createTreeWalker(w,129);function We(t,e){if(!Array.isArray(t)||!t.hasOwnProperty("raw"))throw Error("invalid template strings array");return void 0!==Oe?Oe.createHTML(e):e}var lt=(t,e)=>{const r=t.length-1,n=[];let s,i=2===e?"<svg>":"",o=I;for(let a=0;a<r;a++){const c=t[a];let f,l,u=-1,m=0;for(;m<c.length&&(o.lastIndex=m,l=o.exec(c),null!==l);)m=o.lastIndex,o===I?"!--"===l[1]?o=ze:void 0!==l[1]?o=De:void 0!==l[2]?(Re.test(l[2])&&(s=RegExp("</"+l[2],"g")),o=v):void 0!==l[3]&&(o=v):o===v?">"===l[0]?(o=s!=null?s:I,u=-1):void 0===l[1]?u=-2:(u=o.lastIndex-l[2].length,f=l[1],o=void 0===l[3]?v:'"'===l[3]?Ce:Me):o===Ce||o===Me?o=v:o===ze||o===De?o=I:(o=v,s=void 0);const A=o===v&&t[a+1].startsWith("/>")?" ":"";i+=o===I?c+ut:u>=0?(n.push(f),c.slice(0,u)+Ie+c.slice(u)+$+A):c+$+(-2===u?a:A)}return[We(t,i+(t[r]||"<?>")+(2===e?"</svg>":"")),n]};var B=class t{constructor({strings:e,_$litType$:r},n){let s;this.parts=[];let i=0,o=0;const a=e.length-1,c=this.parts,[f,l]=lt(e,r);if(this.el=t.createElement(f,n),b.currentNode=this.el.content,2===r){const u=this.el.content.firstChild;u.replaceWith(...u.childNodes)}for(;null!==(s=b.nextNode())&&c.length<a;){if(1===s.nodeType){if(s.hasAttributes())for(const u of s.getAttributeNames())if(u.endsWith(Ie)){const m=l[o++],A=s.getAttribute(u).split($),N=/([.?@])?(.*)/.exec(m);c.push({type:1,index:i,name:N[2],strings:A,ctor:"."===N[1]?le:"?"===N[1]?he:"@"===N[1]?de:z}),s.removeAttribute(u)}else u.startsWith($)&&(c.push({type:6,index:i}),s.removeAttribute(u));if(Re.test(s.tagName)){const u=s.textContent.split($),m=u.length-1;if(m>0){s.textContent=J?J.emptyScript:"";for(let A=0;A<m;A++)s.append(u[A],U()),b.nextNode(),c.push({type:2,index:++i});s.append(u[m],U())}}}else if(8===s.nodeType)if(s.data===Fe)c.push({type:2,index:i});else{let u=-1;for(;-1!==(u=s.data.indexOf($,u+1));)c.push({type:7,index:i}),u+=$.length-1}i++}}static createElement(e,r){const n=w.createElement("template");return n.innerHTML=e,n}};function O(t,e,r=t,n){var o,a,c;if(e===k)return e;let s=void 0!==n?(o=r._$Co)==null?void 0:o[n]:r._$Cl;const i=R(e)?void 0:e._$litDirective$;return(s==null?void 0:s.constructor)!==i&&((a=s==null?void 0:s._$AO)==null?void 0:a.call(s,false),void 0===i?s=void 0:(s=new i(t),s._$AT(t,r,n)),void 0!==n?((c=r._$Co)!=null?c:r._$Co=[])[n]=s:r._$Cl=s),void 0!==s&&(e=O(t,s._$AS(t,e.values),s,n)),e}var fe=class{constructor(e,r){this._$AV=[],this._$AN=void 0,this._$AD=e,this._$AM=r}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}u(e){var f;const{el:{content:r},parts:n}=this._$AD,s=((f=e==null?void 0:e.creationScope)!=null?f:w).importNode(r,true);b.currentNode=s;let i=b.nextNode(),o=0,a=0,c=n[0];for(;void 0!==c;){if(o===c.index){let l;2===c.type?l=new W(i,i.nextSibling,this,e):1===c.type?l=new c.ctor(i,c.name,c.strings,this,e):6===c.type&&(l=new _e(i,this,e)),this._$AV.push(l),c=n[++a]}o!==(c==null?void 0:c.index)&&(i=b.nextNode(),o++)}return b.currentNode=w,s}p(e){let r=0;for(const n of this._$AV)void 0!==n&&(void 0!==n.strings?(n._$AI(e,n,r),r+=n.strings.length-2):n._$AI(e[r])),r++}};var W=class t{get _$AU(){var e,r;return(r=(e=this._$AM)==null?void 0:e._$AU)!=null?r:this._$Cv}constructor(e,r,n,s){var i;this.type=2,this._$AH=d,this._$AN=void 0,this._$AA=e,this._$AB=r,this._$AM=n,this.options=s,this._$Cv=(i=s==null?void 0:s.isConnected)!=null?i:true}get parentNode(){let e=this._$AA.parentNode;const r=this._$AM;return void 0!==r&&11===(e==null?void 0:e.nodeType)&&(e=r.parentNode),e}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(e,r=this){e=O(this,e,r),R(e)?e===d||null==e||""===e?(this._$AH!==d&&this._$AR(),this._$AH=d):e!==this._$AH&&e!==k&&this._(e):void 0!==e._$litType$?this.g(e):void 0!==e.nodeType?this.$(e):ft(e)?this.T(e):this._(e)}k(e){return this._$AA.parentNode.insertBefore(e,this._$AB)}$(e){this._$AH!==e&&(this._$AR(),this._$AH=this.k(e))}_(e){this._$AH!==d&&R(this._$AH)?this._$AA.nextSibling.data=e:this.$(w.createTextNode(e)),this._$AH=e}g(e){var i;const{values:r,_$litType$:n}=e,s="number"==typeof n?this._$AC(e):(void 0===n.el&&(n.el=B.createElement(We(n.h,n.h[0]),this.options)),n);if(((i=this._$AH)==null?void 0:i._$AD)===s)this._$AH.p(r);else{const o=new fe(s,this),a=o.u(this.options);o.p(r),this.$(a),this._$AH=o}}_$AC(e){let r=Te.get(e.strings);return void 0===r&&Te.set(e.strings,r=new B(e)),r}T(e){Ue(this._$AH)||(this._$AH=[],this._$AR());const r=this._$AH;let n,s=0;for(const i of e)s===r.length?r.push(n=new t(this.k(U()),this.k(U()),this,this.options)):n=r[s],n._$AI(i),s++;s<r.length&&(this._$AR(n&&n._$AB.nextSibling,s),r.length=s)}_$AR(e=this._$AA.nextSibling,r){var n;for((n=this._$AP)==null?void 0:n.call(this,false,true,r);e&&e!==this._$AB;){const s=e.nextSibling;e.remove(),e=s}}setConnected(e){var r;void 0===this._$AM&&(this._$Cv=e,(r=this._$AP)==null?void 0:r.call(this,e))}};var z=class{get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}constructor(e,r,n,s,i){this.type=1,this._$AH=d,this._$AN=void 0,this.element=e,this.name=r,this._$AM=s,this.options=i,n.length>2||""!==n[0]||""!==n[1]?(this._$AH=Array(n.length-1).fill(new String),this.strings=n):this._$AH=d}_$AI(e,r=this,n,s){const i=this.strings;let o=false;if(void 0===i)e=O(this,e,r,0),o=!R(e)||e!==this._$AH&&e!==k,o&&(this._$AH=e);else{const a=e;let c,f;for(e=i[0],c=0;c<i.length-1;c++)f=O(this,a[n+c],r,c),f===k&&(f=this._$AH[c]),o||(o=!R(f)||f!==this._$AH[c]),f===d?e=d:e!==d&&(e+=(f!=null?f:"")+i[c+1]),this._$AH[c]=f}o&&!s&&this.j(e)}j(e){e===d?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,e!=null?e:"")}};var le=class extends z{constructor(){super(...arguments),this.type=3}j(e){this.element[this.name]=e===d?void 0:e}};var he=class extends z{constructor(){super(...arguments),this.type=4}j(e){this.element.toggleAttribute(this.name,!!e&&e!==d)}};var de=class extends z{constructor(e,r,n,s,i){super(e,r,n,s,i),this.type=5}_$AI(e,r=this){var o;if((e=(o=O(this,e,r,0))!=null?o:d)===k)return;const n=this._$AH,s=e===d&&n!==d||e.capture!==n.capture||e.once!==n.once||e.passive!==n.passive,i=e!==d&&(n===d||s);s&&this.element.removeEventListener(this.name,this,n),i&&this.element.addEventListener(this.name,this,e),this._$AH=e}handleEvent(e){var r,n;"function"==typeof this._$AH?this._$AH.call((n=(r=this.options)==null?void 0:r.host)!=null?n:this.element,e):this._$AH.handleEvent(e)}};var _e=class{constructor(e,r,n){this.element=e,this.type=6,this._$AN=void 0,this._$AM=r,this.options=n}get _$AU(){return this._$AM._$AU}_$AI(e){O(this,e)}};var ue=F.litHtmlPolyfillSupport;var He;ue==null?void 0:ue(B,W),((He=F.litHtmlVersions)!=null?He:F.litHtmlVersions=[]).push("3.0.0");var Le=(t,e,r)=>{var i,o;const n=(i=r==null?void 0:r.renderBefore)!=null?i:e;let s=n._$litPart$;if(void 0===s){const a=(o=r==null?void 0:r.renderBefore)!=null?o:null;n._$litPart$=s=new W(e.insertBefore(U(),a),a,void 0,r!=null?r:{})}return s._$AI(t),s};var Ke=Symbol.for("immer-nothing");var Ve=Symbol.for("immer-draftable");var p=Symbol.for("immer-state");var ht=true?[function(t){return`The plugin for '${t}' has not been loaded into Immer. To enable the plugin, import and call \`enable${t}()\` when initializing your application.`},function(t){return`produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '${t}'`},"This object has been frozen and should not be mutated",function(t){return"Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? "+t},"An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.","Immer forbids circular references","The first or second argument to `produce` must be a function","The third argument to `produce` must be a function or undefined","First argument to `createDraft` must be a plain object, an array, or an immerable object","First argument to `finishDraft` must be a draft returned by `createDraft`",function(t){return`'current' expects a draft, got: ${t}`},"Object.defineProperty() cannot be used on an Immer draft","Object.setPrototypeOf() cannot be used on an Immer draft","Immer only supports deleting array indices","Immer only supports setting array indices and the 'length' property",function(t){return`'original' expects a draft, got: ${t}`}]:[];function _(t,...e){if(true){const r=ht[t];const n=typeof r==="function"?r.apply(null,e):r;throw new Error(`[Immer] ${n}`)}throw new Error(`[Immer] minified error nr: ${t}. Full error at: https://bit.ly/3cXEKWf`)}var D=Object.getPrototypeOf;function M(t){return!!t&&!!t[p]}function x(t){var e;if(!t)return false;return Je(t)||Array.isArray(t)||!!t[Ve]||!!((e=t.constructor)==null?void 0:e[Ve])||ee(t)||te(t)}var dt=Object.prototype.constructor.toString();function Je(t){if(!t||typeof t!=="object")return false;const e=D(t);if(e===null){return true}const r=Object.hasOwnProperty.call(e,"constructor")&&e.constructor;if(r===Object)return true;return typeof r=="function"&&Function.toString.call(r)===dt}function L(t,e){if(q(t)===0){Object.entries(t).forEach(([r,n])=>{e(r,n,t)})}else{t.forEach((r,n)=>e(n,r,t))}}function q(t){const e=t[p];return e?e.type_:Array.isArray(t)?1:ee(t)?2:te(t)?3:0}function me(t,e){return q(t)===2?t.has(e):Object.prototype.hasOwnProperty.call(t,e)}function Ye(t,e,r){const n=q(t);if(n===2)t.set(e,r);else if(n===3){t.add(r)}else t[e]=r}function _t(t,e){if(t===e){return t!==0||1/t===1/e}else{return t!==t&&e!==e}}function ee(t){return t instanceof Map}function te(t){return t instanceof Set}function E(t){return t.copy_||t.base_}function ge(t,e){if(ee(t)){return new Map(t)}if(te(t)){return new Set(t)}if(Array.isArray(t))return Array.prototype.slice.call(t);if(!e&&Je(t)){if(!D(t)){const s=Object.create(null);return Object.assign(s,t)}return Ne({},t)}const r=Object.getOwnPropertyDescriptors(t);delete r[p];let n=Reflect.ownKeys(r);for(let s=0;s<n.length;s++){const i=n[s];const o=r[i];if(o.writable===false){o.writable=true;o.configurable=true}if(o.get||o.set)r[i]={configurable:true,writable:true,enumerable:o.enumerable,value:t[i]}}return Object.create(D(t),r)}function we(t,e=false){if(re(t)||M(t)||!x(t))return t;if(q(t)>1){t.set=t.add=t.clear=t.delete=pt}Object.freeze(t);if(e)L(t,(r,n)=>we(n,true),true);return t}function pt(){_(2)}function re(t){return Object.isFrozen(t)}var yt={};function P(t){const e=yt[t];if(!e){_(0,t)}return e}var V;function Ze(){return V}function mt(t,e){return{drafts_:[],parent_:t,immer_:e,canAutoFreeze_:true,unfinalizedDrafts_:0}}function je(t,e){if(e){P("Patches");t.patches_=[];t.inversePatches_=[];t.patchListener_=e}}function Ae(t){$e(t);t.drafts_.forEach(gt);t.drafts_=null}function $e(t){if(t===V){V=t.parent_}}function Xe(t){return V=mt(V,t)}function gt(t){const e=t[p];if(e.type_===0||e.type_===1)e.revoke_();else e.revoked_=true}function Qe(t,e){e.unfinalizedDrafts_=e.drafts_.length;const r=e.drafts_[0];const n=t!==void 0&&t!==r;if(n){if(r[p].modified_){Ae(e);_(4)}if(x(t)){t=Y(e,t);if(!e.parent_)Z(e,t)}if(e.patches_){P("Patches").generateReplacementPatches_(r[p].base_,t,e.patches_,e.inversePatches_)}}else{t=Y(e,r,[])}Ae(e);if(e.patches_){e.patchListener_(e.patches_,e.inversePatches_)}return t!==Ke?t:void 0}function Y(t,e,r){if(re(e))return e;const n=e[p];if(!n){L(e,(s,i)=>Ge(t,n,e,s,i,r),true);return e}if(n.scope_!==t)return e;if(!n.modified_){Z(t,n.base_,true);return n.base_}if(!n.finalized_){n.finalized_=true;n.scope_.unfinalizedDrafts_--;const s=n.copy_;let i=s;let o=false;if(n.type_===3){i=new Set(s);s.clear();o=true}L(i,(a,c)=>Ge(t,n,s,a,c,r,o));Z(t,s,false);if(r&&t.patches_){P("Patches").generatePatches_(n,r,t.patches_,t.inversePatches_)}}return n.copy_}function Ge(t,e,r,n,s,i,o){if(s===r)_(5);if(M(s)){const a=i&&e&&e.type_!==3&&!me(e.assigned_,n)?i.concat(n):void 0;const c=Y(t,s,a);Ye(r,n,c);if(M(c)){t.canAutoFreeze_=false}else return}else if(o){r.add(s)}if(x(s)&&!re(s)){if(!t.immer_.autoFreeze_&&t.unfinalizedDrafts_<1){return}Y(t,s);if(!e||!e.scope_.parent_)Z(t,s)}}function Z(t,e,r=false){if(!t.parent_&&t.immer_.autoFreeze_&&t.canAutoFreeze_){we(e,r)}}function At(t,e){const r=Array.isArray(t);const n={type_:r?1:0,scope_:e?e.scope_:Ze(),modified_:false,finalized_:false,assigned_:{},parent_:e,base_:t,draft_:null,copy_:null,revoke_:null,isManual_:false};let s=n;let i=Ee;if(r){s=[n];i=j}const{revoke:o,proxy:a}=Proxy.revocable(s,i);n.draft_=a;n.revoke_=o;return a}var Ee={get(t,e){if(e===p)return t;const r=E(t);if(!me(r,e)){return $t(t,r,e)}const n=r[e];if(t.finalized_||!x(n)){return n}if(n===pe(t.base_,e)){ye(t);return t.copy_[e]=be(n,t)}return n},has(t,e){return e in E(t)},ownKeys(t){return Reflect.ownKeys(E(t))},set(t,e,r){const n=qe(E(t),e);if(n==null?void 0:n.set){n.set.call(t.draft_,r);return true}if(!t.modified_){const s=pe(E(t),e);const i=s==null?void 0:s[p];if(i&&i.base_===r){t.copy_[e]=r;t.assigned_[e]=false;return true}if(_t(r,s)&&(r!==void 0||me(t.base_,e)))return true;ye(t);ve(t)}if(t.copy_[e]===r&&(r!==void 0||e in t.copy_)||Number.isNaN(r)&&Number.isNaN(t.copy_[e]))return true;t.copy_[e]=r;t.assigned_[e]=true;return true},deleteProperty(t,e){if(pe(t.base_,e)!==void 0||e in t.base_){t.assigned_[e]=false;ye(t);ve(t)}else{delete t.assigned_[e]}if(t.copy_){delete t.copy_[e]}return true},getOwnPropertyDescriptor(t,e){const r=E(t);const n=Reflect.getOwnPropertyDescriptor(r,e);if(!n)return n;return{writable:true,configurable:t.type_!==1||e!=="length",enumerable:n.enumerable,value:r[e]}},defineProperty(){_(11)},getPrototypeOf(t){return D(t.base_)},setPrototypeOf(){_(12)}};var j={};L(Ee,(t,e)=>{j[t]=function(){arguments[0]=arguments[0][0];return e.apply(this,arguments)}});j.deleteProperty=function(t,e){if(isNaN(parseInt(e)))_(13);return j.set.call(this,t,e,void 0)};j.set=function(t,e,r){if(e!=="length"&&isNaN(parseInt(e)))_(14);return Ee.set.call(this,t[0],e,r,t[0])};function pe(t,e){const r=t[p];const n=r?E(r):t;return n[e]}function $t(t,e,r){var s;const n=qe(e,r);return n?`value`in n?n.value:(s=n.get)==null?void 0:s.call(t.draft_):void 0}function qe(t,e){if(!(e in t))return void 0;let r=D(t);while(r){const n=Object.getOwnPropertyDescriptor(r,e);if(n)return n;r=D(r)}return void 0}function ve(t){if(!t.modified_){t.modified_=true;if(t.parent_){ve(t.parent_)}}}function ye(t){if(!t.copy_){t.copy_=ge(t.base_,t.scope_.immer_.useStrictShallowCopy_)}}var vt=class{constructor(t){this.autoFreeze_=true;this.useStrictShallowCopy_=false;this.produce=(e,r,n)=>{if(typeof e==="function"&&typeof r!=="function"){const i=r;r=e;const o=this;return function a(c=i,...f){return o.produce(c,l=>r.call(this,l,...f))}}if(typeof r!=="function")_(6);if(n!==void 0&&typeof n!=="function")_(7);let s;if(x(e)){const i=Xe(this);const o=be(e,void 0);let a=true;try{s=r(o);a=false}finally{if(a)Ae(i);else $e(i)}je(i,n);return Qe(s,i)}else if(!e||typeof e!=="object"){s=r(e);if(s===void 0)s=e;if(s===Ke)s=void 0;if(this.autoFreeze_)we(s,true);if(n){const i=[];const o=[];P("Patches").generateReplacementPatches_(e,s,i,o);n(i,o)}return s}else _(1,e)};this.produceWithPatches=(e,r)=>{if(typeof e==="function"){return(o,...a)=>this.produceWithPatches(o,c=>e(c,...a))}let n,s;const i=this.produce(e,r,(o,a)=>{n=o;s=a});return[i,n,s]};if(typeof(t==null?void 0:t.autoFreeze)==="boolean")this.setAutoFreeze(t.autoFreeze);if(typeof(t==null?void 0:t.useStrictShallowCopy)==="boolean")this.setUseStrictShallowCopy(t.useStrictShallowCopy)}createDraft(t){if(!x(t))_(8);if(M(t))t=bt(t);const e=Xe(this);const r=be(t,void 0);r[p].isManual_=true;$e(e);return r}finishDraft(t,e){const r=t&&t[p];if(!r||!r.isManual_)_(9);const{scope_:n}=r;je(n,e);return Qe(void 0,n)}setAutoFreeze(t){this.autoFreeze_=t}setUseStrictShallowCopy(t){this.useStrictShallowCopy_=t}applyPatches(t,e){let r;for(r=e.length-1;r>=0;r--){const s=e[r];if(s.path.length===0&&s.op==="replace"){t=s.value;break}}if(r>-1){e=e.slice(r+1)}const n=P("Patches").applyPatches_;if(M(t)){return n(t,e)}return this.produce(t,s=>n(s,e))}};function be(t,e){const r=ee(t)?P("MapSet").proxyMap_(t,e):te(t)?P("MapSet").proxySet_(t,e):At(t,e);const n=e?e.scope_:Ze();n.drafts_.push(r);return r}function bt(t){if(!M(t))_(10,t);return et(t)}function et(t){if(!x(t)||re(t))return t;const e=t[p];let r;if(e){if(!e.modified_)return e.base_;e.finalized_=true;r=ge(t,e.scope_.immer_.useStrictShallowCopy_)}else{r=ge(t,true)}L(r,(n,s)=>{Ye(r,n,et(s))});if(e){e.finalized_=false}return r}var y=new vt;var S=y.produce;var Dt=y.produceWithPatches.bind(y);var Mt=y.setAutoFreeze.bind(y);var Ct=y.setUseStrictShallowCopy.bind(y);var Tt=y.applyPatches.bind(y);var Ht=y.createDraft.bind(y);var It=y.finishDraft.bind(y);var X=class{constructor(e=null,r=null,{last:n=false}={}){this._value=S(e,s=>{});this._observers=[];this._lastObserver=r}get value(){return this._value}update(e){this._value=S(this._value,e);const r=[...this._observers,this._lastObserver];r.forEach(n=>{n.next(this._value)})}register(e,r,n,s){let i;if(typeof e==="function"){i={next:e,error:r,complete:n}}else if(typeof e==="object"&&e!==null){i=e}else{throw new TypeError("Expected the observer to be an object or a function")}this._observers.push(i);const o=()=>{const a=this._observers.indexOf(i);if(a!==-1){this._observers.splice(a,1)}if(i.teardown){i.teardown()}};if(s){s.addEventListener("abort",o)}return o}next(e){this.update(()=>e)}error(e){this._observers.forEach(r=>{if(r.error){r.error(e)}})}complete(){this._observers.forEach(e=>{if(e.complete){e.complete()}});this._observers=[]}};var wt=function(t){return{get value(){return t.call(this)}}};var Et=function(t){this._isBatchUpdate=true;Promise.resolve().then(t).finally(()=>{this._isBatchUpdate=false;this.react()})};var xt=function(t){const e=t.call(this)||(()=>{});this._effects.push({effectFn:t,cleanup:e})};var tt=function(t){return class extends t{constructor(){super(...arguments);K(this,"computed",wt);K(this,"batch",Et);K(this,"effect",xt)}}};var ne=null;var rt=t=>{if(ne){return ne}let e=t;let r=[];let n={};let s=[];let i=[];let o=false;const a=window["__REDUX_DEVTOOLS_EXTENSION__"]&&window["__REDUX_DEVTOOLS_EXTENSION__"].connect();const c=h=>{s.push(h)};const f=h=>{r.push(h);return()=>{const g=r.indexOf(h);if(g>-1){r.splice(g,1)}}};const l=(h,g)=>{if(n[h]){throw new Error(`Action type ${h} is already registered.`)}n[h]=g};const u=()=>ce(void 0,null,function*(){if(i.length===0){o=false;return}o=true;const{action:h,payload:g}=i.shift();const C=n[h];if(!C){console.warn(`No reducer found for action ${h}`);return}const T={getState:()=>e,dispatch:(H,ie)=>m(H,ie)};const se=s.map(H=>H(T));const Q=se.reduce((H,ie)=>ie(H),A);yield Q(h,g);u()});const m=(h,g)=>{i.push({action:h,payload:g});if(!o){u()}};const A=(h,g)=>ce(void 0,null,function*(){let C;let T=null;C=S(e,se=>{const Q=n[h](se,g);if(Q instanceof Promise){T=Q;return}});if(T){yield T}e=C;N(h);return C});const N=h=>{for(const g of r){g(e,h)}a&&a.send(h,e)};ne={state:e,subscribe:f,register:l,dispatch:m,use:c};return ne};var xe=class extends tt(HTMLElement){constructor(){super();this._unsubscribers=new Map;this.store=null;this._effects=[];this._isBatchUpdate=false}observable(e){const r=new X(e,{next:this.react.bind(this),complete:this.react.bind(this),error:this.react.bind(this)},{last:true});return r}observableAttr(e,r=n=>n){let n=this.getAttribute(e);n=S(n,r);return this.observable(n)}setObservables(e){Object.keys(e).forEach(r=>{if(this[r]instanceof X){this[r].next(e[r])}})}subscribe(e,r){this.store=e;const n=this.observable(e.state[r]);const s=e.subscribe(i=>{this[r].update(()=>i[r])});this._unsubscribers.set(r,s);return n}dispatch(e,r){this.store.dispatch(e,r)}connectedCallback(){this.react()}disconnectedCallback(){this._unsubscribers.forEach(e=>e());this._effects.forEach(({cleanup:e})=>e&&e())}react(){if(!this._isBatchUpdate){const e=this.template();Le(e,this);this._effects.forEach(({effectFn:r})=>r.call(this))}}template(){throw new Error("You have to implement the method template()!")}};function Pt(t,e){if(!customElements.get(t)){customElements.define(t,e)}}return at(St);})();
+var cami = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a2, b2) => {
+    for (var prop in b2 || (b2 = {}))
+      if (__hasOwnProp.call(b2, prop))
+        __defNormalProp(a2, prop, b2[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b2)) {
+        if (__propIsEnum.call(b2, prop))
+          __defNormalProp(a2, prop, b2[prop]);
+      }
+    return a2;
+  };
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+  var __publicField = (obj, key, value) => {
+    __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+    return value;
+  };
+  var __async = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e2) {
+          reject(e2);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e2) {
+          reject(e2);
+        }
+      };
+      var step = (x2) => x2.done ? resolve(x2.value) : Promise.resolve(x2.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
+
+  // src/cami.js
+  var cami_exports = {};
+  __export(cami_exports, {
+    ReactiveElement: () => ReactiveElement,
+    define: () => define,
+    html: () => x,
+    store: () => store
+  });
+
+  // ../../../../../../../../node_modules/lit-html/lit-html.js
+  var t = globalThis;
+  var i = t.trustedTypes;
+  var s = i ? i.createPolicy("lit-html", { createHTML: (t2) => t2 }) : void 0;
+  var e = "$lit$";
+  var h = `lit$${(Math.random() + "").slice(9)}$`;
+  var o = "?" + h;
+  var n = `<${o}>`;
+  var r = document;
+  var l = () => r.createComment("");
+  var c = (t2) => null === t2 || "object" != typeof t2 && "function" != typeof t2;
+  var a = Array.isArray;
+  var u = (t2) => a(t2) || "function" == typeof (t2 == null ? void 0 : t2[Symbol.iterator]);
+  var d = "[ 	\n\f\r]";
+  var f = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
+  var v = /-->/g;
+  var _ = />/g;
+  var m = RegExp(`>|${d}(?:([^\\s"'>=/]+)(${d}*=${d}*(?:[^ 	
+\f\r"'\`<>=]|("|')|))|$)`, "g");
+  var p = /'/g;
+  var g = /"/g;
+  var $ = /^(?:script|style|textarea|title)$/i;
+  var y = (t2) => (i2, ...s2) => ({ _$litType$: t2, strings: i2, values: s2 });
+  var x = y(1);
+  var b = y(2);
+  var w = Symbol.for("lit-noChange");
+  var T = Symbol.for("lit-nothing");
+  var A = /* @__PURE__ */ new WeakMap();
+  var E = r.createTreeWalker(r, 129);
+  function C(t2, i2) {
+    if (!Array.isArray(t2) || !t2.hasOwnProperty("raw"))
+      throw Error("invalid template strings array");
+    return void 0 !== s ? s.createHTML(i2) : i2;
+  }
+  var P = (t2, i2) => {
+    const s2 = t2.length - 1, o2 = [];
+    let r2, l2 = 2 === i2 ? "<svg>" : "", c2 = f;
+    for (let i3 = 0; i3 < s2; i3++) {
+      const s3 = t2[i3];
+      let a2, u2, d2 = -1, y2 = 0;
+      for (; y2 < s3.length && (c2.lastIndex = y2, u2 = c2.exec(s3), null !== u2); )
+        y2 = c2.lastIndex, c2 === f ? "!--" === u2[1] ? c2 = v : void 0 !== u2[1] ? c2 = _ : void 0 !== u2[2] ? ($.test(u2[2]) && (r2 = RegExp("</" + u2[2], "g")), c2 = m) : void 0 !== u2[3] && (c2 = m) : c2 === m ? ">" === u2[0] ? (c2 = r2 != null ? r2 : f, d2 = -1) : void 0 === u2[1] ? d2 = -2 : (d2 = c2.lastIndex - u2[2].length, a2 = u2[1], c2 = void 0 === u2[3] ? m : '"' === u2[3] ? g : p) : c2 === g || c2 === p ? c2 = m : c2 === v || c2 === _ ? c2 = f : (c2 = m, r2 = void 0);
+      const x2 = c2 === m && t2[i3 + 1].startsWith("/>") ? " " : "";
+      l2 += c2 === f ? s3 + n : d2 >= 0 ? (o2.push(a2), s3.slice(0, d2) + e + s3.slice(d2) + h + x2) : s3 + h + (-2 === d2 ? i3 : x2);
+    }
+    return [C(t2, l2 + (t2[s2] || "<?>") + (2 === i2 ? "</svg>" : "")), o2];
+  };
+  var V = class _V {
+    constructor({ strings: t2, _$litType$: s2 }, n2) {
+      let r2;
+      this.parts = [];
+      let c2 = 0, a2 = 0;
+      const u2 = t2.length - 1, d2 = this.parts, [f2, v2] = P(t2, s2);
+      if (this.el = _V.createElement(f2, n2), E.currentNode = this.el.content, 2 === s2) {
+        const t3 = this.el.content.firstChild;
+        t3.replaceWith(...t3.childNodes);
+      }
+      for (; null !== (r2 = E.nextNode()) && d2.length < u2; ) {
+        if (1 === r2.nodeType) {
+          if (r2.hasAttributes())
+            for (const t3 of r2.getAttributeNames())
+              if (t3.endsWith(e)) {
+                const i2 = v2[a2++], s3 = r2.getAttribute(t3).split(h), e2 = /([.?@])?(.*)/.exec(i2);
+                d2.push({ type: 1, index: c2, name: e2[2], strings: s3, ctor: "." === e2[1] ? k : "?" === e2[1] ? H : "@" === e2[1] ? I : R }), r2.removeAttribute(t3);
+              } else
+                t3.startsWith(h) && (d2.push({ type: 6, index: c2 }), r2.removeAttribute(t3));
+          if ($.test(r2.tagName)) {
+            const t3 = r2.textContent.split(h), s3 = t3.length - 1;
+            if (s3 > 0) {
+              r2.textContent = i ? i.emptyScript : "";
+              for (let i2 = 0; i2 < s3; i2++)
+                r2.append(t3[i2], l()), E.nextNode(), d2.push({ type: 2, index: ++c2 });
+              r2.append(t3[s3], l());
+            }
+          }
+        } else if (8 === r2.nodeType)
+          if (r2.data === o)
+            d2.push({ type: 2, index: c2 });
+          else {
+            let t3 = -1;
+            for (; -1 !== (t3 = r2.data.indexOf(h, t3 + 1)); )
+              d2.push({ type: 7, index: c2 }), t3 += h.length - 1;
+          }
+        c2++;
+      }
+    }
+    static createElement(t2, i2) {
+      const s2 = r.createElement("template");
+      return s2.innerHTML = t2, s2;
+    }
+  };
+  function N(t2, i2, s2 = t2, e2) {
+    var _a2, _b, _c;
+    if (i2 === w)
+      return i2;
+    let h2 = void 0 !== e2 ? (_a2 = s2._$Co) == null ? void 0 : _a2[e2] : s2._$Cl;
+    const o2 = c(i2) ? void 0 : i2._$litDirective$;
+    return (h2 == null ? void 0 : h2.constructor) !== o2 && ((_b = h2 == null ? void 0 : h2._$AO) == null ? void 0 : _b.call(h2, false), void 0 === o2 ? h2 = void 0 : (h2 = new o2(t2), h2._$AT(t2, s2, e2)), void 0 !== e2 ? ((_c = s2._$Co) != null ? _c : s2._$Co = [])[e2] = h2 : s2._$Cl = h2), void 0 !== h2 && (i2 = N(t2, h2._$AS(t2, i2.values), h2, e2)), i2;
+  }
+  var S = class {
+    constructor(t2, i2) {
+      this._$AV = [], this._$AN = void 0, this._$AD = t2, this._$AM = i2;
+    }
+    get parentNode() {
+      return this._$AM.parentNode;
+    }
+    get _$AU() {
+      return this._$AM._$AU;
+    }
+    u(t2) {
+      var _a2;
+      const { el: { content: i2 }, parts: s2 } = this._$AD, e2 = ((_a2 = t2 == null ? void 0 : t2.creationScope) != null ? _a2 : r).importNode(i2, true);
+      E.currentNode = e2;
+      let h2 = E.nextNode(), o2 = 0, n2 = 0, l2 = s2[0];
+      for (; void 0 !== l2; ) {
+        if (o2 === l2.index) {
+          let i3;
+          2 === l2.type ? i3 = new M(h2, h2.nextSibling, this, t2) : 1 === l2.type ? i3 = new l2.ctor(h2, l2.name, l2.strings, this, t2) : 6 === l2.type && (i3 = new L(h2, this, t2)), this._$AV.push(i3), l2 = s2[++n2];
+        }
+        o2 !== (l2 == null ? void 0 : l2.index) && (h2 = E.nextNode(), o2++);
+      }
+      return E.currentNode = r, e2;
+    }
+    p(t2) {
+      let i2 = 0;
+      for (const s2 of this._$AV)
+        void 0 !== s2 && (void 0 !== s2.strings ? (s2._$AI(t2, s2, i2), i2 += s2.strings.length - 2) : s2._$AI(t2[i2])), i2++;
+    }
+  };
+  var M = class _M {
+    get _$AU() {
+      var _a2, _b;
+      return (_b = (_a2 = this._$AM) == null ? void 0 : _a2._$AU) != null ? _b : this._$Cv;
+    }
+    constructor(t2, i2, s2, e2) {
+      var _a2;
+      this.type = 2, this._$AH = T, this._$AN = void 0, this._$AA = t2, this._$AB = i2, this._$AM = s2, this.options = e2, this._$Cv = (_a2 = e2 == null ? void 0 : e2.isConnected) != null ? _a2 : true;
+    }
+    get parentNode() {
+      let t2 = this._$AA.parentNode;
+      const i2 = this._$AM;
+      return void 0 !== i2 && 11 === (t2 == null ? void 0 : t2.nodeType) && (t2 = i2.parentNode), t2;
+    }
+    get startNode() {
+      return this._$AA;
+    }
+    get endNode() {
+      return this._$AB;
+    }
+    _$AI(t2, i2 = this) {
+      t2 = N(this, t2, i2), c(t2) ? t2 === T || null == t2 || "" === t2 ? (this._$AH !== T && this._$AR(), this._$AH = T) : t2 !== this._$AH && t2 !== w && this._(t2) : void 0 !== t2._$litType$ ? this.g(t2) : void 0 !== t2.nodeType ? this.$(t2) : u(t2) ? this.T(t2) : this._(t2);
+    }
+    k(t2) {
+      return this._$AA.parentNode.insertBefore(t2, this._$AB);
+    }
+    $(t2) {
+      this._$AH !== t2 && (this._$AR(), this._$AH = this.k(t2));
+    }
+    _(t2) {
+      this._$AH !== T && c(this._$AH) ? this._$AA.nextSibling.data = t2 : this.$(r.createTextNode(t2)), this._$AH = t2;
+    }
+    g(t2) {
+      var _a2;
+      const { values: i2, _$litType$: s2 } = t2, e2 = "number" == typeof s2 ? this._$AC(t2) : (void 0 === s2.el && (s2.el = V.createElement(C(s2.h, s2.h[0]), this.options)), s2);
+      if (((_a2 = this._$AH) == null ? void 0 : _a2._$AD) === e2)
+        this._$AH.p(i2);
+      else {
+        const t3 = new S(e2, this), s3 = t3.u(this.options);
+        t3.p(i2), this.$(s3), this._$AH = t3;
+      }
+    }
+    _$AC(t2) {
+      let i2 = A.get(t2.strings);
+      return void 0 === i2 && A.set(t2.strings, i2 = new V(t2)), i2;
+    }
+    T(t2) {
+      a(this._$AH) || (this._$AH = [], this._$AR());
+      const i2 = this._$AH;
+      let s2, e2 = 0;
+      for (const h2 of t2)
+        e2 === i2.length ? i2.push(s2 = new _M(this.k(l()), this.k(l()), this, this.options)) : s2 = i2[e2], s2._$AI(h2), e2++;
+      e2 < i2.length && (this._$AR(s2 && s2._$AB.nextSibling, e2), i2.length = e2);
+    }
+    _$AR(t2 = this._$AA.nextSibling, i2) {
+      var _a2;
+      for ((_a2 = this._$AP) == null ? void 0 : _a2.call(this, false, true, i2); t2 && t2 !== this._$AB; ) {
+        const i3 = t2.nextSibling;
+        t2.remove(), t2 = i3;
+      }
+    }
+    setConnected(t2) {
+      var _a2;
+      void 0 === this._$AM && (this._$Cv = t2, (_a2 = this._$AP) == null ? void 0 : _a2.call(this, t2));
+    }
+  };
+  var R = class {
+    get tagName() {
+      return this.element.tagName;
+    }
+    get _$AU() {
+      return this._$AM._$AU;
+    }
+    constructor(t2, i2, s2, e2, h2) {
+      this.type = 1, this._$AH = T, this._$AN = void 0, this.element = t2, this.name = i2, this._$AM = e2, this.options = h2, s2.length > 2 || "" !== s2[0] || "" !== s2[1] ? (this._$AH = Array(s2.length - 1).fill(new String()), this.strings = s2) : this._$AH = T;
+    }
+    _$AI(t2, i2 = this, s2, e2) {
+      const h2 = this.strings;
+      let o2 = false;
+      if (void 0 === h2)
+        t2 = N(this, t2, i2, 0), o2 = !c(t2) || t2 !== this._$AH && t2 !== w, o2 && (this._$AH = t2);
+      else {
+        const e3 = t2;
+        let n2, r2;
+        for (t2 = h2[0], n2 = 0; n2 < h2.length - 1; n2++)
+          r2 = N(this, e3[s2 + n2], i2, n2), r2 === w && (r2 = this._$AH[n2]), o2 || (o2 = !c(r2) || r2 !== this._$AH[n2]), r2 === T ? t2 = T : t2 !== T && (t2 += (r2 != null ? r2 : "") + h2[n2 + 1]), this._$AH[n2] = r2;
+      }
+      o2 && !e2 && this.j(t2);
+    }
+    j(t2) {
+      t2 === T ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t2 != null ? t2 : "");
+    }
+  };
+  var k = class extends R {
+    constructor() {
+      super(...arguments), this.type = 3;
+    }
+    j(t2) {
+      this.element[this.name] = t2 === T ? void 0 : t2;
+    }
+  };
+  var H = class extends R {
+    constructor() {
+      super(...arguments), this.type = 4;
+    }
+    j(t2) {
+      this.element.toggleAttribute(this.name, !!t2 && t2 !== T);
+    }
+  };
+  var I = class extends R {
+    constructor(t2, i2, s2, e2, h2) {
+      super(t2, i2, s2, e2, h2), this.type = 5;
+    }
+    _$AI(t2, i2 = this) {
+      var _a2;
+      if ((t2 = (_a2 = N(this, t2, i2, 0)) != null ? _a2 : T) === w)
+        return;
+      const s2 = this._$AH, e2 = t2 === T && s2 !== T || t2.capture !== s2.capture || t2.once !== s2.once || t2.passive !== s2.passive, h2 = t2 !== T && (s2 === T || e2);
+      e2 && this.element.removeEventListener(this.name, this, s2), h2 && this.element.addEventListener(this.name, this, t2), this._$AH = t2;
+    }
+    handleEvent(t2) {
+      var _a2, _b;
+      "function" == typeof this._$AH ? this._$AH.call((_b = (_a2 = this.options) == null ? void 0 : _a2.host) != null ? _b : this.element, t2) : this._$AH.handleEvent(t2);
+    }
+  };
+  var L = class {
+    constructor(t2, i2, s2) {
+      this.element = t2, this.type = 6, this._$AN = void 0, this._$AM = i2, this.options = s2;
+    }
+    get _$AU() {
+      return this._$AM._$AU;
+    }
+    _$AI(t2) {
+      N(this, t2);
+    }
+  };
+  var Z = t.litHtmlPolyfillSupport;
+  var _a;
+  Z == null ? void 0 : Z(V, M), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.0.0");
+  var j = (t2, i2, s2) => {
+    var _a2, _b;
+    const e2 = (_a2 = s2 == null ? void 0 : s2.renderBefore) != null ? _a2 : i2;
+    let h2 = e2._$litPart$;
+    if (void 0 === h2) {
+      const t3 = (_b = s2 == null ? void 0 : s2.renderBefore) != null ? _b : null;
+      e2._$litPart$ = h2 = new M(i2.insertBefore(l(), t3), t3, void 0, s2 != null ? s2 : {});
+    }
+    return h2._$AI(t2), h2;
+  };
+
+  // node_modules/immer/dist/immer.mjs
+  var NOTHING = Symbol.for("immer-nothing");
+  var DRAFTABLE = Symbol.for("immer-draftable");
+  var DRAFT_STATE = Symbol.for("immer-state");
+  var errors = true ? [
+    // All error codes, starting by 0:
+    function(plugin) {
+      return `The plugin for '${plugin}' has not been loaded into Immer. To enable the plugin, import and call \`enable${plugin}()\` when initializing your application.`;
+    },
+    function(thing) {
+      return `produce can only be called on things that are draftable: plain objects, arrays, Map, Set or classes that are marked with '[immerable]: true'. Got '${thing}'`;
+    },
+    "This object has been frozen and should not be mutated",
+    function(data) {
+      return "Cannot use a proxy that has been revoked. Did you pass an object from inside an immer function to an async process? " + data;
+    },
+    "An immer producer returned a new value *and* modified its draft. Either return a new value *or* modify the draft.",
+    "Immer forbids circular references",
+    "The first or second argument to `produce` must be a function",
+    "The third argument to `produce` must be a function or undefined",
+    "First argument to `createDraft` must be a plain object, an array, or an immerable object",
+    "First argument to `finishDraft` must be a draft returned by `createDraft`",
+    function(thing) {
+      return `'current' expects a draft, got: ${thing}`;
+    },
+    "Object.defineProperty() cannot be used on an Immer draft",
+    "Object.setPrototypeOf() cannot be used on an Immer draft",
+    "Immer only supports deleting array indices",
+    "Immer only supports setting array indices and the 'length' property",
+    function(thing) {
+      return `'original' expects a draft, got: ${thing}`;
+    }
+    // Note: if more errors are added, the errorOffset in Patches.ts should be increased
+    // See Patches.ts for additional errors
+  ] : [];
+  function die(error, ...args) {
+    if (true) {
+      const e2 = errors[error];
+      const msg = typeof e2 === "function" ? e2.apply(null, args) : e2;
+      throw new Error(`[Immer] ${msg}`);
+    }
+    throw new Error(
+      `[Immer] minified error nr: ${error}. Full error at: https://bit.ly/3cXEKWf`
+    );
+  }
+  var getPrototypeOf = Object.getPrototypeOf;
+  function isDraft(value) {
+    return !!value && !!value[DRAFT_STATE];
+  }
+  function isDraftable(value) {
+    var _a2;
+    if (!value)
+      return false;
+    return isPlainObject(value) || Array.isArray(value) || !!value[DRAFTABLE] || !!((_a2 = value.constructor) == null ? void 0 : _a2[DRAFTABLE]) || isMap(value) || isSet(value);
+  }
+  var objectCtorString = Object.prototype.constructor.toString();
+  function isPlainObject(value) {
+    if (!value || typeof value !== "object")
+      return false;
+    const proto = getPrototypeOf(value);
+    if (proto === null) {
+      return true;
+    }
+    const Ctor = Object.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+    if (Ctor === Object)
+      return true;
+    return typeof Ctor == "function" && Function.toString.call(Ctor) === objectCtorString;
+  }
+  function each(obj, iter) {
+    if (getArchtype(obj) === 0) {
+      Object.entries(obj).forEach(([key, value]) => {
+        iter(key, value, obj);
+      });
+    } else {
+      obj.forEach((entry, index) => iter(index, entry, obj));
+    }
+  }
+  function getArchtype(thing) {
+    const state = thing[DRAFT_STATE];
+    return state ? state.type_ : Array.isArray(thing) ? 1 : isMap(thing) ? 2 : isSet(thing) ? 3 : 0;
+  }
+  function has(thing, prop) {
+    return getArchtype(thing) === 2 ? thing.has(prop) : Object.prototype.hasOwnProperty.call(thing, prop);
+  }
+  function set(thing, propOrOldValue, value) {
+    const t2 = getArchtype(thing);
+    if (t2 === 2)
+      thing.set(propOrOldValue, value);
+    else if (t2 === 3) {
+      thing.add(value);
+    } else
+      thing[propOrOldValue] = value;
+  }
+  function is(x2, y2) {
+    if (x2 === y2) {
+      return x2 !== 0 || 1 / x2 === 1 / y2;
+    } else {
+      return x2 !== x2 && y2 !== y2;
+    }
+  }
+  function isMap(target) {
+    return target instanceof Map;
+  }
+  function isSet(target) {
+    return target instanceof Set;
+  }
+  function latest(state) {
+    return state.copy_ || state.base_;
+  }
+  function shallowCopy(base, strict) {
+    if (isMap(base)) {
+      return new Map(base);
+    }
+    if (isSet(base)) {
+      return new Set(base);
+    }
+    if (Array.isArray(base))
+      return Array.prototype.slice.call(base);
+    if (!strict && isPlainObject(base)) {
+      if (!getPrototypeOf(base)) {
+        const obj = /* @__PURE__ */ Object.create(null);
+        return Object.assign(obj, base);
+      }
+      return __spreadValues({}, base);
+    }
+    const descriptors = Object.getOwnPropertyDescriptors(base);
+    delete descriptors[DRAFT_STATE];
+    let keys = Reflect.ownKeys(descriptors);
+    for (let i2 = 0; i2 < keys.length; i2++) {
+      const key = keys[i2];
+      const desc = descriptors[key];
+      if (desc.writable === false) {
+        desc.writable = true;
+        desc.configurable = true;
+      }
+      if (desc.get || desc.set)
+        descriptors[key] = {
+          configurable: true,
+          writable: true,
+          // could live with !!desc.set as well here...
+          enumerable: desc.enumerable,
+          value: base[key]
+        };
+    }
+    return Object.create(getPrototypeOf(base), descriptors);
+  }
+  function freeze(obj, deep = false) {
+    if (isFrozen(obj) || isDraft(obj) || !isDraftable(obj))
+      return obj;
+    if (getArchtype(obj) > 1) {
+      obj.set = obj.add = obj.clear = obj.delete = dontMutateFrozenCollections;
+    }
+    Object.freeze(obj);
+    if (deep)
+      each(obj, (_key, value) => freeze(value, true), true);
+    return obj;
+  }
+  function dontMutateFrozenCollections() {
+    die(2);
+  }
+  function isFrozen(obj) {
+    return Object.isFrozen(obj);
+  }
+  var plugins = {};
+  function getPlugin(pluginKey) {
+    const plugin = plugins[pluginKey];
+    if (!plugin) {
+      die(0, pluginKey);
+    }
+    return plugin;
+  }
+  var currentScope;
+  function getCurrentScope() {
+    return currentScope;
+  }
+  function createScope(parent_, immer_) {
+    return {
+      drafts_: [],
+      parent_,
+      immer_,
+      // Whenever the modified draft contains a draft from another scope, we
+      // need to prevent auto-freezing so the unowned draft can be finalized.
+      canAutoFreeze_: true,
+      unfinalizedDrafts_: 0
+    };
+  }
+  function usePatchesInScope(scope, patchListener) {
+    if (patchListener) {
+      getPlugin("Patches");
+      scope.patches_ = [];
+      scope.inversePatches_ = [];
+      scope.patchListener_ = patchListener;
+    }
+  }
+  function revokeScope(scope) {
+    leaveScope(scope);
+    scope.drafts_.forEach(revokeDraft);
+    scope.drafts_ = null;
+  }
+  function leaveScope(scope) {
+    if (scope === currentScope) {
+      currentScope = scope.parent_;
+    }
+  }
+  function enterScope(immer2) {
+    return currentScope = createScope(currentScope, immer2);
+  }
+  function revokeDraft(draft) {
+    const state = draft[DRAFT_STATE];
+    if (state.type_ === 0 || state.type_ === 1)
+      state.revoke_();
+    else
+      state.revoked_ = true;
+  }
+  function processResult(result, scope) {
+    scope.unfinalizedDrafts_ = scope.drafts_.length;
+    const baseDraft = scope.drafts_[0];
+    const isReplaced = result !== void 0 && result !== baseDraft;
+    if (isReplaced) {
+      if (baseDraft[DRAFT_STATE].modified_) {
+        revokeScope(scope);
+        die(4);
+      }
+      if (isDraftable(result)) {
+        result = finalize(scope, result);
+        if (!scope.parent_)
+          maybeFreeze(scope, result);
+      }
+      if (scope.patches_) {
+        getPlugin("Patches").generateReplacementPatches_(
+          baseDraft[DRAFT_STATE].base_,
+          result,
+          scope.patches_,
+          scope.inversePatches_
+        );
+      }
+    } else {
+      result = finalize(scope, baseDraft, []);
+    }
+    revokeScope(scope);
+    if (scope.patches_) {
+      scope.patchListener_(scope.patches_, scope.inversePatches_);
+    }
+    return result !== NOTHING ? result : void 0;
+  }
+  function finalize(rootScope, value, path) {
+    if (isFrozen(value))
+      return value;
+    const state = value[DRAFT_STATE];
+    if (!state) {
+      each(
+        value,
+        (key, childValue) => finalizeProperty(rootScope, state, value, key, childValue, path),
+        true
+        // See #590, don't recurse into non-enumerable of non drafted objects
+      );
+      return value;
+    }
+    if (state.scope_ !== rootScope)
+      return value;
+    if (!state.modified_) {
+      maybeFreeze(rootScope, state.base_, true);
+      return state.base_;
+    }
+    if (!state.finalized_) {
+      state.finalized_ = true;
+      state.scope_.unfinalizedDrafts_--;
+      const result = state.copy_;
+      let resultEach = result;
+      let isSet2 = false;
+      if (state.type_ === 3) {
+        resultEach = new Set(result);
+        result.clear();
+        isSet2 = true;
+      }
+      each(
+        resultEach,
+        (key, childValue) => finalizeProperty(rootScope, state, result, key, childValue, path, isSet2)
+      );
+      maybeFreeze(rootScope, result, false);
+      if (path && rootScope.patches_) {
+        getPlugin("Patches").generatePatches_(
+          state,
+          path,
+          rootScope.patches_,
+          rootScope.inversePatches_
+        );
+      }
+    }
+    return state.copy_;
+  }
+  function finalizeProperty(rootScope, parentState, targetObject, prop, childValue, rootPath, targetIsSet) {
+    if (childValue === targetObject)
+      die(5);
+    if (isDraft(childValue)) {
+      const path = rootPath && parentState && parentState.type_ !== 3 && // Set objects are atomic since they have no keys.
+      !has(parentState.assigned_, prop) ? rootPath.concat(prop) : void 0;
+      const res = finalize(rootScope, childValue, path);
+      set(targetObject, prop, res);
+      if (isDraft(res)) {
+        rootScope.canAutoFreeze_ = false;
+      } else
+        return;
+    } else if (targetIsSet) {
+      targetObject.add(childValue);
+    }
+    if (isDraftable(childValue) && !isFrozen(childValue)) {
+      if (!rootScope.immer_.autoFreeze_ && rootScope.unfinalizedDrafts_ < 1) {
+        return;
+      }
+      finalize(rootScope, childValue);
+      if (!parentState || !parentState.scope_.parent_)
+        maybeFreeze(rootScope, childValue);
+    }
+  }
+  function maybeFreeze(scope, value, deep = false) {
+    if (!scope.parent_ && scope.immer_.autoFreeze_ && scope.canAutoFreeze_) {
+      freeze(value, deep);
+    }
+  }
+  function createProxyProxy(base, parent) {
+    const isArray = Array.isArray(base);
+    const state = {
+      type_: isArray ? 1 : 0,
+      // Track which produce call this is associated with.
+      scope_: parent ? parent.scope_ : getCurrentScope(),
+      // True for both shallow and deep changes.
+      modified_: false,
+      // Used during finalization.
+      finalized_: false,
+      // Track which properties have been assigned (true) or deleted (false).
+      assigned_: {},
+      // The parent draft state.
+      parent_: parent,
+      // The base state.
+      base_: base,
+      // The base proxy.
+      draft_: null,
+      // set below
+      // The base copy with any updated values.
+      copy_: null,
+      // Called by the `produce` function.
+      revoke_: null,
+      isManual_: false
+    };
+    let target = state;
+    let traps = objectTraps;
+    if (isArray) {
+      target = [state];
+      traps = arrayTraps;
+    }
+    const { revoke, proxy } = Proxy.revocable(target, traps);
+    state.draft_ = proxy;
+    state.revoke_ = revoke;
+    return proxy;
+  }
+  var objectTraps = {
+    get(state, prop) {
+      if (prop === DRAFT_STATE)
+        return state;
+      const source = latest(state);
+      if (!has(source, prop)) {
+        return readPropFromProto(state, source, prop);
+      }
+      const value = source[prop];
+      if (state.finalized_ || !isDraftable(value)) {
+        return value;
+      }
+      if (value === peek(state.base_, prop)) {
+        prepareCopy(state);
+        return state.copy_[prop] = createProxy(value, state);
+      }
+      return value;
+    },
+    has(state, prop) {
+      return prop in latest(state);
+    },
+    ownKeys(state) {
+      return Reflect.ownKeys(latest(state));
+    },
+    set(state, prop, value) {
+      const desc = getDescriptorFromProto(latest(state), prop);
+      if (desc == null ? void 0 : desc.set) {
+        desc.set.call(state.draft_, value);
+        return true;
+      }
+      if (!state.modified_) {
+        const current2 = peek(latest(state), prop);
+        const currentState = current2 == null ? void 0 : current2[DRAFT_STATE];
+        if (currentState && currentState.base_ === value) {
+          state.copy_[prop] = value;
+          state.assigned_[prop] = false;
+          return true;
+        }
+        if (is(value, current2) && (value !== void 0 || has(state.base_, prop)))
+          return true;
+        prepareCopy(state);
+        markChanged(state);
+      }
+      if (state.copy_[prop] === value && // special case: handle new props with value 'undefined'
+      (value !== void 0 || prop in state.copy_) || // special case: NaN
+      Number.isNaN(value) && Number.isNaN(state.copy_[prop]))
+        return true;
+      state.copy_[prop] = value;
+      state.assigned_[prop] = true;
+      return true;
+    },
+    deleteProperty(state, prop) {
+      if (peek(state.base_, prop) !== void 0 || prop in state.base_) {
+        state.assigned_[prop] = false;
+        prepareCopy(state);
+        markChanged(state);
+      } else {
+        delete state.assigned_[prop];
+      }
+      if (state.copy_) {
+        delete state.copy_[prop];
+      }
+      return true;
+    },
+    // Note: We never coerce `desc.value` into an Immer draft, because we can't make
+    // the same guarantee in ES5 mode.
+    getOwnPropertyDescriptor(state, prop) {
+      const owner = latest(state);
+      const desc = Reflect.getOwnPropertyDescriptor(owner, prop);
+      if (!desc)
+        return desc;
+      return {
+        writable: true,
+        configurable: state.type_ !== 1 || prop !== "length",
+        enumerable: desc.enumerable,
+        value: owner[prop]
+      };
+    },
+    defineProperty() {
+      die(11);
+    },
+    getPrototypeOf(state) {
+      return getPrototypeOf(state.base_);
+    },
+    setPrototypeOf() {
+      die(12);
+    }
+  };
+  var arrayTraps = {};
+  each(objectTraps, (key, fn) => {
+    arrayTraps[key] = function() {
+      arguments[0] = arguments[0][0];
+      return fn.apply(this, arguments);
+    };
+  });
+  arrayTraps.deleteProperty = function(state, prop) {
+    if (isNaN(parseInt(prop)))
+      die(13);
+    return arrayTraps.set.call(this, state, prop, void 0);
+  };
+  arrayTraps.set = function(state, prop, value) {
+    if (prop !== "length" && isNaN(parseInt(prop)))
+      die(14);
+    return objectTraps.set.call(this, state[0], prop, value, state[0]);
+  };
+  function peek(draft, prop) {
+    const state = draft[DRAFT_STATE];
+    const source = state ? latest(state) : draft;
+    return source[prop];
+  }
+  function readPropFromProto(state, source, prop) {
+    var _a2;
+    const desc = getDescriptorFromProto(source, prop);
+    return desc ? `value` in desc ? desc.value : (
+      // This is a very special case, if the prop is a getter defined by the
+      // prototype, we should invoke it with the draft as context!
+      (_a2 = desc.get) == null ? void 0 : _a2.call(state.draft_)
+    ) : void 0;
+  }
+  function getDescriptorFromProto(source, prop) {
+    if (!(prop in source))
+      return void 0;
+    let proto = getPrototypeOf(source);
+    while (proto) {
+      const desc = Object.getOwnPropertyDescriptor(proto, prop);
+      if (desc)
+        return desc;
+      proto = getPrototypeOf(proto);
+    }
+    return void 0;
+  }
+  function markChanged(state) {
+    if (!state.modified_) {
+      state.modified_ = true;
+      if (state.parent_) {
+        markChanged(state.parent_);
+      }
+    }
+  }
+  function prepareCopy(state) {
+    if (!state.copy_) {
+      state.copy_ = shallowCopy(
+        state.base_,
+        state.scope_.immer_.useStrictShallowCopy_
+      );
+    }
+  }
+  var Immer2 = class {
+    constructor(config) {
+      this.autoFreeze_ = true;
+      this.useStrictShallowCopy_ = false;
+      this.produce = (base, recipe, patchListener) => {
+        if (typeof base === "function" && typeof recipe !== "function") {
+          const defaultBase = recipe;
+          recipe = base;
+          const self = this;
+          return function curriedProduce(base2 = defaultBase, ...args) {
+            return self.produce(base2, (draft) => recipe.call(this, draft, ...args));
+          };
+        }
+        if (typeof recipe !== "function")
+          die(6);
+        if (patchListener !== void 0 && typeof patchListener !== "function")
+          die(7);
+        let result;
+        if (isDraftable(base)) {
+          const scope = enterScope(this);
+          const proxy = createProxy(base, void 0);
+          let hasError = true;
+          try {
+            result = recipe(proxy);
+            hasError = false;
+          } finally {
+            if (hasError)
+              revokeScope(scope);
+            else
+              leaveScope(scope);
+          }
+          usePatchesInScope(scope, patchListener);
+          return processResult(result, scope);
+        } else if (!base || typeof base !== "object") {
+          result = recipe(base);
+          if (result === void 0)
+            result = base;
+          if (result === NOTHING)
+            result = void 0;
+          if (this.autoFreeze_)
+            freeze(result, true);
+          if (patchListener) {
+            const p2 = [];
+            const ip = [];
+            getPlugin("Patches").generateReplacementPatches_(base, result, p2, ip);
+            patchListener(p2, ip);
+          }
+          return result;
+        } else
+          die(1, base);
+      };
+      this.produceWithPatches = (base, recipe) => {
+        if (typeof base === "function") {
+          return (state, ...args) => this.produceWithPatches(state, (draft) => base(draft, ...args));
+        }
+        let patches, inversePatches;
+        const result = this.produce(base, recipe, (p2, ip) => {
+          patches = p2;
+          inversePatches = ip;
+        });
+        return [result, patches, inversePatches];
+      };
+      if (typeof (config == null ? void 0 : config.autoFreeze) === "boolean")
+        this.setAutoFreeze(config.autoFreeze);
+      if (typeof (config == null ? void 0 : config.useStrictShallowCopy) === "boolean")
+        this.setUseStrictShallowCopy(config.useStrictShallowCopy);
+    }
+    createDraft(base) {
+      if (!isDraftable(base))
+        die(8);
+      if (isDraft(base))
+        base = current(base);
+      const scope = enterScope(this);
+      const proxy = createProxy(base, void 0);
+      proxy[DRAFT_STATE].isManual_ = true;
+      leaveScope(scope);
+      return proxy;
+    }
+    finishDraft(draft, patchListener) {
+      const state = draft && draft[DRAFT_STATE];
+      if (!state || !state.isManual_)
+        die(9);
+      const { scope_: scope } = state;
+      usePatchesInScope(scope, patchListener);
+      return processResult(void 0, scope);
+    }
+    /**
+     * Pass true to automatically freeze all copies created by Immer.
+     *
+     * By default, auto-freezing is enabled.
+     */
+    setAutoFreeze(value) {
+      this.autoFreeze_ = value;
+    }
+    /**
+     * Pass true to enable strict shallow copy.
+     *
+     * By default, immer does not copy the object descriptors such as getter, setter and non-enumrable properties.
+     */
+    setUseStrictShallowCopy(value) {
+      this.useStrictShallowCopy_ = value;
+    }
+    applyPatches(base, patches) {
+      let i2;
+      for (i2 = patches.length - 1; i2 >= 0; i2--) {
+        const patch = patches[i2];
+        if (patch.path.length === 0 && patch.op === "replace") {
+          base = patch.value;
+          break;
+        }
+      }
+      if (i2 > -1) {
+        patches = patches.slice(i2 + 1);
+      }
+      const applyPatchesImpl = getPlugin("Patches").applyPatches_;
+      if (isDraft(base)) {
+        return applyPatchesImpl(base, patches);
+      }
+      return this.produce(
+        base,
+        (draft) => applyPatchesImpl(draft, patches)
+      );
+    }
+  };
+  function createProxy(value, parent) {
+    const draft = isMap(value) ? getPlugin("MapSet").proxyMap_(value, parent) : isSet(value) ? getPlugin("MapSet").proxySet_(value, parent) : createProxyProxy(value, parent);
+    const scope = parent ? parent.scope_ : getCurrentScope();
+    scope.drafts_.push(draft);
+    return draft;
+  }
+  function current(value) {
+    if (!isDraft(value))
+      die(10, value);
+    return currentImpl(value);
+  }
+  function currentImpl(value) {
+    if (!isDraftable(value) || isFrozen(value))
+      return value;
+    const state = value[DRAFT_STATE];
+    let copy;
+    if (state) {
+      if (!state.modified_)
+        return state.base_;
+      state.finalized_ = true;
+      copy = shallowCopy(value, state.scope_.immer_.useStrictShallowCopy_);
+    } else {
+      copy = shallowCopy(value, true);
+    }
+    each(copy, (key, childValue) => {
+      set(copy, key, currentImpl(childValue));
+    });
+    if (state) {
+      state.finalized_ = false;
+    }
+    return copy;
+  }
+  var immer = new Immer2();
+  var produce = immer.produce;
+  var produceWithPatches = immer.produceWithPatches.bind(
+    immer
+  );
+  var setAutoFreeze = immer.setAutoFreeze.bind(immer);
+  var setUseStrictShallowCopy = immer.setUseStrictShallowCopy.bind(immer);
+  var applyPatches = immer.applyPatches.bind(immer);
+  var createDraft = immer.createDraft.bind(immer);
+  var finishDraft = immer.finishDraft.bind(immer);
+
+  // src/observable.js
+  var Observable = class {
+    /**
+     * @constructor
+     * @param {any} initialValue - The initial value for the observable
+     * @param {Object} lastObserver - The last observer to be notified. Useful for rendering the template last
+     * @param {Object} options - Options for the observable
+     * @param {boolean} options.last - If true, the last observer will be notified last
+     */
+    constructor(initialValue = null, lastObserver = null, { last = false } = {}) {
+      this._value = produce(initialValue, (draft) => {
+      });
+      this._observers = [];
+      this._lastObserver = lastObserver;
+    }
+    /**
+     * @method
+     * @returns {any} The current value of the observable
+     */
+    get value() {
+      return this._value;
+    }
+    /**
+     * @method
+     * @param {Function} updater - The function to produce the new value
+     * @returns {void}
+     * @description This method updates the value of the observable and calls all observer functions
+     */
+    update(updater) {
+      this._value = produce(this._value, updater);
+      const observersWithLast = [...this._observers, this._lastObserver];
+      observersWithLast.forEach((observer) => {
+        observer.next(this._value);
+      });
+    }
+    /**
+     * @method
+     * @param {Object|Function} next - The observer object to be subscribed to the observable or a function to be called when the observable updates
+     * @param {Function} error - Function to be called when an error occurs
+     * @param {Function} complete - Function to be called when the observable completes
+     * @param {AbortSignal} signal - Signal to abort the observer
+     * @returns {Function} A function that when called, will unsubscribe the observer from the observable
+     * @description This method subscribes a new observer to the observable and returns an unsubscribe function
+     */
+    register(next, error, complete, signal) {
+      let observer;
+      if (typeof next === "function") {
+        observer = { next, error, complete };
+      } else if (typeof next === "object" && next !== null) {
+        observer = next;
+      } else {
+        throw new TypeError("Expected the observer to be an object or a function");
+      }
+      this._observers.push(observer);
+      const unsubscribe = () => {
+        const index = this._observers.indexOf(observer);
+        if (index !== -1) {
+          this._observers.splice(index, 1);
+        }
+        if (observer.teardown) {
+          observer.teardown();
+        }
+      };
+      if (signal) {
+        signal.addEventListener("abort", unsubscribe);
+      }
+      return unsubscribe;
+    }
+    /**
+     * @method
+     * @param {any} value - The new value for the observable
+     * @returns {void}
+     * @description This method updates the value of the observable and notifies all observers
+     */
+    next(value) {
+      this.update(() => value);
+    }
+    /**
+     * @method
+     * @param {any} error - The error to notify all observers about
+     * @returns {void}
+     * @description This method notifies all observers about an error
+     */
+    error(error) {
+      this._observers.forEach((observer) => {
+        if (observer.error) {
+          observer.error(error);
+        }
+      });
+    }
+    /**
+     * @method
+     * @returns {void}
+     * @description This method notifies all observers that the observable is complete
+     */
+    complete() {
+      this._observers.forEach((observer) => {
+        if (observer.complete) {
+          observer.complete();
+        }
+      });
+      this._observers = [];
+    }
+  };
+  var computed = function(computeFn) {
+    return {
+      get value() {
+        return computeFn.call(this);
+      }
+    };
+  };
+  var batch = function(callback) {
+    this._isBatchUpdate = true;
+    Promise.resolve().then(callback).finally(() => {
+      this._isBatchUpdate = false;
+      this.react();
+    });
+  };
+  var effect = function(effectFn) {
+    const cleanup = effectFn.call(this) || (() => {
+    });
+    this._effects.push({ effectFn, cleanup });
+  };
+  var observableMixin = function(BaseClass) {
+    return class extends BaseClass {
+      constructor() {
+        super(...arguments);
+        __publicField(this, "computed", computed);
+        __publicField(this, "batch", batch);
+        __publicField(this, "effect", effect);
+      }
+    };
+  };
+
+  // src/store.js
+  var instance = null;
+  var store = (initialState) => {
+    if (instance) {
+      return instance;
+    }
+    let state = initialState;
+    let listeners = [];
+    let reducers = {};
+    let middlewares = [];
+    let dispatchQueue = [];
+    let isProcessingQueue = false;
+    const devTools = window["__REDUX_DEVTOOLS_EXTENSION__"] && window["__REDUX_DEVTOOLS_EXTENSION__"].connect();
+    const use = (middleware) => {
+      middlewares.push(middleware);
+    };
+    const subscribe = (listener) => {
+      listeners.push(listener);
+      return () => {
+        const index = listeners.indexOf(listener);
+        if (index > -1) {
+          listeners.splice(index, 1);
+        }
+      };
+    };
+    const register = (action, reducer) => {
+      if (reducers[action]) {
+        throw new Error(`Action type ${action} is already registered.`);
+      }
+      reducers[action] = reducer;
+    };
+    const processQueue = () => __async(void 0, null, function* () {
+      if (dispatchQueue.length === 0) {
+        isProcessingQueue = false;
+        return;
+      }
+      isProcessingQueue = true;
+      const { action, payload } = dispatchQueue.shift();
+      const reducer = reducers[action];
+      if (!reducer) {
+        console.warn(`No reducer found for action ${action}`);
+        return;
+      }
+      const middlewareAPI = {
+        getState: () => state,
+        dispatch: (action2, payload2) => dispatch(action2, payload2)
+      };
+      const chain = middlewares.map((middleware) => middleware(middlewareAPI));
+      const dispatchWithMiddleware = chain.reduce((next, middleware) => middleware(next), baseDispatch);
+      yield dispatchWithMiddleware(action, payload);
+      processQueue();
+    });
+    const dispatch = (action, payload) => {
+      dispatchQueue.push({ action, payload });
+      if (!isProcessingQueue) {
+        processQueue();
+      }
+    };
+    const baseDispatch = (action, payload) => __async(void 0, null, function* () {
+      let newState;
+      let asyncTask = null;
+      newState = produce(state, (draft) => {
+        const result = reducers[action](draft, payload);
+        if (result instanceof Promise) {
+          asyncTask = result;
+          return;
+        }
+      });
+      if (asyncTask) {
+        yield asyncTask;
+      }
+      state = newState;
+      notify(action);
+      return newState;
+    });
+    const notify = (action) => {
+      for (const listener of listeners) {
+        listener(state, action);
+      }
+      devTools && devTools.send(action, state);
+    };
+    instance = {
+      state,
+      subscribe,
+      register,
+      dispatch,
+      use
+    };
+    return instance;
+  };
+
+  // src/cami.js
+  var ReactiveElement = class extends observableMixin(HTMLElement) {
+    /**
+     * @constructor
+     */
+    constructor() {
+      super();
+      this._unsubscribers = /* @__PURE__ */ new Map();
+      this.store = null;
+      this._effects = [];
+      this._isBatchUpdate = false;
+    }
+    /**
+     * @method
+     * @param {any} initialValue - The initial value for the observable
+     * @returns {Observable} The observable
+     */
+    observable(initialValue) {
+      const observable = new Observable(initialValue, {
+        next: this.react.bind(this),
+        complete: this.react.bind(this),
+        error: this.react.bind(this)
+        // the view will always include the error message
+      }, { last: true });
+      return observable;
+    }
+    /**
+     * Creates an observable property from an attribute.
+     * @param {string} attrName - The name of the attribute.
+     * @param {Function} parseFn - The function to parse the attribute value. Defaults to identity function.
+     * @returns {Object} An object with a value property and an update method
+     * @description This method creates an observable property from an attribute. It first gets the attribute value, then uses the provided parse function to process the value. The processed value is then used to create an observable. The method finally converts the attribute name to a property name and returns the observable.
+     */
+    observableAttr(attrName, parseFn = (v2) => v2) {
+      let attrValue = this.getAttribute(attrName);
+      attrValue = produce(attrValue, parseFn);
+      return this.observable(attrValue);
+    }
+    /**
+     * @method
+     * @param {Object} props - The properties to set
+     * @description This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
+     * @returns {void}
+     */
+    setObservables(props) {
+      Object.keys(props).forEach((key) => {
+        if (this[key] instanceof Observable) {
+          this[key].next(props[key]);
+        }
+      });
+    }
+    /**
+     * @method
+     * @param {Store} store - The store to bind
+     * @param {string} key - The key for the store
+     * @returns {Object} The observable
+     */
+    subscribe(store2, key) {
+      this.store = store2;
+      const observable = this.observable(store2.state[key]);
+      const unsubscribe = store2.subscribe((newState) => {
+        this[key].update(() => newState[key]);
+      });
+      this._unsubscribers.set(key, unsubscribe);
+      return observable;
+    }
+    /**
+     * @method
+     * @param {string} action - The action to dispatch
+     * @param {any} payload - The payload for the action
+     * @returns {void}
+     */
+    dispatch(action, payload) {
+      this.store.dispatch(action, payload);
+    }
+    /**
+     * @method
+     * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
+     * @returns {void}
+     */
+    connectedCallback() {
+      this.react();
+    }
+    /**
+     * @method
+     * Invoked when the custom element is disconnected from the document's DOM.
+     * @returns {void}
+     */
+    disconnectedCallback() {
+      this._unsubscribers.forEach((unsubscribe) => unsubscribe());
+      this._effects.forEach(({ cleanup }) => cleanup && cleanup());
+    }
+    /**
+     * @method
+     * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+     * This also triggers all effects.
+     * @returns {void}
+     */
+    react() {
+      if (!this._isBatchUpdate) {
+        const template = this.template();
+        j(template, this);
+        this._effects.forEach(({ effectFn }) => effectFn.call(this));
+      }
+    }
+    /**
+     * @method
+     * @throws {Error} If the method template() is not implemented
+     * @returns {void}
+     */
+    template() {
+      throw new Error("You have to implement the method template()!");
+    }
+  };
+  function define(elementName, ElementClass) {
+    if (!customElements.get(elementName)) {
+      customElements.define(elementName, ElementClass);
+    }
+  }
+  return __toCommonJS(cami_exports);
+})();
 /**
  * @license
  * Copyright (c) 2023 Kenn Costales

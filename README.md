@@ -3,7 +3,7 @@
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
 Current version: 0.0.16.
-Bundle Size: 8kb minified & gzipped.
+Bundle Size: 9kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
 
@@ -301,6 +301,8 @@ They are also listed below:
   <counter-component></counter-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
@@ -308,7 +310,9 @@ They are also listed below:
       super();
       this.count = this.observable(0);
       this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
+      this.effect(() => {
+        console.log('count', this.count.value);
+      });
     }
 
     increment() {
@@ -340,8 +344,11 @@ They are also listed below:
   <h1>Form Validation</h1>
   <form-component></form-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  import { html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+  const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
     constructor() {
@@ -399,6 +406,8 @@ They are also listed below:
   <todo-list-component></todo-list-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
   // Step 1: Define the initial state of our store
@@ -412,7 +421,10 @@ They are also listed below:
   });
 
   todoStore.register('delete', (store, payload) => {
-    store.todos = store.todos.filter(todo => todo !== payload);
+    const index = store.todos.indexOf(payload);
+    if (index > -1) {
+      store.todos.splice(index, 1);
+    }
   });
 
   const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
@@ -466,6 +478,8 @@ They are also listed below:
 </article>
 
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
 
@@ -571,6 +585,8 @@ They are also listed below:
   <simple-input-component></simple-input-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
 
@@ -613,9 +629,11 @@ They are also listed below:
   <nested-observable-element></nested-observable-element>
 </article>
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
-class NestedObservableElement extends ReactiveElement {
+  class NestedObservableElement extends ReactiveElement {
     constructor() {
       super();
       this.user = this.observable({
@@ -703,6 +721,8 @@ class NestedObservableElement extends ReactiveElement {
   <user-list-component></user-list-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
   // Step 1: Define the initial state of our store
@@ -794,6 +814,8 @@ class NestedObservableElement extends ReactiveElement {
   ></my-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
  const { html, ReactiveElement } = cami;
 
@@ -842,6 +864,50 @@ class NestedObservableElement extends ReactiveElement {
 
   customElements.define('my-component', MyComponent);
 
+</script>
+```
+
+```html
+<!-- ./examples/_009_batch.html -->
+<article>
+  <h1>Batch Updates</h1>
+  <batch-update-element></batch-update-element>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class BatchUpdateElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.count = this.observable(0);
+      this.doubleCount = this.computed(() => this.count.value * 2);
+    }
+
+    increment() {
+      this.count.update(value => value + 1);
+    }
+
+    batchIncrement() {
+      this.batch(() => {
+        this.count.update(value => value + 1);
+        this.count.update(value => value + 1);
+      });
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.increment()}>Increment</button>
+        <button @click=${() => this.batchIncrement()}>Batch Increment</button>
+        <div>Count: ${this.count.value}</div>
+        <div>Double Count: ${this.doubleCount.value}</div>
+      `;
+    }
+  }
+
+  customElements.define('batch-update-element', BatchUpdateElement);
 </script>
 ```
 
