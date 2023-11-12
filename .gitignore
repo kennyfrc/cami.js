@@ -181,3 +181,6 @@ out
 /docs
 /utils
 /examples/build
+
+package-lib.json
+src/scratch.js

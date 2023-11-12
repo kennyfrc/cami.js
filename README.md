@@ -2,10 +2,27 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.15.
+Current version: 0.0.16.
 Bundle Size: 8kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
+
+## Table of Contents
+
+- [Motivation](#motivation)
+- [Key Features](#key-features)
+- [Who is this for?](#who-is-this-for)
+- [Philosophy](#philosophy)
+- [Get Started](#get-started--view-examples)
+- [Key Concepts / API](#key-concepts--api)
+  - [ReactiveElement Class, Observable Objects, and HTML Tagged Templates](#reactiveelement-class-observable-objects-and-html-tagged-templates)
+  - [Basics of Observables & Templates](#basics-of-observables--templates)
+  - [Basics of Computed Properties & Effects](#basics-of-computed-properties--effects)
+  - [ReactiveElement Methods](#reactiveelement-methods)
+  - [cami.store(initialState)](#camistoreinitialstate)
+  - [html](#html)
+- [Examples](#examples)
+- [Dev Usage](#dev-usage)
 
 ## Motivation
 
@@ -64,8 +81,9 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 
 ```html
 <counter-element></counter-element>
+<script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
 <script type="module">
-import { html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
 
 class CounterElement extends ReactiveElement {
   constructor() {
@@ -206,9 +224,9 @@ In this example, a 'count-reached-ten' event is dispatched whenever the count re
 Note: Lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
 
 
-### `createStore(initialState)`
+### `cami.store(initialState)`
 
-The `createStore` function is a fundamental part of Cami.js. It creates a new store with the provided initial state. The store is a singleton, meaning that if it has already been created, the existing instance will be returned. This store is a central place where all the state of your application lives. It's like a data warehouse where different components of your application can communicate and share data.
+The `cami.store` function is a fundamental part of Cami.js. It creates a new store with the provided initial state. The store is a singleton, meaning that if it has already been created, the existing instance will be returned. This store is a central place where all the state of your application lives. It's like a data warehouse where different components of your application can communicate and share data.
 
 This concept is particularly useful in scenarios where multiple components need to share and manipulate the same state. A classic example of this is a shopping cart in an e-commerce application, where various components like product listing, cart summary, and checkout need access to the same cart state.
 
@@ -282,8 +300,9 @@ They are also listed below:
   <h1>Counter</h1>
   <counter-component></counter-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
@@ -379,10 +398,11 @@ They are also listed below:
   <h1>Todo List</h1>
   <todo-list-component></todo-list-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
   // Step 1: Define the initial state of our store
-  const todoStore = createStore({
+  const todoStore = cami.store({
     todos: [],
   });
 
@@ -445,10 +465,11 @@ They are also listed below:
   <cart-component></cart-component>
 </article>
 
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
 
-  const cartStore = createStore({
+  const cartStore = cami.store({
     cartItems: [],
     products: [
       { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
@@ -549,8 +570,9 @@ They are also listed below:
   <h1>Label Updates from Input Forms (Nested Observable)</h1>
   <simple-input-component></simple-input-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
     constructor() {
@@ -590,8 +612,9 @@ They are also listed below:
   <h1>User Update Page (Nested Observable)</h1>
   <nested-observable-element></nested-observable-element>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
 class NestedObservableElement extends ReactiveElement {
     constructor() {
       super();
@@ -679,10 +702,11 @@ class NestedObservableElement extends ReactiveElement {
   <h1>User Update Page (Nested Store)</h1>
   <user-list-component></user-list-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
   // Step 1: Define the initial state of our store
-  const userStore = createStore({
+  const userStore = cami.store({
     users: [
       {
         id: 1,
@@ -769,8 +793,9 @@ class NestedObservableElement extends ReactiveElement {
     todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
   ></my-component>
 </article>
+<script src="./build/cami.cdn.js"></script>
 <script type="module">
-  import { createStore, html, ReactiveElement } from 'https://unpkg.com/cami@latest/build/cami.module.js';
+ const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
     constructor() {
