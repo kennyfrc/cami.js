@@ -1,6 +1,6 @@
 # ReactiveElement Protocol
 
-The `ReactiveElement` class interacts with `Observable` and `Store` objects. To ensure compatibility, these objects should adhere to the following protocols:
+The `ReactiveElement` class interacts with `Observable`, `Observer` and `Store` objects. To ensure compatibility, these objects should adhere to the following protocols:
 
 ## Observable Protocol
 
@@ -12,11 +12,23 @@ An `Observable` is an object that holds a value and allows updates to it. It sho
 
 - `register(next, error, complete, signal)`: This method subscribes a new observer to the observable and returns an unsubscribe function.
 
-- `next(value)`: This method updates the value of the observable and notifies all observers.
+For asynchronous operations, the `Observable` should implement the iterator pattern methods. This pattern closely follows a subset of the [WICG proposal](https://github.com/WICG/observable). It effectively handles data dispatch over time, solving the problem of managing asynchronous data flows:
 
-- `error(error)`: This method notifies all observers about an error.
+- `next(value)`: Dispatches the new value to the observers, akin to moving to and returning the next item in the iterator pattern.
 
-- `complete()`: This method notifies all observers that the observable is complete.
+- `error(error)`: Dispatches an error to the observers, similar to exception handling in the iterator pattern.
+
+- `complete()`: Notifies observers of job completion, signaling the end of an iteration in the iterator pattern.
+
+## Observer Protocol
+
+An `Observer` is a plain javascript object that listens to an `Observable`. It should implement the following methods:
+
+- `next(value)`: This method is called by the `Observable` with the new value.
+
+- `error(error)`: This method is called by the `Observable` with an error.
+
+- `complete()`: This method is called by the `Observable` when it is complete.
 
 ## Store Protocol
 
@@ -31,3 +43,4 @@ A `Store` is an object that holds the application state and provides methods to 
 - `register(action, reducer)`: This method adds a reducer to the store.
 
 - `use(middleware)`: This method adds a middleware to the store.
+
