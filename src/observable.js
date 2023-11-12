@@ -150,12 +150,12 @@ const computed = function(computeFn) {
  * @function
  * @param {Function} callback - The function to call in a batch update
  * @returns {void}
- * @description This function sets the _isBatchUpdate flag, calls the callback, then resets the flag and calls react
+ * @description This function sets the _isWithinBatch flag, calls the callback, then resets the flag and calls react
  */
 const batch = function(callback) {
-  this._isBatchUpdate = true;
+  this._isWithinBatch = true;
   Promise.resolve().then(callback).finally(() => {
-    this._isBatchUpdate = false;
+    this._isWithinBatch = false;
     this.react();
   });
 };

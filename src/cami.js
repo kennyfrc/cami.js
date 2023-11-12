@@ -32,7 +32,7 @@ class ReactiveElement extends observableMixin(HTMLElement) {
     this._unsubscribers = new Map();
     this.store = null;
     this._effects = [];
-    this._isBatchUpdate = false;
+    this._isWithinBatch = false;
   }
 
 
@@ -129,7 +129,7 @@ class ReactiveElement extends observableMixin(HTMLElement) {
    * @returns {void}
    */
   react() {
-    if (!this._isBatchUpdate) {
+    if (!this._isWithinBatch) {
       const template = this.template();
       render(template, this);
       this._effects.forEach(({ effectFn }) => effectFn.call(this));
