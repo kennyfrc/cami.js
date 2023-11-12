@@ -19,7 +19,6 @@ A minimalist & flexible toolkit for interactive islands & state management in hy
   - [ReactiveElement Class, Observable Objects, and HTML Tagged Templates](#reactiveelement-class-observable-objects-and-html-tagged-templates)
   - [Basics of Observables & Templates](#basics-of-observables--templates)
   - [Basics of Computed Properties & Effects](#basics-of-computed-properties--effects)
-  - [ReactiveElement Methods](#reactiveelement-methods)
   - [cami.store(initialState)](#camistoreinitialstate)
   - [html](#html)
 - [Examples](#examples)
