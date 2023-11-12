@@ -10,6 +10,8 @@
  */
 import { html, render } from 'lit-html';
 import { produce } from "immer"
+import { Observable, observableMixin } from './observable.js';
+import { store } from './store.js';
 
 /**
  * @typedef {Object} State
@@ -17,20 +19,11 @@ import { produce } from "immer"
  */
 
 /**
- * @typedef {Object} Store
- * @property {State} state - The current state of the store
- * @property {Function} subscribe - Function to subscribe a listener to the store
- * @property {Function} register - Function to register a reducer to the store
- * @property {Function} dispatch - Function to dispatch an action to the store
- * @property {Function} use - Function to add a middleware to the store
- */
-
-/**
  * @class
  * @extends {HTMLElement}
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
-class ReactiveElement extends HTMLElement {
+class ReactiveElement extends observableMixin(HTMLElement) {
   /**
    * @constructor
    */
@@ -39,48 +32,22 @@ class ReactiveElement extends HTMLElement {
     this._unsubscribers = new Map();
     this.store = null;
     this._effects = [];
+    this._isBatchUpdate = false;
   }
+
 
   /**
    * @method
    * @param {any} initialValue - The initial value for the observable
-   * @returns {Object} An object with a value property and an update method
+   * @returns {Observable} The observable
    */
   observable(initialValue) {
-    let value = produce(initialValue, draft => {});
-    const react = this.react.bind(this);
-    return {
-      get value() {
-        return value;
-      },
-      update: (function(updater) {
-        value = produce(value, updater);
-        react();
-      }).bind(this),
-    };
-  }
-
-  /**
-   * @method
-   * @param {Function} computeFn - The function to compute the value of the property
-   * @returns {Object} An object with a value getter
-   */
-  computed(computeFn) {
-    return {
-      get value() {
-        return computeFn.call(this);
-      },
-    };
-  }
-
-  /**
-   * @method
-   * @param {Function} effectFn - The function to be called when an observable changes
-   * @returns {void}
-   */
-  effect(effectFn) {
-    const cleanup = effectFn.call(this) || (() => {});
-    this._effects.push({ effectFn, cleanup });
+    const observable = new Observable(initialValue, {
+      next: this.react.bind(this),
+      complete: this.react.bind(this),
+      error: this.react.bind(this) // the view will always include the error message
+    }, { last: true });
+    return observable;
   }
 
   /**
@@ -104,8 +71,8 @@ class ReactiveElement extends HTMLElement {
    */
   setObservables(props) {
     Object.keys(props).forEach(key => {
-      if (this[key] && typeof this[key].update === 'function') {
-        this[key].update(() => props[key]);
+      if (this[key] instanceof Observable) {
+        this[key].next(props[key]);
       }
     });
   }
@@ -162,9 +129,11 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   react() {
-    const template = this.template();
-    render(template, this);
-    this._effects.forEach(({ effectFn }) => effectFn.call(this));
+    if (!this._isBatchUpdate) {
+      const template = this.template();
+      render(template, this);
+      this._effects.forEach(({ effectFn }) => effectFn.call(this));
+    }
   }
 
   /**
@@ -177,134 +146,25 @@ class ReactiveElement extends HTMLElement {
   }
 }
 
-let instance = null;
-
 /**
  * @function
- * @param {State} initialState - The initial state of the store
- * @returns {Store} The store singleton
+ * @param {string} elementName - The name of the custom element
+ * @param {class} ElementClass - The class of the custom element
+ * @returns {void}
+ *
+ * This function is necessary to avoid DOMException errors that occur when a custom element is defined more than once (which happens when using AJAX)
+ * This is particularly useful when using libraries like HTMX that dynamically inject HTML into the page.
  */
-const createStore = (initialState) => {
-    // Singleton pattern: if an instance already exists, return it
-    if (instance) {
-        return instance;
-    }
-
-    let state = initialState;
-    let listeners = [];
-    let reducers = {};
-    let middlewares = [];
-    let dispatchQueue = [];
-    let isProcessingQueue = false;
-
-    const devTools = window['__REDUX_DEVTOOLS_EXTENSION__'] && window['__REDUX_DEVTOOLS_EXTENSION__'].connect();
-
-    // Middleware registration: adds a middleware to the store
-    const use = (middleware) => {
-      middlewares.push(middleware);
-    };
-
-    // Listener registration: adds a listener to the store and returns an unsubscribe function
-    const subscribe = (listener) => {
-        listeners.push(listener);
-        return () => {
-            const index = listeners.indexOf(listener);
-            if (index > -1) {
-                listeners.splice(index, 1);
-            }
-        };
-    };
-
-    // Reducer registration: adds a reducer to the store
-    const register = (action, reducer) => {
-        if (reducers[action]) {
-            throw new Error(`Action type ${action} is already registered.`);
-        }
-        reducers[action] = reducer;
-    };
-
-    // Queue processing: processes the dispatch queue asynchronously
-    const processQueue = async () => {
-      if (dispatchQueue.length === 0) {
-        isProcessingQueue = false;
-        return;
-      }
-
-      isProcessingQueue = true;
-      const { action, payload } = dispatchQueue.shift();
-
-      const reducer = reducers[action];
-      if (!reducer) {
-        console.warn(`No reducer found for action ${action}`);
-        return;
-      }
-
-      const middlewareAPI = {
-        getState: () => state,
-        dispatch: (action, payload) => dispatch(action, payload)
-      };
-      const chain = middlewares.map(middleware => middleware(middlewareAPI));
-      const dispatchWithMiddleware = chain.reduce((next, middleware) => middleware(next), baseDispatch);
-
-      await dispatchWithMiddleware(action, payload);
-      processQueue();
-    };
-
-    // Dispatch: adds an action to the dispatch queue and starts processing if not already doing so
-    const dispatch = (action, payload) => {
-      dispatchQueue.push({ action, payload });
-
-      if (!isProcessingQueue) {
-        processQueue();
-      }
-    };
-
-    // Base dispatch: applies the reducer for the action and notifies listeners
-    const baseDispatch = async (action, payload) => {
-      let newState;
-      let asyncTask = null;
-
-      newState = produce(state, draft => {
-        const result = reducers[action](draft, payload);
-        if (result instanceof Promise) {
-          asyncTask = result;
-          return;
-        }
-      });
-
-      if (asyncTask) {
-        await asyncTask;
-      }
-
-      state = newState;
-      notify(action);
-
-      return newState;
-    };
-
-    // Notify: notifies all listeners of the new state and sends the state to Redux DevTools
-    const notify = (action) => {
-        for (const listener of listeners) {
-            listener(state, action);
-        }
-        devTools && devTools.send(action, state);
-    };
-
-    // Store instance: contains the current state and methods for interacting with the store
-    instance = {
-        state,
-        subscribe,
-        register,
-        dispatch,
-        use,
-    };
-
-    return instance;
-};
+function define(elementName, ElementClass) {
+  if (!customElements.get(elementName)) {
+    customElements.define(elementName, ElementClass);
+  }
+}
 
 /**
- * @exports createStore
+ * @exports store
  * @exports html
  * @exports ReactiveElement
+ * @exports define
  */
-export { createStore, html, ReactiveElement };
+export { store, html, ReactiveElement, define };
