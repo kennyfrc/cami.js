@@ -112,16 +112,14 @@ class Observable {
 class ObservableState extends Observable {
   /**
    * @constructor
-   * @param {any} initialValue - The initial value for the observable
-   * @param {Object} subscriber - The subscriber to be notified. Useful for rendering the template last
-   * @param {Object} options - Options for the observable
-   * @param {boolean} options.last - If true, the subscriber will be notified last
+   * @param {any} initialValue - The initial value of the observable
+   * @param {Subscriber} subscriber - The subscriber to the observable
+   * @param {Object} options - Additional options for the observable
+   * @param {boolean} options.last - Whether the subscriber is the last observer
    */
   constructor(initialValue = null, subscriber = null, {last = false} = {}) {
     super((innerSubscriber) => {
-      // This function will be called when subscribe is called on the ObservableState instance
-      // Does nothing as we don't need a setup function
-      return () => {}; // Teardown logic can be added here
+      return () => {};
     });
     if (last) {
       this._lastObserver = subscriber;
@@ -129,7 +127,10 @@ class ObservableState extends Observable {
       this._observers.push(subscriber);
     }
     this._value = produce(initialValue, draft => {});
+    this._pendingUpdates = [];
+    this._updateScheduled = false;
   }
+
   /**
    * @method
    * @returns {any} The current value of the observable
@@ -140,20 +141,37 @@ class ObservableState extends Observable {
 
   /**
    * @method
-   * @param {Function} updater - The function to produce the new value
-   * @returns {void}
-   * @description This method updates the value of the observable and calls all observer functions
+   * @param {Function} updater - The function to update the value
+   * @description This method adds the updater function to the pending updates queue.
+   * It uses requestAnimationFrame to schedule the updates in the next frame.
+   * This is done to batch multiple updates together and avoid unnecessary re-renders.
    */
   update(updater) {
-    this._value = produce(this._value, updater);
-    requestAnimationFrame(() => {
-      const observersWithLast = [...this._observers, this._lastObserver];
-      observersWithLast.forEach(observer => {
-        if (observer && observer.next) {
-          observer.next(this._value);
-        }
-      });
+    this._pendingUpdates.push(updater);
+    if (!this._updateScheduled) {
+      this._updateScheduled = true;
+      requestAnimationFrame(this._applyUpdates.bind(this));
+    }
+  }
+
+  /**
+   * @method
+   * @private
+   * @description This method applies all the pending updates to the value.
+   * It then notifies all the observers with the updated value.
+   */
+  _applyUpdates() {
+    while (this._pendingUpdates.length > 0) {
+      const updater = this._pendingUpdates.shift();
+      this._value = produce(this._value, updater);
+    }
+    const observersWithLast = [...this._observers, this._lastObserver];
+    observersWithLast.forEach(observer => {
+      if (observer && observer.next) {
+        observer.next(this._value);
+      }
     });
+    this._updateScheduled = false;
   }
 }
 
