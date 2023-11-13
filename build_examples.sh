@@ -25,7 +25,7 @@ for file in "$partials_dir"/_*.html; do
     content=$(cat "$file" | tr '\n' '\r' | sed "s/\r/$newline_placeholder/g")
 
     # Escape special characters in the content
-    content=$(printf '%q' "$content")
+    content=$(echo "$content" | sed -e 's/[\/&]/\\&/g')
 
     # Check if content was read successfully
     if [[ $? -ne 0 ]]; then
@@ -49,7 +49,7 @@ for file in "$partials_dir"/_*.html; do
     fi
 
     # Replace the placeholder with the content, then replace the newline placeholder with actual newline characters
-    sed -i '' "s|<!-- YIELD -->|$content|g" "examples/$new_name.html"
+    sed -i '' "s#<!-- YIELD -->#$content#g" "examples/$new_name.html"
     sed -i '' "s/$newline_placeholder/\\
 /g" "examples/$new_name.html"
 
