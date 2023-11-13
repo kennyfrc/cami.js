@@ -13,16 +13,24 @@ import { produce } from "immer";
  * @property {Subscriber} _lastObserver - The last observer to be notified
  */
 
+/**
+ * @class
+ * @description Subscriber class that holds observer object and related methods
+ */
 class Subscriber {
   /**
    * @constructor
    * @param {Object} observer - The observer object
    */
   constructor(observer) {
+    /** @type {Object} */
     this.observer = observer;
+    /** @type {Array<Function>} */
     this.teardowns = [];
     if (typeof AbortController !== 'undefined') {
+      /** @type {AbortController} */
       this.controller = new AbortController();
+      /** @type {AbortSignal} */
       this.signal = this.controller.signal;
     }
   }
@@ -77,13 +85,19 @@ class Subscriber {
   }
 }
 
+/**
+ * @class
+ * @description Observable class that holds a list of observers and related methods
+ */
 class Observable {
   /**
    * @constructor
    * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes
    */
   constructor(subscribeCallback) {
+    /** @type {Array<Subscriber>} */
     this._observers = [];
+    /** @type {Function} */
     this.subscribeCallback = subscribeCallback;
   }
 
@@ -122,12 +136,16 @@ class ObservableState extends Observable {
       return () => {};
     });
     if (last) {
+      /** @type {Subscriber} */
       this._lastObserver = subscriber;
     } else {
       this._observers.push(subscriber);
     }
+    /** @type {any} */
     this._value = produce(initialValue, draft => {});
+    /** @type {Array<Function>} */
     this._pendingUpdates = [];
+    /** @type {boolean} */
     this._updateScheduled = false;
   }
 
@@ -136,6 +154,9 @@ class ObservableState extends Observable {
    * @returns {any} The current value of the observable
    */
   get value() {
+    if (ComputedObservable.isComputing != null) {
+      ComputedObservable.isComputing.addDependency(this);
+    }
     return this._value;
   }
 
@@ -143,7 +164,7 @@ class ObservableState extends Observable {
    * @method
    * @param {Function} updater - The function to update the value
    * @description This method adds the updater function to the pending updates queue.
-   * It uses requestAnimationFrame to schedule the updates in the next frame.
+   * It uses requestAnimationFrame (rAF) to schedule the updates in the next animation frame.
    * This is done to batch multiple updates together and avoid unnecessary re-renders.
    */
   update(updater) {
@@ -152,6 +173,17 @@ class ObservableState extends Observable {
       this._updateScheduled = true;
       requestAnimationFrame(this._applyUpdates.bind(this));
     }
+  }
+
+  notifyObservers() {
+    const observersWithLast = [...this._observers, this._lastObserver];
+    observersWithLast.forEach(observer => {
+      if (observer && typeof observer === 'function') {
+        observer(this._value);
+      } else if (observer && observer.next) {
+        observer.next(this._value);
+      }
+    });
   }
 
   /**
@@ -165,27 +197,93 @@ class ObservableState extends Observable {
       const updater = this._pendingUpdates.shift();
       this._value = produce(this._value, updater);
     }
-    const observersWithLast = [...this._observers, this._lastObserver];
-    observersWithLast.forEach(observer => {
-      if (observer && observer.next) {
-        observer.next(this._value);
-      }
-    });
+    this.notifyObservers();
     this._updateScheduled = false;
   }
 }
 
 /**
+ * @class
+ * @description ComputedObservable class that extends ObservableState and holds additional methods for computed observables
+ */
+class ComputedObservable extends ObservableState {
+  constructor(computeFn, context) {
+    super(null);
+    /** @type {Function} */
+    this.computeFn = computeFn;
+    /** @type {Object} */
+    this.context = context;
+    /** @type {Set<ObservableState>} */
+    this.dependencies = new Set();
+    /** @type {Set<ComputedObservable>} */
+    this.children = new Set();
+    /** @type {Map<ObservableState, Object>} */
+    this.subscriptions = new Map();
+    this.compute();
+  }
+
+  get value() {
+    ComputedObservable.isComputing = this;
+    const value = this.computeFn.call(this.context);
+    ComputedObservable.isComputing = null;
+    return value;
+  }
+
+  compute() {
+    this.notifyChildren();
+    this._value = this.computeFn.call(this.context);
+    this.notifyObservers();
+  }
+
+  addDependency(observable) {
+    if (!this.dependencies.has(observable)) {
+      const subscription = observable.subscribe(() => this.compute());
+      this.dependencies.add(observable);
+      this.subscriptions.set(observable, subscription);
+      if (observable instanceof ComputedObservable) {
+        observable.addChild(this);
+      }
+    }
+  }
+
+  dispose() {
+    this.notifyChildren();
+    this.dependencies.forEach((observable) => {
+      const subscription = this.subscriptions.get(observable);
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      this.dependencies.delete(observable);
+      this.subscriptions.delete(observable);
+      if (observable instanceof ComputedObservable) {
+        observable.removeChild(this);
+      }
+    });
+  }
+
+  addChild(child) {
+    this.children.add(child);
+  }
+
+  removeChild(child) {
+    this.children.delete(child);
+  }
+
+  notifyChildren() {
+    this.children.forEach(child => {
+      child.dispose();
+    });
+    this.children.clear();
+  }
+}
+
+/**
  * @function
- * @param {Function} computeFn - The function to compute the value
- * @returns {Object} An object with a getter for the computed value
+ * @param {Function} computeFn - The function to compute the value of the observable
+ * @returns {ComputedObservable} A new instance of ComputedObservable
  */
 const computed = function(computeFn) {
-  return {
-    get value() {
-      return computeFn.call(this);
-    },
-  };
+  return new ComputedObservable(computeFn, this);
 };
 
 /**
@@ -206,11 +304,15 @@ const batch = function(callback) {
  * @function
  * @param {Function} effectFn - The function to call for the effect
  * @returns {void}
- * @description This function calls the effect function, stores the cleanup function, and adds the effect to the _effects array
+ * @description This function sets up an effect that is run when the observable changes
  */
 const effect = function(effectFn) {
-  const cleanup = effectFn.call(this) || (() => {});
-  this._effects.push({ effectFn, cleanup });
+  let cleanup = () => {};
+  const runEffect = () => {
+    cleanup();
+    cleanup = effectFn.call(this) || (() => {});
+  };
+  this._effects.push({ effectFn: runEffect, cleanup });
 };
 
 /**

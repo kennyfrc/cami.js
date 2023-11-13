@@ -29,9 +29,13 @@ class ReactiveElement extends observableMixin(HTMLElement) {
    */
   constructor() {
     super();
+    /** @type {Map<string, Function>} */
     this._unsubscribers = new Map();
+    /** @type {Object} */
     this.store = null;
+    /** @type {Array<Function>} */
     this._effects = [];
+    /** @type {boolean} */
     this._isWithinBatch = false;
   }
 
