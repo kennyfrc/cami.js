@@ -122,7 +122,17 @@ class Observable {
   }
 }
 
+/**
+ * @class
+ * @description ObservableStream class that extends Observable and provides additional methods for data transformation
+ * @extends Observable
+ */
 class ObservableStream extends Observable {
+  /**
+   * @method
+   * @param {Function} transformFn - The function to transform the data
+   * @returns {ObservableStream} A new ObservableStream instance with transformed data
+   */
   map(transformFn) {
     return new ObservableStream(subscriber => {
       const subscription = this.subscribe({
@@ -135,6 +145,11 @@ class ObservableStream extends Observable {
     });
   }
 
+  /**
+   * @method
+   * @param {Function} predicateFn - The function to filter the data
+   * @returns {ObservableStream} A new ObservableStream instance with filtered data
+   */
   filter(predicateFn) {
     return new ObservableStream(subscriber => {
       const subscription = this.subscribe({
@@ -151,21 +166,139 @@ class ObservableStream extends Observable {
     });
   }
 
+  /**
+   * @method
+   * @param {Function} reducerFn - The function to reduce the data
+   * @param {any} initialValue - The initial value for the reducer
+   * @returns {Promise} A promise that resolves with the reduced value
+   */
   reduce(reducerFn, initialValue) {
-    return new ObservableStream(subscriber => {
+    return new Promise((resolve, reject) => {
       let accumulator = initialValue;
       const subscription = this.subscribe({
         next: value => {
           accumulator = reducerFn(accumulator, value);
         },
-        error: err => subscriber.error(err),
-        complete: () => {
-          subscriber.next(accumulator);
-          subscriber.complete();
-        },
+        error: err => reject(err),
+        complete: () => resolve(accumulator),
       });
 
       return () => subscription.unsubscribe();
+    });
+  }
+
+  /**
+   * @method
+   * @param {Observable} notifier - The Observable that will complete this Observable
+   * @returns {ObservableStream} A new ObservableStream that completes when the notifier emits
+   */
+  takeUntil(notifier) {
+    return new ObservableStream(subscriber => {
+      const sourceSubscription = this.subscribe({
+        next: value => subscriber.next(value),
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      const notifierSubscription = notifier.subscribe({
+        next: () => {
+          subscriber.complete();
+          sourceSubscription.unsubscribe();
+          notifierSubscription.unsubscribe();
+        },
+        error: err => subscriber.error(err),
+      });
+
+      return () => {
+        sourceSubscription.unsubscribe();
+        notifierSubscription.unsubscribe();
+      };
+    });
+  }
+
+  /**
+   * @method
+   * @param {number} n - The number of values to take
+   * @returns {ObservableStream} A new ObservableStream that completes after emitting n values
+   */
+  take(n) {
+    return new ObservableStream(subscriber => {
+      let i = 0;
+      const subscription = this.subscribe({
+        next: value => {
+          if (i++ < n) {
+            subscriber.next(value);
+          } else {
+            subscriber.complete();
+            subscription.unsubscribe();
+          }
+        },
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
+  /**
+   * @method
+   * @param {number} n - The number of values to drop
+   * @returns {ObservableStream} A new ObservableStream that starts emitting after n values have been emitted
+   */
+  drop(n) {
+    return new ObservableStream(subscriber => {
+      let i = 0;
+      const subscription = this.subscribe({
+        next: value => {
+          if (i++ >= n) {
+            subscriber.next(value);
+          }
+        },
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} transformFn - The function to transform the data into Observables
+   * @returns {ObservableStream} A new ObservableStream that emits the values from the inner Observables
+   */
+  flatMap(transformFn) {
+    return new ObservableStream(subscriber => {
+      const subscriptions = new Set();
+
+      const sourceSubscription = this.subscribe({
+        next: value => {
+          const innerObservable = transformFn(value);
+          const innerSubscription = innerObservable.subscribe({
+            next: innerValue => subscriber.next(innerValue),
+            error: err => subscriber.error(err),
+            complete: () => {
+              subscriptions.delete(innerSubscription);
+              if (subscriptions.size === 0) {
+                subscriber.complete();
+              }
+            },
+          });
+          subscriptions.add(innerSubscription);
+        },
+        error: err => subscriber.error(err),
+        complete: () => {
+          if (subscriptions.size === 0) {
+            subscriber.complete();
+          }
+        },
+      });
+
+      return () => {
+        sourceSubscription.unsubscribe();
+        subscriptions.forEach(subscription => subscription.unsubscribe());
+      };
     });
   }
 }
