@@ -6,18 +6,29 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
       this.count = this.observable(0);
       this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.countCubed = this.computed(() => {
-        return this.countSquared.value * this.count.value;
-      });
+      this.countCubed = this.computed(() => this.countSquared.value * this.count.value);
       this.countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
+      this.countPlusRandom = this.computed(() => this.count.value + Math.random());
       this.effect(() => {
         console.log('count', this.count.value);
+      });
+      this.effect(() => {
+        console.log('count squared', this.countSquared.value);
+      });
+      this.effect(() => {
+        console.log('count cubed', this.countCubed.value);
+      });
+      this.effect(() => {
+        console.log('count quadrupled', this.countQuadrupled.value);
+      });
+      this.effect(() => {
+        console.log('count plus random', this.countPlusRandom.value);
       });
       this.count.subscribe({
         next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
@@ -45,15 +56,26 @@
       this.count.update(value => value - 1);
     }
 
+    multiplyByTwo() {
+      this.count.update(value => value * 2);
+    }
+
+    divideByTwo() {
+      this.count.update(value => value / 2);
+    }
+
     template() {
       return html`
         <button @click=${() => this.decrement()}>-</button>
+        <button @click=${() => this.increment()}>+</button>
+        <button @click=${() => this.multiplyByTwo()}>*2</button>
+        <button @click=${() => this.divideByTwo()}>/2</button>
         <span>Base: ${this.count.value}</span>
         <span>Squared: ${this.countSquared.value}</span>
         <span>Cubed: ${this.countCubed.value}</span>
         <span>Quadrupled: ${this.countQuadrupled.value}</span>
+        <span>Plus Random: ${this.countPlusRandom.value}</span>
         <span>Sqrt: ${this.countSqrt ? this.countSqrt.value : 'N/A'}</span>
-        <button @click=${() => this.increment()}>+</button>
       `;
     }
   }
