@@ -146,11 +146,13 @@ class ObservableState extends Observable {
    */
   update(updater) {
     this._value = produce(this._value, updater);
-    const observersWithLast = [...this._observers, this._lastObserver];
-    observersWithLast.forEach(observer => {
-      if (observer && observer.next) {
-        observer.next(this._value);
-      }
+    requestAnimationFrame(() => {
+      const observersWithLast = [...this._observers, this._lastObserver];
+      observersWithLast.forEach(observer => {
+        if (observer && observer.next) {
+          observer.next(this._value);
+        }
+      });
     });
   }
 }
