@@ -313,6 +313,9 @@ They are also listed below:
       this.effect(() => {
         console.log('count', this.count.value);
       });
+      this.count.subscribe({
+        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
+      });
     }
 
     increment() {
