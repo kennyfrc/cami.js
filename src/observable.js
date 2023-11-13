@@ -9,29 +9,127 @@ import { produce } from "immer";
 /**
  * @typedef {Object} Observable
  * @property {any} _value - The current value of the observable
- * @property {Array} _observers - The list of observers subscribed to the observable
- * @property {Object} _lastObserver - The last observer to be notified
+ * @property {Array<Subscriber>} _observers - The list of observers subscribed to the observable
+ * @property {Subscriber} _lastObserver - The last observer to be notified
  */
+
+class Subscriber {
+  /**
+   * @constructor
+   * @param {Object} observer - The observer object
+   */
+  constructor(observer) {
+    this.observer = observer;
+    this.teardowns = [];
+    if (typeof AbortController !== 'undefined') {
+      this.controller = new AbortController();
+      this.signal = this.controller.signal;
+    }
+  }
+
+  /**
+   * @method
+   * @param {any} result - The result to pass to the observer's next method
+   */
+  next(result) {
+    if (this.observer.next) {
+      this.observer.next(result);
+    }
+  }
+
+  /**
+   * @method
+   */
+  complete() {
+    if (this.observer.complete) {
+      this.observer.complete();
+      this.unsubscribe();
+    }
+  }
+
+  /**
+   * @method
+   * @param {Error} error - The error to pass to the observer's error method
+   */
+  error(error) {
+    if (this.observer.error) {
+      this.observer.error(error);
+      this.unsubscribe();
+    }
+  }
+
+  /**
+   * @method
+   * @param {Function} teardown - The teardown function to add to the teardowns array
+   */
+  addTeardown(teardown) {
+    this.teardowns.push(teardown);
+  }
+
+  /**
+   * @method
+   */
+  unsubscribe() {
+    if (this.controller) {
+      this.controller.abort();
+    }
+    this.teardowns.forEach(teardown => teardown());
+  }
+}
+
+class Observable {
+  /**
+   * @constructor
+   * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes
+   */
+  constructor(subscribeCallback) {
+    this._observers = [];
+    this.subscribeCallback = subscribeCallback;
+  }
+
+  /**
+   * @method
+   * @param {Object} observer - The observer to subscribe
+   * @returns {Object} An object with an unsubscribe method
+   */
+  subscribe(observer = {}) {
+    const subscriber = new Subscriber(observer);
+    const teardown = this.subscribeCallback(subscriber);
+    subscriber.addTeardown(teardown);
+    this._observers.push(subscriber);
+    return {
+      unsubscribe: () => subscriber.unsubscribe(),
+    };
+  }
+}
+
 
 /**
  * @class
  * @description Observable class that holds a value and allows updates to it.
  * It uses the Immer library to handle immutable updates.
  */
-class Observable {
+class ObservableState extends Observable {
   /**
    * @constructor
    * @param {any} initialValue - The initial value for the observable
-   * @param {Object} lastObserver - The last observer to be notified. Useful for rendering the template last
+   * @param {Object} subscriber - The subscriber to be notified. Useful for rendering the template last
    * @param {Object} options - Options for the observable
-   * @param {boolean} options.last - If true, the last observer will be notified last
+   * @param {boolean} options.last - If true, the subscriber will be notified last
    */
-  constructor(initialValue = null, lastObserver = null, {last = false} = {}) {
+  constructor(initialValue = null, subscriber = null, {last = false} = {}) {
+    super((innerSubscriber) => {
+      // This function will be called when subscribe is called on the ObservableState instance
+      // Does nothing as we don't need a setup function
+      return () => {}; // Teardown logic can be added here
+    });
+    if (last) {
+      this._lastObserver = subscriber;
+    } else {
+      this._observers.push(subscriber);
+    }
     this._value = produce(initialValue, draft => {});
-    this._observers = [];
-    this._lastObserver = lastObserver;
   }
-
   /**
    * @method
    * @returns {any} The current value of the observable
@@ -50,86 +148,10 @@ class Observable {
     this._value = produce(this._value, updater);
     const observersWithLast = [...this._observers, this._lastObserver];
     observersWithLast.forEach(observer => {
-      observer.next(this._value);
-    });
-  }
-
-  /**
-   * @method
-   * @param {Object|Function} next - The observer object to be subscribed to the observable or a function to be called when the observable updates
-   * @param {Function} error - Function to be called when an error occurs
-   * @param {Function} complete - Function to be called when the observable completes
-   * @param {AbortSignal} signal - Signal to abort the observer
-   * @returns {Function} A function that when called, will unsubscribe the observer from the observable
-   * @description This method subscribes a new observer to the observable and returns an unsubscribe function
-   */
-  register(next, error, complete, signal) {
-    let observer;
-
-    if (typeof next === 'function') {
-      observer = { next, error, complete };
-    } else if (typeof next === 'object' && next !== null) {
-      observer = next;
-    } else {
-      throw new TypeError('Expected the observer to be an object or a function');
-    }
-
-    this._observers.push(observer);
-
-    const unsubscribe = () => {
-      const index = this._observers.indexOf(observer);
-      if (index !== -1) {
-        this._observers.splice(index, 1);
-      }
-      if (observer.teardown) {
-        observer.teardown();
-      }
-    };
-
-    if (signal) {
-      signal.addEventListener('abort', unsubscribe);
-    }
-
-    return unsubscribe;
-  }
-
-  /**
-   * @method
-   * @param {any} value - The new value for the observable
-   * @returns {void}
-   * @description This method updates the value of the observable and notifies all observers
-   */
-  next(value) {
-    this.update(() => value);
-  }
-
-  /**
-   * @method
-   * @param {any} error - The error to notify all observers about
-   * @returns {void}
-   * @description This method notifies all observers about an error
-   */
-  error(error) {
-    this._observers.forEach(observer => {
-      if (observer.error) {
-        observer.error(error);
+      if (observer && observer.next) {
+        observer.next(this._value);
       }
     });
-  }
-
-  /**
-   * @method
-   * @returns {void}
-   * @description This method notifies all observers that the observable is complete
-   */
-  complete() {
-    this._observers.forEach(observer => {
-      if (observer.complete) {
-        observer.complete();
-      }
-    });
-    // Clear the list of observers since the observable is complete
-    this._observers = [];
   }
 }
 
@@ -184,4 +206,4 @@ const observableMixin = function(BaseClass) {
   };
 }
 
-export { Observable, observableMixin }
+export { ObservableState, observableMixin }

@@ -10,7 +10,7 @@
  */
 import { html, render } from 'lit-html';
 import { produce } from "immer"
-import { Observable, observableMixin } from './observable.js';
+import { ObservableState, observableMixin } from './observable.js';
 import { store } from './store.js';
 
 /**
@@ -42,7 +42,7 @@ class ReactiveElement extends observableMixin(HTMLElement) {
    * @returns {Observable} The observable
    */
   observable(initialValue) {
-    const observable = new Observable(initialValue, {
+    const observable = new ObservableState(initialValue, {
       next: this.react.bind(this),
       complete: this.react.bind(this),
       error: this.react.bind(this) // the view will always include the error message

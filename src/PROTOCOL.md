@@ -1,34 +1,26 @@
 # ReactiveElement Protocol
 
-The `ReactiveElement` class interacts with `Observable`, `Observer` and `Store` objects. To ensure compatibility, these objects should adhere to the following protocols:
+The `ReactiveElement` class interacts with `ObservableState`, `Observer` and `Store` objects. To ensure compatibility, these objects should adhere to the following protocols:
 
-## Observable Protocol
+## ObservableState Protocol
 
-An `Observable` is an object that holds a value and allows updates to it. It should implement the following methods:
+An `ObservableState` is an object that holds a value and allows updates to it. It should implement the following methods:
 
-- `update(updater)`: This method accepts a function (`updater`) as an argument. The `updater` function is called with the current value and should return the new value. After the `updater` function is called, the `Observable` should call all observer functions.
+- `update(updater)`: This method accepts a function (`updater`) as an argument. The `updater` function is called with the current value and should return the new value. After the `updater` function is called, the `ObservableState` should call all observer functions.
 
-- `value`: This is a getter that returns the current value of the `Observable`.
+- `value`: This is a getter that returns the current value of the `ObservableState`.
 
-- `register(next, error, complete, signal)`: This method subscribes a new observer to the observable and returns an unsubscribe function.
-
-For asynchronous operations, the `Observable` should implement the iterator pattern methods. This pattern closely follows a subset of the [WICG proposal](https://github.com/WICG/observable). It effectively handles data dispatch over time, solving the problem of managing asynchronous data flows:
-
-- `next(value)`: Dispatches the new value to the observers, akin to moving to and returning the next item in the iterator pattern.
-
-- `error(error)`: Dispatches an error to the observers, similar to exception handling in the iterator pattern.
-
-- `complete()`: Notifies observers of job completion, signaling the end of an iteration in the iterator pattern.
+- `subscribe(observer)`: This method subscribes a new observer to the observable and returns an unsubscribe function.
 
 ## Observer Protocol
 
-An `Observer` is a plain javascript object that listens to an `Observable`. It should implement the following methods:
+An `Observer` is a plain javascript object that listens to an `ObservableState`. It should implement the following methods:
 
-- `next(value)`: This method is called by the `Observable` with the new value.
+- `next(value)`: This method is called by the `ObservableState` with the new value.
 
-- `error(error)`: This method is called by the `Observable` with an error.
+- `error(error)`: This method is called by the `ObservableState` with an error.
 
-- `complete()`: This method is called by the `Observable` when it is complete.
+- `complete()`: This method is called by the `ObservableState` when it is complete.
 
 ## Store Protocol
 
