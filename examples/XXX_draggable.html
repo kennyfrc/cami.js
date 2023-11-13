@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <div class="draggable" style="position: absolute;">Drag me</div>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+    const { ObservableElement } = cami;
+    const draggableElement = new ObservableElement(".draggable");
+
+    const mouseDown = draggableElement.on('mousedown');
+    const mouseMove = new ObservableElement(document).on('mousemove');
+    const mouseUp = new ObservableElement(document).on('mouseup');
+
+    mouseDown
+      .switchMap((startEvent) => {
+        startEvent.preventDefault();
+
+        const startX = startEvent.clientX - draggableElement.element.getBoundingClientRect().left;
+        const startY = startEvent.clientY - draggableElement.element.getBoundingClientRect().top;
+
+        return mouseMove
+          .map(moveEvent => {
+            return {
+              left: moveEvent.clientX - startX,
+              top: moveEvent.clientY - startY,
+            };
+          })
+          .takeUntil(mouseUp);
+      })
+      .subscribe({
+        next: position => {
+          draggableElement.element.style.left = `{position.left}px`;
+          draggableElement.element.style.top = `${position.top}px`;
+        },
+        error: err => console.error(err),
+      });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,34 @@
+<div class="draggable" style="position: absolute;">Drag me</div>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+    const { ObservableElement } = cami;
+    const draggableElement = new ObservableElement(".draggable");
+
+    const mouseDown = draggableElement.on('mousedown');
+    const mouseMove = new ObservableElement(document).on('mousemove');
+    const mouseUp = new ObservableElement(document).on('mouseup');
+
+    mouseDown
+      .switchMap((startEvent) => {
+        startEvent.preventDefault();
+
+        const startX = startEvent.clientX - draggableElement.element.getBoundingClientRect().left;
+        const startY = startEvent.clientY - draggableElement.element.getBoundingClientRect().top;
+
+        return mouseMove
+          .map(moveEvent => {
+            return {
+              left: moveEvent.clientX - startX,
+              top: moveEvent.clientY - startY,
+            };
+          })
+          .takeUntil(mouseUp);
+      })
+      .subscribe({
+        next: position => {
+          draggableElement.element.style.left = `{position.left}px`;
+          draggableElement.element.style.top = `${position.top}px`;
+        },
+        error: err => console.error(err),
+      });
+</script>
