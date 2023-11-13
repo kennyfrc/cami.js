@@ -116,16 +116,15 @@ class Observable {
     this._observers.push(subscriber);
     return {
       unsubscribe: () => subscriber.unsubscribe(),
+      complete: () => subscriber.complete(),
+      error: (err) => subscriber.error(err),
     };
   }
+}
 
-  /**
-   * @method
-   * @param {Function} transformFn - The function to transform the value
-   * @returns {Observable} A new Observable instance
-   */
+class ObservableStream extends Observable {
   map(transformFn) {
-    return new Observable(subscriber => {
+    return new ObservableStream(subscriber => {
       const subscription = this.subscribe({
         next: value => subscriber.next(transformFn(value)),
         error: err => subscriber.error(err),
@@ -136,13 +135,8 @@ class Observable {
     });
   }
 
-  /**
-   * @method
-   * @param {Function} predicateFn - The function to filter the value
-   * @returns {Observable} A new Observable instance
-   */
   filter(predicateFn) {
-    return new Observable(subscriber => {
+    return new ObservableStream(subscriber => {
       const subscription = this.subscribe({
         next: value => {
           if (predicateFn(value)) {
@@ -157,15 +151,9 @@ class Observable {
     });
   }
 
-  /**
-   * @method
-   * @param {Function} reducerFn - The function to reduce the value
-   * @param {any} initialValue - The initial value for the reducer function
-   * @returns {Observable} A new Observable instance
-   */
   reduce(reducerFn, initialValue) {
-    let accumulator = initialValue;
-    return new Observable(subscriber => {
+    return new ObservableStream(subscriber => {
+      let accumulator = initialValue;
       const subscription = this.subscribe({
         next: value => {
           accumulator = reducerFn(accumulator, value);
@@ -181,7 +169,6 @@ class Observable {
     });
   }
 }
-
 
 /**
  * @class
@@ -383,4 +370,4 @@ const effect = function(effectFn) {
   this._effects.push({ effectFn: runEffect, cleanup });
 };
 
-export { ObservableState, Observable, computed, batch, effect };
+export { ObservableState, ObservableStream, Observable, computed, batch, effect };
