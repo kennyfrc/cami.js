@@ -49,6 +49,7 @@ for file in "$partials_dir"/_*.html; do
     fi
 
     # Replace the placeholder with the content, then replace the newline placeholder with actual newline characters
+    escaped_content=$(printf '%q' "$content")
     sed -i '' "s#<!-- YIELD -->#$content#g" "examples/$new_name.html"
     sed -i '' "s/$newline_placeholder/\\
 /g" "examples/$new_name.html"
