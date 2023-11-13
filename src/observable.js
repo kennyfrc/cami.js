@@ -374,6 +374,51 @@ class ObservableStream extends Observable {
 
   /**
    * @method
+   * @param {Function} transformFn - The function to transform the data into Observables
+   * @returns {ObservableStream} A new ObservableStream that emits the values from the inner Observables
+   */
+  switchMap(transformFn) {
+    return new ObservableStream(subscriber => {
+      let innerSubscription = null;
+
+      const sourceSubscription = this.subscribe({
+        next: value => {
+          if (innerSubscription) {
+            innerSubscription.unsubscribe();
+          }
+
+          const innerObservable = transformFn(value);
+          innerSubscription = innerObservable.subscribe({
+            next: innerValue => subscriber.next(innerValue),
+            error: err => subscriber.error(err),
+            complete: () => {
+              if (innerSubscription) {
+                innerSubscription.unsubscribe();
+                innerSubscription = null;
+              }
+            },
+          });
+        },
+        error: err => subscriber.error(err),
+        complete: () => {
+          if (innerSubscription) {
+            innerSubscription.unsubscribe();
+          }
+          subscriber.complete();
+        },
+      });
+
+      return () => {
+        sourceSubscription.unsubscribe();
+        if (innerSubscription) {
+          innerSubscription.unsubscribe();
+        }
+      };
+    });
+  };
+
+  /**
+   * @method
    * @returns {Promise} A promise that resolves with an array of all values emitted by the Observable
    */
   toArray() {
@@ -484,6 +529,52 @@ class ObservableStream extends Observable {
 
       return () => {
         subscription.unsubscribe();
+      };
+    });
+  }
+}
+
+/**
+ * @class
+ * @description Observable class that wraps a DOM element and allows observing its events.
+ */
+class ObservableElement extends ObservableStream {
+  /**
+   * @constructor
+   * @param {string|Element} selectorOrElement - The CSS selector of the element to observe or the DOM element itself
+   * @throws {Error} If no element matches the provided selector or the provided DOM element is null
+   */
+  constructor(selectorOrElement) {
+    super();
+    /** @type {Element} */
+    if (typeof selectorOrElement === 'string') {
+      this.element = document.querySelector(selectorOrElement);
+      if (!this.element) {
+        throw new Error(`Element not found for selector: ${selectorOrElement}`);
+      }
+    } else if (selectorOrElement instanceof Element || selectorOrElement instanceof Document) {
+      this.element = selectorOrElement;
+    } else {
+      throw new Error(`Invalid argument: ${selectorOrElement}`);
+    }
+  }
+
+  /**
+   * @method
+   * @param {string} eventType - The type of the event to observe
+   * @param {Object} options - The options to pass to addEventListener
+   * @returns {ObservableStream} An ObservableStream that emits the observed events
+   */
+  on(eventType, options = {}) {
+    return new ObservableStream(subscriber => {
+      const eventListener = event => {
+        subscriber.next(event);
+      };
+
+      this.element.addEventListener(eventType, eventListener, options);
+
+      return () => {
+        this.element.removeEventListener(eventType, eventListener, options);
       };
     });
   }
@@ -689,4 +780,4 @@ const effect = function(effectFn) {
   this._effects.push({ effectFn: runEffect, cleanup });
 };
 
-export { ObservableState, ObservableStream, Observable, computed, batch, effect };
+export { ObservableState, ObservableStream, ObservableElement, Observable, computed, batch, effect };

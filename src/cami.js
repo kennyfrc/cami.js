@@ -10,7 +10,7 @@
  */
 import { html, render } from 'lit-html';
 import { produce } from "immer"
-import { ObservableState, computed, batch, effect } from './observable.js';
+import { ObservableState, ObservableStream, ObservableElement, Observable, computed, batch, effect } from './observable.js';
 import { store } from './store.js';
 
 /**
@@ -191,5 +191,9 @@ function define(elementName, ElementClass) {
  * @exports html
  * @exports ReactiveElement
  * @exports define
+ * @exports ObservableStream
+ * @exports ObservableElement
+ * @exports Observable
+ * @exports ObservableState
  */
-export { store, html, ReactiveElement, define };
+export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState };
