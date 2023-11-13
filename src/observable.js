@@ -130,6 +130,76 @@ class Observable {
 class ObservableStream extends Observable {
   /**
    * @method
+   * @static
+   * @param {any} value - The value to create an Observable from
+   * @returns {ObservableStream} A new ObservableStream that emits the values from the value
+   */
+  static from(value) {
+    if (value instanceof Observable) {
+      return new ObservableStream(subscriber => {
+        const subscription = value.subscribe({
+          next: v => subscriber.next(v),
+          error: err => subscriber.error(err),
+          complete: () => subscriber.complete(),
+        });
+        return () => {
+          if (!subscription.closed) {
+            subscription.unsubscribe();
+          }
+        };
+      });
+    } else if (value[Symbol.asyncIterator]) {
+      return new ObservableStream(subscriber => {
+        let isCancelled = false;
+        (async () => {
+          try {
+            for await (const v of value) {
+              if (isCancelled) return;
+              subscriber.next(v);
+            }
+            subscriber.complete();
+          } catch (err) {
+            subscriber.error(err);
+          }
+        })();
+        return () => {
+          isCancelled = true;
+        };
+      });
+    } else if (value[Symbol.iterator]) {
+      return new ObservableStream(subscriber => {
+        try {
+          for (const v of value) {
+            subscriber.next(v);
+          }
+          subscriber.complete();
+        } catch (err) {
+          subscriber.error(err);
+        }
+        return () => {
+          if (!subscription.closed) {
+            subscription.unsubscribe();
+          }
+        };
+      });
+    } else if (value instanceof Promise) {
+      return new ObservableStream(subscriber => {
+        value.then(
+          v => {
+            subscriber.next(v);
+            subscriber.complete();
+          },
+          err => subscriber.error(err)
+        );
+        return () => {}; // No need to unsubscribe from a Promise
+      });
+    } else {
+      throw new TypeError('ObservableStream.from requires an Observable, AsyncIterable, Iterable, or Promise');
+    }
+  }
+
+  /**
+   * @method
    * @param {Function} transformFn - The function to transform the data
    * @returns {ObservableStream} A new ObservableStream instance with transformed data
    */
@@ -298,6 +368,122 @@ class ObservableStream extends Observable {
       return () => {
         sourceSubscription.unsubscribe();
         subscriptions.forEach(subscription => subscription.unsubscribe());
+      };
+    });
+  }
+
+  /**
+   * @method
+   * @returns {Promise} A promise that resolves with an array of all values emitted by the Observable
+   */
+  toArray() {
+    return new Promise((resolve, reject) => {
+      const values = [];
+      this.subscribe({
+        next: value => values.push(value),
+        error: err => reject(err),
+        complete: () => resolve(values),
+      });
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} callback - The function to call for each value emitted by the Observable
+   * @returns {Promise} A promise that resolves when the Observable completes
+   */
+  forEach(callback) {
+    return new Promise((resolve, reject) => {
+      this.subscribe({
+        next: value => callback(value),
+        error: err => reject(err),
+        complete: () => resolve(),
+      });
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} predicate - The function to test each value
+   * @returns {Promise} A promise that resolves with a boolean indicating whether every value satisfies the predicate
+   */
+  every(predicate) {
+    return new Promise((resolve, reject) => {
+      let every = true;
+      this.subscribe({
+        next: value => {
+          if (!predicate(value)) {
+            every = false;
+            resolve(false);
+          }
+        },
+        error: err => reject(err),
+        complete: () => resolve(every),
+      });
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} predicate - The function to test each value
+   * @returns {Promise} A promise that resolves with the first value that satisfies the predicate
+   */
+  find(predicate) {
+    return new Promise((resolve, reject) => {
+      const subscription = this.subscribe({
+        next: value => {
+          if (predicate(value)) {
+            resolve(value);
+            subscription.unsubscribe();
+          }
+        },
+        error: err => reject(err),
+        complete: () => resolve(undefined),
+      });
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} predicate - The function to test each value
+   * @returns {Promise} A promise that resolves with a boolean indicating whether some value satisfies the predicate
+   */
+  some(predicate) {
+    return new Promise((resolve, reject) => {
+      const subscription = this.subscribe({
+        next: value => {
+          if (predicate(value)) {
+            resolve(true);
+            subscription.unsubscribe();
+          }
+        },
+        error: err => reject(err),
+        complete: () => resolve(false),
+      });
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} callback - The function to call when the Observable completes
+   * @returns {ObservableStream} A new ObservableStream that calls the callback when it completes
+   */
+  finally(callback) {
+    return new ObservableStream(subscriber => {
+      const subscription = this.subscribe({
+        next: value => subscriber.next(value),
+        error: err => {
+          callback();
+          subscriber.error(err);
+        },
+        complete: () => {
+          callback();
+          subscriber.complete();
+        },
+      });
+
+      return () => {
+        subscription.unsubscribe();
       };
     });
   }
