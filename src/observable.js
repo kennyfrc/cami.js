@@ -193,11 +193,14 @@ class ObservableState extends Observable {
    * It then notifies all the observers with the updated value.
    */
   _applyUpdates() {
+    let oldValue = this._value;
     while (this._pendingUpdates.length > 0) {
       const updater = this._pendingUpdates.shift();
       this._value = produce(this._value, updater);
     }
-    this.notifyObservers();
+    if (oldValue !== this._value) {
+      this.notifyObservers();
+    }
     this._updateScheduled = false;
   }
 }
