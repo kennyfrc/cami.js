@@ -34,6 +34,7 @@
       return html`
         <button @click=${() => this.decrement()}>-</button>
         <button @click=${() => this.increment()}>+</button>
+        <div>Count: ${this.count.value}</div>
       `;
     }
   }
