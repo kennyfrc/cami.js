@@ -94,6 +94,8 @@ class Observable {
   /**
    * @constructor
    * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes
+   * @property {Array<Subscriber>} _observers - The list of observers
+   * @property {Function} subscribeCallback - The callback function to call when a new observer subscribes
    */
   constructor(subscribeCallback) {
     /** @type {Array<Subscriber>} */
@@ -115,6 +117,68 @@ class Observable {
     return {
       unsubscribe: () => subscriber.unsubscribe(),
     };
+  }
+
+  /**
+   * @method
+   * @param {Function} transformFn - The function to transform the value
+   * @returns {Observable} A new Observable instance
+   */
+  map(transformFn) {
+    return new Observable(subscriber => {
+      const subscription = this.subscribe({
+        next: value => subscriber.next(transformFn(value)),
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} predicateFn - The function to filter the value
+   * @returns {Observable} A new Observable instance
+   */
+  filter(predicateFn) {
+    return new Observable(subscriber => {
+      const subscription = this.subscribe({
+        next: value => {
+          if (predicateFn(value)) {
+            subscriber.next(value);
+          }
+        },
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} reducerFn - The function to reduce the value
+   * @param {any} initialValue - The initial value for the reducer function
+   * @returns {Observable} A new Observable instance
+   */
+  reduce(reducerFn, initialValue) {
+    let accumulator = initialValue;
+    return new Observable(subscriber => {
+      const subscription = this.subscribe({
+        next: value => {
+          accumulator = reducerFn(accumulator, value);
+        },
+        error: err => subscriber.error(err),
+        complete: () => {
+          subscriber.next(accumulator);
+          subscriber.complete();
+        },
+      });
+
+      return () => subscription.unsubscribe();
+    });
   }
 }
 
