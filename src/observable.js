@@ -20,11 +20,16 @@ import { produce } from "immer";
 class Subscriber {
   /**
    * @constructor
-   * @param {Object} observer - The observer object
+   * @param {Object|Function} observer - The observer object or function
    */
   constructor(observer) {
-    /** @type {Object} */
-    this.observer = observer;
+    if (typeof observer === 'function') {
+      /** @type {Object} */
+      this.observer = { next: observer };
+    } else {
+      /** @type {Object} */
+      this.observer = observer;
+    }
     /** @type {Array<Function>} */
     this.teardowns = [];
     if (typeof AbortController !== 'undefined') {
@@ -45,27 +50,23 @@ class Subscriber {
     }
   }
 
-  /**
-   * @method
-   */
   complete() {
     if (this.observer.complete) {
       this.observer.complete();
-      this.unsubscribe();
+    } else if (typeof this.observer.next === 'function') {
+      this.observer.next({ complete: true });
     }
+    this.unsubscribe();
   }
 
-  /**
-   * @method
-   * @param {Error} error - The error to pass to the observer's error method
-   */
   error(error) {
     if (this.observer.error) {
       this.observer.error(error);
-      this.unsubscribe();
+    } else if (typeof this.observer.next === 'function') {
+      this.observer.next({ error: error });
     }
+    this.unsubscribe();
   }
-
   /**
    * @method
    * @param {Function} teardown - The teardown function to add to the teardowns array
@@ -103,10 +104,10 @@ class Observable {
 
   /**
    * @method
-   * @param {Object} observer - The observer to subscribe
-   * @returns {Object} An object with an unsubscribe method
+   * @param {Object} observer - The observer to subscribe. Default is an empty function.
+   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
    */
-  subscribe(observer = {}) {
+  subscribe(observer = () => {}) {
     const subscriber = new Subscriber(observer);
     const teardown = this.subscribeCallback(subscriber);
     subscriber.addTeardown(teardown);
@@ -318,17 +319,4 @@ const effect = function(effectFn) {
   this._effects.push({ effectFn: runEffect, cleanup });
 };
 
-/**
- * @function
- * @param {Class} BaseClass - The base class to extend
- * @returns {Class} A class that extends the base class with computed, batch, and effect methods
- */
-const observableMixin = function(BaseClass) {
-  return class extends BaseClass {
-    computed = computed;
-    batch = batch;
-    effect = effect;
-  };
-}
-
-export { ObservableState, observableMixin }
+export { ObservableState, Observable, computed, batch, effect };

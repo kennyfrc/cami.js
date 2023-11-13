@@ -10,7 +10,7 @@
  */
 import { html, render } from 'lit-html';
 import { produce } from "immer"
-import { ObservableState, observableMixin } from './observable.js';
+import { ObservableState, computed, batch, effect } from './observable.js';
 import { store } from './store.js';
 
 /**
@@ -23,7 +23,7 @@ import { store } from './store.js';
  * @extends {HTMLElement}
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
-class ReactiveElement extends observableMixin(HTMLElement) {
+class ReactiveElement extends HTMLElement {
   /**
    * @constructor
    */
@@ -37,6 +37,27 @@ class ReactiveElement extends observableMixin(HTMLElement) {
     this._effects = [];
     /** @type {boolean} */
     this._isWithinBatch = false;
+
+    /**
+     * @method
+     * @description This method binds the computed function from observable.js to the current context
+     * @returns {ComputedObservable} A new instance of ComputedObservable
+     */
+    this.computed = computed.bind(this);
+
+    /**
+     * @method
+     * @description This method binds the batch function from observable.js to the current context
+     * @returns {void}
+     */
+    this.batch = batch.bind(this);
+
+    /**
+     * @method
+     * @description This method binds the effect function from observable.js to the current context
+     * @returns {void}
+     */
+    this.effect = effect.bind(this);
   }
 
 
