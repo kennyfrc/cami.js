@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.16. Follows [semver](https://semver.org/).
+Current version: 0.0.17. Follows [semver](https://semver.org/).
 
 Bundle Size: 9kb minified & gzipped.
 
@@ -310,11 +310,28 @@ They are also listed below:
       super();
       this.count = this.observable(0);
       this.countSquared = this.computed(() => this.count.value * this.count.value);
+      this.countCubed = this.computed(() => {
+        return this.countSquared.value * this.count.value;
+      });
+      this.countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
       this.effect(() => {
         console.log('count', this.count.value);
       });
       this.count.subscribe({
         next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
+      });
+      this.countSqrt = null;
+      this.effect(() => {
+        if (this.count.value > 2) {
+          if (!this.countSqrt) {
+            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
+          }
+        } else {
+          if (this.countSqrt) {
+            this.countSqrt.dispose();
+            this.countSqrt = null;
+          }
+        }
       });
     }
 
@@ -331,6 +348,9 @@ They are also listed below:
         <button @click=${() => this.decrement()}>-</button>
         <span>Base: ${this.count.value}</span>
         <span>Squared: ${this.countSquared.value}</span>
+        <span>Cubed: ${this.countCubed.value}</span>
+        <span>Quadrupled: ${this.countQuadrupled.value}</span>
+        <span>Sqrt: ${this.countSqrt ? this.countSqrt.value : 'N/A'}</span>
         <button @click=${() => this.increment()}>+</button>
       `;
     }
