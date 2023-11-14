@@ -120,6 +120,39 @@ class Observable {
       error: (err) => subscriber.error(err),
     };
   }
+
+  /**
+   * @method
+   * @param {Function} callbackFn - The callback function to call when a new value is emitted.
+   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   */
+  onValue(callbackFn) {
+    return this.subscribe({
+      next: callbackFn
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} callbackFn - The callback function to call when an error is emitted.
+   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   */
+  onError(callbackFn) {
+    return this.subscribe({
+      error: callbackFn
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} callbackFn - The callback function to call when the observable completes.
+   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   */
+  onEnd(callbackFn) {
+    return this.subscribe({
+      complete: callbackFn
+    });
+  }
 }
 
 /**
@@ -191,7 +224,7 @@ class ObservableStream extends Observable {
           },
           err => subscriber.error(err)
         );
-        return () => {}; // No need to unsubscribe from a Promise
+        return () => {};
       });
     } else {
       throw new TypeError('ObservableStream.from requires an Observable, AsyncIterable, Iterable, or Promise');
@@ -540,20 +573,16 @@ class ObservableStream extends Observable {
    */
   toState(initialValue = null) {
     const state = new ObservableState(initialValue);
-
-    this.subscribe({
-      next: value => state.update(() => value),
-    });
-
+    this.onValue(value => state.update(() => value));
     return state;
   }
 
   /**
    * @method
-   * @description Emits a new value to the stream
+   * @description Pushes a new value to the stream
    * @param {any} value - The value to emit
    */
-  emit(value) {
+  push(value) {
     this._observers.forEach(observer => observer.next(value));
   }
 }
@@ -738,7 +767,7 @@ class ComputedState extends ObservableState {
 
   addDependency(observable) {
     if (!this.dependencies.has(observable)) {
-      const subscription = observable.subscribe(() => this.compute());
+      const subscription = observable.onValue(() => this.compute());
       this.dependencies.add(observable);
       this.subscriptions.set(observable, subscription);
       if (observable instanceof ComputedState) {
