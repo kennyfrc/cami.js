@@ -97,7 +97,7 @@ class Observable {
    * @property {Array<Subscriber>} _observers - The list of observers
    * @property {Function} subscribeCallback - The callback function to call when a new observer subscribes
    */
-  constructor(subscribeCallback) {
+  constructor(subscribeCallback = () => () => {}) {
     /** @type {Array<Subscriber>} */
     this._observers = [];
     /** @type {Function} */
@@ -532,6 +532,30 @@ class ObservableStream extends Observable {
       };
     });
   }
+
+  /**
+   * @method
+   * @description Converts the ObservableStream to an ObservableState
+   * @returns {ObservableState} A new ObservableState that represents the current value of the stream
+   */
+  toState(initialValue = null) {
+    const state = new ObservableState(initialValue);
+
+    this.subscribe({
+      next: value => state.update(() => value),
+    });
+
+    return state;
+  }
+
+  /**
+   * @method
+   * @description Emits a new value to the stream
+   * @param {any} value - The value to emit
+   */
+  emit(value) {
+    this._observers.forEach(observer => observer.next(value));
+  }
 }
 
 /**
@@ -616,8 +640,8 @@ class ObservableState extends Observable {
    * @returns {any} The current value of the observable
    */
   get value() {
-    if (ComputedObservable.isComputing != null) {
-      ComputedObservable.isComputing.addDependency(this);
+    if (ComputedState.isComputing != null) {
+      ComputedState.isComputing.addDependency(this);
     }
     return this._value;
   }
@@ -626,17 +650,29 @@ class ObservableState extends Observable {
    * @method
    * @param {Function} updater - The function to update the value
    * @description This method adds the updater function to the pending updates queue.
-   * It uses requestAnimationFrame (rAF) to schedule the updates in the next animation frame.
+   * It uses a synchronous approach to schedule the updates, ensuring the whole state is consistent at each tick.
    * This is done to batch multiple updates together and avoid unnecessary re-renders.
    */
   update(updater) {
     this._pendingUpdates.push(updater);
     if (!this._updateScheduled) {
       this._updateScheduled = true;
-      requestAnimationFrame(this._applyUpdates.bind(this));
+      if (typeof window !== 'undefined') {
+        requestAnimationFrame(this._applyUpdates.bind(this));
+      } else {
+        Promise.resolve().then(this._applyUpdates.bind(this));
+      }
     }
   }
 
+  /**
+   * @method
+   * @description This method notifies all observers of the observable with the current value.
+   * It first creates a list of observers by combining the regular observers and the last observer.
+   * Then, it iterates over this list and calls each observer with the current value.
+   * If the observer is a function, it is called directly.
+   * If the observer is an object with a 'next' method, the 'next' method is called.
+   */
   notifyObservers() {
     const observersWithLast = [...this._observers, this._lastObserver];
     observersWithLast.forEach(observer => {
@@ -669,9 +705,9 @@ class ObservableState extends Observable {
 
 /**
  * @class
- * @description ComputedObservable class that extends ObservableState and holds additional methods for computed observables
+ * @description ComputedState class that extends ObservableState and holds additional methods for computed observables
  */
-class ComputedObservable extends ObservableState {
+class ComputedState extends ObservableState {
   constructor(computeFn, context) {
     super(null);
     /** @type {Function} */
@@ -680,7 +716,7 @@ class ComputedObservable extends ObservableState {
     this.context = context;
     /** @type {Set<ObservableState>} */
     this.dependencies = new Set();
-    /** @type {Set<ComputedObservable>} */
+    /** @type {Set<ComputedState>} */
     this.children = new Set();
     /** @type {Map<ObservableState, Object>} */
     this.subscriptions = new Map();
@@ -688,9 +724,9 @@ class ComputedObservable extends ObservableState {
   }
 
   get value() {
-    ComputedObservable.isComputing = this;
+    ComputedState.isComputing = this;
     const value = this.computeFn.call(this.context);
-    ComputedObservable.isComputing = null;
+    ComputedState.isComputing = null;
     return value;
   }
 
@@ -705,7 +741,7 @@ class ComputedObservable extends ObservableState {
       const subscription = observable.subscribe(() => this.compute());
       this.dependencies.add(observable);
       this.subscriptions.set(observable, subscription);
-      if (observable instanceof ComputedObservable) {
+      if (observable instanceof ComputedState) {
         observable.addChild(this);
       }
     }
@@ -720,7 +756,7 @@ class ComputedObservable extends ObservableState {
       }
       this.dependencies.delete(observable);
       this.subscriptions.delete(observable);
-      if (observable instanceof ComputedObservable) {
+      if (observable instanceof ComputedState) {
         observable.removeChild(this);
       }
     });
@@ -745,10 +781,10 @@ class ComputedObservable extends ObservableState {
 /**
  * @function
  * @param {Function} computeFn - The function to compute the value of the observable
- * @returns {ComputedObservable} A new instance of ComputedObservable
+ * @returns {ComputedState} A new instance of ComputedState
  */
 const computed = function(computeFn) {
-  return new ComputedObservable(computeFn, this);
+  return new ComputedState(computeFn, this);
 };
 
 /**
