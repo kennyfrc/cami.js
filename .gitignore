@@ -184,3 +184,4 @@ out
 
 package-lib.json
 src/scratch.js
+tests/*
