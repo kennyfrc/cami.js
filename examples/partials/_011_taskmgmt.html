@@ -1,6 +1,6 @@
 <article>
-  <h1>Task Management</h1>
-  <task-management-component></task-management-component>
+  <h1>Task Manager</h1>
+  <task-manager-component></task-manager-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -8,38 +8,58 @@
 <script type="module">
  const { html, ReactiveElement } = cami;
 
-  class TaskManagementElement extends ReactiveElement {
+  class TaskManagerElement extends ReactiveElement {
     constructor() {
       super();
       this.tasks = this.observable([]);
+      this.filter = this.observable('all');
     }
 
     addTask(task) {
-      this.tasks.push(task);
-    }
-
-    removeLastTask() {
-      this.tasks.pop();
+      this.tasks.push({ name: task, completed: false });
     }
 
     removeTask(index) {
       this.tasks.splice(index, 1);
     }
 
+    toggleTask(index) {
+      this.tasks.update(tasks => {
+        tasks[index].completed = !tasks[index].completed;
+      });
+    }
+
+    setFilter(filter) {
+      this.filter.update(() => filter);
+    }
+
+    getFilteredTasks() {
+      switch (this.filter.value) {
+        case 'completed':
+          return this.tasks.value.filter(task => task.completed);
+        case 'active':
+          return this.tasks.value.filter(task => !task.completed);
+        default:
+          return this.tasks.value;
+      }
+    }
+
     template() {
       return html`
-        <input id="newTask" type="text" placeholder="New task">
+        <input id="taskInput" type="text" placeholder="Enter task name">
         <button @click=${() => {
-          const newTaskInput = document.getElementById('newTask');
-          this.addTask(newTaskInput.value);
-          newTaskInput.value = '';
+          this.addTask(document.getElementById('taskInput').value);
+          document.getElementById('taskInput').value = '';
         }}>Add Task</button>
-        <button @click=${() => this.removeLastTask()}>Remove Last Task</button>
+        <button @click=${() => this.setFilter('all')}>All</button>
+        <button @click=${() => this.setFilter('active')}>Active</button>
+        <button @click=${() => this.setFilter('completed')}>Completed</button>
         <ul>
-          ${this.tasks.value.map((task, index) => html`
+          ${this.getFilteredTasks().map((task, index) => html`
             <li>
-              ${task}
-              <button @click=${() => this.removeTask(index)}>Remove</button>
+              <input type="checkbox" .checked=${task.completed} @click=${() => this.toggleTask(index)}>
+              ${task.name}
+              <a @click=${() => this.removeTask(index)}>Remove</a>
             </li>
           `)}
         </ul>
@@ -47,5 +67,5 @@
     }
   }
 
-  customElements.define('task-management-component', TaskManagementElement);
+  customElements.define('task-manager-component', TaskManagerElement);
 </script>

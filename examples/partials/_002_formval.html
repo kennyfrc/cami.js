@@ -20,9 +20,9 @@
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.email.value)) {
-        this.emailError.update(() => 'Please enter a valid email address.');
+        this.emailError.value = 'Please enter a valid email address.';
       } else {
-        this.emailError.update(() => '');
+        this.emailError.value = '';
       }
     }
 

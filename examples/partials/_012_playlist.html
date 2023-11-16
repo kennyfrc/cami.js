@@ -1,0 +1,67 @@
+<!-- ./examples/_XXX_playlist.html -->
+<article>
+  <h1>Playlist Manager</h1>
+  <playlist-component></playlist-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+ const { html, ReactiveElement } = cami;
+
+  class PlaylistElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.playlist = this.observable([]);
+    }
+
+    addSong(song) {
+      this.playlist.push(song);
+    }
+
+    removeSong(index) {
+      this.playlist.splice(index, 1);
+    }
+
+    moveSongUp(index) {
+      if (index > 0) {
+        this.playlist.splice(index - 1, 2, this.playlist.value[index], this.playlist.value[index - 1]);
+      }
+    }
+
+    moveSongDown(index) {
+      if (index < this.playlist.value.length - 1) {
+        this.playlist.splice(index, 2, this.playlist.value[index + 1], this.playlist.value[index]);
+      }
+    }
+
+    sortSongs() {
+      this.playlist.sort();
+    }
+
+    reverseSongs() {
+      this.playlist.reverse();
+    }
+
+    template() {
+      return html`
+        <input id="songInput" type="text" placeholder="Enter song name">
+        <button @click=${() => this.addSong(document.getElementById('songInput').value)}>Add Song</button>
+        <button @click=${() => this.sortSongs()}>Sort Songs</button>
+        <button @click=${() => this.reverseSongs()}>Reverse Songs</button>
+        <ul>
+          ${this.playlist.value.map((song, index) => html`
+            <li>
+              ${song}
+              <a @click=${() => this.moveSongUp(index)}>Move Up</a>
+              <a @click=${() => this.moveSongDown(index)}>Move Down</a>
+              <a @click=${() => this.removeSong(index)}>Remove</a>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('playlist-component', PlaylistElement);
+</script>
