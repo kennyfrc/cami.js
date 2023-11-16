@@ -192,6 +192,31 @@ class Observable {
       complete: callbackFn
     });
   }
+
+  [Symbol.asyncIterator]() {
+    let observer;
+    let resolve;
+    let promise = new Promise(r => (resolve = r));
+
+    observer = {
+      next: value => {
+        resolve({ value, done: false });
+        promise = new Promise(r => (resolve = r));
+      },
+      complete: () => {
+        resolve({ done: true });
+      },
+      error: err => {
+        throw err;
+      },
+    };
+
+    this.subscribe(observer);
+
+    return {
+      next: () => promise,
+    };
+  }
 }
 
 /**
