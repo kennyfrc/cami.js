@@ -739,6 +739,70 @@ class ObservableState extends Observable {
 
   /**
    * @method
+   * @param {any} newValue - The new value to set for the observable
+   * @description This method sets a new value for the observable by calling the update method with the new value.
+   */
+  set value(newValue) {
+    this.update(() => newValue);
+  }
+
+  /**
+   * @method
+   * @description Merges properties from the provided object into the observable's value
+   * @param {Object} obj - The object whose properties to merge
+   */
+  assign(obj) {
+    if (typeof this._value !== 'object' || this._value === null) {
+      throw new Error('[Cami.js] Observable value is not an object');
+    }
+    this.update(value => Object.assign(value, obj));
+  }
+
+  /**
+   * @method
+   * @description Adds an element to the end of the observable's value
+   * @param {any} element - The element to add
+   */
+  push(element) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.push(element);
+    });
+  }
+
+  /**
+   * @method
+   * @description Removes an element from the end of the observable's value
+   */
+  pop() {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.pop();
+    });
+  }
+
+  /**
+   * @method
+   * @description Adds, removes, or replaces elements in the observable's value
+   * @param {number} start - The index at which to start changing the array
+   * @param {number} deleteCount - The number of elements to remove
+   * @param {...any} items - The elements to add to the array
+   */
+  splice(start, deleteCount, ...items) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.splice(start, deleteCount, ...items);
+    });
+  }
+
+  /**
+   * @method
    * @param {Function} updater - The function to update the value
    * @description This method adds the updater function to the pending updates queue.
    * It uses a synchronous approach to schedule the updates, ensuring the whole state is consistent at each tick.
