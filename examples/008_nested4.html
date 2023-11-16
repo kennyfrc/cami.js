@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Team Management</h1>
+  <team-management-component></team-management-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+ const { html, ReactiveElement, store } = cami;
+  class TeamManagementElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.teams = this.observable([
+        { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
+        { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]},
+      ]);
+      this.editing = this.observable({ isEditing: false, memberId: null });
+    }
+
+    updateTeam(teamId, updateFunc) {
+      this.teams.update(teams => {
+        const team = teams.find(team => team.id === teamId);
+        if (team) updateFunc(team);
+      });
+    }
+
+    addMember(teamId, name) {
+      this.updateTeam(teamId, team => team.members.push({ id: Date.now(), name }));
+    }
+
+    removeMember(teamId, memberId) {
+      this.updateTeam(teamId, team => team.members = team.members.filter(member => member.id !== memberId));
+    }
+
+    editMember(teamId, memberId, newName) {
+      this.updateTeam(teamId, team => {
+        const member = team.members.find(member => member.id === memberId);
+        if (member) member.name = newName;
+      });
+      this.editing.update(() => ({ isEditing: false, memberId: null }));
+    }
+
+    startEditing(memberId) {
+      this.editing.update(() => ({ isEditing: true, memberId }));
+    }
+
+    template() {
+      return html`
+        <ul>
+          ${this.teams.value.map(team => html`
+            <li>
+              ${team.name}
+              <ul>
+                ${team.members.map(member => html`
+                  <li>
+                    ${this.editing.value.isEditing && this.editing.value.memberId === member.id ? html`
+                      <input id="editMemberName${member.id}" type="text" value="${member.name}">
+                      <button @click=${() => { this.editMember(team.id, member.id, document.getElementById('editMemberName' + member.id).value); }}>Save</button>
+                    ` : html`
+                      <span>${member.name}</span>
+                      <a @click=${() => this.startEditing(member.id)}>Edit</a>
+                      <a @click=${() => this.removeMember(team.id, member.id)}>Remove</a>
+                    `}
+                  </li>
+                `)}
+              </ul>
+              <input id="newMemberName${team.id}" type="text" placeholder="New member name">
+              <button @click=${() => {
+                this.addMember(team.id, document.getElementById('newMemberName' + team.id).value);
+                document.getElementById('newMemberName' + team.id).value = '';
+              }}>Add Member</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('team-management-component', TeamManagementElement);
+</script>
+
+</body>
+</html>

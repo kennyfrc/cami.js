@@ -20,13 +20,18 @@
   class UserFormElement extends ReactiveElement {
     constructor() {
       super();
-      this.user = this.observable({ name: 'Kenn', age: 34 });
+      this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.user = this.observable(this.initialUser);
     }
 
     handleInput(event, key) {
       this.user.update(value => {
         value[key] = event.target.value;
       });
+    }
+
+    resetForm() {
+      this.user.assign(this.initialUser);
     }
 
     template() {
@@ -40,6 +45,11 @@
             Age: ${this.user.value.age}
             <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
           </label>
+          <label>
+            Email: ${this.user.value.email}
+            <input type="email" .value=${this.user.value.email} @input=${(e) => this.handleInput(e, 'email')} />
+          </label>
+          <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
         </form>
       `;
     }
