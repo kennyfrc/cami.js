@@ -10,8 +10,11 @@
  */
 import { html, render } from 'lit-html';
 import { produce } from "immer"
-import { ObservableState, ObservableStream, ObservableElement, Observable, computed, batch, effect } from './observable.js';
 import { store } from './store.js';
+import { Observable } from './observables/observable.js';
+import { ObservableState, computed, batch, effect } from './observables/observable-state.js';
+import { ObservableStream } from './observables/observable-stream.js';
+import { ObservableElement } from './observables/observable-element.js';
 
 /**
  * @typedef {Object} State
