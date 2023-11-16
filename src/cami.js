@@ -163,7 +163,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   template() {
-    throw new Error('You have to implement the method template()!');
+    throw new Error('[Cami.js] You have to implement the method template()!');
   }
 }
 

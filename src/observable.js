@@ -266,7 +266,7 @@ class ObservableStream extends Observable {
         return () => {};
       });
     } else {
-      throw new TypeError('ObservableStream.from requires an Observable, AsyncIterable, Iterable, or Promise');
+      throw new TypeError('[Cami.js] ObservableStream.from requires an Observable, AsyncIterable, Iterable, or Promise');
     }
   }
 
