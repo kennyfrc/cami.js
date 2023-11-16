@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.17. Follows [semver](https://semver.org/).
+Current version: 0.0.18. Follows [semver](https://semver.org/).
 
 Bundle Size: 9kb minified & gzipped.
 
@@ -304,35 +304,11 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
     constructor() {
       super();
       this.count = this.observable(0);
-      this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.countCubed = this.computed(() => {
-        return this.countSquared.value * this.count.value;
-      });
-      this.countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
-      this.effect(() => {
-        console.log('count', this.count.value);
-      });
-      this.count.subscribe({
-        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
-      });
-      this.countSqrt = null;
-      this.effect(() => {
-        if (this.count.value > 2) {
-          if (!this.countSqrt) {
-            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
-          }
-        } else {
-          if (this.countSqrt) {
-            this.countSqrt.dispose();
-            this.countSqrt = null;
-          }
-        }
-      });
     }
 
     increment() {
@@ -346,12 +322,8 @@ They are also listed below:
     template() {
       return html`
         <button @click=${() => this.decrement()}>-</button>
-        <span>Base: ${this.count.value}</span>
-        <span>Squared: ${this.countSquared.value}</span>
-        <span>Cubed: ${this.countCubed.value}</span>
-        <span>Quadrupled: ${this.countQuadrupled.value}</span>
-        <span>Sqrt: ${this.countSqrt ? this.countSqrt.value : 'N/A'}</span>
         <button @click=${() => this.increment()}>+</button>
+        <div>Count: ${this.count.value}</div>
       `;
     }
   }
@@ -932,6 +904,148 @@ They are also listed below:
 
   customElements.define('batch-update-element', BatchUpdateElement);
 </script>
+```
+
+```html
+<!-- ./examples/_XXX_counter.html -->
+<article>
+  <h1>Counter</h1>
+  <counter-component></counter-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+  class CounterElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.count = this.observable(0);
+      this.countSquared = this.computed(() => this.count.value * this.count.value);
+      this.countCubed = this.computed(() => this.countSquared.value * this.count.value);
+      this.countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
+      this.countPlusRandom = this.computed(() => this.count.value + Math.random());
+      this.effect(() => {
+        console.log('count', this.count.value);
+      });
+      this.effect(() => {
+        console.log('count squared', this.countSquared.value);
+      });
+      this.effect(() => {
+        console.log('count cubed', this.countCubed.value);
+      });
+      this.effect(() => {
+        console.log('count quadrupled', this.countQuadrupled.value);
+      });
+      this.effect(() => {
+        console.log('count plus random', this.countPlusRandom.value);
+      });
+      this.count.subscribe({
+        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
+      });
+      this.countSqrt = null;
+      this.effect(() => {
+        if (this.count.value > 2) {
+          if (!this.countSqrt) {
+            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
+          }
+        } else {
+          if (this.countSqrt) {
+            this.countSqrt.dispose();
+            this.countSqrt = null;
+          }
+        }
+      });
+    }
+
+    increment() {
+      this.count.update(value => value + 1);
+    }
+
+    decrement() {
+      this.count.update(value => value - 1);
+    }
+
+    multiplyByTwo() {
+      this.count.update(value => value * 2);
+    }
+
+    divideByTwo() {
+      this.count.update(value => value / 2);
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.decrement()}>-</button>
+        <button @click=${() => this.increment()}>+</button>
+        <button @click=${() => this.multiplyByTwo()}>*2</button>
+        <button @click=${() => this.divideByTwo()}>/2</button>
+        <span>Base: ${this.count.value}</span>
+        <span>Squared: ${this.countSquared.value}</span>
+        <span>Cubed: ${this.countCubed.value}</span>
+        <span>Quadrupled: ${this.countQuadrupled.value}</span>
+        <span>Plus Random: ${this.countPlusRandom.value}</span>
+        <span>Sqrt: ${this.countSqrt ? this.countSqrt.value : 'N/A'}</span>
+      `;
+    }
+  }
+
+  customElements.define('counter-component', CounterElement);
+</script>
+
+```
+
+```html
+<!-- ./examples/_XXX_draggable.html -->
+<script src="./build/cami.cdn.js"></script>
+<div class="draggable" style="position: absolute;">Drag me</div>
+<script type="module">
+  document.addEventListener('DOMContentLoaded', () => {
+    const { ObservableElement } = cami;
+    const draggableElement = new ObservableElement(".draggable");
+
+    document.querySelector('.draggable').addEventListener('mousedown', (event) => {
+      console.log('drag event', event);
+    });
+
+    document.addEventListener('mousedown', (event) => {
+      console.log('document event', event);
+    });
+
+    const mouseDown = draggableElement.on('mousedown');
+    const mouseMove = new ObservableElement(document).on('mousemove');
+    const mouseUp = new ObservableElement(document).on('mouseup');
+
+    mouseDown
+      .switchMap((startEvent) => {
+        startEvent.preventDefault();
+        console.log('startEvent', startEvent);
+
+        const startX = startEvent.clientX - draggableElement.element.getBoundingClientRect().left;
+        const startY = startEvent.clientY - draggableElement.element.getBoundingClientRect().top;
+
+        console.log('startX', startX);
+
+        return mouseMove
+          .map(moveEvent => {
+            return {
+              left: moveEvent.clientX - startX,
+              top: moveEvent.clientY - startY,
+            };
+          })
+          .takeUntil(mouseUp);
+      })
+      .subscribe({
+        next: position => {
+          console.log('position', position);
+          draggableElement.element.style.left = `${position.left}px`;
+          draggableElement.element.style.top = `${position.top}px`;
+        },
+        error: err => console.error(err),
+      });
+  });
+</script>
+
 ```
 
 
