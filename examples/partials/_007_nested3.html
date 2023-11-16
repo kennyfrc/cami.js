@@ -61,9 +61,10 @@
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
+    users = this.subscribe(userStore, 'users');
+
     constructor() {
       super();
-      this.users = this.subscribe(userStore, 'users');
     }
 
     template() {

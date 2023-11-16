@@ -9,10 +9,11 @@
  const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
+    user = this.observable({});
+
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
-      this.user = this.observable(this.initialUser);
     }
 
     handleInput(event, key) {

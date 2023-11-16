@@ -17,9 +17,10 @@
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
+    count = this.observable(0);
+
     constructor() {
       super();
-      this.count = this.observable(0);
     }
 
     increment() {

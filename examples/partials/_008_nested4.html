@@ -8,13 +8,14 @@
 <script type="module">
  const { html, ReactiveElement, store } = cami;
   class TeamManagementElement extends ReactiveElement {
+    teams = this.subscribe([
+      { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
+      { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]
+    ])
+    editing = this.observable({ isEditing: false, memberId: null });
+
     constructor() {
       super();
-      this.teams = this.observable([
-        { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
-        { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]},
-      ]);
-      this.editing = this.observable({ isEditing: false, memberId: null });
     }
 
     updateTeam(teamId, updateFunc) {

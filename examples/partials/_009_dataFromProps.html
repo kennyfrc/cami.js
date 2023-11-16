@@ -10,11 +10,12 @@
  const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
+    todos = this.observableAttr('todos', (todos) => {
+      return JSON.parse(todos).data;
+    });
+
     constructor() {
       super();
-      this.todos = this.observableAttr('todos', (todos) => {
-        return JSON.parse(todos).data;
-      });
     }
 
     addTodo (todo) {

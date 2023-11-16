@@ -43,10 +43,11 @@
   });
 
   class ProductListElement extends ReactiveElement {
+    cartItems = this.subscribe(cartStore, 'cartItems');
+    products = this.subscribe(cartStore, 'products');
+
     constructor() {
       super();
-      this.cartItems = this.subscribe(cartStore, 'cartItems');
-      this.products = this.subscribe(cartStore, 'products');
     }
 
     addToCart(product) {
@@ -80,12 +81,13 @@
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
+    cartItems = this.subscribe(cartStore, 'cartItems');
+    cartValue = this.computed(() => {
+      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
+    });
+
     constructor() {
       super();
-      this.cartItems = this.subscribe(cartStore, 'cartItems');
-      this.cartValue = this.computed(() => {
-        return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
-      });
     }
 
     removeFromCart(product) {

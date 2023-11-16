@@ -18,10 +18,11 @@
   const { html, ReactiveElement } = cami;
 
   class BatchUpdateElement extends ReactiveElement {
+    count = this.observable(0);
+    doubleCount = this.computed(() => this.count.value * 2);
+
     constructor() {
       super();
-      this.count = this.observable(0);
-      this.doubleCount = this.computed(() => this.count.value * 2);
     }
 
     increment() {

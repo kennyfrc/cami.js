@@ -17,60 +17,65 @@
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
+    count = this.observable(0);
+    countSquared = this.computed(() => this.count.value * this.count.value);
+    countCubed = this.computed(() => this.countSquared.value * this.count.value);
+    countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
+    countPlusRandom = this.computed(() => this.count.value + Math.random());
+    countSqrt = this.computed(() => Math.sqrt(this.count.value));
+    this.effect(() => {
+      console.log('count', this.count.value);
+    });
+    this.effect(() => {
+      console.log('count squared', this.countSquared.value);
+    });
+    this.effect(() => {
+      console.log('count cubed', this.countCubed.value);
+    });
+    this.effect(() => {
+      console.log('count quadrupled', this.countQuadrupled.value);
+    });
+    this.effect(() => {
+      console.log('count plus random', this.countPlusRandom.value);
+    });
+    this.effect(() => {
+      console.log('count sqrt', this.countSqrt.value);
+    });
+    this.count.subscribe({
+      next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
+    });
+    this.effect(() => {
+      if (this.count.value > 2) {
+        if (!this.countSqrt) {
+          this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
+        }
+      } else {
+        if (this.countSqrt) {
+          this.countSqrt.dispose();
+          this.countSqrt = null;
+        }
+      }
+    });
+
+
     constructor() {
       super();
-      this.count = this.observable(0);
-      this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.countCubed = this.computed(() => this.countSquared.value * this.count.value);
-      this.countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
-      this.countPlusRandom = this.computed(() => this.count.value + Math.random());
-      this.effect(() => {
-        console.log('count', this.count.value);
-      });
-      this.effect(() => {
-        console.log('count squared', this.countSquared.value);
-      });
-      this.effect(() => {
-        console.log('count cubed', this.countCubed.value);
-      });
-      this.effect(() => {
-        console.log('count quadrupled', this.countQuadrupled.value);
-      });
-      this.effect(() => {
-        console.log('count plus random', this.countPlusRandom.value);
-      });
-      this.count.subscribe({
-        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
-      });
-      this.countSqrt = null;
-      this.effect(() => {
-        if (this.count.value > 2) {
-          if (!this.countSqrt) {
-            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
-          }
-        } else {
-          if (this.countSqrt) {
-            this.countSqrt.dispose();
-            this.countSqrt = null;
-          }
-        }
-      });
     }
 
     increment() {
-      this.count.update(value => value + 1);
+      this.count.value++;
     }
 
     decrement() {
-      this.count.update(value => value - 1);
+      this.count.value--;
     }
 
     multiplyByTwo() {
-      this.count.update(value => value * 2);
+      this.count.value *= 2;
     }
 
     divideByTwo() {
-      this.count.update(value => value / 2);
+      this.count.value /= 2;
     }
 
     template() {

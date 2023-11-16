@@ -18,12 +18,13 @@
   const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
+    email = this.observable('');
+    password = this.observable('');
+    emailError = this.observable('');
+    passwordError = this.observable('');
+
     constructor() {
       super();
-      this.email = this.observable('');
-      this.password = this.observable('');
-      this.emailError = this.observable('');
-      this.passwordError = this.observable('');
     }
 
     validateEmail() {

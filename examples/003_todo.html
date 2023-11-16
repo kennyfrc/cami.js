@@ -43,9 +43,10 @@
   todoStore.use(loggingMiddleware);
 
   class TodoListElement extends ReactiveElement {
+    todos = this.subscribe(todoStore, 'todos');
+
     constructor() {
       super();
-      this.todos = this.subscribe(todoStore, 'todos');
     }
 
     template() {

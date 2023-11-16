@@ -83,28 +83,34 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 <counter-element></counter-element>
 <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
+  class CounterElement extends ReactiveElement {
+    count = this.observable(0);
 
-class CounterElement extends ReactiveElement {
-  constructor() {
-    super();
-    this.count = this.observable(0); // Defines an observable property 'count' with an initial value of 0
+    constructor() {
+      super();
+    }
+
+    increment() {
+      this.count.value++;
+    }
+
+    decrement() {
+      this.count.value--;
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.decrement()}>-</button>
+        <button @click=${() => this.increment()}>+</button>
+        <div>Count: ${this.count.value}</div>
+      `;
+    }
   }
 
-  increment() {
-    this.count.update(value => value + 1); // Updates the value of 'count' observable
-  }
-
-  template() {
-    return html`
-      <button @click=${() => this.increment()}>Increment</button>
-      <p>Count: ${this.count.value}</p>  // Accesses the current value of 'count' observable
-    `;
-  }
-}
-
-customElements.define('counter-element', CounterElement);
+  customElements.define('counter-component', CounterElement);
 </script>
+
 ```
 
 In this example, `CounterElement` is a reactive web component that maintains an internal state (`count`) and updates its view whenever the state changes.
@@ -116,7 +122,7 @@ In this example, `CounterElement` is a reactive web component that maintains an 
 In the context of a `ReactiveElement`, you can create an observable using the `this.observable()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
 
 ```javascript
-this.count = this.observable(0);
+count = this.observable(0);
 ```
 
 **Getting the Value:**
@@ -178,7 +184,7 @@ Computed properties are a powerful feature in Cami.js that allow you to create p
 For instance, in the `CounterElement` example from `_001_counter.html`, a computed property `countSquared` is defined as the square of the `count` observable:
 
 ```javascript
-this.countSquared = this.computed(() => this.count.value * this.count.value);
+countSquared = this.computed(() => this.count.value * this.count.value);
 ```
 
 In this case, `countSquared` will always hold the square of the current count value, and will automatically update whenever `count` changes. This is ideal for calculations like this, but can also be used for other derived values such as total price in a shopping cart (based on quantities and individual prices), or a boolean flag indicating if a form is valid (based on individual field validations).
@@ -306,9 +312,10 @@ They are also listed below:
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
+    count = this.observable(0);
+
     constructor() {
       super();
-      this.count = this.observable(0);
     }
 
     increment() {
@@ -346,12 +353,13 @@ They are also listed below:
   const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
+    email = this.observable('');
+    password = this.observable('');
+    emailError = this.observable('');
+    passwordError = this.observable('');
+
     constructor() {
       super();
-      this.email = this.observable('');
-      this.password = this.observable('');
-      this.emailError = this.observable('');
-      this.passwordError = this.observable('');
     }
 
     validateEmail() {
@@ -432,9 +440,10 @@ They are also listed below:
   todoStore.use(loggingMiddleware);
 
   class TodoListElement extends ReactiveElement {
+    todos = this.subscribe(todoStore, 'todos');
+
     constructor() {
       super();
-      this.todos = this.subscribe(todoStore, 'todos');
     }
 
     template() {
@@ -508,10 +517,11 @@ They are also listed below:
   });
 
   class ProductListElement extends ReactiveElement {
+    cartItems = this.subscribe(cartStore, 'cartItems');
+    products = this.subscribe(cartStore, 'products');
+
     constructor() {
       super();
-      this.cartItems = this.subscribe(cartStore, 'cartItems');
-      this.products = this.subscribe(cartStore, 'products');
     }
 
     addToCart(product) {
@@ -545,12 +555,13 @@ They are also listed below:
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
+    cartItems = this.subscribe(cartStore, 'cartItems');
+    cartValue = this.computed(() => {
+      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
+    });
+
     constructor() {
       super();
-      this.cartItems = this.subscribe(cartStore, 'cartItems');
-      this.cartValue = this.computed(() => {
-        return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
-      });
     }
 
     removeFromCart(product) {
@@ -586,10 +597,11 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
+    user = this.observable({});
+
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
-      this.user = this.observable(this.initialUser);
     }
 
     handleInput(event, key) {
@@ -639,22 +651,23 @@ They are also listed below:
 <script type="module">
  const { html, ReactiveElement } = cami;
   class NestedObservableElement extends ReactiveElement {
+    user = this.observable({
+      name: 'John',
+      age: 30,
+      address: {
+        street: '123 Main St',
+        city: 'Anytown',
+        country: 'USA',
+        postalCode: '12345',
+        coordinates: {
+          lat: '40.7128',
+          long: '74.0060'
+        }
+      }
+    });
+
     constructor() {
       super();
-      this.user = this.observable({
-        name: 'John',
-        age: 30,
-        address: {
-          street: '123 Main St',
-          city: 'Anytown',
-          country: 'USA',
-          postalCode: '12345',
-          coordinates: {
-            lat: '40.7128',
-            long: '74.0060'
-          }
-        }
-      });
     }
 
     changeUser() {
@@ -784,9 +797,10 @@ They are also listed below:
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
+    users = this.subscribe(userStore, 'users');
+
     constructor() {
       super();
-      this.users = this.subscribe(userStore, 'users');
     }
 
     template() {
@@ -823,13 +837,14 @@ They are also listed below:
 <script type="module">
  const { html, ReactiveElement, store } = cami;
   class TeamManagementElement extends ReactiveElement {
+    teams = this.subscribe([
+      { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
+      { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]
+    ])
+    editing = this.observable({ isEditing: false, memberId: null });
+
     constructor() {
       super();
-      this.teams = this.observable([
-        { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
-        { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]},
-      ]);
-      this.editing = this.observable({ isEditing: false, memberId: null });
     }
 
     updateTeam(teamId, updateFunc) {
@@ -909,11 +924,12 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
+    todos = this.observableAttr('todos', (todos) => {
+      return JSON.parse(todos).data;
+    });
+
     constructor() {
       super();
-      this.todos = this.observableAttr('todos', (todos) => {
-        return JSON.parse(todos).data;
-      });
     }
 
     addTodo (todo) {
@@ -969,10 +985,11 @@ They are also listed below:
   const { html, ReactiveElement } = cami;
 
   class BatchUpdateElement extends ReactiveElement {
+    count = this.observable(0);
+    doubleCount = this.computed(() => this.count.value * 2);
+
     constructor() {
       super();
-      this.count = this.observable(0);
-      this.doubleCount = this.computed(() => this.count.value * 2);
     }
 
     increment() {
@@ -1013,10 +1030,11 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class TaskManagerElement extends ReactiveElement {
+    tasks = this.observable([]);
+    filter = this.observable('all');
+
     constructor() {
       super();
-      this.tasks = this.observable([]);
-      this.filter = this.observable('all');
     }
 
     addTask(task) {
@@ -1089,9 +1107,10 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class PlaylistElement extends ReactiveElement {
+    playlist = this.observable([]);
+
     constructor() {
       super();
-      this.playlist = this.observable([]);
     }
 
     addSong(song) {
@@ -1158,60 +1177,65 @@ They are also listed below:
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
+    count = this.observable(0);
+    countSquared = this.computed(() => this.count.value * this.count.value);
+    countCubed = this.computed(() => this.countSquared.value * this.count.value);
+    countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
+    countPlusRandom = this.computed(() => this.count.value + Math.random());
+    countSqrt = this.computed(() => Math.sqrt(this.count.value));
+    this.effect(() => {
+      console.log('count', this.count.value);
+    });
+    this.effect(() => {
+      console.log('count squared', this.countSquared.value);
+    });
+    this.effect(() => {
+      console.log('count cubed', this.countCubed.value);
+    });
+    this.effect(() => {
+      console.log('count quadrupled', this.countQuadrupled.value);
+    });
+    this.effect(() => {
+      console.log('count plus random', this.countPlusRandom.value);
+    });
+    this.effect(() => {
+      console.log('count sqrt', this.countSqrt.value);
+    });
+    this.count.subscribe({
+      next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
+    });
+    this.effect(() => {
+      if (this.count.value > 2) {
+        if (!this.countSqrt) {
+          this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
+        }
+      } else {
+        if (this.countSqrt) {
+          this.countSqrt.dispose();
+          this.countSqrt = null;
+        }
+      }
+    });
+
+
     constructor() {
       super();
-      this.count = this.observable(0);
-      this.countSquared = this.computed(() => this.count.value * this.count.value);
-      this.countCubed = this.computed(() => this.countSquared.value * this.count.value);
-      this.countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
-      this.countPlusRandom = this.computed(() => this.count.value + Math.random());
-      this.effect(() => {
-        console.log('count', this.count.value);
-      });
-      this.effect(() => {
-        console.log('count squared', this.countSquared.value);
-      });
-      this.effect(() => {
-        console.log('count cubed', this.countCubed.value);
-      });
-      this.effect(() => {
-        console.log('count quadrupled', this.countQuadrupled.value);
-      });
-      this.effect(() => {
-        console.log('count plus random', this.countPlusRandom.value);
-      });
-      this.count.subscribe({
-        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
-      });
-      this.countSqrt = null;
-      this.effect(() => {
-        if (this.count.value > 2) {
-          if (!this.countSqrt) {
-            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
-          }
-        } else {
-          if (this.countSqrt) {
-            this.countSqrt.dispose();
-            this.countSqrt = null;
-          }
-        }
-      });
     }
 
     increment() {
-      this.count.update(value => value + 1);
+      this.count.value++;
     }
 
     decrement() {
-      this.count.update(value => value - 1);
+      this.count.value--;
     }
 
     multiplyByTwo() {
-      this.count.update(value => value * 2);
+      this.count.value *= 2;
     }
 
     divideByTwo() {
-      this.count.update(value => value / 2);
+      this.count.value /= 2;
     }
 
     template() {

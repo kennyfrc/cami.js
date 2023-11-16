@@ -19,9 +19,10 @@
  const { html, ReactiveElement } = cami;
 
   class PlaylistElement extends ReactiveElement {
+    playlist = this.observable([]);
+
     constructor() {
       super();
-      this.playlist = this.observable([]);
     }
 
     addSong(song) {

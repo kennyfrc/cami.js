@@ -8,22 +8,23 @@
 <script type="module">
  const { html, ReactiveElement } = cami;
   class NestedObservableElement extends ReactiveElement {
+    user = this.observable({
+      name: 'John',
+      age: 30,
+      address: {
+        street: '123 Main St',
+        city: 'Anytown',
+        country: 'USA',
+        postalCode: '12345',
+        coordinates: {
+          lat: '40.7128',
+          long: '74.0060'
+        }
+      }
+    });
+
     constructor() {
       super();
-      this.user = this.observable({
-        name: 'John',
-        age: 30,
-        address: {
-          street: '123 Main St',
-          city: 'Anytown',
-          country: 'USA',
-          postalCode: '12345',
-          coordinates: {
-            lat: '40.7128',
-            long: '74.0060'
-          }
-        }
-      });
     }
 
     changeUser() {

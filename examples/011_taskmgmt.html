@@ -18,10 +18,11 @@
  const { html, ReactiveElement } = cami;
 
   class TaskManagerElement extends ReactiveElement {
+    tasks = this.observable([]);
+    filter = this.observable('all');
+
     constructor() {
       super();
-      this.tasks = this.observable([]);
-      this.filter = this.observable('all');
     }
 
     addTask(task) {
