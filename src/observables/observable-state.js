@@ -379,7 +379,6 @@ const batch = function(callback) {
   this._isWithinBatch = true;
   Promise.resolve().then(callback).finally(() => {
     this._isWithinBatch = false;
-    this.react();
   });
 };
 
