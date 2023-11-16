@@ -760,21 +760,58 @@ class ObservableState extends Observable {
 
   /**
    * @method
-   * @description Adds an element to the end of the observable's value
-   * @param {any} element - The element to add
+   * @description Sets a new key/value pair in the observable's value
+   * @param {any} key - The key to set
+   * @param {any} value - The value to set
    */
-  push(element) {
-    if (!Array.isArray(this._value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+  set(key, value) {
+    if (typeof this._value !== 'object' || this._value === null) {
+      throw new Error('[Cami.js] Observable value is not an object');
     }
-    this.update(value => {
-      value.push(element);
+    this.update(state => {
+      state[key] = value;
     });
   }
 
   /**
    * @method
-   * @description Removes an element from the end of the observable's value
+   * @description Removes a key/value pair from the observable's value
+   * @param {any} key - The key to remove
+   */
+  delete(key) {
+    if (typeof this._value !== 'object' || this._value === null) {
+      throw new Error('[Cami.js] Observable value is not an object');
+    }
+    this.update(state => {
+      delete state[key];
+    });
+  }
+
+  /**
+   * @method
+   * @description Removes all key/value pairs from the observable's value
+   */
+  clear() {
+    this.update(() => ({}));
+  }
+
+  /**
+   * @method
+   * @description Adds one or more elements to the end of the observable's value
+   * @param {...any} elements - The elements to add
+   */
+  push(...elements) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.push(...elements);
+    });
+  }
+
+  /**
+   * @method
+   * @description Removes the last element from the observable's value
    */
   pop() {
     if (!Array.isArray(this._value)) {
@@ -787,7 +824,20 @@ class ObservableState extends Observable {
 
   /**
    * @method
-   * @description Adds, removes, or replaces elements in the observable's value
+   * @description Removes the first element from the observable's value
+   */
+  shift() {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.shift();
+    });
+  }
+
+  /**
+   * @method
+   * @description Changes the contents of the observable's value by removing, replacing, or adding elements
    * @param {number} start - The index at which to start changing the array
    * @param {number} deleteCount - The number of elements to remove
    * @param {...any} items - The elements to add to the array
@@ -796,8 +846,81 @@ class ObservableState extends Observable {
     if (!Array.isArray(this._value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
+    this.update(arr => {
+      arr.splice(start, deleteCount, ...items);
+    });
+  }
+
+  /**
+   * @method
+   * @description Adds one or more elements to the beginning of the observable's value
+   * @param {...any} elements - The elements to add
+   */
+  unshift(...elements) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
     this.update(value => {
-      value.splice(start, deleteCount, ...items);
+      value.unshift(...elements);
+    });
+  }
+
+  /**
+   * @method
+   * @description Reverses the order of the elements in the observable's value
+   */
+  reverse() {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.reverse();
+    });
+  }
+
+  /**
+   * @method
+   * @description Sorts the elements in the observable's value
+   * @param {Function} [compareFunction] - The function used to determine the order of the elements
+   */
+  sort(compareFunction) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(value => {
+      value.sort(compareFunction);
+    });
+  }
+
+  /**
+   * @method
+   * @description Changes all elements in the observable's value to a static value
+   * @param {any} value - The value to fill the array with
+   * @param {number} [start=0] - The index to start filling at
+   * @param {number} [end=this._value.length] - The index to stop filling at
+   */
+  fill(value, start = 0, end = this._value.length) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(arr => {
+      arr.fill(value, start, end);
+    });
+  }
+
+  /**
+   * @method
+   * @description Shallow copies part of the observable's value to another location in the same array
+   * @param {number} target - The index to copy the elements to
+   * @param {number} start - The start index to begin copying elements from
+   * @param {number} [end=this._value.length] - The end index to stop copying elements from
+   */
+  copyWithin(target, start, end = this._value.length) {
+    if (!Array.isArray(this._value)) {
+      throw new Error('[Cami.js] Observable value is not an array');
+    }
+    this.update(arr => {
+      arr.copyWithin(target, start, end);
     });
   }
 
@@ -947,6 +1070,7 @@ const computed = function(computeFn) {
  * @param {Function} callback - The function to call in a batch update
  * @returns {void}
  * @description This function sets the _isWithinBatch flag, calls the callback, then resets the flag and calls react
+ * Note: only works with update()
  */
 const batch = function(callback) {
   this._isWithinBatch = true;
