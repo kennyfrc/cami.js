@@ -185,3 +185,5 @@ out
 package-lib.json
 src/scratch.js
 tests/*
+src/spike.js
+src/test.js
