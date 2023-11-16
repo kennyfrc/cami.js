@@ -67,11 +67,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {Observable} The observable
    */
   observable(initialValue) {
-    const observable = new ObservableState(initialValue, {
-      next: this.react.bind(this),
-      complete: this.react.bind(this),
-      error: this.react.bind(this) // the view will always include the error message
-    }, { last: true });
+    const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true });
     return observable;
   }
 

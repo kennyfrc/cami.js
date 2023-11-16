@@ -38,6 +38,7 @@ class Subscriber {
       /** @type {AbortSignal} */
       this.signal = this.controller.signal;
     }
+    this.isUnsubscribed = false;
   }
 
   /**
@@ -45,28 +46,29 @@ class Subscriber {
    * @param {any} result - The result to pass to the observer's next method
    */
   next(result) {
-    if (this.observer.next) {
+    if (!this.isUnsubscribed && this.observer.next) {
       this.observer.next(result);
     }
   }
 
   complete() {
-    if (this.observer.complete) {
-      this.observer.complete();
-    } else if (typeof this.observer.next === 'function') {
-      this.observer.next({ complete: true });
+    if (!this.isUnsubscribed) {
+      if (this.observer.complete) {
+        this.observer.complete();
+      }
+      this.unsubscribe();
     }
-    this.unsubscribe();
   }
 
   error(error) {
-    if (this.observer.error) {
-      this.observer.error(error);
-    } else if (typeof this.observer.next === 'function') {
-      this.observer.next({ error: error });
+    if (!this.isUnsubscribed) {
+      if (this.observer.error) {
+        this.observer.error(error);
+      }
+      this.unsubscribe();
     }
-    this.unsubscribe();
   }
+
   /**
    * @method
    * @param {Function} teardown - The teardown function to add to the teardowns array
@@ -79,10 +81,18 @@ class Subscriber {
    * @method
    */
   unsubscribe() {
-    if (this.controller) {
-      this.controller.abort();
+    if (!this.isUnsubscribed) {
+      this.isUnsubscribed = true;
+      if (this.controller) {
+        this.controller.abort();
+      }
+      this.teardowns.forEach(teardown => {
+        if (typeof teardown !== 'function') {
+          throw new Error('[Cami.js] Teardown must be a function. Please implement a teardown function in your subscriber.');
+        }
+        teardown();
+      });
     }
-    this.teardowns.forEach(teardown => teardown());
   }
 }
 
@@ -109,11 +119,40 @@ class Observable {
    * @param {Object} observer - The observer to subscribe. Default is an empty function.
    * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
    */
-  subscribe(observer = () => {}) {
+  subscribe(observerOrNext = () => {}, error = () => {}, complete = () => {}) {
+    let observer;
+
+    if (typeof observerOrNext === 'function') {
+      // If the first argument is a function, we assume it's the next callback
+      observer = {
+        next: observerOrNext,
+        error,
+        complete,
+      };
+    } else if (typeof observerOrNext === 'object') {
+      // If the first argument is an object, we assume it's an observer
+      observer = observerOrNext;
+    } else {
+      throw new Error('[Cami.js] First argument to subscribe must be a next callback or an observer object');
+    }
+
     const subscriber = new Subscriber(observer);
-    const teardown = this.subscribeCallback(subscriber);
+    let teardown = () => {};
+
+    try {
+      teardown = this.subscribeCallback(subscriber);
+    } catch (error) {
+      if (subscriber.error) {
+        subscriber.error(error);
+      } else {
+        console.error('[Cami.js] Error in Subscriber:', error);
+      }
+      return;
+    }
+
     subscriber.addTeardown(teardown);
     this._observers.push(subscriber);
+
     return {
       unsubscribe: () => subscriber.unsubscribe(),
       complete: () => subscriber.complete(),
@@ -647,9 +686,7 @@ class ObservableState extends Observable {
    * @param {boolean} options.last - Whether the subscriber is the last observer
    */
   constructor(initialValue = null, subscriber = null, {last = false} = {}) {
-    super((innerSubscriber) => {
-      return () => {};
-    });
+    super();
     if (last) {
       /** @type {Subscriber} */
       this._lastObserver = subscriber;
