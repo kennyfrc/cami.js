@@ -14,6 +14,7 @@
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.user.assign(this.initialUser);
     }
 
     handleInput(event, key) {
