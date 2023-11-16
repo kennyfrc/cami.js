@@ -643,10 +643,10 @@ class ObservableStream extends Observable {
 
   /**
    * @method
-   * @description Pushes a new value to the stream
+   * @description Emits a new value to the stream
    * @param {any} value - The value to emit
    */
-  push(value) {
+  emit(value) {
     this._observers.forEach(observer => observer.next(value));
   }
 }
