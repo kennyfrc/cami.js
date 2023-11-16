@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.21. Follows [semver](https://semver.org/).
+Current version: 0.0.22. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
@@ -602,6 +602,7 @@ They are also listed below:
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.user.assign(this.initialUser);
     }
 
     handleInput(event, key) {
@@ -1183,43 +1184,42 @@ They are also listed below:
     countQuadrupled = this.computed(() => this.countSquared.value * this.countSquared.value);
     countPlusRandom = this.computed(() => this.count.value + Math.random());
     countSqrt = this.computed(() => Math.sqrt(this.count.value));
-    this.effect(() => {
-      console.log('count', this.count.value);
-    });
-    this.effect(() => {
-      console.log('count squared', this.countSquared.value);
-    });
-    this.effect(() => {
-      console.log('count cubed', this.countCubed.value);
-    });
-    this.effect(() => {
-      console.log('count quadrupled', this.countQuadrupled.value);
-    });
-    this.effect(() => {
-      console.log('count plus random', this.countPlusRandom.value);
-    });
-    this.effect(() => {
-      console.log('count sqrt', this.countSqrt.value);
-    });
-    this.count.subscribe({
-      next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
-    });
-    this.effect(() => {
-      if (this.count.value > 2) {
-        if (!this.countSqrt) {
-          this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
-        }
-      } else {
-        if (this.countSqrt) {
-          this.countSqrt.dispose();
-          this.countSqrt = null;
-        }
-      }
-    });
-
 
     constructor() {
       super();
+      this.effect(() => {
+        console.log('count', this.count.value);
+      });
+      this.effect(() => {
+        console.log('count squared', this.countSquared.value);
+      });
+      this.effect(() => {
+        console.log('count cubed', this.countCubed.value);
+      });
+      this.effect(() => {
+        console.log('count quadrupled', this.countQuadrupled.value);
+      });
+      this.effect(() => {
+        console.log('count plus random', this.countPlusRandom.value);
+      });
+      this.effect(() => {
+        console.log('count sqrt', this.countSqrt ? this.countSqrt.value : 'N/A');
+      });
+      this.count.subscribe({
+        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
+      });
+      this.effect(() => {
+        if (this.count.value > 2) {
+          if (!this.countSqrt) {
+            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
+          }
+        } else {
+          if (this.countSqrt) {
+            this.countSqrt.dispose();
+            this.countSqrt = null;
+          }
+        }
+      });
     }
 
     increment() {
