@@ -1,6 +1,6 @@
 {
   "name": "cami",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.",
   "files": [
     "build"

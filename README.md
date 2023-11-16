@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.19. Follows [semver](https://semver.org/).
+Current version: 0.0.20. Follows [semver](https://semver.org/).
 
 Bundle Size: 10kb minified & gzipped.
 
@@ -312,11 +312,11 @@ They are also listed below:
     }
 
     increment() {
-      this.count.update(value => value + 1);
+      this.count.value++;
     }
 
     decrement() {
-      this.count.update(value => value - 1);
+      this.count.value--;
     }
 
     template() {
@@ -357,9 +357,9 @@ They are also listed below:
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.email.value)) {
-        this.emailError.update(() => 'Please enter a valid email address.');
+        this.emailError.value = 'Please enter a valid email address.';
       } else {
-        this.emailError.update(() => '');
+        this.emailError.value = '';
       }
     }
 
@@ -958,101 +958,53 @@ They are also listed below:
 
 ```html
 <!-- ./examples/_010_batch.html -->
-  <article>
-  <h1>Team Management</h1>
-  <team-management-component></team-management-component>
+<article>
+  <h1>Batch Updates</h1>
+  <batch-update-element></batch-update-element>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
-  class TeamManagementElement extends ReactiveElement {
+  const { html, ReactiveElement } = cami;
+
+  class BatchUpdateElement extends ReactiveElement {
     constructor() {
       super();
-      this.teams = this.observable([
-        {
-          id: 1,
-          name: "Team Alpha",
-          members: [
-            { id: 1, name: "Alice" },
-            { id: 2, name: "Bob" },
-          ],
-        },
-        {
-          id: 2,
-          name: "Team Beta",
-          members: [
-            { id: 3, name: "Charlie" },
-            { id: 4, name: "Dave" },
-          ],
-        },
-      ]);
+      this.count = this.observable(0);
+      this.doubleCount = this.computed(() => this.count.value * 2);
     }
 
-    addMember(teamId, name) {
-      this.teams.update(teams => {
-        const team = teams.find(team => team.id === teamId);
-        if (team) {
-          team.members.push({ id: Date.now(), name });
-        }
-      });
+    increment() {
+      this.count.value++;
     }
 
-    removeMember(teamId, memberId) {
-      this.teams.update(teams => {
-        const team = teams.find(team => team.id === teamId);
-        if (team) {
-          team.members = team.members.filter(member => member.id !== memberId);
-        }
-      });
-    }
-
-    editMember(teamId, memberId, newName) {
-      this.teams.update(teams => {
-        const team = teams.find(team => team.id === teamId);
-        if (team) {
-          const member = team.members.find(member => member.id === memberId);
-          if (member) {
-            member.name = newName;
-          }
-        }
+    batchIncrement() {
+      this.batch(() => {
+        this.count.update(value => value + 1);
+        this.count.update(value => value + 1);
       });
     }
 
     template() {
       return html`
-        <ul>
-          ${this.teams.value.map(team => html`
-            <li>
-              ${team.name}
-              <ul>
-                ${team.members.map(member => html`
-                  <li>
-                    <input id="memberName${member.id}" type="text" value="${member.name}">
-                    <button @click=${() => this.editMember(team.id, member.id, document.getElementById('memberName' + member.id).value)}>Edit</button>
-                    <button @click=${() => this.removeMember(team.id, member.id)}>Remove</button>
-                  </li>
-                `)}
-              </ul>
-              <input id="newMemberName${team.id}" type="text" placeholder="New member name">
-              <button @click=${() => this.addMember(team.id, document.getElementById('newMemberName' + team.id).value)}>Add Member</button>
-            </li>
-          `)}
-        </ul>
+        <button @click=${() => this.increment()}>Increment</button>
+        <button @click=${() => this.batchIncrement()}>Batch Increment</button>
+        <div>Count: ${this.count.value}</div>
+        <div>Double Count: ${this.doubleCount.value}</div>
       `;
     }
   }
 
-  customElements.define('team-management-component', TeamManagementElement);
+  customElements.define('batch-update-element', BatchUpdateElement);
 </script>
 ```
 
 ```html
 <!-- ./examples/_011_taskmgmt.html -->
 <article>
-  <h1>Task Management</h1>
-  <task-management-component></task-management-component>
+  <h1>Task Manager</h1>
+  <task-manager-component></task-manager-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -1060,38 +1012,58 @@ They are also listed below:
 <script type="module">
  const { html, ReactiveElement } = cami;
 
-  class TaskManagementElement extends ReactiveElement {
+  class TaskManagerElement extends ReactiveElement {
     constructor() {
       super();
       this.tasks = this.observable([]);
+      this.filter = this.observable('all');
     }
 
     addTask(task) {
-      this.tasks.push(task);
-    }
-
-    removeLastTask() {
-      this.tasks.pop();
+      this.tasks.push({ name: task, completed: false });
     }
 
     removeTask(index) {
       this.tasks.splice(index, 1);
     }
 
+    toggleTask(index) {
+      this.tasks.update(tasks => {
+        tasks[index].completed = !tasks[index].completed;
+      });
+    }
+
+    setFilter(filter) {
+      this.filter.update(() => filter);
+    }
+
+    getFilteredTasks() {
+      switch (this.filter.value) {
+        case 'completed':
+          return this.tasks.value.filter(task => task.completed);
+        case 'active':
+          return this.tasks.value.filter(task => !task.completed);
+        default:
+          return this.tasks.value;
+      }
+    }
+
     template() {
       return html`
-        <input id="newTask" type="text" placeholder="New task">
+        <input id="taskInput" type="text" placeholder="Enter task name">
         <button @click=${() => {
-          const newTaskInput = document.getElementById('newTask');
-          this.addTask(newTaskInput.value);
-          newTaskInput.value = '';
+          this.addTask(document.getElementById('taskInput').value);
+          document.getElementById('taskInput').value = '';
         }}>Add Task</button>
-        <button @click=${() => this.removeLastTask()}>Remove Last Task</button>
+        <button @click=${() => this.setFilter('all')}>All</button>
+        <button @click=${() => this.setFilter('active')}>Active</button>
+        <button @click=${() => this.setFilter('completed')}>Completed</button>
         <ul>
-          ${this.tasks.value.map((task, index) => html`
+          ${this.getFilteredTasks().map((task, index) => html`
             <li>
-              ${task}
-              <button @click=${() => this.removeTask(index)}>Remove</button>
+              <input type="checkbox" .checked=${task.completed} @click=${() => this.toggleTask(index)}>
+              ${task.name}
+              <a @click=${() => this.removeTask(index)}>Remove</a>
             </li>
           `)}
         </ul>
@@ -1099,7 +1071,78 @@ They are also listed below:
     }
   }
 
-  customElements.define('task-management-component', TaskManagementElement);
+  customElements.define('task-manager-component', TaskManagerElement);
+</script>
+```
+
+```html
+<!-- ./examples/_012_playlist.html -->
+<!-- ./examples/_XXX_playlist.html -->
+<article>
+  <h1>Playlist Manager</h1>
+  <playlist-component></playlist-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+ const { html, ReactiveElement } = cami;
+
+  class PlaylistElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.playlist = this.observable([]);
+    }
+
+    addSong(song) {
+      this.playlist.push(song);
+    }
+
+    removeSong(index) {
+      this.playlist.splice(index, 1);
+    }
+
+    moveSongUp(index) {
+      if (index > 0) {
+        this.playlist.splice(index - 1, 2, this.playlist.value[index], this.playlist.value[index - 1]);
+      }
+    }
+
+    moveSongDown(index) {
+      if (index < this.playlist.value.length - 1) {
+        this.playlist.splice(index, 2, this.playlist.value[index + 1], this.playlist.value[index]);
+      }
+    }
+
+    sortSongs() {
+      this.playlist.sort();
+    }
+
+    reverseSongs() {
+      this.playlist.reverse();
+    }
+
+    template() {
+      return html`
+        <input id="songInput" type="text" placeholder="Enter song name">
+        <button @click=${() => this.addSong(document.getElementById('songInput').value)}>Add Song</button>
+        <button @click=${() => this.sortSongs()}>Sort Songs</button>
+        <button @click=${() => this.reverseSongs()}>Reverse Songs</button>
+        <ul>
+          ${this.playlist.value.map((song, index) => html`
+            <li>
+              ${song}
+              <a @click=${() => this.moveSongUp(index)}>Move Up</a>
+              <a @click=${() => this.moveSongDown(index)}>Move Down</a>
+              <a @click=${() => this.removeSong(index)}>Remove</a>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('playlist-component', PlaylistElement);
 </script>
 ```
 
