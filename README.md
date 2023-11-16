@@ -2,9 +2,9 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.18. Follows [semver](https://semver.org/).
+Current version: 0.0.19. Follows [semver](https://semver.org/).
 
-Bundle Size: 9kb minified & gzipped.
+Bundle Size: 10kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
 
@@ -588,13 +588,18 @@ They are also listed below:
   class UserFormElement extends ReactiveElement {
     constructor() {
       super();
-      this.user = this.observable({ name: 'Kenn', age: 34 });
+      this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.user = this.observable(this.initialUser);
     }
 
     handleInput(event, key) {
       this.user.update(value => {
         value[key] = event.target.value;
       });
+    }
+
+    resetForm() {
+      this.user.assign(this.initialUser);
     }
 
     template() {
@@ -608,6 +613,11 @@ They are also listed below:
             Age: ${this.user.value.age}
             <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
           </label>
+          <label>
+            Email: ${this.user.value.email}
+            <input type="email" .value=${this.user.value.email} @input=${(e) => this.handleInput(e, 'email')} />
+          </label>
+          <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
         </form>
       `;
     }
@@ -802,7 +812,91 @@ They are also listed below:
 ```
 
 ```html
-<!-- ./examples/_008_dataFromProps.html -->
+<!-- ./examples/_008_nested4.html -->
+<article>
+  <h1>Team Management</h1>
+  <team-management-component></team-management-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+ const { html, ReactiveElement, store } = cami;
+  class TeamManagementElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.teams = this.observable([
+        { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
+        { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]},
+      ]);
+      this.editing = this.observable({ isEditing: false, memberId: null });
+    }
+
+    updateTeam(teamId, updateFunc) {
+      this.teams.update(teams => {
+        const team = teams.find(team => team.id === teamId);
+        if (team) updateFunc(team);
+      });
+    }
+
+    addMember(teamId, name) {
+      this.updateTeam(teamId, team => team.members.push({ id: Date.now(), name }));
+    }
+
+    removeMember(teamId, memberId) {
+      this.updateTeam(teamId, team => team.members = team.members.filter(member => member.id !== memberId));
+    }
+
+    editMember(teamId, memberId, newName) {
+      this.updateTeam(teamId, team => {
+        const member = team.members.find(member => member.id === memberId);
+        if (member) member.name = newName;
+      });
+      this.editing.update(() => ({ isEditing: false, memberId: null }));
+    }
+
+    startEditing(memberId) {
+      this.editing.update(() => ({ isEditing: true, memberId }));
+    }
+
+    template() {
+      return html`
+        <ul>
+          ${this.teams.value.map(team => html`
+            <li>
+              ${team.name}
+              <ul>
+                ${team.members.map(member => html`
+                  <li>
+                    ${this.editing.value.isEditing && this.editing.value.memberId === member.id ? html`
+                      <input id="editMemberName${member.id}" type="text" value="${member.name}">
+                      <button @click=${() => { this.editMember(team.id, member.id, document.getElementById('editMemberName' + member.id).value); }}>Save</button>
+                    ` : html`
+                      <span>${member.name}</span>
+                      <a @click=${() => this.startEditing(member.id)}>Edit</a>
+                      <a @click=${() => this.removeMember(team.id, member.id)}>Remove</a>
+                    `}
+                  </li>
+                `)}
+              </ul>
+              <input id="newMemberName${team.id}" type="text" placeholder="New member name">
+              <button @click=${() => {
+                this.addMember(team.id, document.getElementById('newMemberName' + team.id).value);
+                document.getElementById('newMemberName' + team.id).value = '';
+              }}>Add Member</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('team-management-component', TeamManagementElement);
+</script>
+```
+
+```html
+<!-- ./examples/_009_dataFromProps.html -->
 <article>
   <my-component
     todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
@@ -863,46 +957,149 @@ They are also listed below:
 ```
 
 ```html
-<!-- ./examples/_009_batch.html -->
-<article>
-  <h1>Batch Updates</h1>
-  <batch-update-element></batch-update-element>
+<!-- ./examples/_010_batch.html -->
+  <article>
+  <h1>Team Management</h1>
+  <team-management-component></team-management-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
-
-  class BatchUpdateElement extends ReactiveElement {
+ const { html, ReactiveElement } = cami;
+  class TeamManagementElement extends ReactiveElement {
     constructor() {
       super();
-      this.count = this.observable(0);
-      this.doubleCount = this.computed(() => this.count.value * 2);
+      this.teams = this.observable([
+        {
+          id: 1,
+          name: "Team Alpha",
+          members: [
+            { id: 1, name: "Alice" },
+            { id: 2, name: "Bob" },
+          ],
+        },
+        {
+          id: 2,
+          name: "Team Beta",
+          members: [
+            { id: 3, name: "Charlie" },
+            { id: 4, name: "Dave" },
+          ],
+        },
+      ]);
     }
 
-    increment() {
-      this.count.update(value => value + 1);
+    addMember(teamId, name) {
+      this.teams.update(teams => {
+        const team = teams.find(team => team.id === teamId);
+        if (team) {
+          team.members.push({ id: Date.now(), name });
+        }
+      });
     }
 
-    batchIncrement() {
-      this.batch(() => {
-        this.count.update(value => value + 1);
-        this.count.update(value => value + 1);
+    removeMember(teamId, memberId) {
+      this.teams.update(teams => {
+        const team = teams.find(team => team.id === teamId);
+        if (team) {
+          team.members = team.members.filter(member => member.id !== memberId);
+        }
+      });
+    }
+
+    editMember(teamId, memberId, newName) {
+      this.teams.update(teams => {
+        const team = teams.find(team => team.id === teamId);
+        if (team) {
+          const member = team.members.find(member => member.id === memberId);
+          if (member) {
+            member.name = newName;
+          }
+        }
       });
     }
 
     template() {
       return html`
-        <button @click=${() => this.increment()}>Increment</button>
-        <button @click=${() => this.batchIncrement()}>Batch Increment</button>
-        <div>Count: ${this.count.value}</div>
-        <div>Double Count: ${this.doubleCount.value}</div>
+        <ul>
+          ${this.teams.value.map(team => html`
+            <li>
+              ${team.name}
+              <ul>
+                ${team.members.map(member => html`
+                  <li>
+                    <input id="memberName${member.id}" type="text" value="${member.name}">
+                    <button @click=${() => this.editMember(team.id, member.id, document.getElementById('memberName' + member.id).value)}>Edit</button>
+                    <button @click=${() => this.removeMember(team.id, member.id)}>Remove</button>
+                  </li>
+                `)}
+              </ul>
+              <input id="newMemberName${team.id}" type="text" placeholder="New member name">
+              <button @click=${() => this.addMember(team.id, document.getElementById('newMemberName' + team.id).value)}>Add Member</button>
+            </li>
+          `)}
+        </ul>
       `;
     }
   }
 
-  customElements.define('batch-update-element', BatchUpdateElement);
+  customElements.define('team-management-component', TeamManagementElement);
+</script>
+```
+
+```html
+<!-- ./examples/_011_taskmgmt.html -->
+<article>
+  <h1>Task Management</h1>
+  <task-management-component></task-management-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+ const { html, ReactiveElement } = cami;
+
+  class TaskManagementElement extends ReactiveElement {
+    constructor() {
+      super();
+      this.tasks = this.observable([]);
+    }
+
+    addTask(task) {
+      this.tasks.push(task);
+    }
+
+    removeLastTask() {
+      this.tasks.pop();
+    }
+
+    removeTask(index) {
+      this.tasks.splice(index, 1);
+    }
+
+    template() {
+      return html`
+        <input id="newTask" type="text" placeholder="New task">
+        <button @click=${() => {
+          const newTaskInput = document.getElementById('newTask');
+          this.addTask(newTaskInput.value);
+          newTaskInput.value = '';
+        }}>Add Task</button>
+        <button @click=${() => this.removeLastTask()}>Remove Last Task</button>
+        <ul>
+          ${this.tasks.value.map((task, index) => html`
+            <li>
+              ${task}
+              <button @click=${() => this.removeTask(index)}>Remove</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('task-management-component', TaskManagementElement);
 </script>
 ```
 
