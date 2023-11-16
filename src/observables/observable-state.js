@@ -1,6 +1,16 @@
 import { Observable } from './observable.js';
 import { produce } from 'immer';
 
+
+/**
+ * @type {Object}
+ * @description DependencyTracker is an object that holds the current dependency.
+ * It is used to track dependencies between observables.
+ */
+const DependencyTracker = {
+  current: null
+};
+
 /**
  * @class
  * @description Observable class that holds a value and allows updates to it.
@@ -35,8 +45,8 @@ class ObservableState extends Observable {
    * @returns {any} The current value of the observable
    */
   get value() {
-    if (ComputedState.isComputing != null) {
-      ComputedState.isComputing.addDependency(this);
+    if (DependencyTracker.current != null) {
+      DependencyTracker.current.addDependency(this);
     }
     return this._value;
   }
@@ -242,7 +252,7 @@ class ObservableState extends Observable {
       if (typeof window !== 'undefined') {
         requestAnimationFrame(this._applyUpdates.bind(this));
       } else {
-        Promise.resolve().then(this._applyUpdates.bind(this));
+        this._applyUpdates();
       }
     }
   }
@@ -290,73 +300,62 @@ class ObservableState extends Observable {
  * @description ComputedState class that extends ObservableState and holds additional methods for computed observables
  */
 class ComputedState extends ObservableState {
-  constructor(computeFn, context) {
+  /**
+   * @constructor
+   * @param {Function} computeFn - The function to compute the value of the observable
+   */
+  constructor(computeFn) {
     super(null);
-    /** @type {Function} */
     this.computeFn = computeFn;
-    /** @type {Object} */
-    this.context = context;
-    /** @type {Set<ObservableState>} */
     this.dependencies = new Set();
-    /** @type {Set<ComputedState>} */
-    this.children = new Set();
-    /** @type {Map<ObservableState, Object>} */
     this.subscriptions = new Map();
     this.compute();
   }
 
+  /**
+   * @method
+   * @returns {any} The current value of the observable
+   */
   get value() {
-    ComputedState.isComputing = this;
-    const value = this.computeFn.call(this.context);
-    ComputedState.isComputing = null;
-    return value;
+    if (DependencyTracker.current) {
+      DependencyTracker.current.addDependency(this);
+    }
+    return this._value;
   }
 
+  /**
+   * @method
+   * @description Computes the new value of the observable and notifies observers if it has changed
+   */
   compute() {
-    this.notifyChildren();
-    this._value = this.computeFn.call(this.context);
-    this.notifyObservers();
-  }
-
-  addDependency(observable) {
-    if (!this.dependencies.has(observable)) {
-      const subscription = observable.onValue(() => this.compute());
-      this.dependencies.add(observable);
-      this.subscriptions.set(observable, subscription);
-      if (observable instanceof ComputedState) {
-        observable.addChild(this);
+    const tracker = {
+      addDependency: (observable) => {
+        if (!this.dependencies.has(observable)) {
+          const subscription = observable.onValue(() => this.compute());
+          this.dependencies.add(observable);
+          this.subscriptions.set(observable, subscription);
+        }
       }
+    };
+
+    DependencyTracker.current = tracker;
+    const newValue = this.computeFn();
+    DependencyTracker.current = null;
+
+    if (newValue !== this._value) {
+      this._value = newValue;
+      this.notifyObservers();
     }
   }
 
+  /**
+   * @method
+   * @description Unsubscribes from all dependencies
+   */
   dispose() {
-    this.notifyChildren();
-    this.dependencies.forEach((observable) => {
-      const subscription = this.subscriptions.get(observable);
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-      this.dependencies.delete(observable);
-      this.subscriptions.delete(observable);
-      if (observable instanceof ComputedState) {
-        observable.removeChild(this);
-      }
+    this.subscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
     });
-  }
-
-  addChild(child) {
-    this.children.add(child);
-  }
-
-  removeChild(child) {
-    this.children.delete(child);
-  }
-
-  notifyChildren() {
-    this.children.forEach(child => {
-      child.dispose();
-    });
-    this.children.clear();
   }
 }
 
@@ -366,7 +365,7 @@ class ComputedState extends ObservableState {
  * @returns {ComputedState} A new instance of ComputedState
  */
 const computed = function(computeFn) {
-  return new ComputedState(computeFn, this);
+  return new ComputedState(computeFn);
 };
 
 /**
@@ -392,11 +391,44 @@ const batch = function(callback) {
  */
 const effect = function(effectFn) {
   let cleanup = () => {};
+  let dependencies = new Set();
+  let subscriptions = new Map();
+
+  const tracker = {
+    addDependency: (observable) => {
+      if (!dependencies.has(observable)) {
+        const subscription = observable.onValue(runEffect);
+        dependencies.add(observable);
+        subscriptions.set(observable, subscription);
+      }
+    }
+  };
+
   const runEffect = () => {
     cleanup();
-    cleanup = effectFn.call(this) || (() => {});
+    DependencyTracker.current = tracker;
+    cleanup = effectFn() || (() => {});
+    DependencyTracker.current = null;
   };
-  this._effects.push({ effectFn: runEffect, cleanup });
+
+  if (typeof window !== 'undefined') {
+    requestAnimationFrame(runEffect);
+  } else {
+    setTimeout(runEffect, 0);
+  }
+
+  /**
+   * @method
+   * @description Unsubscribes from all dependencies and runs cleanup function
+   */
+  const dispose = () => {
+    subscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    cleanup();
+  };
+
+  return dispose;
 };
 
 export { ObservableState, computed, batch, effect };
