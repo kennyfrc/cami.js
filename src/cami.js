@@ -57,14 +57,29 @@ class ReactiveElement extends HTMLElement {
   }
 
   define(config) {
-    for (const key in config) {
-      if (config[key] === 'observable') {
+    if (config.observables) {
+      config.observables.forEach(key => {
         this[key] = this.observable(this[key]);
-      } else if (config[key] === 'computed') {
+      });
+    }
+    if (config.computed) {
+      config.computed.forEach(key => {
         this[key] = this.computed(this[key]);
-      } else if (config[key] === 'effect') {
-        this.effect(this[key]);
-      }
+      });
+    }
+    if (config.effects) {
+      config.effects.forEach(effectFn => {
+        this.effect(effectFn);
+      });
+    }
+    if (config.attributes) {
+      config.attributes.forEach(attr => {
+        if (typeof attr === 'string') {
+          this[attr] = this.observableAttr(attr);
+        } else if (typeof attr === 'object' && attr.name && typeof attr.parseFn === 'function') {
+          this[attr.name] = this.observableAttr(attr.name, attr.parseFn);
+        }
+      });
     }
   }
 
