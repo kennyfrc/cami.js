@@ -189,6 +189,19 @@ function store(initialState) {
   return new ObservableStore(initialState);
 }
 
+
+function makeObservable(target, config) {
+  for (const key in config) {
+    if (config[key] === 'observable') {
+      target[key] = target.observable(target[key]);
+    } else if (config[key] === 'computed') {
+      target[key] = target.computed(target[key]);
+    } else if (config[key] === 'effect') {
+      target.effect(target[key]);
+    }
+  }
+}
+
 /**
  * @exports store
  * @exports html
@@ -199,4 +212,4 @@ function store(initialState) {
  * @exports Observable
  * @exports ObservableState
  */
-export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore };
+export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, makeObservable };
