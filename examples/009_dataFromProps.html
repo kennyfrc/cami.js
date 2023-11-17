@@ -8,7 +8,7 @@
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
   <article>
-  <my-component
+<my-component
     todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
   ></my-component>
 </article>
@@ -19,12 +19,17 @@
  const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
-    todos = this.observableAttr('todos', (todos) => {
-      return JSON.parse(todos).data;
-    });
+    todos = []
 
     constructor() {
       super();
+      this.define({
+        attributes: [{
+            name: 'todos',
+            parseFn: (v) => JSON.parse(v).data
+          }
+        ]
+      });
     }
 
     addTodo (todo) {
