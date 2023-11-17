@@ -328,6 +328,14 @@ class ComputedState extends ObservableState {
    * @description Computes the new value of the observable and notifies observers if it has changed
    */
   compute() {
+    /**
+     * @description The tracker object is used to manage dependencies between observables.
+     * It has a method 'addDependency' which takes an observable as an argument.
+     * If the observable is not already in the dependencies set, it adds the observable to the set,
+     * and sets up a subscription to the observable.
+     * The subscription calls the 'compute' method of the ComputedState instance whenever the observable's value changes.
+     * This ensures that the ComputedState's value is always up-to-date with its dependencies.
+     */
     const tracker = {
       addDependency: (observable) => {
         if (!this.dependencies.has(observable)) {
@@ -338,6 +346,14 @@ class ComputedState extends ObservableState {
       }
     };
 
+    /**
+     * @description The DependencyTracker is a global object that is used to track dependencies of computed observables.
+     * It is set to the current tracker object before the compute function is called.
+     * This allows the compute function to add dependencies to the tracker object as it executes.
+     * After the compute function has finished executing, the DependencyTracker is set back to null.
+     * This is done to prevent further dependencies from being added after the computation is complete.
+     * This ensures that the dependencies of the computed observable are accurately tracked and updated.
+     */
     DependencyTracker.current = tracker;
     const newValue = this.computeFn();
     DependencyTracker.current = null;
@@ -393,6 +409,13 @@ const effect = function(effectFn) {
   let dependencies = new Set();
   let subscriptions = new Map();
 
+  /**
+   * The tracker object is used to keep track of dependencies for the effect function.
+   * It provides a method to add a dependency (an observable) to the dependencies set.
+   * If the observable is not already a dependency, it is added to the set and a subscription is created
+   * to run the effect function whenever the observable's value changes.
+   * This mechanism allows the effect function to respond to state changes in its dependencies.
+   */
   const tracker = {
     addDependency: (observable) => {
       if (!dependencies.has(observable)) {
@@ -403,6 +426,15 @@ const effect = function(effectFn) {
     }
   };
 
+  /**
+   * The runEffect function is responsible for running the effect function and managing its dependencies.
+   * Before the effect function is run, any cleanup from the previous run is performed and the current tracker
+   * is set to this tracker. This allows the effect function to add dependencies via the tracker while it is running.
+   * After the effect function has run, the current tracker is set back to null to prevent further dependencies
+   * from being added outside of the effect function.
+   * The effect function is expected to return a cleanup function, which is saved for the next run.
+   * The cleanup function, initially empty, is replaced by the one returned from effectFn (run by the observable) before each new run and on effect disposal.
+   */
   const runEffect = () => {
     cleanup();
     DependencyTracker.current = tracker;
