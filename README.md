@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.23. Follows [semver](https://semver.org/).
+Current version: 0.0.24. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
@@ -838,9 +838,9 @@ They are also listed below:
 <script type="module">
  const { html, ReactiveElement, store } = cami;
   class TeamManagementElement extends ReactiveElement {
-    teams = this.subscribe([
+    teams = this.observable([
       { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
-      { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]
+      { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]}
     ])
     editing = this.observable({ isEditing: false, memberId: null });
 
@@ -914,7 +914,7 @@ They are also listed below:
 ```html
 <!-- ./examples/_009_dataFromProps.html -->
 <article>
-  <my-component
+<my-component
     todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
   ></my-component>
 </article>
@@ -925,12 +925,17 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
-    todos = this.observableAttr('todos', (todos) => {
-      return JSON.parse(todos).data;
-    });
+    todos = []
 
     constructor() {
       super();
+      this.define({
+        attributes: [{
+            name: 'todos',
+            parseFn: (v) => JSON.parse(v).data
+          }
+        ]
+      });
     }
 
     addTodo (todo) {
