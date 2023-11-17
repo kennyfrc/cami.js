@@ -84,41 +84,78 @@ class ReactiveElement extends HTMLElement {
   }
 
   /**
-   * @method
-   * @param {any} initialValue - The initial value for the observable
-   * @returns {Observable} The observable
-   */
-  observable(initialValue) {
-    const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true });
-    return observable;
-  }
+   /**
+    * @method
+    * @description This method creates an observable with an initial value
+    * @param {any} initialValue - The initial value for the observable
+    * @returns {Observable} The observable
+    */
+   observable(initialValue) {
+     const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true });
+     this.registerObservables(observable);
+     return observable;
+   }
 
-  /**
-   * Creates an observable property from an attribute.
-   * @param {string} attrName - The name of the attribute.
-   * @param {Function} parseFn - The function to parse the attribute value. Defaults to identity function.
-   * @returns {Object} An object with a value property and an update method
-   * @description This method creates an observable property from an attribute. It first gets the attribute value, then uses the provided parse function to process the value. The processed value is then used to create an observable. The method finally converts the attribute name to a property name and returns the observable.
-   */
-  observableAttr(attrName, parseFn = (v) => v) {
-    let attrValue = this.getAttribute(attrName);
-    attrValue = produce(attrValue, parseFn);
-    return this.observable(attrValue);
-  }
+   /**
+    * @method
+    * @description Creates an observable property from an attribute.
+    * @param {string} attrName - The name of the attribute.
+    * @param {Function} parseFn - The function to parse the attribute value. Defaults to identity function.
+    * @returns {Object} An object with a value property and an update method
+    * @description This method creates an observable property from an attribute. It first gets the attribute value, then uses the provided parse function to process the value. The processed value is then used to create an observable. The method finally converts the attribute name to a property name and returns the observable.
+    */
+   observableAttr(attrName, parseFn = (v) => v) {
+     let attrValue = this.getAttribute(attrName);
+     attrValue = produce(attrValue, parseFn);
+     return this.observable(attrValue);
+   }
 
-  /**
-   * @method
-   * @param {Object} props - The properties to set
-   * @description This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
-   * @returns {void}
-   */
-  setObservables(props) {
-    Object.keys(props).forEach(key => {
-      if (this[key] instanceof Observable) {
-        this[key].next(props[key]);
-      }
-    });
-  }
+   /**
+    * @method
+    * @description This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
+    * @param {Object} props - The properties to set
+    * @returns {void}
+    */
+   setObservables(props) {
+     Object.keys(props).forEach(key => {
+       if (this[key] instanceof Observable) {
+         this[key].next(props[key]);
+       }
+     });
+   }
+
+   /**
+    * @method
+    * @description This method registers an observable state to the list of unsubscribers
+    * @param {ObservableState} observableState - The observable state to register
+    * @returns {void}
+    */
+   registerObservables(observableState) {
+     this._unsubscribers.set(observableState, () => observableState.dispose());
+   }
+
+   /**
+    * @method
+    * @description This method creates a computed observable state and registers it
+    * @param {Function} computeFn - The function to compute the state
+    * @returns {ObservableState} The computed observable state
+    */
+   computed(computeFn) {
+     const observableState = super.computed(computeFn);
+     this.registerObservables(observableState);
+     return observableState;
+   }
+
+   /**
+    * @method
+    * @description This method creates an effect and registers its dispose function
+    * @param {Function} effectFn - The function to create the effect
+    * @returns {void}
+    */
+   effect(effectFn) {
+     const dispose = super.effect(effectFn);
+     this._unsubscribers.set(effectFn, dispose);
+   }
 
   /**
    * @method
