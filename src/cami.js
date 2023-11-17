@@ -63,6 +63,17 @@ class ReactiveElement extends HTMLElement {
     this.effect = effect.bind(this);
   }
 
+  define(config) {
+    for (const key in config) {
+      if (config[key] === 'observable') {
+        this[key] = this.observable(this[key]);
+      } else if (config[key] === 'computed') {
+        this[key] = this.computed(this[key]);
+      } else if (config[key] === 'effect') {
+        this.effect(this[key]);
+      }
+    }
+  }
 
   /**
    * @method
@@ -189,19 +200,6 @@ function store(initialState) {
   return new ObservableStore(initialState);
 }
 
-
-function makeObservable(target, config) {
-  for (const key in config) {
-    if (config[key] === 'observable') {
-      target[key] = target.observable(target[key]);
-    } else if (config[key] === 'computed') {
-      target[key] = target.computed(target[key]);
-    } else if (config[key] === 'effect') {
-      target.effect(target[key]);
-    }
-  }
-}
-
 /**
  * @exports store
  * @exports html
@@ -212,4 +210,4 @@ function makeObservable(target, config) {
  * @exports Observable
  * @exports ObservableState
  */
-export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, makeObservable };
+export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore };
