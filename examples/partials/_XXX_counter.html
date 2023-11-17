@@ -7,7 +7,7 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, makeObservable } = cami;
+  const { html, ReactiveElement } = cami;
 class CounterElement extends ReactiveElement {
   count = 0;
   countSquared = () => this.count.value * this.count.value;
@@ -36,7 +36,7 @@ class CounterElement extends ReactiveElement {
 
   constructor() {
     super();
-    makeObservable(this, {
+    this.define({
       count: 'observable',
       countSquared: 'computed',
       countCubed: 'computed',
