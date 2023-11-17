@@ -386,20 +386,6 @@ const computed = function(computeFn) {
 
 /**
  * @function
- * @param {Function} callback - The function to call in a batch update
- * @returns {void}
- * @description This function sets the _isWithinBatch flag, calls the callback, then resets the flag and calls react
- * Note: only works with update()
- */
-const batch = function(callback) {
-  this._isWithinBatch = true;
-  Promise.resolve().then(callback).finally(() => {
-    this._isWithinBatch = false;
-  });
-};
-
-/**
- * @function
  * @param {Function} effectFn - The function to call for the effect
  * @returns {void}
  * @description This function sets up an effect that is run when the observable changes
@@ -462,4 +448,4 @@ const effect = function(effectFn) {
   return dispose;
 };
 
-export { ObservableState, computed, batch, effect };
+export { ObservableState, computed, effect };

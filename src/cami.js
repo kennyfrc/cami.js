@@ -12,7 +12,7 @@ import { html, render } from 'lit-html';
 import { produce } from "immer"
 import { ObservableStore } from './observables/observable-store.js';
 import { Observable } from './observables/observable.js';
-import { ObservableState, computed, batch, effect } from './observables/observable-state.js';
+import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
 import { ObservableElement } from './observables/observable-element.js';
 
@@ -47,13 +47,6 @@ class ReactiveElement extends HTMLElement {
      * @returns {ComputedObservable} A new instance of ComputedObservable
      */
     this.computed = computed.bind(this);
-
-    /**
-     * @method
-     * @description This method binds the batch function from observable.js to the current context
-     * @returns {void}
-     */
-    this.batch = batch.bind(this);
 
     /**
      * @method
@@ -179,6 +172,21 @@ class ReactiveElement extends HTMLElement {
   template() {
     throw new Error('[Cami.js] You have to implement the method template()!');
   }
+
+
+  /**
+   * @function
+   * @param {Function} callback - The function to call in a batch update
+   * @returns {void}
+   * @description This function sets the _isWithinBatch flag, calls the callback, then resets the flag and calls react
+   * Note: only works with update()
+   */
+  batch(callback) {
+    this._isWithinBatch = true;
+    Promise.resolve().then(callback).finally(() => {
+      this._isWithinBatch = false;
+    });
+  };
 }
 
 /**
