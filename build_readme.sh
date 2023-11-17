@@ -16,6 +16,10 @@ temp_file=$(mktemp)
 for file in "$examples_dir"/*.html; do
   # Check if file exists and is readable
   if [[ -r "$file" ]]; then
+    if [[ $file == *"XXX"* ]]; then
+      continue
+    fi
+
     # Get the base name of the file, without the directory or extension
     base_name=$(basename "$file" .html)
 
