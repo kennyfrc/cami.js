@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.25. Follows [semver](https://semver.org/).
+Current version: 0.0.26. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
