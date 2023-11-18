@@ -55,16 +55,130 @@ class ReactiveElement extends HTMLElement {
      */
     this.effect = effect.bind(this);
   }
+  /**
+   * @method
+   * @description Checks if the provided value is an object or an array
+   * @param {any} value - The value to check
+   * @returns {boolean} True if the value is an object or an array, false otherwise
+   */
+  _isObjectOrArray(value) {
+    return value !== null && (typeof value === 'object' || Array.isArray(value));
+  }
 
+  /**
+   * @method
+   * @description Handles the case when the provided value is an object or an array
+   * @param {Object} context - The context in which the property is defined
+   * @param {string} key - The property key
+   * @param {Observable} observable - The observable to bind to the property
+   * @param {boolean} [isAttribute=false] - Whether the property is an attribute
+   * @returns {void}
+   */
+  _handleObjectOrArray(context, key, observable, isAttribute = false) {
+    const proxy = this._observableProxy(observable);
+    Object.defineProperty(context, key, {
+      get: () => proxy,
+      set: newValue => {
+        observable.update(() => newValue);
+        if (isAttribute) {
+          this.setAttribute(key, newValue);
+        }
+      }
+    });
+  }
+
+  /**
+   * @method
+   * @description Handles the case when the provided value is not an object or an array
+   * @param {Object} context - The context in which the property is defined
+   * @param {string} key - The property key
+   * @param {Observable} observable - The observable to bind to the property
+   * @param {boolean} [isAttribute=false] - Whether the property is an attribute
+   * @returns {void}
+   */
+  _handleNonObject(context, key, observable, isAttribute = false) {
+    Object.defineProperty(context, key, {
+      get: () => observable.value,
+      set: newValue => {
+        observable.update(() => newValue);
+        if (isAttribute) {
+          this.setAttribute(key, newValue);
+        }
+      }
+    });
+  }
+
+  /**
+   * @method
+   * @description Creates a proxy for the observable
+   * @param {Observable} observable - The observable to create a proxy for
+   * @returns {Proxy} The created proxy
+   */
+  _observableProxy(observable) {
+    return new Proxy(observable, {
+      get: (target, property) => {
+        // If the property is a function, bind it to the target
+        // Example: this.playlist.push(song) in _012_playlist.html
+        if (typeof target[property] === 'function') {
+          return target[property].bind(target);
+        }
+        // If the property exists in the target, return it
+        // Example: this.user.name in _005_nested1.html
+        else if (property in target) {
+          return target[property];
+        }
+        // If the property is a function of the target's value, return it
+        // Example: this.playlist.sort() in _012_playlist.html
+        else if (typeof target.value[property] === 'function') {
+          return (...args) => target.value[property](...args);
+        }
+        // Otherwise, return the property of the target's value
+        // Example: this.user.age in _005_nested1.html
+        else {
+          return target.value[property];
+        }
+      },
+      set: (target, property, value) => {
+        // Set the property value and update the target
+        // Example: this.user.assign({ [key]: event.target.value }) in _005_nested1.html
+        target[property] = value;
+        target.update(() => target.value);
+        return true;
+      }
+    });
+  }
+
+  /**
+   * @method
+   * @description Defines the observables, computed properties, effects, and attributes for the element
+   * @param {Object} config - The configuration object
+   * @returns {void}
+   */
   define(config) {
     if (config.observables) {
       config.observables.forEach(key => {
-        this[key] = this.observable(this[key]);
+        const observable = this.observable(this[key]);
+        if (this._isObjectOrArray(observable.value)) {
+          this._handleObjectOrArray(this, key, observable);
+        } else {
+          this._handleNonObject(this, key, observable);
+        }
       });
     }
     if (config.computed) {
       config.computed.forEach(key => {
-        this[key] = this.computed(this[key]);
+        if (typeof key === 'string') {
+          const descriptor = Object.getOwnPropertyDescriptor(this, key);
+          if (descriptor && typeof descriptor.get === 'function') {
+            Object.defineProperty(this, key, {
+              get: () => this.computed(descriptor.get).value
+            });
+          }
+        } else if (typeof key === 'object' && typeof key.get === 'function') {
+          Object.defineProperty(this, key.name, {
+            get: () => this.computed(key.get).value
+          });
+        }
       });
     }
     if (config.effects) {
@@ -75,102 +189,163 @@ class ReactiveElement extends HTMLElement {
     if (config.attributes) {
       config.attributes.forEach(attr => {
         if (typeof attr === 'string') {
-          this[attr] = this.observableAttr(attr);
+          const observableAttr = this.observableAttr(attr);
+          if (this._isObjectOrArray(observableAttr.value)) {
+            this._handleObjectOrArray(this, attr, observableAttr, true);
+          } else {
+            this._handleNonObject(this, attr, observableAttr, true);
+          }
         } else if (typeof attr === 'object' && attr.name && typeof attr.parseFn === 'function') {
-          this[attr.name] = this.observableAttr(attr.name, attr.parseFn);
+          const observableAttr = this.observableAttr(attr.name, attr.parseFn);
+          if (this._isObjectOrArray(observableAttr.value)) {
+            this._handleObjectOrArray(this, attr.name, observableAttr, true);
+          } else {
+            this._handleNonObject(this, attr.name, observableAttr, true);
+          }
         }
       });
     }
   }
 
   /**
-   /**
-    * @method
-    * @description This method creates an observable with an initial value
-    * @param {any} initialValue - The initial value for the observable
-    * @returns {Observable} The observable
-    */
-   observable(initialValue) {
-     const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true });
-     this.registerObservables(observable);
-     return observable;
-   }
+   * @method
+   * @description Creates an observable with an initial value
+   * @param {any} initialValue - The initial value for the observable
+   * @returns {Observable} The observable
+   */
+  observable(initialValue) {
+    if (!this._isAllowedType(initialValue)) {
+      const type = Object.prototype.toString.call(initialValue);
+      throw new Error(`The type ${type} of initialValue is not allowed in observables.`);
+    }
 
-   /**
-    * @method
-    * @description Creates an observable property from an attribute.
-    * @param {string} attrName - The name of the attribute.
-    * @param {Function} parseFn - The function to parse the attribute value. Defaults to identity function.
-    * @returns {Object} An object with a value property and an update method
-    * @description This method creates an observable property from an attribute. It first gets the attribute value, then uses the provided parse function to process the value. The processed value is then used to create an observable. The method finally converts the attribute name to a property name and returns the observable.
-    */
-   observableAttr(attrName, parseFn = (v) => v) {
-     let attrValue = this.getAttribute(attrName);
-     attrValue = produce(attrValue, parseFn);
-     return this.observable(attrValue);
-   }
-
-   /**
-    * @method
-    * @description This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
-    * @param {Object} props - The properties to set
-    * @returns {void}
-    */
-   setObservables(props) {
-     Object.keys(props).forEach(key => {
-       if (this[key] instanceof Observable) {
-         this[key].next(props[key]);
-       }
-     });
-   }
-
-   /**
-    * @method
-    * @description This method registers an observable state to the list of unsubscribers
-    * @param {ObservableState} observableState - The observable state to register
-    * @returns {void}
-    */
-   registerObservables(observableState) {
-     this._unsubscribers.set(observableState, () => observableState.dispose());
-   }
-
-   /**
-    * @method
-    * @description This method creates a computed observable state and registers it
-    * @param {Function} computeFn - The function to compute the state
-    * @returns {ObservableState} The computed observable state
-    */
-   computed(computeFn) {
-     const observableState = super.computed(computeFn);
-     this.registerObservables(observableState);
-     return observableState;
-   }
-
-   /**
-    * @method
-    * @description This method creates an effect and registers its dispose function
-    * @param {Function} effectFn - The function to create the effect
-    * @returns {void}
-    */
-   effect(effectFn) {
-     const dispose = super.effect(effectFn);
-     this._unsubscribers.set(effectFn, dispose);
-   }
+    const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true });
+    this.registerObservables(observable);
+    return observable;
+  }
 
   /**
    * @method
-   * @param {Store} store - The store to bind
-   * @param {string} key - The key for the store
-   * @returns {Object} The observable
+   * @description Checks if the provided value is of an allowed type
+   * @param {any} value - The value to check
+   * @returns {boolean} True if the value is of an allowed type, false otherwise
+   */
+  _isAllowedType(value) {
+    const allowedTypes = ['number', 'string', 'boolean', 'object', 'undefined'];
+    const valueType = typeof value;
+
+    if (valueType === 'object') {
+      return value === null || Array.isArray(value) || this._isPlainObject(value);
+    }
+
+    return allowedTypes.includes(valueType);
+  }
+
+  /**
+   * @method
+   * @description Checks if the provided value is a plain object
+   * @param {any} value - The value to check
+   * @returns {boolean} True if the value is a plain object, false otherwise
+   */
+  _isPlainObject(value) {
+    if (Object.prototype.toString.call(value) !== '[object Object]') {
+      return false;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === null || prototype === Object.prototype;
+  }
+
+  /**
+   * @method
+   * @description Creates an observable property from an attribute
+   * @param {string} attrName - The name of the attribute
+   * @param {Function} [parseFn=(v) => v] - The function to parse the attribute value
+   * @returns {Observable} The observable
+   */
+  observableAttr(attrName, parseFn = (v) => v) {
+    let attrValue = this.getAttribute(attrName);
+    attrValue = produce(attrValue, parseFn);
+    return this.observable(attrValue);
+  }
+
+  /**
+   * @method
+   * @description Sets the properties of the object. If the property is an observable, it updates the observable with the new value
+   * @param {Object} props - The properties to set
+   * @returns {void}
+   */
+  setObservables(props) {
+    Object.keys(props).forEach(key => {
+      if (this[key] instanceof Observable) {
+        this[key].next(props[key]);
+      }
+    });
+  }
+
+  /**
+   * @method
+   * @description Registers an observable state to the list of unsubscribers
+   * @param {ObservableState} observableState - The observable state to register
+   * @returns {void}
+   */
+  registerObservables(observableState) {
+    this._unsubscribers.set(observableState, () => observableState.dispose());
+  }
+
+  /**
+   * @method
+   * @description Creates a computed observable state and registers it
+   * @param {Function} computeFn - The function to compute the state
+   * @returns {ObservableState} The computed observable state
+   */
+  computed(computeFn) {
+    const observableState = super.computed(computeFn);
+    this.registerObservables(observableState);
+    return observableState;
+  }
+
+  /**
+   * @method
+   * @description Creates an effect and registers its dispose function
+   * @param {Function} effectFn - The function to create the effect
+   * @returns {void}
+   */
+  effect(effectFn) {
+    const dispose = super.effect(effectFn);
+    this._unsubscribers.set(effectFn, dispose);
+  }
+
+  /**
+   * @method
+   * @description Subscribes to a store and creates an observable for a specific key in the store
+   * @param {Store} store - The store to subscribe to
+   * @param {string} key - The key in the store to create an observable for
+   * @returns {Observable|Proxy} The observable or a proxy for the observable
    */
   subscribe(store, key) {
     this.store = store;
-    const observable = this.observable(store.state[key]);
-    const unsubscribe = store.subscribe(newState => {
-      this[key].update(() => newState[key]);
+    const observable = this.observable(this.store.state[key]);
+    const unsubscribe = this.store.subscribe(newState => {
+      observable.update(() => newState[key]);
     });
     this._unsubscribers.set(key, unsubscribe);
-    return observable;
+
+    if (this._isObjectOrArray(observable.value)) {
+      return this._observableProxy(observable);
+    } else {
+      return new Proxy(observable, {
+        get: () => observable.value,
+        set: (target, property, value) => {
+          if (property === 'value') {
+            observable.update(() => value);
+          } else {
+            target[property] = value;
+          }
+          return true;
+        }
+      });
+    }
   }
 
   /**
@@ -231,7 +406,7 @@ class ReactiveElement extends HTMLElement {
    * @param {Function} callback - The function to call in a batch update
    * @returns {void}
    * @description This function sets the _isWithinBatch flag, calls the callback, then resets the flag and calls react
-   * Note: only works with update()
+   * Note: only works with update() and for non-primitives such as objects and arrays
    */
   batch(callback) {
     this._isWithinBatch = true;
