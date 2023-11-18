@@ -33,18 +33,11 @@
     }
 
     addTodo (todo) {
-      this.todos.update(value => {
-        value.push(todo);
-      });
+      this.todos.push(todo);
     }
 
     deleteTodo (todo) {
-      this.todos.update(value => {
-        const index = value.indexOf(todo);
-        if (index > -1) {
-          value.splice(index, 1);
-        }
-      });
+      this.todos.splice(this.todos.indexOf(todo), 1);
     }
 
     template() {
@@ -54,7 +47,7 @@
           this.addTodo(document.getElementById('newTodo').value); document.getElementById('newTodo').value = ''; }}
         >Add</button>
         <ul>
-          ${this.todos.value.map(todo => html`
+          ${this.todos.map(todo => html`
             <li>
               ${todo}
               <button @click=${() => this.deleteTodo(todo)

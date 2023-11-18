@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Shell</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+<article>
   <h1>Task Manager</h1>
   <task-manager-component></task-manager-component>
 </article>
@@ -18,11 +9,14 @@
  const { html, ReactiveElement } = cami;
 
   class TaskManagerElement extends ReactiveElement {
-    tasks = this.observable([]);
-    filter = this.observable('all');
+    tasks = [];
+    filter = 'all';
 
     constructor() {
       super();
+      this.define({
+        observables: ['tasks', 'filter'],
+      });
     }
 
     addTask(task) {
@@ -40,17 +34,17 @@
     }
 
     setFilter(filter) {
-      this.filter.update(() => filter);
+      this.filter = filter;
     }
 
     getFilteredTasks() {
-      switch (this.filter.value) {
+      switch (this.filter) {
         case 'completed':
-          return this.tasks.value.filter(task => task.completed);
+          return this.tasks.filter(task => task.completed);
         case 'active':
-          return this.tasks.value.filter(task => !task.completed);
+          return this.tasks.filter(task => !task.completed);
         default:
-          return this.tasks.value;
+          return this.tasks;
       }
     }
 
@@ -79,6 +73,3 @@
 
   customElements.define('task-manager-component', TaskManagerElement);
 </script>
-
-</body>
-</html>

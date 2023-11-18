@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+    <article>
   <h2>Products</h2>
   <product-list-component></product-list-component>
 </article>
@@ -91,12 +91,16 @@
 
   class CartElement extends ReactiveElement {
     cartItems = this.subscribe(cartStore, 'cartItems');
-    cartValue = this.computed(() => {
-      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
-    });
 
     constructor() {
       super();
+      this.define({
+        computed: ['cartValue']
+      });
+    }
+
+    get cartValue() {
+      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
     }
 
     removeFromCart(product) {
@@ -105,7 +109,7 @@
 
     template() {
       return html`
-        <p>Cart value: ${this.cartValue.value}</p>
+        <p>Cart value: ${this.cartValue}</p>
         <ul>
           ${this.cartItems.value.map(item => html`
             <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>

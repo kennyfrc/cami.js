@@ -18,38 +18,39 @@
  const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
-    user = this.observable({});
+    user = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
 
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.define({
+        observables: ['user'],
+      });
       this.user.assign(this.initialUser);
     }
 
     handleInput(event, key) {
-      this.user.update(value => {
-        value[key] = event.target.value;
-      });
+      this.user.assign({ [key]: event.target.value });
     }
 
     resetForm() {
-      this.user.assign(this.initialUser);
+      this.user = this.initialUser;
     }
 
     template() {
       return html`
         <form>
           <label>
-            Name: ${this.user.value.name}
-            <input type="text" .value=${this.user.value.name} @input=${(e) => this.handleInput(e, 'name')} />
+            Name: ${this.user.name}
+            <input type="text" .value=${this.user.name} @input=${(e) => this.handleInput(e, 'name')} />
           </label>
           <label>
-            Age: ${this.user.value.age}
-            <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
+            Age: ${this.user.age}
+            <input type="number" .value=${this.user.age} @input=${(e) => this.handleInput(e, 'age')} />
           </label>
           <label>
-            Email: ${this.user.value.email}
-            <input type="email" .value=${this.user.value.email} @input=${(e) => this.handleInput(e, 'email')} />
+            Email: ${this.user.email}
+            <input type="email" .value=${this.user.email} @input=${(e) => this.handleInput(e, 'email')} />
           </label>
           <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
         </form>

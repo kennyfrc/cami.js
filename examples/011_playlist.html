@@ -18,10 +18,13 @@
  const { html, ReactiveElement } = cami;
 
   class PlaylistElement extends ReactiveElement {
-    playlist = this.observable([]);
+    playlist = [];
 
     constructor() {
       super();
+      this.define({
+        observables: ['playlist'],
+      });
     }
 
     addSong(song) {
@@ -34,13 +37,17 @@
 
     moveSongUp(index) {
       if (index > 0) {
-        this.playlist.splice(index - 1, 2, this.playlist.value[index], this.playlist.value[index - 1]);
+        const songToMoveUp = this.playlist[index];
+        const songAbove = this.playlist[index - 1];
+        this.playlist.splice(index - 1, 2, songToMoveUp, songAbove);
       }
     }
 
     moveSongDown(index) {
-      if (index < this.playlist.value.length - 1) {
-        this.playlist.splice(index, 2, this.playlist.value[index + 1], this.playlist.value[index]);
+      if (index < this.playlist.length - 1) {
+        const songToMoveDown = this.playlist[index];
+        const songBelow = this.playlist[index + 1];
+        this.playlist.splice(index, 2, songBelow, songToMoveDown);
       }
     }
 
@@ -59,7 +66,7 @@
         <button @click=${() => this.sortSongs()}>Sort Songs</button>
         <button @click=${() => this.reverseSongs()}>Reverse Songs</button>
         <ul>
-          ${this.playlist.value.map((song, index) => html`
+          ${this.playlist.map((song, index) => html`
             <li>
               ${song}
               <a @click=${() => this.moveSongUp(index)}>Move Up</a>

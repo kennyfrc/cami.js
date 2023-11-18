@@ -9,7 +9,8 @@
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
   <article>
   <h1>Counter</h1>
-  <counter-component></counter-component>
+  <counter-component
+  ></counter-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -17,25 +18,20 @@
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
-    count = this.observable(0);
+    count = 0
 
     constructor() {
       super();
-    }
-
-    increment() {
-      this.count.value++;
-    }
-
-    decrement() {
-      this.count.value--;
+      this.define({
+        observables: ['count'],
+      })
     }
 
     template() {
       return html`
-        <button @click=${() => this.decrement()}>-</button>
-        <button @click=${() => this.increment()}>+</button>
-        <div>Count: ${this.count.value}</div>
+        <button @click=${() => this.count--}>-</button>
+        <button @click=${() => this.count++}>+</button>
+        <div>Count: ${this.count}</div>
       `;
     }
   }

@@ -49,7 +49,7 @@
           document.getElementById('newTodo').value = '';
         }}>Add</button>
         <ul>
-          ${this.todos.value.map(todo => html`
+          ${this.todos.map(todo => html`
             <li>
               ${todo}
               <button @click=${() => this.dispatch("delete", todo)}>Delete</button>

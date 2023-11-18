@@ -1,4 +1,4 @@
-<article>
+  <article>
   <h1>Counter</h1>
   <counter-component></counter-component>
 </article>
@@ -9,68 +9,53 @@
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
     count = 0;
-    countSquared = () => this.count.value * this.count.value;
-    countCubed = () => this.countSquared.value * this.count.value;
-    countQuadrupled = () => this.countSquared.value * this.countSquared.value;
-    countPlusRandom = () => this.count.value + Math.random();
-    countSqrt = () => Math.sqrt(this.count.value);
 
     constructor() {
       super();
+
       this.define({
         observables: ['count'],
         computed: ['countSquared', 'countCubed', 'countQuadrupled', 'countPlusRandom', 'countSqrt'],
         effects: [
-          () => console.log('count in define', this.count.value)
+          () => console.log('count in define', this.count)
         ]
       })
+    }
 
-      this.effect(() => {
-        console.log('count squared', this.countSquared.value);
-      });
-      this.effect(() => {
-        console.log('count cubed', this.countCubed.value);
-      });
-      this.effect(() => {
-        console.log('count quadrupled', this.countQuadrupled.value);
-      });
-      this.effect(() => {
-        console.log('count plus random', this.countPlusRandom.value);
-      });
-      this.effect(() => {
-        console.log('count sqrt', this.countSqrt ? this.countSqrt.value : 'N/A');
-      });
-      this.count.subscribe({
-        next: (value) => console.log('count updated in subscribe and does not mutate (value*99)', value *= 99)
-      });
-      this.effect(() => {
-        if (this.count.value > 2) {
-          if (!this.countSqrt) {
-            this.countSqrt = this.computed(() => Math.sqrt(this.count.value));
-          }
-        } else {
-          if (this.countSqrt) {
-            this.countSqrt.dispose();
-            this.countSqrt = null;
-          }
-        }
-      });
+    get countSquared() {
+      return this.count * this.count;
+    }
+
+    get countCubed() {
+      return this.countSquared * this.count;
+    }
+
+    get countQuadrupled() {
+      return this.countSquared * this.countSquared;
+    }
+
+    get countPlusRandom() {
+      return this.count + Math.random();
+    }
+
+    get countSqrt() {
+      return Math.sqrt(this.count);
     }
 
     increment() {
-      this.count.value++;
+      this.count++;
     }
 
     decrement() {
-      this.count.value--;
+      this.count--;
     }
 
     multiplyByTwo() {
-      this.count.value *= 2;
+      this.count *= 2;
     }
 
     divideByTwo() {
-      this.count.value /= 2;
+      this.count /= 2;
     }
 
     template() {
@@ -79,12 +64,12 @@
         <button @click=${() => this.increment()}>+</button>
         <button @click=${() => this.multiplyByTwo()}>*2</button>
         <button @click=${() => this.divideByTwo()}>/2</button>
-        <span>Base: ${this.count.value}</span>
-        <span>Squared: ${this.countSquared.value}</span>
-        <span>Cubed: ${this.countCubed.value}</span>
-        <span>Quadrupled: ${this.countQuadrupled.value}</span>
-        <span>Plus Random: ${this.countPlusRandom.value}</span>
-        <span>Sqrt: ${this.countSqrt ? this.countSqrt.value : 'N/A'}</span>
+        <span>Base: ${this.count}</span>
+        <span>Squared: ${this.countSquared}</span>
+        <span>Cubed: ${this.countCubed}</span>
+        <span>Quadrupled: ${this.countQuadrupled}</span>
+        <span>Plus Random: ${this.countPlusRandom}</span>
+        <span>Sqrt: ${this.countSqrt ? this.countSqrt : 'N/A'}</span>
       `;
     }
   }

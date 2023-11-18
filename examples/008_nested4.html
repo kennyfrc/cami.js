@@ -17,14 +17,17 @@
 <script type="module">
  const { html, ReactiveElement, store } = cami;
   class TeamManagementElement extends ReactiveElement {
-    teams = this.observable([
+    teams = [
       { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
       { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]}
-    ])
-    editing = this.observable({ isEditing: false, memberId: null });
+    ];
+    editing = { isEditing: false, memberId: null };
 
     constructor() {
       super();
+      this.define({
+        observables: ['teams', 'editing'],
+      });
     }
 
     updateTeam(teamId, updateFunc) {
@@ -57,13 +60,13 @@
     template() {
       return html`
         <ul>
-          ${this.teams.value.map(team => html`
+          ${this.teams.map(team => html`
             <li>
               ${team.name}
               <ul>
                 ${team.members.map(member => html`
                   <li>
-                    ${this.editing.value.isEditing && this.editing.value.memberId === member.id ? html`
+                    ${this.editing.isEditing && this.editing.memberId === member.id ? html`
                       <input id="editMemberName${member.id}" type="text" value="${member.name}">
                       <button @click=${() => { this.editMember(team.id, member.id, document.getElementById('editMemberName' + member.id).value); }}>Save</button>
                     ` : html`

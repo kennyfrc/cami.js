@@ -70,7 +70,7 @@
     template() {
       return html`
         <ul>
-          ${this.users.value.map(user => html`
+          ${this.users.map(user => html`
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}

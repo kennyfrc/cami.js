@@ -18,29 +18,32 @@
   const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
-    email = this.observable('');
-    password = this.observable('');
-    emailError = this.observable('');
-    passwordError = this.observable('');
+    email = '';
+    password = '';
+    emailError = '';
+    passwordError = '';
 
     constructor() {
       super();
+      this.define({
+        observables: ['email', 'password', 'emailError', 'passwordError'],
+      });
     }
 
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email.value)) {
-        this.emailError.value = 'Please enter a valid email address.';
+      if (!emailRegex.test(this.email)) {
+        this.emailError = 'Please enter a valid email address.';
       } else {
-        this.emailError.value = '';
+        this.emailError = '';
       }
     }
 
     validatePassword() {
-      if (this.password.value.length < 8) {
-        this.passwordError.update(() => 'Password must be at least 8 characters long.');
+      if (this.password.length < 8) {
+        this.passwordError = 'Password must be at least 8 characters long.';
       } else {
-        this.passwordError.update(() => '');
+        this.passwordError = '';
       }
     }
 
@@ -49,15 +52,15 @@
         <form action="/submit" method="POST">
           <label>
             Email:
-            <input type="email" @input=${(e) => { this.email.update(() => e.target.value); this.validateEmail(); }} value=${this.email.value}>
-            <span>${this.emailError.value}</span>
+            <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
+            <span>${this.emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password" @input=${(e) => { this.password.update(() => e.target.value); this.validatePassword(); }} value=${this.password.value}>
-            <span>${this.passwordError.value}</span>
+            <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
+            <span>${this.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError.value || this.passwordError.value}>
+          <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
         </form>
       `;
     }
