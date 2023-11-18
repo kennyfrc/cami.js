@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.0.26. Follows [semver](https://semver.org/).
+Current version: 0.1.0. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
@@ -85,25 +85,20 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
-    count = this.observable(0);
+    count = 0
 
     constructor() {
       super();
-    }
-
-    increment() {
-      this.count.value++;
-    }
-
-    decrement() {
-      this.count.value--;
+      this.define({
+        observables: ['count'],
+      })
     }
 
     template() {
       return html`
-        <button @click=${() => this.decrement()}>-</button>
-        <button @click=${() => this.increment()}>+</button>
-        <div>Count: ${this.count.value}</div>
+        <button @click=${() => this.count--}>-</button>
+        <button @click=${() => this.count++}>+</button>
+        <div>Count: ${this.count}</div>
       `;
     }
   }
@@ -122,7 +117,16 @@ In this example, `CounterElement` is a reactive web component that maintains an 
 In the context of a `ReactiveElement`, you can create an observable using the `this.observable()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
 
 ```javascript
-count = this.observable(0);
+// ...
+count = 0
+
+constructor() {
+  super();
+  this.define({
+    observables: ['count'],
+  })
+}
+// ...
 ```
 
 **Getting the Value:**
@@ -130,15 +134,15 @@ count = this.observable(0);
 You can get the current value of an observable by accessing its `value` property. For example, you can get the value of `count` like this:
 
 ```javascript
-this.count.value;
+this.count;
 ```
 
 **Setting the Value:**
 
-To update the value of an observable, you use the `update` method. This method accepts a function that receives the current value and returns the new value. For example, to increment `count`, you would do:
+To update the value of an observable, you can just directly mutate it, and it will automatically trigger a re-render of the component's template. For example, to increment the count, you can do:
 
 ```javascript
-this.count.update(value => value + 1);
+this.count++
 ```
 
 **Deeply Nested Updates:**
@@ -146,7 +150,21 @@ this.count.update(value => value + 1);
 An interesting thing to note (which many libaries don't support with one method/function) is that Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Example:
 
 ```javascript
-let user = this.observable({ name: { first: 'John', last: 'Doe' } });
+user = {
+  name: {
+    first: 'John',
+    last: 'Doe',
+  },
+  age: 30,
+}
+
+constructor() {
+  super();
+  this.define({
+    observables: ['user'],
+  })
+}
+
 user.update(value => {
   value.name.first = 'Jane';
 });
@@ -163,15 +181,15 @@ Here's the example from above:
 ```javascript
   template() {
     return html`
-      <button @click=${() => this.increment()}>Increment</button>
-      <p>Count: ${this.count.value}</p>
+      <button @click=${this.count++}>Increment</button>
+      <p>Count: ${this.count}</p>
     `;
   }
 ```
 
 In this example, `html` is a function that gets called with the template literal. It processes the template literal and creates a template instance that can be efficiently updated and rendered.
 
-The `${}` syntax inside the template literal is used to embed JavaScript expressions. These expressions can be variables, properties, or even functions. In the example above, `${this.count.value}` will be replaced with the current value of the `count` observable, and `${() => this.count.update(value => value + 1)}` is a function that increments the count when the button is clicked.
+The `${}` syntax inside the template literal is used to embed JavaScript expressions. These expressions can be variables, properties, or even functions. In the example above, `${this.count}` will be replaced with the current value of the `count` observable, and `${this.count++}` is a function that increments the count when the button is clicked.
 
 The `@click` syntax is used to attach event listeners to elements. In this case, a click event listener is attached to the button element.
 
@@ -184,7 +202,22 @@ Computed properties are a powerful feature in Cami.js that allow you to create p
 For instance, in the `CounterElement` example from `_001_counter.html`, a computed property `countSquared` is defined as the square of the `count` observable:
 
 ```javascript
-countSquared = this.computed(() => this.count.value * this.count.value);
+// ...
+count = 0
+
+constructor() {
+  super();
+  this.define({
+    observables: ['count'],
+    computed: ['countSquared'],
+  })
+}
+
+get countSquared() {
+  return this.count ** 2;
+}
+
+//...
 ```
 
 In this case, `countSquared` will always hold the square of the current count value, and will automatically update whenever `count` changes. This is ideal for calculations like this, but can also be used for other derived values such as total price in a shopping cart (based on quantities and individual prices), or a boolean flag indicating if a form is valid (based on individual field validations).
@@ -196,7 +229,7 @@ Effects in Cami.js are functions that run in response to changes in observable p
 For example, in the `CounterElement` example, an effect is defined to log the current count and its square whenever either of them changes:
 
 ```javascript
-this.effect(() => console.log(`Count: ${this.count.value} & Count Squared: ${this.countSquared.value}`));
+this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
 ```
 
 This effect will run whenever `count` or `countSquared` changes, logging the new values to the console. This can be particularly useful for debugging.
@@ -205,8 +238,8 @@ Effects can also be used to emit custom events after specific state changes. For
 
 ```javascript
 this.effect(() => {
-  if (this.count.value === 10) {
-    this.dispatchEvent(new CustomEvent('count-reached-ten', { detail: this.count.value }));
+  if (this.count === 10) {
+    this.dispatchEvent(new CustomEvent('count-reached-ten', { detail: this.count }));
   }
 });
 ```
@@ -304,7 +337,8 @@ They are also listed below:
 <!-- ./examples/_001_counter.html -->
 <article>
   <h1>Counter</h1>
-  <counter-component></counter-component>
+  <counter-component
+  ></counter-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -312,25 +346,20 @@ They are also listed below:
 <script type="module">
   const { html, ReactiveElement } = cami;
   class CounterElement extends ReactiveElement {
-    count = this.observable(0);
+    count = 0
 
     constructor() {
       super();
-    }
-
-    increment() {
-      this.count.value++;
-    }
-
-    decrement() {
-      this.count.value--;
+      this.define({
+        observables: ['count'],
+      })
     }
 
     template() {
       return html`
-        <button @click=${() => this.decrement()}>-</button>
-        <button @click=${() => this.increment()}>+</button>
-        <div>Count: ${this.count.value}</div>
+        <button @click=${() => this.count--}>-</button>
+        <button @click=${() => this.count++}>+</button>
+        <div>Count: ${this.count}</div>
       `;
     }
   }
@@ -353,29 +382,32 @@ They are also listed below:
   const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
-    email = this.observable('');
-    password = this.observable('');
-    emailError = this.observable('');
-    passwordError = this.observable('');
+    email = '';
+    password = '';
+    emailError = '';
+    passwordError = '';
 
     constructor() {
       super();
+      this.define({
+        observables: ['email', 'password', 'emailError', 'passwordError'],
+      });
     }
 
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email.value)) {
-        this.emailError.value = 'Please enter a valid email address.';
+      if (!emailRegex.test(this.email)) {
+        this.emailError = 'Please enter a valid email address.';
       } else {
-        this.emailError.value = '';
+        this.emailError = '';
       }
     }
 
     validatePassword() {
-      if (this.password.value.length < 8) {
-        this.passwordError.update(() => 'Password must be at least 8 characters long.');
+      if (this.password.length < 8) {
+        this.passwordError = 'Password must be at least 8 characters long.';
       } else {
-        this.passwordError.update(() => '');
+        this.passwordError = '';
       }
     }
 
@@ -384,15 +416,15 @@ They are also listed below:
         <form action="/submit" method="POST">
           <label>
             Email:
-            <input type="email" @input=${(e) => { this.email.update(() => e.target.value); this.validateEmail(); }} value=${this.email.value}>
-            <span>${this.emailError.value}</span>
+            <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
+            <span>${this.emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password" @input=${(e) => { this.password.update(() => e.target.value); this.validatePassword(); }} value=${this.password.value}>
-            <span>${this.passwordError.value}</span>
+            <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
+            <span>${this.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError.value || this.passwordError.value}>
+          <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
         </form>
       `;
     }
@@ -455,7 +487,7 @@ They are also listed below:
           document.getElementById('newTodo').value = '';
         }}>Add</button>
         <ul>
-          ${this.todos.value.map(todo => html`
+          ${this.todos.map(todo => html`
             <li>
               ${todo}
               <button @click=${() => this.dispatch("delete", todo)}>Delete</button>
@@ -472,7 +504,7 @@ They are also listed below:
 
 ```html
 <!-- ./examples/_004_cart.html -->
-<article>
+  <article>
   <h2>Products</h2>
   <product-list-component></product-list-component>
 </article>
@@ -556,12 +588,16 @@ They are also listed below:
 
   class CartElement extends ReactiveElement {
     cartItems = this.subscribe(cartStore, 'cartItems');
-    cartValue = this.computed(() => {
-      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
-    });
 
     constructor() {
       super();
+      this.define({
+        computed: ['cartValue']
+      });
+    }
+
+    get cartValue() {
+      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
     }
 
     removeFromCart(product) {
@@ -570,7 +606,7 @@ They are also listed below:
 
     template() {
       return html`
-        <p>Cart value: ${this.cartValue.value}</p>
+        <p>Cart value: ${this.cartValue}</p>
         <ul>
           ${this.cartItems.value.map(item => html`
             <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
@@ -597,38 +633,39 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
-    user = this.observable({});
+    user = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
 
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.define({
+        observables: ['user'],
+      });
       this.user.assign(this.initialUser);
     }
 
     handleInput(event, key) {
-      this.user.update(value => {
-        value[key] = event.target.value;
-      });
+      this.user.assign({ [key]: event.target.value });
     }
 
     resetForm() {
-      this.user.assign(this.initialUser);
+      this.user = this.initialUser;
     }
 
     template() {
       return html`
         <form>
           <label>
-            Name: ${this.user.value.name}
-            <input type="text" .value=${this.user.value.name} @input=${(e) => this.handleInput(e, 'name')} />
+            Name: ${this.user.name}
+            <input type="text" .value=${this.user.name} @input=${(e) => this.handleInput(e, 'name')} />
           </label>
           <label>
-            Age: ${this.user.value.age}
-            <input type="number" .value=${this.user.value.age} @input=${(e) => this.handleInput(e, 'age')} />
+            Age: ${this.user.age}
+            <input type="number" .value=${this.user.age} @input=${(e) => this.handleInput(e, 'age')} />
           </label>
           <label>
-            Email: ${this.user.value.email}
-            <input type="email" .value=${this.user.value.email} @input=${(e) => this.handleInput(e, 'email')} />
+            Email: ${this.user.email}
+            <input type="email" .value=${this.user.email} @input=${(e) => this.handleInput(e, 'email')} />
           </label>
           <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
         </form>
@@ -642,7 +679,7 @@ They are also listed below:
 
 ```html
 <!-- ./examples/_006_nested2.html -->
-<article>
+  <article>
   <h1>User Update Page (Nested Observable)</h1>
   <nested-observable-element></nested-observable-element>
 </article>
@@ -652,7 +689,7 @@ They are also listed below:
 <script type="module">
  const { html, ReactiveElement } = cami;
   class NestedObservableElement extends ReactiveElement {
-    user = this.observable({
+    user = {
       name: 'John',
       age: 30,
       address: {
@@ -665,62 +702,72 @@ They are also listed below:
           long: '74.0060'
         }
       }
-    });
+    };
 
     constructor() {
       super();
-    }
-
-    changeUser() {
-      this.user.update(value => {
-        if (value.name == 'John') {
-          value.name = 'Jane';
-          value.age = 31;
-          value.address.street = '456 Elm St';
-          value.address.city = 'Othertown';
-          value.address.country = 'Canada';
-          value.address.postalCode = '67890';
-          value.address.coordinates.lat = '51.5074';
-          value.address.coordinates.long = '0.1278';
-        } else {
-          value.name = 'John';
-          value.age = 30;
-          value.address.street = '123 Main St';
-          value.address.city = 'Anytown';
-          value.address.country = 'USA';
-          value.address.postalCode = '12345';
-          value.address.coordinates.lat = '40.7128';
-          value.address.coordinates.long = '74.0060';
-        }
+      this.define({
+        observables: ['user'],
       });
     }
 
+    changeUser() {
+      const john = {
+        name: 'John',
+        age: 30,
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          country: 'USA',
+          postalCode: '12345',
+          coordinates: {
+            lat: '40.7128',
+            long: '74.0060'
+          }
+        }
+      };
+
+      const jane = {
+        name: 'Jane',
+        age: 31,
+        address: {
+          street: '456 Elm St',
+          city: 'Othertown',
+          country: 'Canada',
+          postalCode: '67890',
+          coordinates: {
+            lat: '51.5074',
+            long: '0.1278'
+          }
+        }
+      };
+
+      this.user = (this.user.name == 'John') ? jane : john;
+    }
+
     changeName() {
-      this.user.update(value => {
-        if (value.name == 'John') value.name = 'Jane';
-        else value.name = 'John';
+      this.user.update(user => {
+        user.name = (user.name == 'John') ? 'Jane' : 'John';
       });
     }
 
     changeStreet() {
-      this.user.update(value => {
-        if (value.address.street == '123 Main St') value.address.street = '456 Elm St';
-        else value.address.street = '123 Main St';
+      this.user.update(user => {
+        user.address.street = (user.address.street == '123 Main St') ? '456 Elm St' : '123 Main St';
       });
     }
 
     changeLat() {
-      this.user.update(value => {
-        if (value.address.coordinates.lat == '40.7128') value.address.coordinates.lat = '51.5074';
-        else value.address.coordinates.lat = '40.7128';
+      this.user.update(user => {
+        user.address.coordinates.lat = (user.address.coordinates.lat == '40.7128') ? '51.5074' : '40.7128';
       });
     }
 
     template() {
       return html`
-        <div>Name: ${this.user.value.name}</div>
-        <div>Street: ${this.user.value.address.street}</div>
-        <div>Latitude: ${this.user.value.address.coordinates.lat}</div>
+        <div>Name: ${this.user.name}</div>
+        <div>Street: ${this.user.address.street}</div>
+        <div>Latitude: ${this.user.address.coordinates.lat}</div>
         <button @click=${() => this.changeUser()}>Change User</button>
         <button @click=${() => this.changeName()}>Change Name</button>
         <button @click=${() => this.changeStreet()}>Change Street</button>
@@ -807,7 +854,7 @@ They are also listed below:
     template() {
       return html`
         <ul>
-          ${this.users.value.map(user => html`
+          ${this.users.map(user => html`
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}
@@ -838,14 +885,17 @@ They are also listed below:
 <script type="module">
  const { html, ReactiveElement, store } = cami;
   class TeamManagementElement extends ReactiveElement {
-    teams = this.observable([
+    teams = [
       { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
       { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]}
-    ])
-    editing = this.observable({ isEditing: false, memberId: null });
+    ];
+    editing = { isEditing: false, memberId: null };
 
     constructor() {
       super();
+      this.define({
+        observables: ['teams', 'editing'],
+      });
     }
 
     updateTeam(teamId, updateFunc) {
@@ -878,13 +928,13 @@ They are also listed below:
     template() {
       return html`
         <ul>
-          ${this.teams.value.map(team => html`
+          ${this.teams.map(team => html`
             <li>
               ${team.name}
               <ul>
                 ${team.members.map(member => html`
                   <li>
-                    ${this.editing.value.isEditing && this.editing.value.memberId === member.id ? html`
+                    ${this.editing.isEditing && this.editing.memberId === member.id ? html`
                       <input id="editMemberName${member.id}" type="text" value="${member.name}">
                       <button @click=${() => { this.editMember(team.id, member.id, document.getElementById('editMemberName' + member.id).value); }}>Save</button>
                     ` : html`
@@ -939,18 +989,11 @@ They are also listed below:
     }
 
     addTodo (todo) {
-      this.todos.update(value => {
-        value.push(todo);
-      });
+      this.todos.push(todo);
     }
 
     deleteTodo (todo) {
-      this.todos.update(value => {
-        const index = value.indexOf(todo);
-        if (index > -1) {
-          value.splice(index, 1);
-        }
-      });
+      this.todos.splice(this.todos.indexOf(todo), 1);
     }
 
     template() {
@@ -960,7 +1003,7 @@ They are also listed below:
           this.addTodo(document.getElementById('newTodo').value); document.getElementById('newTodo').value = ''; }}
         >Add</button>
         <ul>
-          ${this.todos.value.map(todo => html`
+          ${this.todos.map(todo => html`
             <li>
               ${todo}
               <button @click=${() => this.deleteTodo(todo)
@@ -979,52 +1022,7 @@ They are also listed below:
 ```
 
 ```html
-<!-- ./examples/_010_batch.html -->
-<article>
-  <h1>Batch Updates</h1>
-  <batch-update-element></batch-update-element>
-</article>
-<script src="./build/cami.cdn.js"></script>
-<!-- CDN version below -->
-<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
-<script type="module">
-  const { html, ReactiveElement } = cami;
-
-  class BatchUpdateElement extends ReactiveElement {
-    count = this.observable(0);
-    doubleCount = this.computed(() => this.count.value * 2);
-
-    constructor() {
-      super();
-    }
-
-    increment() {
-      this.count.value++;
-    }
-
-    batchIncrement() {
-      this.batch(() => {
-        this.count.update(value => value + 1);
-        this.count.update(value => value + 1);
-      });
-    }
-
-    template() {
-      return html`
-        <button @click=${() => this.increment()}>Increment</button>
-        <button @click=${() => this.batchIncrement()}>Batch Increment</button>
-        <div>Count: ${this.count.value}</div>
-        <div>Double Count: ${this.doubleCount.value}</div>
-      `;
-    }
-  }
-
-  customElements.define('batch-update-element', BatchUpdateElement);
-</script>
-```
-
-```html
-<!-- ./examples/_011_taskmgmt.html -->
+<!-- ./examples/_010_taskmgmt.html -->
 <article>
   <h1>Task Manager</h1>
   <task-manager-component></task-manager-component>
@@ -1036,11 +1034,14 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class TaskManagerElement extends ReactiveElement {
-    tasks = this.observable([]);
-    filter = this.observable('all');
+    tasks = [];
+    filter = 'all';
 
     constructor() {
       super();
+      this.define({
+        observables: ['tasks', 'filter'],
+      });
     }
 
     addTask(task) {
@@ -1058,17 +1059,17 @@ They are also listed below:
     }
 
     setFilter(filter) {
-      this.filter.update(() => filter);
+      this.filter = filter;
     }
 
     getFilteredTasks() {
-      switch (this.filter.value) {
+      switch (this.filter) {
         case 'completed':
-          return this.tasks.value.filter(task => task.completed);
+          return this.tasks.filter(task => task.completed);
         case 'active':
-          return this.tasks.value.filter(task => !task.completed);
+          return this.tasks.filter(task => !task.completed);
         default:
-          return this.tasks.value;
+          return this.tasks;
       }
     }
 
@@ -1100,7 +1101,7 @@ They are also listed below:
 ```
 
 ```html
-<!-- ./examples/_012_playlist.html -->
+<!-- ./examples/_011_playlist.html -->
 <article>
   <h1>Playlist Manager</h1>
   <playlist-component></playlist-component>
@@ -1112,10 +1113,13 @@ They are also listed below:
  const { html, ReactiveElement } = cami;
 
   class PlaylistElement extends ReactiveElement {
-    playlist = this.observable([]);
+    playlist = [];
 
     constructor() {
       super();
+      this.define({
+        observables: ['playlist'],
+      });
     }
 
     addSong(song) {
@@ -1128,13 +1132,17 @@ They are also listed below:
 
     moveSongUp(index) {
       if (index > 0) {
-        this.playlist.splice(index - 1, 2, this.playlist.value[index], this.playlist.value[index - 1]);
+        const songToMoveUp = this.playlist[index];
+        const songAbove = this.playlist[index - 1];
+        this.playlist.splice(index - 1, 2, songToMoveUp, songAbove);
       }
     }
 
     moveSongDown(index) {
-      if (index < this.playlist.value.length - 1) {
-        this.playlist.splice(index, 2, this.playlist.value[index + 1], this.playlist.value[index]);
+      if (index < this.playlist.length - 1) {
+        const songToMoveDown = this.playlist[index];
+        const songBelow = this.playlist[index + 1];
+        this.playlist.splice(index, 2, songBelow, songToMoveDown);
       }
     }
 
@@ -1153,7 +1161,7 @@ They are also listed below:
         <button @click=${() => this.sortSongs()}>Sort Songs</button>
         <button @click=${() => this.reverseSongs()}>Reverse Songs</button>
         <ul>
-          ${this.playlist.value.map((song, index) => html`
+          ${this.playlist.map((song, index) => html`
             <li>
               ${song}
               <a @click=${() => this.moveSongUp(index)}>Move Up</a>
