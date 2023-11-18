@@ -1,4 +1,5 @@
 import { Observable } from './observable.js';
+import { ObservableState } from './observable-state.js';
 
 /**
  * @class
@@ -418,17 +419,82 @@ class ObservableStream extends Observable {
    */
   toState(initialValue = null) {
     const state = new ObservableState(initialValue);
-    this.onValue(value => state.update(() => value));
+    this.subscribe({
+      next: value => state.update(() => value),
+      error: err => state.error(err),
+      complete: () => state.complete(),
+    });
     return state;
   }
 
   /**
    * @method
-   * @description Emits a new value to the stream
-   * @param {any} value - The value to emit
+   * @description Pushes a value to the observers. The value can be an Observable, an async iterable, an iterable, a Promise, or any other value.
+   * @param {any} value - The value to push
    */
-  emit(value) {
-    this._observers.forEach(observer => observer.next(value));
+  push(value) {
+    if (value instanceof Observable) {
+      const subscription = value.subscribe({
+        next: v => this._observers.forEach(observer => observer.next(v)),
+        error: err => this._observers.forEach(observer => observer.error(err)),
+        complete: () => this._observers.forEach(observer => observer.complete()),
+      });
+    } else if (value[Symbol.asyncIterator]) {
+      (async () => {
+        try {
+          for await (const v of value) {
+            this._observers.forEach(observer => observer.next(v));
+          }
+          this._observers.forEach(observer => observer.complete());
+        } catch (err) {
+          this._observers.forEach(observer => observer.error(err));
+        }
+      })();
+    } else if (value[Symbol.iterator]) {
+      try {
+        for (const v of value) {
+          this._observers.forEach(observer => observer.next(v));
+        }
+        this._observers.forEach(observer => observer.complete());
+      } catch (err) {
+        this._observers.forEach(observer => observer.error(err));
+      }
+    } else if (value instanceof Promise) {
+      value.then(
+        v => {
+          this._observers.forEach(observer => observer.next(v));
+          this._observers.forEach(observer => observer.complete());
+        },
+        err => this._observers.forEach(observer => observer.error(err))
+      );
+    } else {
+      this._observers.forEach(observer => observer.next(value));
+    }
+  }
+
+  /**
+   * @method
+   * @description Subscribes to a stream and pushes its values to the observers.
+   * @param {ObservableStream} stream - The stream to plug
+   */
+  plug(stream) {
+    stream.subscribe({
+      next: value => this.push(value),
+      error: err => this._observers.forEach(observer => observer.error(err)),
+      complete: () => this._observers.forEach(observer => observer.complete()),
+    });
+  }
+
+  /**
+   * @method
+   * @description Ends the stream by calling the complete method of each observer.
+   */
+  end() {
+    this._observers.forEach(observer => {
+      if (observer && typeof observer.complete === 'function') {
+        observer.complete();
+      }
+    });
   }
 }
 

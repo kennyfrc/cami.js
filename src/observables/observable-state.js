@@ -1,4 +1,5 @@
 import { Observable } from './observable.js';
+import { ObservableStream } from './observable-stream.js';
 import { produce } from 'immer';
 
 
@@ -292,6 +293,33 @@ class ObservableState extends Observable {
       this.notifyObservers();
     }
     this._updateScheduled = false;
+  }
+
+  /**
+   * @method
+   * @description Converts the ObservableState to an ObservableStream.
+   * @returns {ObservableStream} The ObservableStream that emits the same values as the ObservableState.
+   */
+  toStream() {
+    const stream = new ObservableStream();
+    this.subscribe({
+      next: value => stream.emit(value),
+      error: err => stream.error(err),
+      complete: () => stream.end(),
+    });
+    return stream;
+  }
+
+  /**
+   * @method
+   * @description Calls the complete method of all observers.
+   */
+  complete() {
+    this._observers.forEach(observer => {
+      if (observer && typeof observer.complete === 'function') {
+        observer.complete();
+      }
+    });
   }
 }
 
