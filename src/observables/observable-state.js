@@ -1,7 +1,7 @@
 import { Observable } from './observable.js';
 import { ObservableStream } from './observable-stream.js';
 import { produce } from 'immer';
-
+import { camiConfig } from '../cami.js';
 
 /**
  * @type {Object}
@@ -25,7 +25,7 @@ class ObservableState extends Observable {
    * @param {Object} options - Additional options for the observable
    * @param {boolean} options.last - Whether the subscriber is the last observer
    */
-  constructor(initialValue = null, subscriber = null, {last = false} = {}) {
+  constructor(initialValue = null, subscriber = null, {last = false, name = null} = {}) {
     super();
     if (last) {
       /** @type {Subscriber} */
@@ -39,6 +39,8 @@ class ObservableState extends Observable {
     this._pendingUpdates = [];
     /** @type {boolean} */
     this._updateScheduled = false;
+    /** @type {string} */
+    this._name = name;
   }
 
   /**
@@ -291,6 +293,17 @@ class ObservableState extends Observable {
     }
     if (oldValue !== this._value) {
       this.notifyObservers();
+
+      if (camiConfig.events && typeof window !== 'undefined') {
+        const event = new CustomEvent('cami:statechange', {
+          detail: {
+            name: this._name,
+            oldValue: oldValue,
+            newValue: this._value
+          }
+        });
+        window.dispatchEvent(event);
+      }
     }
     this._updateScheduled = false;
   }

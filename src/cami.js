@@ -157,7 +157,7 @@ class ReactiveElement extends HTMLElement {
   define(config) {
     if (config.observables) {
       config.observables.forEach(key => {
-        const observable = this.observable(this[key]);
+        const observable = this.observable(this[key], key);
         if (this._isObjectOrArray(observable.value)) {
           this._handleObjectOrArray(this, key, observable);
         } else {
@@ -211,15 +211,16 @@ class ReactiveElement extends HTMLElement {
    * @method
    * @description Creates an observable with an initial value
    * @param {any} initialValue - The initial value for the observable
+   * @param {string} [name] - The name of the observable
    * @returns {Observable} The observable
    */
-  observable(initialValue) {
+  observable(initialValue, name = null) {
     if (!this._isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
       throw new Error(`The type ${type} of initialValue is not allowed in observables.`);
     }
 
-    const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true });
+    const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true, name: name });
     this.registerObservables(observable);
     return observable;
   }
@@ -266,7 +267,7 @@ class ReactiveElement extends HTMLElement {
   observableAttr(attrName, parseFn = (v) => v) {
     let attrValue = this.getAttribute(attrName);
     attrValue = produce(attrValue, parseFn);
-    return this.observable(attrValue);
+    return this.observable(attrValue, attrName);
   }
 
   /**
@@ -325,7 +326,7 @@ class ReactiveElement extends HTMLElement {
    */
   subscribe(store, key) {
     this.store = store;
-    const observable = this.observable(this.store.state[key]);
+    const observable = this.observable(this.store.state[key], key);
     const unsubscribe = this.store.subscribe(newState => {
       observable.update(() => newState[key]);
     });
@@ -431,8 +432,34 @@ function define(elementName, ElementClass) {
   }
 }
 
+/**
+ * @function
+ * @param {Object} initialState - The initial state of the store
+ * @returns {ObservableStore} A new instance of ObservableStore with the provided initial state
+ * @description This function creates a new instance of ObservableStore with the provided initial state
+ */
 function store(initialState) {
   return new ObservableStore(initialState);
+}
+
+/**
+ * @constant
+ * @type {Object}
+ * @property {boolean} events - A flag to control event firing
+ * @description This is the default configuration for Cami.js
+ */
+const camiConfig = {
+  events: false
+};
+
+/**
+ * @function
+ * @param {Object} newConfig - The new configuration to be applied
+ * @returns {void}
+ * @description This function merges the provided configuration with the existing configuration
+ */
+function config(newConfig) {
+  Object.assign(camiConfig, newConfig);
 }
 
 /**
@@ -445,4 +472,4 @@ function store(initialState) {
  * @exports Observable
  * @exports ObservableState
  */
-export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore };
+export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, config, camiConfig };
