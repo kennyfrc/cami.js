@@ -43,19 +43,20 @@
   });
 
   class ProductListElement extends ReactiveElement {
-    cartItems = this.subscribe(cartStore, 'cartItems');
-    products = this.subscribe(cartStore, 'products');
+    store = cartStore;
+    cartItems = this.subscribe(this.store, 'cartItems');
+    products = this.subscribe(this.store, 'products');
 
     constructor() {
       super();
     }
 
     addToCart(product) {
-      this.dispatch('add', product);
+      this.store.dispatch('add', product);
     }
 
     isProductInCart(product) {
-      return this.cartItems.value ? this.cartItems.value.some(item => item.id === product.id) : false;
+      return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
     }
 
     isOutOfStock(product) {
@@ -65,7 +66,7 @@
     template() {
       return html`
         <ul>
-          ${this.products.value.map(product => html`
+          ${this.products.map(product => html`
             <li>
               ${product.name} - ${product.price} | Stock: ${product.stock}
               <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
@@ -81,7 +82,8 @@
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
-    cartItems = this.subscribe(cartStore, 'cartItems');
+    store = cartStore;
+    cartItems = this.subscribe(this.store, 'cartItems');
 
     constructor() {
       super();
@@ -91,18 +93,18 @@
     }
 
     get cartValue() {
-      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
+      return this.cartItems.reduce((acc, item) => acc + item.price, 0);
     }
 
     removeFromCart(product) {
-      this.dispatch('remove', product);
+      this.store.dispatch('remove', product);
     }
 
     template() {
       return html`
         <p>Cart value: ${this.cartValue}</p>
         <ul>
-          ${this.cartItems.value.map(item => html`
+          ${this.cartItems.map(item => html`
             <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
           `)}
         </ul>

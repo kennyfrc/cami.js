@@ -61,7 +61,8 @@
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
-    users = this.subscribe(userStore, 'users');
+    store = userStore;
+    users = this.subscribe(this.store, 'users');
 
     constructor() {
       super();
@@ -74,10 +75,10 @@
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}
-              <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
-              <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
-              <button @click=${() => this.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
-              <button @click=${() => this.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
+              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
+              <button @click=${() => this.store.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
+              <button @click=${() => this.store.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
             </li>
           `)}
         </ul>

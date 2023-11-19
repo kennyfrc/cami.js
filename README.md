@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.1.1. Follows [semver](https://semver.org/).
+Current version: 0.1.2. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
@@ -72,10 +72,10 @@ Automatic updates are done by observables. An observable is an object that can b
 
 Cami's observables have the following characteristics:
 
-* It has a `value` property that holds the current value of the observable.
-* It has an `update` method that allows you to update the value of the observable.
+* They can be accessed and mutated like any other data structure. The difference is that observables, upon mutation, notify observers.
+* The observer in the `ReactiveElement` case is the `html tagged template` or the `template()` method to be specific.
 
-When you update the value of an observable, it will automatically trigger a re-render of the component's `html tagged template`. This is what makes the component reactive.
+When you mutate the value of an observable, it will automatically trigger a re-render of the component's `html tagged template`. This is what makes the component reactive.
 
 Let's illustrate these three concepts with an example. Here's a simple counter component:
 
@@ -114,7 +114,7 @@ In this example, `CounterElement` is a reactive web component that maintains an 
 
 **Creating an Observable:**
 
-In the context of a `ReactiveElement`, you can create an observable using the `this.observable()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
+In the context of a `ReactiveElement`, you can create an observable using the `this.define()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
 
 ```javascript
 // ...
@@ -131,7 +131,7 @@ constructor() {
 
 **Getting the Value:**
 
-You can get the current value of an observable by accessing its `value` property. For example, you can get the value of `count` like this:
+You can get the current value of an observable by directly accessing it. For example, you can get the value of `count` like this:
 
 ```javascript
 this.count;
@@ -145,11 +145,13 @@ To update the value of an observable, you can just directly mutate it, and it wi
 this.count++
 ```
 
-**Deeply Nested Updates:**
+**Deeply Nested Updates and Array Manipulation:**
 
-An interesting thing to note (which many libaries don't support with one method/function) is that Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Example:
+Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Additionally, if the observable's value is an array, you can perform various array manipulations such as push, pop, shift, unshift, splice, sort, reverse, and more. These operations will trigger a re-render of the component's template. Here are some examples:
 
 ```javascript
+// Updating deeply nested properties
+// ...
 user = {
   name: {
     first: 'John',
@@ -168,9 +170,34 @@ constructor() {
 user.update(value => {
   value.name.first = 'Jane';
 });
+// ...
 ```
 
-Here, only the `first` property of the `name` object is updated. The rest of the `user` object remains the same.
+```javascript
+// Array manipulations
+// ...
+
+playlist = ['Song 1', 'Song 2', 'Song 3'];
+
+constructor() {
+  super();
+  this.define({
+    observables: ['playlist'],
+  })
+}
+
+// Adding a song to the playlist
+playlist.push('Song 4');
+
+// Removing the first song from the playlist
+playlist.shift();
+
+// Reversing the order of the playlist
+playlist.reverse();
+// ...
+```
+
+In the first example, only the `first` property of the `name` object is updated. The rest of the `user` object remains the same. In the second example, various array manipulations are performed on the `playlist` observable.
 
 **Template Rendering:**
 
@@ -193,16 +220,15 @@ The `${}` syntax inside the template literal is used to embed JavaScript express
 
 The `@click` syntax is used to attach event listeners to elements. In this case, a click event listener is attached to the button element.
 
-### Basics of Computed Properties & Effects
+### Basics of Computed Properties, Effects, Observable Attributes, and Queries
 
 **Computed Properties:**
 
 Computed properties are a powerful feature in Cami.js that allow you to create properties that are derived from other observables. These properties automatically update whenever their dependencies change. This is particularly useful for calculations that depend on one or more parts of the state.
 
-For instance, in the `CounterElement` example from `_001_counter.html`, a computed property `countSquared` is defined as the square of the `count` observable:
+Here is an example of a computed property `countSquared` which is defined as the square of the `count` observable:
 
 ```javascript
-// ...
 count = 0
 
 constructor() {
@@ -216,56 +242,76 @@ constructor() {
 get countSquared() {
   return this.count ** 2;
 }
-
-//...
 ```
 
-In this case, `countSquared` will always hold the square of the current count value, and will automatically update whenever `count` changes. This is ideal for calculations like this, but can also be used for other derived values such as total price in a shopping cart (based on quantities and individual prices), or a boolean flag indicating if a form is valid (based on individual field validations).
+In this case, `countSquared` will always hold the square of the current count value, and will automatically update whenever `count` changes.
 
 **Effects:**
 
 Effects in Cami.js are functions that run in response to changes in observable properties. They are a great way to handle side effects in your application, such as integrating with non-reactive components, emitting custom events, or logging/debugging.
 
-For example, in the `CounterElement` example, an effect is defined to log the current count and its square whenever either of them changes:
+Here is an example of an effect that logs the current count and its square whenever either of them changes:
 
 ```javascript
 this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
 ```
 
-This effect will run whenever `count` or `countSquared` changes, logging the new values to the console. This can be particularly useful for debugging.
+This effect will run whenever `count` or `countSquared` changes, logging the new values to the console.
 
-Effects can also be used to emit custom events after specific state changes. For instance, you could emit a custom event whenever the count reaches a certain value. Here's a great essay on this topic: [Hypermedia-Friendly Scripting](https://htmx.org/essays/hypermedia-friendly-scripting/#events)
+**Observable Attributes:**
+
+Observable attributes in Cami.js are attributes that are observed for changes. When an attribute changes, the component's state is updated and the component is re-rendered.
+
+Here is an example of an observable attribute `todos` which is parsed from a JSON string:
 
 ```javascript
-this.effect(() => {
-  if (this.count === 10) {
-    this.dispatchEvent(new CustomEvent('count-reached-ten', { detail: this.count }));
-  }
-});
+todos = []
+
+constructor() {
+  super();
+  this.define({
+    attributes: [{
+        name: 'todos',
+        parseFn: (v) => JSON.parse(v).data
+      }
+    ]
+  });
+}
 ```
 
-In this example, a 'count-reached-ten' event is dispatched whenever the count reaches 10. This can be useful for integrating with non-reactive parts of your application or for triggering specific actions in response to state changes like with
+In this case, `todos` will be updated whenever the `todos` attribute of the element changes.
 
-**ReactiveElement Methods:**
+**Queries:**
 
-- `observable(initialValue)`: This method creates an observable property with an initial value. It returns an object that contains a `value` property and an `update` method.
-- `observableAttr(attrName, parseFn = (v) => v)`: This method creates an observable property from an attribute. `attrName` is the attribute's name and `parseFn` is a function that parses the attribute value. If `parseFn` is not provided, it defaults to an identity function.
-- `subscribe(store, key)`: This method subscribes to a store and links it to an observable property. It returns the observable.
-- `computed(computeFn)`: This method defines a computed property that depends on other observables. It returns an object with a `value` getter.
-- `effect(effectFn)`: This method defines an effect that is triggered when an observable changes. The `effectFn` can optionally return a cleanup function.
-- `dispatch(action, payload)`: This method dispatches an action to the store.
-- `template()`: This method should be implemented to return the template to be rendered.
-- `connectedCallback()`: This lifecycle method is called each time the element is added to the document. It sets up the initial state and triggers the initial rendering.
-- `disconnectedCallback()`: This lifecycle method is called each time the element is removed from the document. It cleans up listeners and effects.
-- `react()`: This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state. This also triggers all effects.
-- `setObservables(props)`: This method sets the properties of the object. If the property is an observable, it updates the observable with the new value.
+Queries in Cami.js are a way to fetch data asynchronously and update the component's state when the data is available. The state is automatically updated with the loading status, the data, and any error that might occur.
 
-Note: Lifecycle methods are part of the Light DOM. We do not implement the Shadow DOM in this library. While Shadow DOM provides style and markup encapsulation, there are drawbacks if we want this library to [interoperate with other libs](https://stackoverflow.com/questions/45917672/what-are-the-drawbacks-of-using-shadow-dom).
+Here is an example of a query that fetches posts from a JSON placeholder API:
+
+```javascript
+posts = {}
+
+constructor() {
+  super();
+  this.define({
+    observables: ['posts'],
+  });
+}
+
+connectedCallback() {
+  super.connectedCallback();
+  this.posts = this.query({
+    queryKey: ["posts"],
+    queryFn: () => fetch("https://jsonplaceholder.typicode.com/posts").then(posts => posts.json())
+  });
+}
+```
+
+In this case, `posts` will be updated with the loading status, the fetched data, and any error that might occur.
 
 
 ### `cami.store(initialState)`
 
-The `cami.store` function is a fundamental part of Cami.js. It creates a new store with the provided initial state. The store is a singleton, meaning that if it has already been created, the existing instance will be returned. This store is a central place where all the state of your application lives. It's like a data warehouse where different components of your application can communicate and share data.
+The `cami.store` function is a core part of Cami.js. It creates a new store with the provided initial state. The store is a singleton, meaning that if it has already been created, the existing instance will be returned. This store is a central place where all the state of your application lives. It's like a data warehouse where different components of your application can communicate and share data.
 
 This concept is particularly useful in scenarios where multiple components need to share and manipulate the same state. A classic example of this is a shopping cart in an e-commerce application, where various components like product listing, cart summary, and checkout need access to the same cart state.
 
@@ -280,7 +326,7 @@ The store follows a flavor of the Flux architecture, which promotes unidirection
 A store object with the following methods:
 
 - `state`: The current state of the store. It represents the current snapshot of your application state.
-- `subscribe(listener)`: Adds a listener to the store. This listener is a function that gets called whenever the state changes. It also returns an unsubscribe function to stop listening to state changes.
+- `subscribe(stateName, listener)`: Adds a listener to the store. This listener is a function that gets called whenever the state changes. It also returns an unsubscribe function to stop listening to state changes.
 - `register(action, reducer)`: Adds a reducer to the store. A reducer is a function that knows how to update the state based on an action.
 - `dispatch(action, payload)`: Adds an action to the dispatch queue and starts processing if not already doing so. An action is a description of what happened, and the payload is the data associated with this action.
 - `use(middleware)`: Adds a middleware to the store. Middleware is a way to extend the store's capabilities and handle asynchronous actions or side effects.
@@ -345,7 +391,6 @@ They are also listed below:
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement } = cami;
-
   class CounterElement extends ReactiveElement {
     count = 0
 
@@ -550,19 +595,20 @@ They are also listed below:
   });
 
   class ProductListElement extends ReactiveElement {
-    cartItems = this.subscribe(cartStore, 'cartItems');
-    products = this.subscribe(cartStore, 'products');
+    store = cartStore;
+    cartItems = this.subscribe(this.store, 'cartItems');
+    products = this.subscribe(this.store, 'products');
 
     constructor() {
       super();
     }
 
     addToCart(product) {
-      this.dispatch('add', product);
+      this.store.dispatch('add', product);
     }
 
     isProductInCart(product) {
-      return this.cartItems.value ? this.cartItems.value.some(item => item.id === product.id) : false;
+      return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
     }
 
     isOutOfStock(product) {
@@ -572,7 +618,7 @@ They are also listed below:
     template() {
       return html`
         <ul>
-          ${this.products.value.map(product => html`
+          ${this.products.map(product => html`
             <li>
               ${product.name} - ${product.price} | Stock: ${product.stock}
               <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
@@ -588,7 +634,8 @@ They are also listed below:
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
-    cartItems = this.subscribe(cartStore, 'cartItems');
+    store = cartStore;
+    cartItems = this.subscribe(this.store, 'cartItems');
 
     constructor() {
       super();
@@ -598,18 +645,18 @@ They are also listed below:
     }
 
     get cartValue() {
-      return this.cartItems.value.reduce((acc, item) => acc + item.price, 0);
+      return this.cartItems.reduce((acc, item) => acc + item.price, 0);
     }
 
     removeFromCart(product) {
-      this.dispatch('remove', product);
+      this.store.dispatch('remove', product);
     }
 
     template() {
       return html`
         <p>Cart value: ${this.cartValue}</p>
         <ul>
-          ${this.cartItems.value.map(item => html`
+          ${this.cartItems.map(item => html`
             <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
           `)}
         </ul>
@@ -846,7 +893,8 @@ They are also listed below:
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
-    users = this.subscribe(userStore, 'users');
+    store = userStore;
+    users = this.subscribe(this.store, 'users');
 
     constructor() {
       super();
@@ -859,10 +907,10 @@ They are also listed below:
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}
-              <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
-              <button @click=${() => this.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
-              <button @click=${() => this.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
-              <button @click=${() => this.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
+              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
+              <button @click=${() => this.store.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
+              <button @click=${() => this.store.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
             </li>
           `)}
         </ul>
@@ -1176,6 +1224,65 @@ They are also listed below:
   }
 
   customElements.define('playlist-component', PlaylistElement);
+</script>
+```
+
+```html
+<!-- ./examples/_012_blog.html -->
+<article>
+  <h1>Blog</h1>
+  <blog-component></blog-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+ const { html, ReactiveElement } = cami;
+
+  class BlogComponent extends ReactiveElement {
+    posts = {}
+
+    constructor() {
+      super();
+      this.define({
+        observables: ['posts'],
+      });
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      this.posts = this.query({
+        queryKey: ["posts"],
+        queryFn: () => fetch("https://jsonplaceholder.typicode.com/posts").then(posts => posts.json())
+      });
+    }
+
+    template() {
+      if (this.posts.isLoading) {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.posts.error) {
+        return html`<div>Error: ${this.posts.error.message}</div>`;
+      }
+
+      if (this.posts.data) {
+        return html`
+          <ul>
+            ${this.posts.data.map(post => html`
+              <li>
+                <h2>${post.title}</h2>
+                <p>${post.body}</p>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+  }
+
+  customElements.define('blog-component', BlogComponent);
+
 </script>
 ```
 
