@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.1.0. Follows [semver](https://semver.org/).
+Current version: 0.1.1. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
@@ -345,6 +345,7 @@ They are also listed below:
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement } = cami;
+
   class CounterElement extends ReactiveElement {
     count = 0
 

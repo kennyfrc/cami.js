@@ -295,7 +295,7 @@ class ObservableState extends Observable {
       this.notifyObservers();
 
       if (camiConfig.events && typeof window !== 'undefined') {
-        const event = new CustomEvent('cami:statechange', {
+        const event = new CustomEvent('cami:state:change', {
           detail: {
             name: this._name,
             oldValue: oldValue,
