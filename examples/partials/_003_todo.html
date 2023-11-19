@@ -34,7 +34,8 @@
   todoStore.use(loggingMiddleware);
 
   class TodoListElement extends ReactiveElement {
-    todos = this.subscribe(todoStore, 'todos');
+    store = todoStore;
+    todos = this.subscribe(this.store, 'todos');
 
     constructor() {
       super();
@@ -45,14 +46,14 @@
         <input id="newTodo" type="text" />
         <button @click=${() => {
           const newTodo = document.getElementById('newTodo').value;
-          this.dispatch("add", newTodo);
+          this.store.dispatch("add", newTodo);
           document.getElementById('newTodo').value = '';
         }}>Add</button>
         <ul>
           ${this.todos.map(todo => html`
             <li>
               ${todo}
-              <button @click=${() => this.dispatch("delete", todo)}>Delete</button>
+              <button @click=${() => this.store.dispatch("delete", todo)}>Delete</button>
             </li>
           `)}
         </ul>
