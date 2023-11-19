@@ -16,6 +16,9 @@ import { ObservableState, computed, effect } from './observables/observable-stat
 import { ObservableStream } from './observables/observable-stream.js';
 import { ObservableElement } from './observables/observable-element.js';
 
+
+const QueryCache = new Map();
+
 /**
  * @typedef {Object} State
  * @property {any} [property] - Any property of the state
@@ -217,12 +220,104 @@ class ReactiveElement extends HTMLElement {
   observable(initialValue, name = null) {
     if (!this._isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
-      throw new Error(`The type ${type} of initialValue is not allowed in observables.`);
+      throw new Error(`[Cami.js] The type ${type} of initialValue is not allowed in observables.`);
     }
 
     const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true, name: name });
     this.registerObservables(observable);
     return observable;
+  }
+
+  /**
+   * @method
+   * @description Fetches data from an API and caches it. This method is based on the TanStack Query defaults: https://tanstack.com/query/latest/docs/react/guides/important-defaults
+   * @param {Object} options - The options for the query
+   * @param {Array} options.queryKey - The key for the query
+   * @param {Function} options.queryFn - The function to fetch data
+   * @param {number} [options.staleTime=0] - The stale time for the query
+   * @param {boolean} [options.refetchOnWindowFocus=true] - Whether to refetch on window focus
+   * @param {boolean} [options.refetchOnMount=true] - Whether to refetch on mount
+   * @param {boolean} [options.refetchOnReconnect=true] - Whether to refetch on network reconnect
+   * @param {number} [options.refetchInterval=null] - The interval to refetch data
+   * @param {number} [options.gcTime=1000 * 60 * 5] - The garbage collection time for the query
+   * @param {number} [options.retry=3] - The number of retry attempts
+   * @param {Function} [options.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - The delay before retrying a failed query
+   * @returns {Proxy} A proxy that contains the state of the query
+   */
+  query({ queryKey, queryFn, staleTime = 0, refetchOnWindowFocus = true, refetchOnMount = true, refetchOnReconnect = true, refetchInterval = null, gcTime = 1000 * 60 * 5, retry = 3, retryDelay = (attempt) => Math.pow(2, attempt) * 1000 }) {
+    // Create an observable for the query state
+    const queryState = this.observable({
+      data: null,
+      isLoading: true,
+      error: null,
+      lastUpdated: QueryCache.has(queryKey) ? QueryCache.get(queryKey).lastUpdated : null
+    }, queryKey.join(':'));
+
+    // Create a proxy for the query state
+    const queryProxy = this._observableProxy(queryState);
+
+    // Fetch data
+    const fetchData = async (attempt = 0) => {
+      const now = Date.now();
+      const cacheEntry = QueryCache.get(queryKey);
+
+      if (cacheEntry && (now - cacheEntry.lastUpdated) < staleTime) {
+        queryState.update(state => {
+          state.data = cacheEntry.data;
+          state.isLoading = false;
+        });
+      } else {
+        try {
+          const data = await queryFn();
+          QueryCache.set(queryKey, { data, lastUpdated: now });
+          queryState.update(state => {
+            state.data = data;
+            state.isLoading = false;
+          });
+        } catch (error) {
+          if (attempt < retry) {
+            setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
+          } else {
+            queryState.update(state => {
+              state.error = error;
+              state.isLoading = false;
+            });
+          }
+        }
+      }
+    };
+
+    // Refetch data when new instances of the query mount
+    if (refetchOnMount) {
+      fetchData();
+    }
+
+    // Refetch data when window is refocused
+    if (refetchOnWindowFocus) {
+      const refetchOnFocus = () => fetchData();
+      window.addEventListener('focus', refetchOnFocus);
+      this._unsubscribers.set(`focus:${queryKey.join(':')}`, () => window.removeEventListener('focus', refetchOnFocus));
+    }
+
+    // Refetch data when network is reconnected
+    if (refetchOnReconnect) {
+      window.addEventListener('online', fetchData);
+      this._unsubscribers.set(`online:${queryKey.join(':')}`, () => window.removeEventListener('online', fetchData));
+    }
+
+    // Refetch data at a specific interval
+    if (refetchInterval) {
+      const intervalId = setInterval(fetchData, refetchInterval);
+      this._unsubscribers.set(`interval:${queryKey.join(':')}`, () => clearInterval(intervalId));
+    }
+
+    // Garbage collect data after gcTime
+    const gcTimeout = setTimeout(() => {
+      QueryCache.delete(queryKey);
+    }, gcTime);
+    this._unsubscribers.set(`gc:${queryKey.join(':')}`, () => clearTimeout(gcTimeout));
+
+    return queryProxy;
   }
 
   /**
@@ -325,9 +420,8 @@ class ReactiveElement extends HTMLElement {
    * @returns {Observable|Proxy} The observable or a proxy for the observable
    */
   subscribe(store, key) {
-    this.store = store;
-    const observable = this.observable(this.store.state[key], key);
-    const unsubscribe = this.store.subscribe(newState => {
+    const observable = this.observable(store.state[key], key);
+    const unsubscribe = store.subscribe(newState => {
       observable.update(() => newState[key]);
     });
     this._unsubscribers.set(key, unsubscribe);
@@ -347,16 +441,6 @@ class ReactiveElement extends HTMLElement {
         }
       });
     }
-  }
-
-  /**
-   * @method
-   * @param {string} action - The action to dispatch
-   * @param {any} payload - The payload for the action
-   * @returns {void}
-   */
-  dispatch(action, payload) {
-    this.store.dispatch(action, payload);
   }
 
   /**

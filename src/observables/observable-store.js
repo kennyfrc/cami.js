@@ -11,12 +11,29 @@ class ObservableStore extends Observable {
    * @param {Object} initialState - The initial state of the store
    */
   constructor(initialState) {
+    if (typeof initialState !== 'object' || initialState === null) {
+      throw new TypeError('[Cami.js] initialState must be an object');
+    }
+
     super(subscriber => {
       this._subscriber = subscriber;
       return () => { this._subscriber = null; };
     });
 
-    this.state = initialState;
+    this.state = new Proxy(initialState, {
+      get: (target, property) => {
+        return target[property];
+      },
+      set: (target, property, value) => {
+        target[property] = value;
+        this._observers.forEach(observer => observer.next(this.state));
+        if (this.devTools) {
+          this.devTools.send(property, this.state);
+        }
+        return true;
+      }
+    });
+
     this.reducers = {};
     this.middlewares = [];
     this.devTools = this.connectToDevTools();
@@ -51,7 +68,7 @@ class ObservableStore extends Observable {
    */
   register(action, reducer) {
     if (this.reducers[action]) {
-      throw new Error(`Action type ${action} is already registered.`);
+      throw new Error(`[Cami.js] Action type ${action} is already registered.`);
     }
     this.reducers[action] = reducer;
   }
@@ -68,7 +85,7 @@ class ObservableStore extends Observable {
     }
 
     if (typeof action !== 'string') {
-      throw new Error(`Action type must be a string. Got: ${typeof action}`);
+      throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
     }
 
     const reducer = this.reducers[action];

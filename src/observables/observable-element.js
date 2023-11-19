@@ -16,12 +16,12 @@ class ObservableElement extends ObservableStream {
     if (typeof selectorOrElement === 'string') {
       this.element = document.querySelector(selectorOrElement);
       if (!this.element) {
-        throw new Error(`Element not found for selector: ${selectorOrElement}`);
+        throw new Error(`[Cami.js] Element not found for selector: ${selectorOrElement}`);
       }
     } else if (selectorOrElement instanceof Element || selectorOrElement instanceof Document) {
       this.element = selectorOrElement;
     } else {
-      throw new Error(`Invalid argument: ${selectorOrElement}`);
+      throw new Error(`[Cami.js] Invalid argument: ${selectorOrElement}`);
     }
   }
 
