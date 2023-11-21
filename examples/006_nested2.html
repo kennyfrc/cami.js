@@ -15,7 +15,8 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
+
   class NestedObservableElement extends ReactiveElement {
     user = {
       name: 'John',
@@ -34,8 +35,8 @@
 
     constructor() {
       super();
-      this.define({
-        observables: ['user'],
+      this.setup({
+        observables: ['user']
       });
     }
 

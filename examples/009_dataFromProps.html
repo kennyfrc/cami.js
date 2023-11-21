@@ -16,19 +16,18 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
     todos = []
 
     constructor() {
       super();
-      this.define({
-        attributes: [{
-            name: 'todos',
-            parseFn: (v) => JSON.parse(v).data
-          }
-        ]
+      this.setup({
+        observables: ['todos'],
+        attributes: {
+          todos: (v) => JSON.parse(v).data
+        }
       });
     }
 

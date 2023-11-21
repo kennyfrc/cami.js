@@ -6,7 +6,8 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
+
   // Step 1: Define the initial state of our store
   const userStore = cami.store({
     users: [
@@ -37,32 +38,29 @@
         }
       },
     ],
-  });
-
-  // Step 2: Register a reducer for updating a user's status
-  userStore.register('updateStatus', (store, payload) => {
-    const user = store.users.find(user => user.id === payload.id);
-    if (user) {
-      user.status = payload.status;
-    }
-  });
-  userStore.register('updateStreet', (store, payload) => {
-    const user = store.users.find(user => user.id === payload.id);
-    if (user) {
-      user.address.street = payload.street;
-    }
-  });
-  userStore.register('updateLat', (store, payload) => {
-    const user = store.users.find(user => user.id === payload.id);
-    if (user) {
-      user.address.coordinates.lat = payload.lat;
-    }
+    updateStatus: (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.status = payload.status;
+      }
+    },
+    updateStreet: (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.address.street = payload.street;
+      }
+    },
+    updateLat: (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.address.coordinates.lat = payload.lat;
+      }
+    },
   });
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
-    store = userStore;
-    users = this.subscribe(this.store, 'users');
+    users = this.connect(userStore, 'users');
 
     constructor() {
       super();
@@ -75,10 +73,10 @@
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}
-              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
-              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
-              <button @click=${() => this.store.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
-              <button @click=${() => this.store.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+              <button @click=${() => userStore.updateStatus({ id: user.id, status: "Active" })}>Activate</button>
+              <button @click=${() => userStore.updateStatus({ id: user.id, status: "Inactive" })}>Deactivate</button>
+              <button @click=${() => userStore.updateStreet({ id: user.id, street: "999 Main St" })}>Change Street</button>
+              <button @click=${() => userStore.updateLat({ id: user.id, lat: "99.9999" })}>Change Latitude</button>
             </li>
           `)}
         </ul>

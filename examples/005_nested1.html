@@ -15,7 +15,7 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
     user = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
@@ -23,8 +23,8 @@
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
-      this.define({
-        observables: ['user'],
+      this.setup({
+        observables: ['user']
       });
       this.user.assign(this.initialUser);
     }

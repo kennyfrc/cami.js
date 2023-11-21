@@ -6,16 +6,16 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class PlaylistElement extends ReactiveElement {
     playlist = [];
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['playlist'],
-      });
+      })
     }
 
     addSong(song) {

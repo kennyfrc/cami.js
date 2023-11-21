@@ -15,39 +15,38 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
-  // Step 1: Define the initial state of our store
-  const todoStore = cami.store({
+  const { html, ReactiveElement } = cami;
+
+  // Step 1: Define the initial state of our store and the actions
+  const TodoStore = cami.store({
     todos: [],
-  });
-
-  // Step 2: Register reducers for adding and removing todo items
-  todoStore.register('add', (store, payload) => {
-    store.todos.push(payload);
-  });
-
-  todoStore.register('delete', (store, payload) => {
-    const index = store.todos.indexOf(payload);
-    if (index > -1) {
-      store.todos.splice(index, 1);
+    add: (store, todo) => {
+      store.todos.push(todo);
+    },
+    delete: (store, todo) => {
+      const index = store.todos.indexOf(todo);
+      if (index > -1) {
+        store.todos.splice(index, 1);
+      }
     }
   });
 
-  const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
-    console.log('Before dispatching:', getState());
-    const result = next(action, payload);
-    console.log('After dispatching:', getState());
-    return result;
+  // Define a middleware function
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
   };
 
-  todoStore.use(loggingMiddleware);
+  // Use the middleware function with the initialState
+  TodoStore.use(loggerMiddleware);
 
   class TodoListElement extends ReactiveElement {
-    store = todoStore;
-    todos = this.subscribe(this.store, 'todos');
+    todos = this.connect(TodoStore, 'todos');
 
     constructor() {
       super();
+      this.setup({
+        observables: ['todos']
+      })
     }
 
     template() {
@@ -55,14 +54,14 @@
         <input id="newTodo" type="text" />
         <button @click=${() => {
           const newTodo = document.getElementById('newTodo').value;
-          this.store.dispatch("add", newTodo);
+          TodoStore.add(newTodo);
           document.getElementById('newTodo').value = '';
         }}>Add</button>
         <ul>
           ${this.todos.map(todo => html`
             <li>
               ${todo}
-              <button @click=${() => this.store.dispatch("delete", todo)}>Delete</button>
+              <button @click=${() => TodoStore.delete(todo)}>Delete</button>
             </li>
           `)}
         </ul>

@@ -6,7 +6,8 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement, store } = cami;
+  const { html, ReactiveElement } = cami;
+
   class TeamManagementElement extends ReactiveElement {
     teams = [
       { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
@@ -16,7 +17,7 @@
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['teams', 'editing'],
       });
     }

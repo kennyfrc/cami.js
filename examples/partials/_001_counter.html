@@ -8,13 +8,14 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement } = cami;
+
   class CounterElement extends ReactiveElement {
     count = 0
 
     constructor() {
       super();
-      this.define({
-        observables: ['count'],
+      this.setup({
+        observables: ['count']
       })
     }
 

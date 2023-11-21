@@ -20,48 +20,55 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
-  const cartStore = cami.store({
+  const CartStore = cami.store({
     cartItems: [],
     products: [
       { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
       { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
       { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
-    ]
+    ],
+    add: (store, product) => {
+      const cartItem = { ...product, cartItemId: Date.now() };
+      store.cartItems.push(cartItem);
+      store.products = store.products.map(p => {
+        if (p.id === product.id) {
+          p.stock--;
+        }
+        return p;
+      });
+    },
+    remove: (store, product) => {
+      store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+      store.products = store.products.map(p => {
+        if (p.id === product.id) {
+          p.stock++;
+        }
+        return p;
+      });
+    }
   });
 
-  cartStore.register('add', (store, product) => {
-    const cartItem = { ...product, cartItemId: Date.now() };
-    store.cartItems.push(cartItem);
-    store.products = store.products.map(p => {
-      if (p.id === product.id) {
-        p.stock--;
-      }
-      return p;
-    });
-  });
-  cartStore.register('remove', (store, product) => {
-    store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-    store.products = store.products.map(p => {
-      if (p.id === product.id) {
-        p.stock++;
-      }
-      return p;
-    });
-  });
+
+  // Define a middleware function
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+  };
+
+  // Use the middleware function with the initialState
+  CartStore.use(loggerMiddleware);
 
   class ProductListElement extends ReactiveElement {
-    store = cartStore;
-    cartItems = this.subscribe(this.store, 'cartItems');
-    products = this.subscribe(this.store, 'products');
+    cartItems = this.connect(CartStore, 'cartItems');
+    products = this.connect(CartStore, 'products');
 
     constructor() {
       super();
     }
 
     addToCart(product) {
-      this.store.dispatch('add', product);
+      CartStore.add(product);
     }
 
     isProductInCart(product) {
@@ -91,14 +98,10 @@
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
-    store = cartStore;
-    cartItems = this.subscribe(this.store, 'cartItems');
+    cartItems = this.connect(CartStore, 'cartItems');
 
     constructor() {
       super();
-      this.define({
-        computed: ['cartValue']
-      });
     }
 
     get cartValue() {
@@ -106,7 +109,7 @@
     }
 
     removeFromCart(product) {
-      this.store.dispatch('remove', product);
+      CartStore.remove(product);
     }
 
     template() {

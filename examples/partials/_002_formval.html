@@ -16,9 +16,9 @@
 
     constructor() {
       super();
-      this.define({
-        observables: ['email', 'password', 'emailError', 'passwordError'],
-      });
+      this.setup({
+        observables: ['email', 'password', 'emailError', 'passwordError']
+      })
     }
 
     validateEmail() {

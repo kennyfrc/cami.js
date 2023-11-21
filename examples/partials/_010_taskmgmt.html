@@ -6,7 +6,7 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class TaskManagerElement extends ReactiveElement {
     tasks = [];
@@ -14,7 +14,7 @@
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['tasks', 'filter'],
       });
     }
