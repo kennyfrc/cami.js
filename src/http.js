@@ -151,4 +151,33 @@ http.delete = (url, config = {}) => {
   return http(config);
 };
 
+/**
+ * @function http.sse
+ * @param {string} url - The URL to establish a Server-Sent Events connection
+ * @param {Object} [config={}] - Optional configuration object
+ * @returns {Object} - Returns an object with methods to register event handlers, handle errors, and close the connection
+ * @example
+ * // Establish a SSE connection
+ * const source = http.sse('https://example.com/stream')
+ *   .on('message', event => console.log(event.data))
+ *   .catch(error => console.error(error));
+ */
+http.sse = (url, config = {}) => {
+  const source = new EventSource(url);
+
+  return {
+    on: (event, handler) => {
+      source.addEventListener(event, handler);
+      return this;
+    },
+    catch: (handler) => {
+      source.onerror = handler;
+      return this;
+    },
+    close: () => {
+      source.close();
+    }
+  };
+};
+
 export { http };
