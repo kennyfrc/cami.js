@@ -77,6 +77,10 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   _handleObjectOrArray(context, key, observable, isAttribute = false) {
+    if (!(observable instanceof ObservableState)) {
+      throw new TypeError('Expected observable to be an instance of ObservableState');
+    }
+
     const proxy = this._observableProxy(observable);
     Object.defineProperty(context, key, {
       get: () => proxy,
@@ -99,6 +103,10 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   _handleNonObject(context, key, observable, isAttribute = false) {
+    if (!(observable instanceof ObservableState)) {
+      throw new TypeError('Expected observable to be an instance of ObservableState');
+    }
+
     Object.defineProperty(context, key, {
       get: () => observable.value,
       set: newValue => {
@@ -117,6 +125,10 @@ class ReactiveElement extends HTMLElement {
    * @returns {Proxy} The created proxy
    */
   _observableProxy(observable) {
+    if (!(observable instanceof ObservableState)) {
+      throw new TypeError('Expected observable to be an instance of ObservableState');
+    }
+
     return new Proxy(observable, {
       get: (target, property) => {
         // If the property is a function, bind it to the target
@@ -420,6 +432,10 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   registerObservables(observableState) {
+    if (!(observableState instanceof ObservableState)) {
+      throw new TypeError('Expected observableState to be an instance of ObservableState');
+    }
+
     this._unsubscribers.set(observableState, () => observableState.dispose());
   }
 
@@ -454,6 +470,10 @@ class ReactiveElement extends HTMLElement {
    * @returns {Observable|Proxy} The observable or a proxy for the observable
    */
   connect(store, key) {
+    if (!(store instanceof ObservableStore)) {
+      throw new TypeError('Expected store to be an instance of ObservableStore');
+    }
+
     const observable = this.observable(store.state[key], key);
     const unsubscribe = store.subscribe(newState => {
       observable.update(() => newState[key]);
