@@ -291,10 +291,10 @@ class ReactiveElement extends HTMLElement {
    * @returns {Proxy} A proxy that contains the state of the query
    */
   query({ queryKey, queryFn, staleTime = 0, refetchOnWindowFocus = true, refetchOnMount = true, refetchOnReconnect = true, refetchInterval = null, gcTime = 1000 * 60 * 5, retry = 3, retryDelay = (attempt) => Math.pow(2, attempt) * 1000 }) {
-    // Create an observable for the query state
     const queryState = this.observable({
       data: null,
-      isLoading: true,
+      status: 'pending',
+      fetchStatus: 'idle',
       error: null,
       lastUpdated: QueryCache.has(queryKey) ? QueryCache.get(queryKey).lastUpdated : null
     }, queryKey.join(':'));
@@ -310,23 +310,30 @@ class ReactiveElement extends HTMLElement {
       if (cacheEntry && (now - cacheEntry.lastUpdated) < staleTime) {
         queryState.update(state => {
           state.data = cacheEntry.data;
-          state.isLoading = false;
+          state.status = 'success';
+          state.fetchStatus = 'idle';
         });
       } else {
         try {
+          queryState.update(state => {
+            state.status = 'pending';
+            state.fetchStatus = 'fetching';
+          });
           const data = await queryFn();
           QueryCache.set(queryKey, { data, lastUpdated: now });
           queryState.update(state => {
             state.data = data;
-            state.isLoading = false;
+            state.status = 'success';
+            state.fetchStatus = 'idle';
           });
         } catch (error) {
           if (attempt < retry) {
             setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
           } else {
             queryState.update(state => {
-              state.error = error;
-              state.isLoading = false;
+              state.error = { message: error.message };
+              state.status = 'error';
+              state.fetchStatus = 'idle';
             });
           }
         }
@@ -364,6 +371,107 @@ class ReactiveElement extends HTMLElement {
     this._unsubscribers.set(`gc:${queryKey.join(':')}`, () => clearTimeout(gcTimeout));
 
     return queryProxy;
+  }
+
+  /**
+   * @method
+   * @description Performs a JSON fetch query and returns an observable proxy. This method is a wrapper around the query method, specifically for JSON fetch requests.
+   * @param {string} url - The URL to fetch data from
+   * @param {Object} options - The options for the query
+   * @returns {Proxy} A proxy that contains the state of the query
+   */
+  jsonQuery(url, options = {}) {
+    const urlObject = new URL(url);
+    const queryKey = [urlObject.pathname];
+
+    return this.query({
+      ...options,
+      queryKey,
+      queryFn: () => fetch(url).then(response => response.json())
+    });
+  }
+
+
+  /**
+   * @method
+   * @description Performs a mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations
+   * @param {Object} options - The options for the mutation
+   * @param {Function} options.mutationFn - The function to perform the mutation
+   * @param {Function} [options.onMutate] - The function to be called before the mutation is performed
+   * @param {Function} [options.onError] - The function to be called if the mutation encounters an error
+   * @param {Function} [options.onSuccess] - The function to be called if the mutation is successful
+   * @param {Function} [options.onSettled] - The function to be called after the mutation has either succeeded or failed
+   * @returns {Proxy} A proxy that contains the state of the mutation
+   */
+  mutation({ mutationFn, onMutate, onError, onSuccess, onSettled }) {
+    const mutationState = this.observable({
+      data: null,
+      status: 'idle',
+      error: null,
+    });
+
+    const mutationProxy = this._observableProxy(mutationState);
+
+    const performMutation = async (variables) => {
+      let context;
+      if (onMutate) {
+        context = onMutate(variables);
+      }
+      mutationState.update(state => {
+        state.status = 'pending';
+        state.error = null;
+      });
+      try {
+        const data = await mutationFn(variables);
+        mutationState.update(state => {
+          state.data = data;
+          state.status = 'success';
+        });
+        if (onSuccess) {
+          onSuccess(data, variables, context);
+        }
+      } catch (error) {
+        mutationState.update(state => {
+          state.error = { message: error.message };
+          state.status = 'error';
+        });
+        if (onError) {
+          onError(error, variables, context);
+        }
+      } finally {
+        if (onSettled) {
+          onSettled(mutationState.get().data, mutationState.get().error, variables, context);
+        }
+      }
+    };
+
+    mutationProxy.mutate = performMutation;
+
+    return mutationProxy;
+  }
+
+  /**
+   * @method
+   * @description Performs a JSON mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations
+   * @param {string} url - The URL to send the mutation to
+   * @param {Object} payload - The payload to send with the mutation
+   * @param {Object} options - The options for the mutation
+   * @param {string} options.method - The HTTP method to use for the mutation (default: 'POST')
+   * @returns {Proxy} A proxy that contains the state of the mutation
+   */
+  jsonMutation(url, payload, { method = 'POST', ...options } = {}) {
+    const mutationFn = () => fetch(url, {
+      method,
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8'
+      }
+    }).then(response => response.json());
+
+    return this.mutation({
+      ...options,
+      mutationFn
+    });
   }
 
   /**
