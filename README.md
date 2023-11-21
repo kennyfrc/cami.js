@@ -4,7 +4,7 @@
 
 Current version: 0.2.0. Follows [semver](https://semver.org/).
 
-Bundle Size: 11kb minified & gzipped.
+Bundle Size: 12kb minified & gzipped.
 
 A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
 
