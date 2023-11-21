@@ -16,6 +16,7 @@ import { ObservableState, computed, effect } from './observables/observable-stat
 import { ObservableStream } from './observables/observable-stream.js';
 import { ObservableElement } from './observables/observable-element.js';
 import { camiConfig } from './config.js';
+import { http } from './http.js';
 
 
 const QueryCache = new Map();
@@ -375,25 +376,6 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @description Performs a JSON fetch query and returns an observable proxy. This method is a wrapper around the query method, specifically for JSON fetch requests.
-   * @param {string} url - The URL to fetch data from
-   * @param {Object} options - The options for the query
-   * @returns {Proxy} A proxy that contains the state of the query
-   */
-  jsonQuery(url, options = {}) {
-    const urlObject = new URL(url);
-    const queryKey = [urlObject.pathname];
-
-    return this.query({
-      ...options,
-      queryKey,
-      queryFn: () => fetch(url).then(response => response.json())
-    });
-  }
-
-
-  /**
-   * @method
    * @description Performs a mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations
    * @param {Object} options - The options for the mutation
    * @param {Function} options.mutationFn - The function to perform the mutation
@@ -448,30 +430,6 @@ class ReactiveElement extends HTMLElement {
     mutationProxy.mutate = performMutation;
 
     return mutationProxy;
-  }
-
-  /**
-   * @method
-   * @description Performs a JSON mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations
-   * @param {string} url - The URL to send the mutation to
-   * @param {Object} payload - The payload to send with the mutation
-   * @param {Object} options - The options for the mutation
-   * @param {string} options.method - The HTTP method to use for the mutation (default: 'POST')
-   * @returns {Proxy} A proxy that contains the state of the mutation
-   */
-  jsonMutation(url, payload, { method = 'POST', ...options } = {}) {
-    const mutationFn = () => fetch(url, {
-      method,
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-type': 'application/json; charset=UTF-8'
-      }
-    }).then(response => response.json());
-
-    return this.mutation({
-      ...options,
-      mutationFn
-    });
   }
 
   /**
@@ -708,4 +666,4 @@ function config(newConfig) {
  * @exports Observable
  * @exports ObservableState
  */
-export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, config, camiConfig };
+export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, config, camiConfig, http };

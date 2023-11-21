@@ -15,13 +15,20 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement, http } = cami;
 
   class BlogComponent extends ReactiveElement {
-    posts = this.jsonQuery("https://jsonplaceholder.typicode.com/posts")
+    posts = this.query({
+      queryKey: ["posts"],
+      queryFn: () => {
+        return http.get("https://jsonplaceholder.typicode.com/posts")
+      }
+    })
 
-    addPost = this.jsonMutation("https://jsonplaceholder.typicode.com/posts", {
-      method: "POST"
+    addPost = this.mutation({
+      mutationFn: (task) => {
+        return http.post("https://jsonplaceholder.typicode.com/posts", task)
+      }
     })
 
     constructor() {
