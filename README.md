@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.1.2. Follows [semver](https://semver.org/).
+Current version: 0.2.0. Follows [semver](https://semver.org/).
 
 Bundle Size: 11kb minified & gzipped.
 
@@ -80,7 +80,13 @@ When you mutate the value of an observable, it will automatically trigger a re-r
 Let's illustrate these three concepts with an example. Here's a simple counter component:
 
 ```html
-<counter-element></counter-element>
+<article>
+  <h1>Counter</h1>
+  <counter-component
+  ></counter-component>
+</article>
+<!-- <script src="./build/cami.cdn.js"></script> -->
+<!-- CDN version below -->
 <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement } = cami;
@@ -89,7 +95,7 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['count'],
       })
     }
@@ -105,7 +111,6 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 
   customElements.define('counter-component', CounterElement);
 </script>
-
 ```
 
 In this example, `CounterElement` is a reactive web component that maintains an internal state (`count`) and updates its view whenever the state changes.
@@ -114,7 +119,7 @@ In this example, `CounterElement` is a reactive web component that maintains an 
 
 **Creating an Observable:**
 
-In the context of a `ReactiveElement`, you can create an observable using the `this.define()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
+In the context of a `ReactiveElement`, you can create an observable using the `this.setup()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
 
 ```javascript
 // ...
@@ -122,7 +127,7 @@ count = 0
 
 constructor() {
   super();
-  this.define({
+  this.setup({
     observables: ['count'],
   })
 }
@@ -162,7 +167,7 @@ user = {
 
 constructor() {
   super();
-  this.define({
+  this.setup({
     observables: ['user'],
   })
 }
@@ -181,7 +186,7 @@ playlist = ['Song 1', 'Song 2', 'Song 3'];
 
 constructor() {
   super();
-  this.define({
+  this.setup({
     observables: ['playlist'],
   })
 }
@@ -233,7 +238,7 @@ count = 0
 
 constructor() {
   super();
-  this.define({
+  this.setup({
     observables: ['count'],
     computed: ['countSquared'],
   })
@@ -269,12 +274,11 @@ todos = []
 
 constructor() {
   super();
-  this.define({
-    attributes: [{
-        name: 'todos',
-        parseFn: (v) => JSON.parse(v).data
-      }
-    ]
+  this.setup({
+    observables: ['todos'],
+    attributes: {
+      todos: (v) => JSON.parse(v).data
+    }
   });
 }
 ```
@@ -292,7 +296,7 @@ posts = {}
 
 constructor() {
   super();
-  this.define({
+  this.setup({
     observables: ['posts'],
   });
 }
@@ -315,21 +319,78 @@ The `cami.store` function is a core part of Cami.js. It creates a new store with
 
 This concept is particularly useful in scenarios where multiple components need to share and manipulate the same state. A classic example of this is a shopping cart in an e-commerce application, where various components like product listing, cart summary, and checkout need access to the same cart state.
 
-The store follows a flavor of the Flux architecture, which promotes unidirectional data flow. The cycle goes as follows: dispatch an action -> update the store -> reflect changes in the view -> dispatch another action. In addition, as we adhere to many of Redux's principles, our store is compatible with the Redux DevTools Chrome extension, which allows for time-travel debugging.
+The store follows a flavor of the Flux architecture, which promotes unidirectional data flow. The cycle goes as follows: call a function -> update the store -> reflect changes in the view -> call another function. In addition, as we adhere to many of Redux's principles, our store is compatible with the Redux DevTools Chrome extension, which allows for time-travel debugging.
 
 **Parameters:**
 
 - `initialState` (Object): The initial state of the store. This is the starting point of your application state and can be any valid JavaScript object.
 
-**Returns:**
+**Example:**
 
-A store object with the following methods:
+```javascript
+const CartStore = cami.store({
+  cartItems: [],
+  products: [
+    { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
+    { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
+    { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
+  ],
+  add: (store, product) => {
+    const cartItem = { ...product, cartItemId: Date.now() };
+    store.cartItems.push(cartItem);
+    store.products = store.products.map(p => {
+      if (p.id === product.id) {
+        p.stock--;
+      }
+      return p;
+    });
+  },
+  remove: (store, product) => {
+    store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+    store.products = store.products.map(p => {
+      if (p.id === product.id) {
+        p.stock++;
+      }
+      return p;
+    });
+  }
+});
 
-- `state`: The current state of the store. It represents the current snapshot of your application state.
-- `subscribe(stateName, listener)`: Adds a listener to the store. This listener is a function that gets called whenever the state changes. It also returns an unsubscribe function to stop listening to state changes.
-- `register(action, reducer)`: Adds a reducer to the store. A reducer is a function that knows how to update the state based on an action.
-- `dispatch(action, payload)`: Adds an action to the dispatch queue and starts processing if not already doing so. An action is a description of what happened, and the payload is the data associated with this action.
-- `use(middleware)`: Adds a middleware to the store. Middleware is a way to extend the store's capabilities and handle asynchronous actions or side effects.
+class CartElement extends ReactiveElement {
+  cartItems = this.connect(CartStore, 'cartItems');
+
+  constructor() {
+    super();
+    this.setup({
+      observables: ['cartItems'],
+      computed: ['cartValue'],
+    })
+  }
+
+  get cartValue() {
+    return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+  }
+
+  removeFromCart(product) {
+    CartStore.remove(product);
+  }
+
+  template() {
+    return html`
+      <p>Cart value: ${this.cartValue}</p>
+      <ul>
+        ${this.cartItems.map(item => html`
+          <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
+        `)}
+      </ul>
+    `;
+  }
+}
+
+customElements.define('cart-component', CartElement);
+```
+
+In this example, `CartStore` is a store that holds the state of a shopping cart. It has two methods, `add` and `remove`, which can be used to add and remove items from the cart. The `CartElement` is a custom element that connects to the `CartStore` and updates its view whenever the `cartItems` state changes. It also provides a method `removeFromCart` that removes an item from the cart when a button is clicked.
 
 ### `html`
 
@@ -347,16 +408,10 @@ html`<div class=${this.isActive ? 'active' : 'inactive'}></div>`
 ```
 In this example, the class of the div is dynamically set based on the `isActive` property of the component.
 
-3. **Composability**: It supports composability, which means you can easily include one template inside another. For example:
-```javascript
-html`${this.headerTemplate()}<div>${this.contentTemplate()}</div>`
-```
-In this example, `headerTemplate` and `contentTemplate` are methods that return other templates, which are included in the main template.
-
-4. **Caching**: It caches templates, which means that if you render the same template multiple times, it will only update the parts of the DOM that have changed. This makes rendering more efficient.
+3. **Caching**: It caches templates, which means that if you render the same template multiple times, it will only update the parts of the DOM that have changed. This makes rendering more efficient.
 
 
-5. **Expressions**: It allows for the use of JavaScript expressions inside your templates, which means you can include complex logic in your templates. For example:
+4. **Expressions**: It allows for the use of JavaScript expressions inside your templates, which means you can include complex logic in your templates. For example:
 ```javascript
 html`<div>${this.items.length > 0 ? this.renderItems() : 'No items'}</div>`
 ```
@@ -391,13 +446,14 @@ They are also listed below:
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement } = cami;
+
   class CounterElement extends ReactiveElement {
     count = 0
 
     constructor() {
       super();
-      this.define({
-        observables: ['count'],
+      this.setup({
+        observables: ['count']
       })
     }
 
@@ -435,9 +491,9 @@ They are also listed below:
 
     constructor() {
       super();
-      this.define({
-        observables: ['email', 'password', 'emailError', 'passwordError'],
-      });
+      this.setup({
+        observables: ['email', 'password', 'emailError', 'passwordError']
+      })
     }
 
     validateEmail() {
@@ -490,38 +546,38 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
-  // Step 1: Define the initial state of our store
-  const todoStore = cami.store({
+  const { html, ReactiveElement } = cami;
+
+  // Step 1: Define the initial state of our store and the actions
+  const TodoStore = cami.store({
     todos: [],
-  });
-
-  // Step 2: Register reducers for adding and removing todo items
-  todoStore.register('add', (store, payload) => {
-    store.todos.push(payload);
-  });
-
-  todoStore.register('delete', (store, payload) => {
-    const index = store.todos.indexOf(payload);
-    if (index > -1) {
-      store.todos.splice(index, 1);
+    add: (store, todo) => {
+      store.todos.push(todo);
+    },
+    delete: (store, todo) => {
+      const index = store.todos.indexOf(todo);
+      if (index > -1) {
+        store.todos.splice(index, 1);
+      }
     }
   });
 
-  const loggingMiddleware = ({ getState, dispatch }) => next => (action, payload) => {
-    console.log('Before dispatching:', getState());
-    const result = next(action, payload);
-    console.log('After dispatching:', getState());
-    return result;
+  // Define a middleware function
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
   };
 
-  todoStore.use(loggingMiddleware);
+  // Use the middleware function with the initialState
+  TodoStore.use(loggerMiddleware);
 
   class TodoListElement extends ReactiveElement {
-    todos = this.subscribe(todoStore, 'todos');
+    todos = this.connect(TodoStore, 'todos');
 
     constructor() {
       super();
+      this.setup({
+        observables: ['todos']
+      })
     }
 
     template() {
@@ -529,14 +585,14 @@ They are also listed below:
         <input id="newTodo" type="text" />
         <button @click=${() => {
           const newTodo = document.getElementById('newTodo').value;
-          this.dispatch("add", newTodo);
+          TodoStore.add(newTodo);
           document.getElementById('newTodo').value = '';
         }}>Add</button>
         <ul>
           ${this.todos.map(todo => html`
             <li>
               ${todo}
-              <button @click=${() => this.dispatch("delete", todo)}>Delete</button>
+              <button @click=${() => TodoStore.delete(todo)}>Delete</button>
             </li>
           `)}
         </ul>
@@ -563,48 +619,55 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
-  const cartStore = cami.store({
+  const CartStore = cami.store({
     cartItems: [],
     products: [
       { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
       { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
       { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
-    ]
+    ],
+    add: (store, product) => {
+      const cartItem = { ...product, cartItemId: Date.now() };
+      store.cartItems.push(cartItem);
+      store.products = store.products.map(p => {
+        if (p.id === product.id) {
+          p.stock--;
+        }
+        return p;
+      });
+    },
+    remove: (store, product) => {
+      store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+      store.products = store.products.map(p => {
+        if (p.id === product.id) {
+          p.stock++;
+        }
+        return p;
+      });
+    }
   });
 
-  cartStore.register('add', (store, product) => {
-    const cartItem = { ...product, cartItemId: Date.now() };
-    store.cartItems.push(cartItem);
-    store.products = store.products.map(p => {
-      if (p.id === product.id) {
-        p.stock--;
-      }
-      return p;
-    });
-  });
-  cartStore.register('remove', (store, product) => {
-    store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-    store.products = store.products.map(p => {
-      if (p.id === product.id) {
-        p.stock++;
-      }
-      return p;
-    });
-  });
+
+  // Define a middleware function
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+  };
+
+  // Use the middleware function with the initialState
+  CartStore.use(loggerMiddleware);
 
   class ProductListElement extends ReactiveElement {
-    store = cartStore;
-    cartItems = this.subscribe(this.store, 'cartItems');
-    products = this.subscribe(this.store, 'products');
+    cartItems = this.connect(CartStore, 'cartItems');
+    products = this.connect(CartStore, 'products');
 
     constructor() {
       super();
     }
 
     addToCart(product) {
-      this.store.dispatch('add', product);
+      CartStore.add(product);
     }
 
     isProductInCart(product) {
@@ -634,14 +697,10 @@ They are also listed below:
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
-    store = cartStore;
-    cartItems = this.subscribe(this.store, 'cartItems');
+    cartItems = this.connect(CartStore, 'cartItems');
 
     constructor() {
       super();
-      this.define({
-        computed: ['cartValue']
-      });
     }
 
     get cartValue() {
@@ -649,7 +708,7 @@ They are also listed below:
     }
 
     removeFromCart(product) {
-      this.store.dispatch('remove', product);
+      CartStore.remove(product);
     }
 
     template() {
@@ -678,7 +737,7 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
     user = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
@@ -686,8 +745,8 @@ They are also listed below:
     constructor() {
       super();
       this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
-      this.define({
-        observables: ['user'],
+      this.setup({
+        observables: ['user']
       });
       this.user.assign(this.initialUser);
     }
@@ -735,7 +794,8 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
+
   class NestedObservableElement extends ReactiveElement {
     user = {
       name: 'John',
@@ -754,8 +814,8 @@ They are also listed below:
 
     constructor() {
       super();
-      this.define({
-        observables: ['user'],
+      this.setup({
+        observables: ['user']
       });
     }
 
@@ -838,7 +898,8 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
+
   // Step 1: Define the initial state of our store
   const userStore = cami.store({
     users: [
@@ -869,32 +930,29 @@ They are also listed below:
         }
       },
     ],
-  });
-
-  // Step 2: Register a reducer for updating a user's status
-  userStore.register('updateStatus', (store, payload) => {
-    const user = store.users.find(user => user.id === payload.id);
-    if (user) {
-      user.status = payload.status;
-    }
-  });
-  userStore.register('updateStreet', (store, payload) => {
-    const user = store.users.find(user => user.id === payload.id);
-    if (user) {
-      user.address.street = payload.street;
-    }
-  });
-  userStore.register('updateLat', (store, payload) => {
-    const user = store.users.find(user => user.id === payload.id);
-    if (user) {
-      user.address.coordinates.lat = payload.lat;
-    }
+    updateStatus: (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.status = payload.status;
+      }
+    },
+    updateStreet: (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.address.street = payload.street;
+      }
+    },
+    updateLat: (store, payload) => {
+      const user = store.users.find(user => user.id === payload.id);
+      if (user) {
+        user.address.coordinates.lat = payload.lat;
+      }
+    },
   });
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
-    store = userStore;
-    users = this.subscribe(this.store, 'users');
+    users = this.connect(userStore, 'users');
 
     constructor() {
       super();
@@ -907,10 +965,10 @@ They are also listed below:
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}
-              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Active" })}>Activate</button>
-              <button @click=${() => this.store.dispatch("updateStatus", { id: user.id, status: "Inactive" })}>Deactivate</button>
-              <button @click=${() => this.store.dispatch("updateStreet", { id: user.id, street: "999 Main St" })}>Change Street</button>
-              <button @click=${() => this.store.dispatch("updateLat", { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+              <button @click=${() => userStore.updateStatus({ id: user.id, status: "Active" })}>Activate</button>
+              <button @click=${() => userStore.updateStatus({ id: user.id, status: "Inactive" })}>Deactivate</button>
+              <button @click=${() => userStore.updateStreet({ id: user.id, street: "999 Main St" })}>Change Street</button>
+              <button @click=${() => userStore.updateLat({ id: user.id, lat: "99.9999" })}>Change Latitude</button>
             </li>
           `)}
         </ul>
@@ -932,7 +990,8 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement, store } = cami;
+  const { html, ReactiveElement } = cami;
+
   class TeamManagementElement extends ReactiveElement {
     teams = [
       { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
@@ -942,7 +1001,7 @@ They are also listed below:
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['teams', 'editing'],
       });
     }
@@ -1021,19 +1080,18 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
     todos = []
 
     constructor() {
       super();
-      this.define({
-        attributes: [{
-            name: 'todos',
-            parseFn: (v) => JSON.parse(v).data
-          }
-        ]
+      this.setup({
+        observables: ['todos'],
+        attributes: {
+          todos: (v) => JSON.parse(v).data
+        }
       });
     }
 
@@ -1080,7 +1138,7 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class TaskManagerElement extends ReactiveElement {
     tasks = [];
@@ -1088,7 +1146,7 @@ They are also listed below:
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['tasks', 'filter'],
       });
     }
@@ -1159,16 +1217,16 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class PlaylistElement extends ReactiveElement {
     playlist = [];
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['playlist'],
-      });
+      })
     }
 
     addSong(song) {
@@ -1237,14 +1295,14 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
- const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement } = cami;
 
   class BlogComponent extends ReactiveElement {
     posts = {}
 
     constructor() {
       super();
-      this.define({
+      this.setup({
         observables: ['posts'],
       });
     }
@@ -1282,7 +1340,6 @@ They are also listed below:
   }
 
   customElements.define('blog-component', BlogComponent);
-
 </script>
 ```
 
@@ -1318,6 +1375,9 @@ TBD
 
 - Immer
 - Redux
+- Zustand
+- MobX
+- lit-html
 
 ## Why "Cami"?
 
