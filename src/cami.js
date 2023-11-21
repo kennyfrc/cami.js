@@ -15,6 +15,7 @@ import { Observable } from './observables/observable.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
 import { ObservableElement } from './observables/observable-element.js';
+import { camiConfig } from './config.js';
 
 
 const QueryCache = new Map();
@@ -37,8 +38,6 @@ class ReactiveElement extends HTMLElement {
     super();
     /** @type {Map<string, Function>} */
     this._unsubscribers = new Map();
-    /** @type {Object} */
-    this.store = null;
     /** @type {Array<Function>} */
     this._effects = [];
     /** @type {boolean} */
@@ -157,9 +156,50 @@ class ReactiveElement extends HTMLElement {
    * @param {Object} config - The configuration object
    * @returns {void}
    */
-  define(config) {
+  setup(config) {
+    if (config.infer === true) {
+      config.infer = ['observables', 'computed'];
+    }
+
+    if (config.infer) {
+      config.infer.forEach(type => {
+        if (type === 'observables') {
+          Object.keys(this).forEach(key => {
+            if (typeof this[key] !== 'function' && !key.startsWith('_')) {
+              if (this[key] instanceof Observable) {
+                return;
+              } else {
+                const observable = this.observable(this[key], key);
+                if (this._isObjectOrArray(observable.value)) {
+                  this._handleObjectOrArray(this, key, observable);
+                } else {
+                  this._handleNonObject(this, key, observable);
+                }
+              }
+            }
+          });
+        } else if (type === 'computed') {
+          Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+            .filter(key => {
+              const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
+              return descriptor && typeof descriptor.get === 'function';
+            })
+            .forEach(key => {
+              const descriptor = Object.getOwnPropertyDescriptor(this, key);
+              if (descriptor && typeof descriptor.get === 'function') {
+                Object.defineProperty(this, key, {
+                  get: () => this.computed(descriptor.get).value
+                });
+              }
+            });
+        }
+      });
+    }
     if (config.observables) {
       config.observables.forEach(key => {
+        if (this[key] instanceof Observable) {
+          return;
+        }
         const observable = this.observable(this[key], key);
         if (this._isObjectOrArray(observable.value)) {
           this._handleObjectOrArray(this, key, observable);
@@ -190,21 +230,15 @@ class ReactiveElement extends HTMLElement {
       });
     }
     if (config.attributes) {
-      config.attributes.forEach(attr => {
-        if (typeof attr === 'string') {
-          const observableAttr = this.observableAttr(attr);
-          if (this._isObjectOrArray(observableAttr.value)) {
-            this._handleObjectOrArray(this, attr, observableAttr, true);
-          } else {
-            this._handleNonObject(this, attr, observableAttr, true);
-          }
-        } else if (typeof attr === 'object' && attr.name && typeof attr.parseFn === 'function') {
-          const observableAttr = this.observableAttr(attr.name, attr.parseFn);
-          if (this._isObjectOrArray(observableAttr.value)) {
-            this._handleObjectOrArray(this, attr.name, observableAttr, true);
-          } else {
-            this._handleNonObject(this, attr.name, observableAttr, true);
-          }
+      Object.entries(config.attributes).forEach(([attr, parseFn]) => {
+        const observableAttr = typeof parseFn === 'function'
+          ? this.observableAttr(attr, parseFn)
+          : this.observableAttr(attr);
+
+        if (this._isObjectOrArray(observableAttr.value)) {
+          this._handleObjectOrArray(this, attr, observableAttr, true);
+        } else {
+          this._handleNonObject(this, attr, observableAttr, true);
         }
       });
     }
@@ -419,7 +453,7 @@ class ReactiveElement extends HTMLElement {
    * @param {string} key - The key in the store to create an observable for
    * @returns {Observable|Proxy} The observable or a proxy for the observable
    */
-  subscribe(store, key) {
+  connect(store, key) {
     const observable = this.observable(store.state[key], key);
     const unsubscribe = store.subscribe(newState => {
       observable.update(() => newState[key]);
@@ -525,16 +559,6 @@ function define(elementName, ElementClass) {
 function store(initialState) {
   return new ObservableStore(initialState);
 }
-
-/**
- * @constant
- * @type {Object}
- * @property {boolean} events - A flag to control event firing
- * @description This is the default configuration for Cami.js
- */
-const camiConfig = {
-  events: false
-};
 
 /**
  * @function

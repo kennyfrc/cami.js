@@ -37,6 +37,33 @@ class ObservableStore extends Observable {
     this.reducers = {};
     this.middlewares = [];
     this.devTools = this.connectToDevTools();
+
+    Object.keys(initialState).forEach(key => {
+      if (typeof initialState[key] === 'function') {
+        this.register(key, initialState[key]);
+      } else {
+        this.state[key] = initialState[key];
+      }
+    });
+  }
+
+  /**
+   * Applies all registered middlewares to the given action and arguments.
+   *
+   * @param {string} action - The action type
+   * @param {...any} args - The arguments to pass to the action
+   * @returns {void}
+   */
+  _applyMiddleware(action, ...args) {
+    const context = {
+      state: this.state,
+      action,
+      payload: args,
+    };
+
+    for (const middleware of this.middlewares) {
+      middleware(context);
+    }
   }
 
   /**
@@ -71,6 +98,10 @@ class ObservableStore extends Observable {
       throw new Error(`[Cami.js] Action type ${action} is already registered.`);
     }
     this.reducers[action] = reducer;
+
+    this[action] = (...args) => {
+      this.dispatch(action, ...args);
+    };
   }
 
   /**
@@ -94,18 +125,10 @@ class ObservableStore extends Observable {
       return;
     }
 
-    const context = {
-      state: this.state,
-      action,
-      payload,
-    };
-
-    for (const middleware of this.middlewares) {
-      middleware(context);
-    }
+    this._applyMiddleware(action, payload);
 
     this.state = produce(this.state, draft => {
-      reducer(draft, context.payload);
+      reducer(draft, payload);
     });
 
     this._observers.forEach(observer => observer.next(this.state));

@@ -1,7 +1,7 @@
 import { Observable } from './observable.js';
 import { ObservableStream } from './observable-stream.js';
 import { produce } from 'immer';
-import { camiConfig } from '../cami.js';
+import { camiConfig } from '../config.js';
 
 /**
  * @type {Object}
