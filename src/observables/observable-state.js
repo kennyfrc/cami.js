@@ -1,7 +1,8 @@
 import { Observable } from './observable.js';
 import { ObservableStream } from './observable-stream.js';
 import { produce } from 'immer';
-import { camiConfig } from '../config.js';
+import { _config } from '../config.js';
+import { _trace } from '../trace.js';
 
 /**
  * @type {Object}
@@ -250,13 +251,13 @@ class ObservableState extends Observable {
    */
   update(updater) {
     this._pendingUpdates.push(updater);
+    this.scheduleUpdate();
+  }
+
+  scheduleUpdate() {
     if (!this._updateScheduled) {
       this._updateScheduled = true;
-      if (typeof window !== 'undefined') {
-        requestAnimationFrame(this._applyUpdates.bind(this));
-      } else {
-        this._applyUpdates();
-      }
+      this._applyUpdates();
     }
   }
 
@@ -294,7 +295,7 @@ class ObservableState extends Observable {
     if (oldValue !== this._value) {
       this.notifyObservers();
 
-      if (camiConfig.events && typeof window !== 'undefined') {
+      if (_config.events.isEnabled && typeof window !== 'undefined') {
         const event = new CustomEvent('cami:state:change', {
           detail: {
             name: this._name,
@@ -304,6 +305,8 @@ class ObservableState extends Observable {
         });
         window.dispatchEvent(event);
       }
+
+      _trace('cami:state:change', this._name, oldValue, this._value);
     }
     this._updateScheduled = false;
   }

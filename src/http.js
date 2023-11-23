@@ -4,33 +4,51 @@
  * MIT License
  */
 
+import { ObservableStream } from './observables/observable-stream.js';
+
+class HTTPStream extends ObservableStream {
+  _handlers = {};
+
+  toJson() {
+    return new Promise((resolve, reject) => {
+      this.subscribe({
+        next: data => {
+          try {
+            if (typeof data === 'object') {
+              resolve(data);
+            } else {
+              resolve(JSON.parse(data));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        },
+        error: error => reject(error)
+      });
+    });
+  }
+
+  on(event, handler) {
+    if (!this._handlers[event]) {
+      this._handlers[event] = [];
+    }
+    this._handlers[event].push(handler);
+    return this;
+  }
+}
+
 // Axios-like HTTP client
 /**
  * @function http
  * @param {Object|string} config - The configuration object or URL string
- * @returns {Promise} - Returns a Promise that resolves to the response data
- * @example
- * // GET request
- * http('https://jsonplaceholder.typicode.com/posts')
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
- *
- * // POST request
- * http({
- *   method: 'POST',
- *   url: 'https://jsonplaceholder.typicode.com/posts',
- *   data: { title: 'foo', body: 'bar', userId: 1 },
- *   headers: { 'Content-type': 'application/json; charset=UTF-8' }
- * })
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
- */
+ * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ **/
 const http = (config) => {
   if (typeof config === 'string') {
     return http.get(config);
   }
 
-  return new Promise((resolve, reject) => {
+  return new HTTPStream((observer) => {
     const xhr = new XMLHttpRequest();
     xhr.open(config.method || 'GET', config.url);
 
@@ -52,11 +70,17 @@ const http = (config) => {
         }
       });
       response = transformResponse(response);
-      resolve(response);
+      observer.next(response);
+      observer.complete();
     };
 
-    xhr.onerror = () => reject(xhr.statusText);
+    xhr.onerror = () => observer.error(xhr.statusText);
     xhr.send(config.data ? JSON.stringify(config.data) : null);
+
+    // Return teardown function
+    return () => {
+      xhr.abort();
+    };
   });
 };
 
@@ -64,12 +88,7 @@ const http = (config) => {
  * @function http.get
  * @param {string} url - The URL to send the GET request to
  * @param {Object} [config={}] - Optional configuration object
- * @returns {Promise} - Returns a Promise that resolves to the response data
- * @example
- * // GET request
- * http.get('https://jsonplaceholder.typicode.com/posts')
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
+ * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
  */
 http.get = (url, config = {}) => {
   config.url = url;
@@ -82,7 +101,7 @@ http.get = (url, config = {}) => {
  * @param {string} url - The URL to send the POST request to
  * @param {Object} [data={}] - The data to send in the body of the POST request
  * @param {Object} [config={}] - Optional configuration object
- * @returns {Promise} - Returns a Promise that resolves to the response data
+ * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
  * @example
  * // POST request
  * http.post('https://jsonplaceholder.typicode.com/posts', { title: 'foo', body: 'bar', userId: 1 })
@@ -101,12 +120,7 @@ http.post = (url, data = {}, config = {}) => {
  * @param {string} url - The URL to send the PUT request to
  * @param {Object} [data={}] - The data to send in the body of the PUT request
  * @param {Object} [config={}] - Optional configuration object
- * @returns {Promise} - Returns a Promise that resolves to the response data
- * @example
- * // PUT request
- * http.put('https://jsonplaceholder.typicode.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 })
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
+ * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
  */
 http.put = (url, data = {}, config = {}) => {
   config.url = url;
@@ -120,12 +134,7 @@ http.put = (url, data = {}, config = {}) => {
  * @param {string} url - The URL to send the PATCH request to
  * @param {Object} [data={}] - The data to send in the body of the PATCH request
  * @param {Object} [config={}] - Optional configuration object
- * @returns {Promise} - Returns a Promise that resolves to the response data
- * @example
- * // PATCH request
- * http.patch('https://jsonplaceholder.typicode.com/posts/1', { title: 'foo' })
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
+ * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
  */
 http.patch = (url, data = {}, config = {}) => {
   config.url = url;
@@ -138,12 +147,7 @@ http.patch = (url, data = {}, config = {}) => {
  * @function http.delete
  * @param {string} url - The URL to send the DELETE request to
  * @param {Object} [config={}] - Optional configuration object
- * @returns {Promise} - Returns a Promise that resolves to the response data
- * @example
- * // DELETE request
- * http.delete('https://jsonplaceholder.typicode.com/posts/1')
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
+ * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
  */
 http.delete = (url, config = {}) => {
   config.url = url;
@@ -155,29 +159,28 @@ http.delete = (url, config = {}) => {
  * @function http.sse
  * @param {string} url - The URL to establish a Server-Sent Events connection
  * @param {Object} [config={}] - Optional configuration object
- * @returns {Object} - Returns an object with methods to register event handlers, handle errors, and close the connection
- * @example
- * // Establish a SSE connection
- * const source = http.sse('https://example.com/stream')
- *   .on('message', event => console.log(event.data))
- *   .catch(error => console.error(error));
+ * @returns {HTTPStream} - Returns an HTTPStream with methods to register event handlers, handle errors, and close the connection
  */
 http.sse = (url, config = {}) => {
-  const source = new EventSource(url);
+  const stream = new HTTPStream((observer) => {
+    const source = new EventSource(url, config);
 
-  return {
-    on: (event, handler) => {
-      source.addEventListener(event, handler);
-      return this;
-    },
-    catch: (handler) => {
-      source.onerror = handler;
-      return this;
-    },
-    close: () => {
+    // Handle events
+    source.onmessage = (event) => {
+      if (stream._handlers[event.type]) {
+        stream._handlers[event.type].forEach(handler => handler(event));
+      }
+      observer.next(event);
+    };
+    source.onerror = (error) => observer.error(error);
+
+    // Return teardown function
+    return () => {
       source.close();
-    }
-  };
+    };
+  });
+
+  return stream;
 };
 
 export { http };

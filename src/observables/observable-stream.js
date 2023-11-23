@@ -418,7 +418,7 @@ class ObservableStream extends Observable {
    * @returns {ObservableState} A new ObservableState that represents the current value of the stream
    */
   toState(initialValue = null) {
-    const state = new ObservableState(initialValue);
+    const state = new ObservableState(initialValue, null, { name: 'ObservableStream' });
     this.subscribe({
       next: value => state.update(() => value),
       error: err => state.error(err),
@@ -494,6 +494,31 @@ class ObservableStream extends Observable {
       if (observer && typeof observer.complete === 'function') {
         observer.complete();
       }
+    });
+  }
+
+  /**
+   * @method
+   * @description Catches errors on the ObservableStream and replaces them with a new stream.
+   * @param {Function} fn - A function that receives the error and returns a new ObservableStream.
+   * @returns {ObservableStream} - Returns a new ObservableStream that replaces the original stream when an error occurs.
+   */
+  catchError(fn) {
+    return new ObservableStream(subscriber => {
+      const subscription = this.subscribe({
+        next: value => subscriber.next(value),
+        error: err => {
+          const newStream = fn(err);
+          newStream.subscribe({
+            next: value => subscriber.next(value),
+            error: err => subscriber.error(err),
+            complete: () => subscriber.complete(),
+          });
+        },
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
     });
   }
 }

@@ -15,7 +15,8 @@ import { Observable } from './observables/observable.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
 import { ObservableElement } from './observables/observable-element.js';
-import { camiConfig } from './config.js';
+import { _config } from './config.js';
+import { _trace } from './trace.js';
 import { http } from './http.js';
 
 
@@ -41,8 +42,6 @@ class ReactiveElement extends HTMLElement {
     this._unsubscribers = new Map();
     /** @type {Array<Function>} */
     this._effects = [];
-    /** @type {boolean} */
-    this._isWithinBatch = false;
 
     /**
      * @method
@@ -57,6 +56,9 @@ class ReactiveElement extends HTMLElement {
      * @returns {void}
      */
     this.effect = effect.bind(this);
+
+    this._queryFunctions = new Map();
+    this._pendingObservableUpdates = new Set();
   }
   /**
    * @method
@@ -270,7 +272,12 @@ class ReactiveElement extends HTMLElement {
       throw new Error(`[Cami.js] The type ${type} of initialValue is not allowed in observables.`);
     }
 
-    const observable = new ObservableState(initialValue, (value) => this.react.bind(this)(), { last: true, name: name });
+    const observable = new ObservableState(initialValue, (value) => {
+      this.scheduleUpdate(observable);
+    }, { last: true, name });
+
+    observable.scheduleUpdate = this.scheduleUpdate.bind(this, observable);
+
     this.registerObservables(observable);
     return observable;
   }
@@ -292,42 +299,50 @@ class ReactiveElement extends HTMLElement {
    * @returns {Proxy} A proxy that contains the state of the query
    */
   query({ queryKey, queryFn, staleTime = 0, refetchOnWindowFocus = true, refetchOnMount = true, refetchOnReconnect = true, refetchInterval = null, gcTime = 1000 * 60 * 5, retry = 3, retryDelay = (attempt) => Math.pow(2, attempt) * 1000 }) {
+    const key = Array.isArray(queryKey)
+    ? queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k).join(':')
+    : queryKey;
+    this._queryFunctions.set(key, queryFn);
+
+    _trace('query', 'Starting query with key:', key);
+
     const queryState = this.observable({
       data: null,
       status: 'pending',
       fetchStatus: 'idle',
       error: null,
-      lastUpdated: QueryCache.has(queryKey) ? QueryCache.get(queryKey).lastUpdated : null
-    }, queryKey.join(':'));
+      lastUpdated: QueryCache.has(key) ? QueryCache.get(key).lastUpdated : null
+    }, key);
 
-    // Create a proxy for the query state
     const queryProxy = this._observableProxy(queryState);
 
-    // Fetch data
     const fetchData = async (attempt = 0) => {
       const now = Date.now();
-      const cacheEntry = QueryCache.get(queryKey);
+      const cacheEntry = QueryCache.get(key);
 
       if (cacheEntry && (now - cacheEntry.lastUpdated) < staleTime) {
+        _trace('fetchData (if)', 'Using cached data for key:', key);
         queryState.update(state => {
           state.data = cacheEntry.data;
           state.status = 'success';
           state.fetchStatus = 'idle';
         });
       } else {
+        _trace('fetchData (else)', 'Fetching data for key:', key);
         try {
           queryState.update(state => {
             state.status = 'pending';
             state.fetchStatus = 'fetching';
           });
           const data = await queryFn();
-          QueryCache.set(queryKey, { data, lastUpdated: now });
+          QueryCache.set(key, { data, lastUpdated: now });
           queryState.update(state => {
             state.data = data;
             state.status = 'success';
             state.fetchStatus = 'idle';
           });
         } catch (error) {
+          _trace('fetchData (catch)', 'Fetch error for key:', key, error);
           if (attempt < retry) {
             setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
           } else {
@@ -343,33 +358,37 @@ class ReactiveElement extends HTMLElement {
 
     // Refetch data when new instances of the query mount
     if (refetchOnMount) {
+      _trace('query', 'Setting up refetch on mount for key:', key);
       fetchData();
     }
 
     // Refetch data when window is refocused
     if (refetchOnWindowFocus) {
+      _trace('query', 'Setting up refetch on window focus for key:', key);
       const refetchOnFocus = () => fetchData();
       window.addEventListener('focus', refetchOnFocus);
-      this._unsubscribers.set(`focus:${queryKey.join(':')}`, () => window.removeEventListener('focus', refetchOnFocus));
+      this._unsubscribers.set(`focus:${key}`, () => window.removeEventListener('focus', refetchOnFocus));
     }
 
     // Refetch data when network is reconnected
     if (refetchOnReconnect) {
+      _trace('query', 'Setting up refetch on reconnect for key:', key);
       window.addEventListener('online', fetchData);
-      this._unsubscribers.set(`online:${queryKey.join(':')}`, () => window.removeEventListener('online', fetchData));
+      this._unsubscribers.set(`online:${key}`, () => window.removeEventListener('online', fetchData));
     }
 
     // Refetch data at a specific interval
     if (refetchInterval) {
+      _trace('query', 'Setting up refetch interval for key:', key);
       const intervalId = setInterval(fetchData, refetchInterval);
-      this._unsubscribers.set(`interval:${queryKey.join(':')}`, () => clearInterval(intervalId));
+      this._unsubscribers.set(`interval:${key}`, () => clearInterval(intervalId));
     }
 
     // Garbage collect data after gcTime
     const gcTimeout = setTimeout(() => {
-      QueryCache.delete(queryKey);
+      QueryCache.delete(key);
     }, gcTime);
-    this._unsubscribers.set(`gc:${queryKey.join(':')}`, () => clearTimeout(gcTimeout));
+    this._unsubscribers.set(`gc:${key}`, () => clearTimeout(gcTimeout));
 
     return queryProxy;
   }
@@ -390,19 +409,29 @@ class ReactiveElement extends HTMLElement {
       data: null,
       status: 'idle',
       error: null,
-    });
+      isSettled: false
+    }, 'mutation');
 
     const mutationProxy = this._observableProxy(mutationState);
 
     const performMutation = async (variables) => {
+      _trace('mutation', 'Starting mutation for variables:', variables);
       let context;
+      // Capture the current state before the mutation
+      const previousState = mutationState.value; // Access the current state directly
+
       if (onMutate) {
-        context = onMutate(variables);
+        _trace('mutation', 'Performing optimistic update for variables:', variables);
+        // Perform any optimistic updates required and capture rollback context
+        context = onMutate(variables, previousState);
+        // Update the state optimistically
+        mutationState.update(state => {
+          state.data = context.optimisticData;
+          state.status = 'pending';
+          state.error = null;
+        });
       }
-      mutationState.update(state => {
-        state.status = 'pending';
-        state.error = null;
-      });
+
       try {
         const data = await mutationFn(variables);
         mutationState.update(state => {
@@ -412,17 +441,30 @@ class ReactiveElement extends HTMLElement {
         if (onSuccess) {
           onSuccess(data, variables, context);
         }
+        _trace('mutation', 'Mutation successful for variables:', variables, data);
       } catch (error) {
+        _trace('mutation', 'Mutation error for variables:', variables, error);
         mutationState.update(state => {
           state.error = { message: error.message };
           state.status = 'error';
+          // Rollback to previous state if onError is not provided
+          if (!onError && context && context.rollback) {
+            _trace('mutation', 'Rolling back mutation for variables:', variables);
+            context.rollback();
+          }
         });
         if (onError) {
           onError(error, variables, context);
         }
       } finally {
-        if (onSettled) {
-          onSettled(mutationState.get().data, mutationState.get().error, variables, context);
+        if (!mutationState.value.isSettled) {
+          mutationState.update(state => {
+            state.isSettled = true; // Set the flag to true
+          });
+          if (onSettled) {
+            _trace('mutation', 'Calling onSettled for variables:', variables);
+            onSettled(mutationState.value.data, mutationState.value.error, variables, context);
+          }
         }
       }
     };
@@ -430,6 +472,75 @@ class ReactiveElement extends HTMLElement {
     mutationProxy.mutate = performMutation;
 
     return mutationProxy;
+  }
+
+  /**
+   * Invalidates the queries with the given key, causing them to refetch if needed.
+   * @param {Array|string} queryKey - The key for the query to invalidate.
+   */
+  invalidateQueries(queryKey) {
+
+    // Convert the queryKey to a string if it's an array for consistency with the cache keys
+    const key = Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
+    _trace('invalidateQueries', 'Invalidating query with key:', key);
+
+    // Remove the query from the cache
+    QueryCache.delete(key);
+
+    // Trigger a refetch for the invalidated query
+    this.refetchQuery(key);
+  }
+
+  /**
+   * Refetches the data for the given query key.
+   * @param {string} key - The key for the query to refetch.
+   */
+  refetchQuery(key) {
+    _trace('refetchQuery', 'Refetching query with key:', key);
+    // Find the query function associated with the key
+    const queryFn = this._queryFunctions.get(key);
+
+    if (queryFn) {
+      _trace('refetchQuery', 'Found query function for key:', key);
+      // Snapshot the previous state before the optimistic update
+      const previousState = QueryCache.get(key) || { data: undefined, status: 'idle', error: null };
+
+      // Optimistically update the UI assuming the fetch will succeed
+      QueryCache.set(key, {
+        ...previousState,
+        status: 'pending',
+        error: null,
+      });
+
+      // Trigger the refetch
+      queryFn().then(data => {
+        // Update the QueryCache with the new data
+        QueryCache.set(key, {
+          data: data,
+          status: 'success',
+          error: null,
+          lastUpdated: Date.now(),
+        });
+        cosole.log('refetchQuery', 'Refetch successful for key:', key, data);
+      }).catch(error => {
+        // Rollback to the previous state in case of an error
+        if (previousState.data !== undefined) {
+          _trace('refetchQuery', 'Rolling back refetch for key:', key);
+          QueryCache.set(key, previousState);
+        }
+
+        // Additionally, handle the error state
+        QueryCache.set(key, {
+          ...previousState,
+          status: 'error',
+          error: error,
+        });
+      }).finally(() => {
+        // Refetch the data to ensure the UI is in sync with the server state
+        this.query({ queryKey: key, queryFn: queryFn });
+        _trace('refetchQuery', 'Refetch complete for key:', key);
+      });
+    }
   }
 
   /**
@@ -582,6 +693,21 @@ class ReactiveElement extends HTMLElement {
     this._effects.forEach(({ cleanup }) => cleanup && cleanup());
   }
 
+  _processUpdates() {
+    this._pendingObservableUpdates.forEach(observable => observable._applyUpdates());
+    this._pendingObservableUpdates.clear();
+    this._updateScheduled = false;
+    this.react();
+  }
+
+  scheduleUpdate(observable) {
+    this._pendingObservableUpdates.add(observable);
+    if (!this._updateScheduled) {
+      this._updateScheduled = true;
+      requestAnimationFrame(() => this._processUpdates());
+    }
+  }
+
   /**
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
@@ -589,11 +715,9 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   react() {
-    if (!this._isWithinBatch) {
-      const template = this.template();
-      render(template, this);
-      this._effects.forEach(({ effectFn }) => effectFn.call(this));
-    }
+    const template = this.template();
+    render(template, this);
+    this._effects.forEach(({ effectFn }) => effectFn.call(this));
   }
 
   /**
@@ -604,21 +728,6 @@ class ReactiveElement extends HTMLElement {
   template() {
     throw new Error('[Cami.js] You have to implement the method template()!');
   }
-
-
-  /**
-   * @function
-   * @param {Function} callback - The function to call in a batch update
-   * @returns {void}
-   * @description This function sets the _isWithinBatch flag, calls the callback, then resets the flag and calls react
-   * Note: only works with update() and for non-primitives such as objects and arrays
-   */
-  batch(callback) {
-    this._isWithinBatch = true;
-    Promise.resolve().then(callback).finally(() => {
-      this._isWithinBatch = false;
-    });
-  };
 }
 
 /**
@@ -647,16 +756,6 @@ function store(initialState) {
 }
 
 /**
- * @function
- * @param {Object} newConfig - The new configuration to be applied
- * @returns {void}
- * @description This function merges the provided configuration with the existing configuration
- */
-function config(newConfig) {
-  Object.assign(camiConfig, newConfig);
-}
-
-/**
  * @exports store
  * @exports html
  * @exports ReactiveElement
@@ -666,4 +765,5 @@ function config(newConfig) {
  * @exports Observable
  * @exports ObservableState
  */
-export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, config, camiConfig, http };
+const { debug, events } = _config;
+export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events };

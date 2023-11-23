@@ -1,0 +1,90 @@
+  <button id="get">Test GET</button>
+  <button id="post">Test POST</button>
+  <button id="put">Test PUT</button>
+  <button id="patch">Test PATCH</button>
+  <button id="delete">Test DELETE</button>
+  <div id="result"></div>
+  <button id="getStream">Test GET Stream</button>
+  <div id="streamResult"></div>
+  <script src="./build/cami.cdn.js"></script>
+  <script type="module">
+    const { http } = cami;
+    const resultDiv = document.getElementById('result');
+
+    document.getElementById('get').addEventListener('click', () => {
+      http.get('https://jsonplaceholder.typicode.com/posts/1').toJson()
+        .then(data => {
+          console.log('GET:', data);
+          resultDiv.textContent = 'GET: ' + JSON.stringify(data);
+        })
+        .catch(error => {
+          console.error('GET Error:', error);
+          resultDiv.textContent = 'GET Error: ' + error;
+        });
+    });
+
+    document.getElementById('post').addEventListener('click', () => {
+      http.post('https://jsonplaceholder.typicode.com/posts', { title: 'foo', body: 'bar', userId: 1 }).toJson()
+        .then(data => {
+          console.log('POST:', data);
+          resultDiv.textContent = 'POST: ' + JSON.stringify(data);
+        })
+        .catch(error => {
+          console.error('POST Error:', error);
+          resultDiv.textContent = 'POST Error: ' + error;
+        });
+    });
+
+    document.getElementById('put').addEventListener('click', () => {
+      http.put('https://jsonplaceholder.typicode.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 }).toJson()
+        .then(data => {
+          console.log('PUT:', data);
+          resultDiv.textContent = 'PUT: ' + JSON.stringify(data);
+        })
+        .catch(error => {
+          console.error('PUT Error:', error);
+          resultDiv.textContent = 'PUT Error: ' + error;
+        });
+    });
+
+    document.getElementById('patch').addEventListener('click', () => {
+      http.patch('https://jsonplaceholder.typicode.com/posts/1', { title: 'foo updated' }).toJson()
+        .then(data => {
+          console.log('PATCH:', data);
+          resultDiv.textContent = 'PATCH: ' + JSON.stringify(data);
+        })
+        .catch(error => {
+          console.error('PATCH Error:', error);
+          resultDiv.textContent = 'PATCH Error: ' + error;
+        });
+    });
+
+    document.getElementById('delete').addEventListener('click', () => {
+      http.delete('https://jsonplaceholder.typicode.com/posts/1').toJson()
+        .then(data => {
+          console.log('DELETE:', data);
+          resultDiv.textContent = 'DELETE: ' + JSON.stringify(data);
+        })
+        .catch(error => {
+          console.error('DELETE Error:', error);
+          resultDiv.textContent = 'DELETE Error: ' + error;
+        });
+    });
+
+    document.getElementById('getStream').addEventListener('click', () => {
+      const stream = http.get('https://jsonplaceholder.typicode.com/posts/1');
+
+      stream
+        .catchError(error => {
+          console.error('GET Stream Error:', error);
+          resultDiv.textContent = 'GET Stream Error: ' + error;
+
+          // return this in case you want to continue the stream
+          return http.from([/* default values here */]);
+        })
+        .onValue(data => {
+          console.log('GET Stream:', data);
+          resultDiv.textContent = 'GET Stream: ' + JSON.stringify(data);
+        })
+    });
+  </script>

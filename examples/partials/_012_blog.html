@@ -12,15 +12,47 @@
     posts = this.query({
       queryKey: ["posts"],
       queryFn: () => {
-        return http.get("https://jsonplaceholder.typicode.com/posts")
-      }
+        return http.get("https://jsonplaceholder.typicode.com/posts").toJson()
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
     })
 
     addPost = this.mutation({
-      mutationFn: (task) => {
-        return http.post("https://jsonplaceholder.typicode.com/posts", task)
+      mutationFn: (newPost) => {
+        return http.post("https://jsonplaceholder.typicode.com/posts", newPost).toJson()
+      },
+      onMutate: (newPost) => {
+        // Snapshot the previous state
+        const previousPosts = this.posts.data;
+
+        // Optimistically update to the new value
+        this.posts.update(state => {
+          state.data = [...state.data, { ...newPost, id: Date.now() }]; // Assuming Date.now() as a temporary ID
+        });
+
+        // Return the rollback function and the new post
+        return {
+          rollback: () => {
+            this.posts.update(state => {
+              state.data = previousPosts;
+            });
+          },
+          optimisticPost: newPost
+        };
+      },
+      onError: (error, newPost, context) => {
+        // Rollback to the previous state
+        if (context.rollback) {
+          context.rollback();
+        }
+      },
+      onSettled: () => {
+        // Invalidate the posts query to refetch the true state
+        if (!this.addPost.isSettled) { // Check if the mutation has not been settled
+          this.invalidateQueries(['posts']);
+        }
       }
-    })
+    });
 
     constructor() {
       super();
@@ -30,6 +62,31 @@
     }
 
     template() {
+      if (this.posts.data) {
+        console.log(`Client data has loaded`);
+        return html`
+          ${this.addPost.status === "pending" ? html`
+            <li style="opacity: 0.5;">
+              Adding new post...
+            </li>
+          ` : ''}
+
+          <button @click=${() => this.addPost.mutate({
+            title: "New Post",
+            body: "This is a new post.",
+            userId: 1
+          })}>Add Post</button>
+          <ul>
+            ${this.posts.data.slice().reverse().map(post => html`
+              <li>
+                <h2>${post.title}</h2>
+                <p>${post.body}</p>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+
       if (this.posts.status === "loading") {
         console.log(`Client is loading...`)
         return html`<div>Loading...</div>`;
@@ -48,25 +105,6 @@
       if (this.addPost.status === "error") {
         console.log(`addPost error: ${this.addPost.error.message}`);
         return html`<div>Error: ${this.addPost.error.message}</div>`;
-      }
-
-      if (this.posts.data) {
-        console.log(`Client data has loaded`);
-        return html`
-          <button @click=${() => this.addPost.mutate({
-            title: "New Post",
-            body: "This is a new post.",
-            userId: 1
-          })}>Add Post</button>
-          <ul>
-            ${this.posts.data.map(post => html`
-              <li>
-                <h2>${post.title}</h2>
-                <p>${post.body}</p>
-              </li>
-            `)}
-          </ul>
-        `;
       }
     }
   }
