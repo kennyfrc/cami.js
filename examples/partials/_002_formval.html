@@ -1,7 +1,11 @@
 <article>
-  <h1>Form Validation</h1>
+  <h1>Registration Form</h1>
   <form-component></form-component>
 </article>
+<small>
+<p>Try entering an email that is already taken, such as Sincere@april.biz</p>
+<p>Mock API courtesy of <a href="https://jsonplaceholder.typicode.com/">JSONPlaceholder</a></p>
+</small>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -9,32 +13,69 @@
   const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
-    email = '';
-    password = '';
     emailError = '';
     passwordError = '';
+
+    email = '';
+    password = '';
+    emailIsValid = null;
+    isEmailAvailable = null;
 
     constructor() {
       super();
       this.setup({
-        observables: ['email', 'password', 'emailError', 'passwordError']
+        observables: ['emailError', 'passwordError']
       })
     }
 
-    validateEmail() {
+    validateEmail(email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email)) {
-        this.emailError = 'Please enter a valid email address.';
+      let emailError = '';
+      let isEmailValid = null;
+      if (email === '') {
+        emailError = '';
+        isEmailValid = null;
+      } else if (!emailRegex.test(email)) {
+        emailError = 'Please enter a valid email address.';
+        isEmailValid = false;
       } else {
-        this.emailError = '';
+        emailError = '';
+        isEmailValid = true;
+      }
+      return { isEmailValid, emailError };
+    }
+
+    validatePassword(password) {
+      return password !== '' && password?.length >= 8;
+    }
+
+    queryEmail(email) {
+      return this.query({
+        queryKey: ['Email', email],
+        queryFn: () => {
+          return fetch(`https://jsonplaceholder.typicode.com/users?email=${email}`).then(res => res.json())
+        },
+        staleTime: 1000 * 60 * 5
+      })
+    }
+
+    getEmailInputState() {
+      if (this.email === '') {
+        return '';
+      } else if (this.isEmailValid && this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length === 0) {
+        return false;
+      } else {
+        return true;
       }
     }
 
-    validatePassword() {
-      if (this.password.length < 8) {
-        this.passwordError = 'Password must be at least 8 characters long.';
+    getPasswordInputState() {
+      if (this.password === '') {
+        return '';
+      } else if (this.passwordError === '') {
+        return false;
       } else {
-        this.passwordError = '';
+        return true;
       }
     }
 
@@ -43,15 +84,38 @@
         <form action="/submit" method="POST">
           <label>
             Email:
-            <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
+            <input type="email"
+              aria-invalid=${this.getEmailInputState()}
+              @input=${(e) => {
+                this.eventStream(e)
+                  .map(e => this.validateEmail(e.target.value))
+                  .debounce(300)
+                  .subscribe(({ isEmailValid, emailError }) => {
+                    this.emailError = emailError;
+                    this.isEmailValid = isEmailValid;
+                    this.email = e.target.value;
+                    this.isEmailAvailable = this.queryEmail(this.email)
+                  });
+              }} value=${this.email}>
+            <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
             <span>${this.emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
+            <input type="password" @input=${(e) => {
+              this.eventStream(e)
+                .map(e => this.validatePassword(e.target.value))
+                .debounce(300)
+                .subscribe((isValid) => {
+                  this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
+                  this.password = e.target.value;
+                });
+              }}
+              value=${this.password}
+              aria-invalid=${this.getPasswordInputState()}>
             <span>${this.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
+          <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
         </form>
       `;
     }
