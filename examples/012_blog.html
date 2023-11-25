@@ -26,6 +26,9 @@
       staleTime: 1000 * 60 * 5 // 5 minutes
     })
 
+    //
+    // This uses optimistic UI. To disable optimistic UI, remove the onMutate and onError handlers.
+    //
     addPost = this.mutation({
       mutationFn: (newPost) => {
         return http.post("https://jsonplaceholder.typicode.com/posts", newPost).toJson()
@@ -36,7 +39,7 @@
 
         // Optimistically update to the new value
         this.posts.update(state => {
-          state.data = [...state.data, { ...newPost, id: Date.now() }]; // Assuming Date.now() as a temporary ID
+          state.data.push({ ...newPost, id: Date.now() });
         });
 
         // Return the rollback function and the new post
@@ -57,7 +60,7 @@
       },
       onSettled: () => {
         // Invalidate the posts query to refetch the true state
-        if (!this.addPost.isSettled) { // Check if the mutation has not been settled
+        if (!this.addPost.isSettled) {
           this.invalidateQueries(['posts']);
         }
       }
@@ -72,14 +75,7 @@
 
     template() {
       if (this.posts.data) {
-        console.log(`Client data has loaded`);
         return html`
-          ${this.addPost.status === "pending" ? html`
-            <li style="opacity: 0.5;">
-              Adding new post...
-            </li>
-          ` : ''}
-
           <button @click=${() => this.addPost.mutate({
             title: "New Post",
             body: "This is a new post.",
@@ -97,22 +93,24 @@
       }
 
       if (this.posts.status === "loading") {
-        console.log(`Client is loading...`)
         return html`<div>Loading...</div>`;
       }
 
       if (this.posts.status === "error") {
-        console.log(`Client error: ${this.posts.error.message}`);
         return html`<div>Error: ${this.posts.error.message}</div>`;
       }
 
       if (this.addPost.status === "pending") {
-        console.log(`addPost is loading...`);
-        return html`<div>Adding post...</div>`;
+        return html`
+        ${this.addPost.status === "pending" ? html`
+          <li style="opacity: 0.5;">
+            Adding new post...
+          </li>
+        ` : ''}
+        <div>Adding post...</div>`;
       }
 
       if (this.addPost.status === "error") {
-        console.log(`addPost error: ${this.addPost.error.message}`);
         return html`<div>Error: ${this.addPost.error.message}</div>`;
       }
     }
