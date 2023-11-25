@@ -9,6 +9,7 @@
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
     <article>
   <h2>Products</h2>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart.</p>
   <product-list-component></product-list-component>
 </article>
 <article>
@@ -24,32 +25,14 @@
 
   const CartStore = cami.store({
     cartItems: [],
-    products: [
-      { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
-      { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
-      { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
-    ],
     add: (store, product) => {
       const cartItem = { ...product, cartItemId: Date.now() };
       store.cartItems.push(cartItem);
-      store.products = store.products.map(p => {
-        if (p.id === product.id) {
-          p.stock--;
-        }
-        return p;
-      });
     },
     remove: (store, product) => {
       store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-      store.products = store.products.map(p => {
-        if (p.id === product.id) {
-          p.stock++;
-        }
-        return p;
-      });
     }
   });
-
 
   // Define a middleware function
   const loggerMiddleware = (context) => {
@@ -61,7 +44,13 @@
 
   class ProductListElement extends ReactiveElement {
     cartItems = this.connect(CartStore, 'cartItems');
-    products = this.connect(CartStore, 'products');
+    products = this.query({
+      queryKey: ['products'],
+      queryFn: () => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
+    });
 
     constructor() {
       super();
@@ -80,18 +69,28 @@
     }
 
     template() {
-      return html`
-        <ul>
-          ${this.products.map(product => html`
-            <li>
-              ${product.name} - ${product.price} | Stock: ${product.stock}
-              <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
-                Add to cart
-              </button>
-            </li>
-          `)}
-        </ul>
-      `;
+      if (this.products.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.products.status === "error") {
+        return html`<div>Error: ${this.products.error.message}</div>`;
+      }
+
+      if (this.products.data) {
+        return html`
+          <ul>
+            ${this.products.data.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
+                  Add to cart
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
     }
   }
 
@@ -114,10 +113,10 @@
 
     template() {
       return html`
-        <p>Cart value: ${this.cartValue}</p>
+        <p>Cart value: $${(this.cartValue / 100).toFixed(2)}</p>
         <ul>
           ${this.cartItems.map(item => html`
-            <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
+            <li>${item.name} - $${(item.price / 100).toFixed(2)} <button @click=${() => this.removeFromCart(item)}>Remove</button></li>
           `)}
         </ul>
       `;

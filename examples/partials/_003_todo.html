@@ -1,37 +1,48 @@
-<article>
+  <article>
   <h1>Todo List</h1>
+  <p><small class="note"></small></p>
   <todo-list-component></todo-list-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
-
-  // Step 1: Define the initial state of our store and the actions
-  const TodoStore = cami.store({
-    todos: [],
-    add: (store, todo) => {
-      store.todos.push(todo);
-    },
-    delete: (store, todo) => {
-      const index = store.todos.indexOf(todo);
-      if (index > -1) {
-        store.todos.splice(index, 1);
-      }
-    }
-  });
-
-  // Define a middleware function
-  const loggerMiddleware = (context) => {
-    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
-  };
-
-  // Use the middleware function with the initialState
-  TodoStore.use(loggerMiddleware);
+  const { html, ReactiveElement, http } = cami;
 
   class TodoListElement extends ReactiveElement {
-    todos = this.connect(TodoStore, 'todos');
+    todos = this.query({
+      queryKey: ['todos'],
+      queryFn: () => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
+    })
+
+    addTodo = this.mutation({
+      mutationFn: (newTodo) => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos", {
+          method: "POST",
+          body: JSON.stringify(newTodo),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        }).then(res => {
+          document.querySelector('.note').innerHTML = 'Todo was dispatched to the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
+          return res.json();
+        })
+      }
+    });
+
+    deleteTodo = this.mutation({
+      mutationFn: (todo) => {
+        return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/todos/${todo.id}`, {
+          method: "DELETE"
+        }).then(res => {
+          document.querySelector('.note').innerHTML = 'Todo was deleted from the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
+          return res.json();
+        })
+      }
+    });
 
     constructor() {
       super();
@@ -41,22 +52,48 @@
     }
 
     template() {
-      return html`
-        <input id="newTodo" type="text" />
-        <button @click=${() => {
-          const newTodo = document.getElementById('newTodo').value;
-          TodoStore.add(newTodo);
-          document.getElementById('newTodo').value = '';
-        }}>Add</button>
-        <ul>
-          ${this.todos.map(todo => html`
-            <li>
-              ${todo}
-              <button @click=${() => TodoStore.delete(todo)}>Delete</button>
-            </li>
-          `)}
-        </ul>
-      `;
+      if (this.todos.data) {
+        return html`
+          <input class="newTodo" type="text" />
+          <button @click=${() => {
+            this.addTodo.mutate({
+              title: document.querySelector('.newTodo').value,
+              completed: false
+            })
+            document.querySelector('.newTodo').value = '';
+      }}>Add</button>
+          <ul>
+            ${this.todos.data.slice().reverse().map(todo => html`
+              <li>
+                ${todo.title}
+                <button @click=${() => this.deleteTodo.mutate(todo)}>Delete</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+
+      if (this.todos.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.todos.status === "error") {
+        return html`<div>Error: ${this.todos.error.message}</div>`;
+      }
+
+      if (this.addTodo.status === "pending") {
+        return html`
+        ${this.addTodo.status === "pending" ? html`
+          <li style="opacity: 0.5;">
+            Adding new todo...
+          </li>
+        ` : ''}
+        <div>Adding todo...</div>`;
+      }
+
+      if (this.addTodo.status === "error") {
+        return html`<div>Error: ${this.addTodo.error.message}</div>`;
+      }
     }
   }
 
