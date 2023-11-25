@@ -3,8 +3,7 @@
   <form-component></form-component>
 </article>
 <small>
-<p>Try entering an email that is already taken, such as Sincere@april.biz</p>
-<p>Mock API courtesy of <a href="https://jsonplaceholder.typicode.com/">JSONPlaceholder</a></p>
+<p>Try entering an email that is already taken, such as geovanniheaney@block.info (mock email)</p>
 </small>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -15,6 +14,8 @@
   class FormElement extends ReactiveElement {
     emailError = '';
     passwordError = '';
+
+    inputStream = null;
 
     email = '';
     password = '';
@@ -53,7 +54,7 @@
       return this.query({
         queryKey: ['Email', email],
         queryFn: () => {
-          return fetch(`https://jsonplaceholder.typicode.com/users?email=${email}`).then(res => res.json())
+          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
         },
         staleTime: 1000 * 60 * 5
       })
@@ -87,15 +88,20 @@
             <input type="email"
               aria-invalid=${this.getEmailInputState()}
               @input=${(e) => {
-                this.eventStream(e)
-                  .map(e => this.validateEmail(e.target.value))
-                  .debounce(300)
-                  .subscribe(({ isEmailValid, emailError }) => {
-                    this.emailError = emailError;
-                    this.isEmailValid = isEmailValid;
-                    this.email = e.target.value;
-                    this.isEmailAvailable = this.queryEmail(this.email)
-                  });
+                if (!this.inputStream) {
+                  this.inputStream = this.eventStream(e)
+                  this.inputStream
+                    .map(e => this.validateEmail(e.target.value))
+                    .debounce(1000)
+                    .subscribe(({ isEmailValid, emailError }) => {
+                      this.emailError = emailError;
+                      this.isEmailValid = isEmailValid;
+                      this.email = e.target.value;
+                      this.isEmailAvailable = this.queryEmail(this.email)
+                    });
+                } else {
+                  this.inputStream.next(e);
+                }
               }} value=${this.email}>
             <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
             <span>${this.emailError}</span>
