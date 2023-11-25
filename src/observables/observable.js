@@ -162,6 +162,36 @@ class Observable {
 
   /**
    * @method
+   * @param {*} value - The value to be passed to the observer's next method.
+   */
+  next(value) {
+    this._observers.forEach(observer => {
+      observer.next(value);
+    });
+  }
+
+  /**
+   * @method
+   * @param {*} error - The error to be passed to the observer's error method.
+   */
+  error(error) {
+    this._observers.forEach(observer => {
+      observer.error(error);
+    });
+  }
+
+  /**
+   * @method
+   * Calls the complete method on all observers.
+   */
+  complete() {
+    this._observers.forEach(observer => {
+      observer.complete();
+    });
+  }
+
+  /**
+   * @method
    * @param {Function} callbackFn - The callback function to call when a new value is emitted.
    * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
    */

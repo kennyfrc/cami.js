@@ -570,6 +570,54 @@ class ObservableStream extends Observable {
       return () => subscription.unsubscribe();
     });
   }
+
+  /**
+   * @method
+   * @param {number} duration - The throttle duration in milliseconds
+   * @returns {ObservableStream} A new ObservableStream that emits a value then ignores subsequent source values for duration milliseconds, then repeats this process.
+   */
+  throttle(duration) {
+    return new ObservableStream(subscriber => {
+      let lastEmitTime = 0;
+      const subscription = this.subscribe({
+        next: value => {
+          const currentTime = Date.now();
+          if (currentTime - lastEmitTime > duration) {
+            lastEmitTime = currentTime;
+            subscriber.next(value);
+          }
+        },
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
+  /**
+   * @method
+   * @returns {ObservableStream} A new ObservableStream that emits all items emitted by the source Observable that are distinct by comparison from the previous item.
+   */
+  distinctUntilChanged() {
+    return new ObservableStream(subscriber => {
+      let lastValue;
+      let isFirstValue = true;
+      const subscription = this.subscribe({
+        next: value => {
+          if (isFirstValue || value !== lastValue) {
+            isFirstValue = false;
+            lastValue = value;
+            subscriber.next(value);
+          }
+        },
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
 }
 
 export { ObservableStream };

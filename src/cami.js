@@ -731,6 +731,11 @@ class ReactiveElement extends HTMLElement {
     return observableElement.on(e.type);
   }
 
+  stream(element, eventName) {
+    const observableElement = new ObservableElement(element);
+    return observableElement.on(eventName);
+  }
+
   /**
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
