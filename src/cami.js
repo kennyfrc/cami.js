@@ -693,6 +693,12 @@ class ReactiveElement extends HTMLElement {
     this._effects.forEach(({ cleanup }) => cleanup && cleanup());
   }
 
+  /**
+   * @method
+   * Processes all pending observable updates and triggers a re-render of the component.
+   * @private
+   * @returns {void}
+   */
   _processUpdates() {
     this._pendingObservableUpdates.forEach(observable => observable._applyUpdates());
     this._pendingObservableUpdates.clear();
@@ -700,12 +706,29 @@ class ReactiveElement extends HTMLElement {
     this.react();
   }
 
+  /**
+   * @method
+   * Schedules an update for the given observable. If no update is currently scheduled, it also schedules a call to _processUpdates.
+   * @param {Observable} observable - The observable that has pending updates.
+   * @returns {void}
+   */
   scheduleUpdate(observable) {
     this._pendingObservableUpdates.add(observable);
     if (!this._updateScheduled) {
       this._updateScheduled = true;
       requestAnimationFrame(() => this._processUpdates());
     }
+  }
+
+  /**
+   * @method
+   * Creates an event stream from a DOM event.
+   * @param {Event} e - The DOM event.
+   * @returns {Observable} An observable that emits whenever the event occurs.
+   */
+  eventStream(e) {
+    const observableElement = new ObservableElement(e.target);
+    return observableElement.on(e.type);
   }
 
   /**

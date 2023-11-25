@@ -521,6 +521,55 @@ class ObservableStream extends Observable {
       return () => subscription.unsubscribe();
     });
   }
+
+  /**
+   * @method
+   * @param {number} delay - The debounce delay in milliseconds
+   * @returns {ObservableStream} A new ObservableStream that emits the latest value after the debounce delay
+   */
+  debounce(delay) {
+    return new ObservableStream(subscriber => {
+      let timeoutId = null;
+      const subscription = this.subscribe({
+        next: value => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            subscriber.next(value);
+          }, delay);
+        },
+        error: err => subscriber.error(err),
+        complete: () => {
+          clearTimeout(timeoutId);
+          subscriber.complete();
+        },
+      });
+
+      return () => {
+        clearTimeout(timeoutId);
+        subscription.unsubscribe();
+      };
+    });
+  }
+
+  /**
+   * @method
+   * @param {Function} sideEffectFn - The function to perform side effect
+   * @returns {ObservableStream} A new ObservableStream that is identical to the source
+   */
+  tap(sideEffectFn) {
+    return new ObservableStream(subscriber => {
+      const subscription = this.subscribe({
+        next: value => {
+          sideEffectFn(value);
+          subscriber.next(value);
+        },
+        error: err => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+
+      return () => subscription.unsubscribe();
+    });
+  }
 }
 
 export { ObservableStream };
