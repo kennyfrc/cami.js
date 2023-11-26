@@ -2,103 +2,41 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.2.1. Follows [semver](https://semver.org/).
+Current version: 0.3.0. Follows [semver](https://semver.org/).
 
-Bundle Size: 12kb minified & gzipped.
+Bundle Size: 14kb minified & gzipped.
 
-A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.
+A minimalist yet powerful toolkit for interactive islands in web applications.
 
-## Table of Contents
+## Features include:
 
-- [Motivation](#motivation)
-- [Key Features](#key-features)
-- [Who is this for?](#who-is-this-for)
-- [Philosophy](#philosophy)
-- [Get Started](#get-started--view-examples)
-- [Key Concepts / API](#key-concepts--api)
-  - [ReactiveElement Class, Observable Objects, and HTML Tagged Templates](#reactiveelement-class-observable-objects-and-html-tagged-templates)
-  - [Basics of Observables & Templates](#basics-of-observables--templates)
-  - [Basics of Computed Properties & Effects](#basics-of-computed-properties--effects)
-  - [cami.store(initialState)](#camistoreinitialstate)
-  - [html](#html)
-- [Examples](#examples)
-- [Dev Usage](#dev-usage)
+* **Reactive Web Components**: Offers `ReactiveElement`, an extension of `HTMLElement` that automatically defines observables without any boilerplate. It also supports deeply nested updates, array manipulations, and observable attributes.
+* **Async State Management**: It allows you to fetch, cache, and update data from APIs with ease. The `query` method enables fetching data and caching it with configurable options such as stale time and refetch intervals. The `mutation` method offers a way to perform data mutations and optimistically update the UI for a seamless user experience.
+* **Streams & Functional Reactive Programming (FRP)**: Uses Observable Streams for managing asynchronous events, enabling complex event processing with methods like `map`, `filter`, `debounce`, and more. This allows for elegant composition of asynchronous logic.
+* **Cross-component State Management with a Singleton Store**: Uses a singleton store to share state between components. Redux DevTools compatible.
+* **Dependency Tracking**: Uses a dependency tracker to track dependencies between observables and automatically update them when their dependencies change.
 
-## Motivation
+Below covers three examples: a simple counter component to get you started, a shopping cart component to demonstrate server & client state management, and a registration form that demonstrates streams & functional reactive programming.
 
-I wanted a minimalist javascript library that has no build steps, great debuggability, and didn't take over my front-end.
+## Counter Component
 
-My workflow is simple: I want to start any application with normal HTML/CSS, and if there were fragments or islands that needed to be interactive (such as dashboards & calculators), I needed a powerful enough library that I could easily drop in without rewriting my whole front-end. Unfortunately, the latter is the case for the majority of javascript libraries out there.
-
-That said, I like the idea of declarative templates, uni-directional data flow, time-travel debugging, and fine-grained reactivity. But I wanted no build steps (or at least make 'no build' the default). So I created Cami.
-
-## Key Features:
-
-- Reactive Web Components: We suggest to start any web application with normal HTML/CSS, then add interactive islands with Cami's reactive web components. Uses fine-grained reactivity with observables, computed properties, and effects. Also supports for deeply nested updates. Uses the Light DOM instead of Shadow DOM.
-- Tagged Templates: Declarative templates with lit-html. Supports event handling, attribute binding, composability, caching, and expressions.
-- Store / State Management: When you have multiple islands, you can use a singleton store to share state between them, and it acts as a single source of truth for your application state. Redux DevTools compatible.
-- Easy Immutable Updates: Uses Immer under the hood, so you can update your state immutably without excessive boilerplate.
-- Anti-Features: You can't be everything to everybody. So we made some hard choices: No Build Steps, No Client-Side Router, No JSX, No Shadow DOM. We want you to build an MPA, with mainly HTML/CSS, and return HTML responses instead of JSON. Then add interactivity as needed.
-
-## Who is this for?
-
-- **Lean Teams or Solo Devs**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
-- **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivity to your application, along with other MPA-oriented libraries like HTMX, Unpoly, Turbo, or TwinSpark.
-
-## Philosophy
-
-- **Less Code is Better**: In any organization, large or small, team shifts are inevitable. It's important that the codebase is easy to understand and maintain. This allows any enterprising developer to jump in, and expand the codebase that fits their specific problems.
-
-## Get Started & View Examples
-
-To see some examples, just do the following:
-
-```bash
-git clone git@github.com:kennyfrc/cami.js.git
-cd cami.js
-bun install --global serve
-bunx serve
-```
-
-Open http://localhost:3000 in your browser, then navigate to the examples folder. In the examples folder, you will find a series of examples that illustrate the key concepts of Cami.js. These examples are numbered & ordered by complexity.
-
-## Key Concepts / API
-
-### `ReactiveElement Class`, `Observable` Objects, and `HTML Tagged Templates`
-
-`ReactiveElement` is a class that extends `HTMLElement` to create reactive web components. These components can automatically update their view (the `template`) when their state changes.
-
-Automatic updates are done by observables. An observable is an object that can be observed for state changes, and when it changes, it triggers an effect (a function that runs in response to changes in observables).
-
-Cami's observables have the following characteristics:
-
-* They can be accessed and mutated like any other data structure. The difference is that observables, upon mutation, notify observers.
-* The observer in the `ReactiveElement` case is the `html tagged template` or the `template()` method to be specific.
-
-When you mutate the value of an observable, it will automatically trigger a re-render of the component's `html tagged template`. This is what makes the component reactive.
-
-Let's illustrate these three concepts with an example. Here's a simple counter component:
+Notice that you don't have to define observables or effects. You can just directly mutate the state, and the component will automatically update its view. Loading, error, and data states are also handled automatically.
 
 ```html
+<!-- Just copy & paste this into an HTML file, and open it in your browser. -->
 <article>
   <h1>Counter</h1>
   <counter-component
   ></counter-component>
 </article>
-<!-- <script src="./build/cami.cdn.js"></script> -->
+<script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
-<script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement } = cami;
+
   class CounterElement extends ReactiveElement {
     count = 0
-
-    constructor() {
-      super();
-      this.setup({
-        observables: ['count'],
-      })
-    }
 
     template() {
       return html`
@@ -113,311 +51,403 @@ Let's illustrate these three concepts with an example. Here's a simple counter c
 </script>
 ```
 
-In this example, `CounterElement` is a reactive web component that maintains an internal state (`count`) and updates its view whenever the state changes.
+## Shopping Cart Component
 
-### Basics of Observables & Templates
+Notice that product data is fetched through a query (server state), and the cart data is managed through a shared store (client state).
 
-**Creating an Observable:**
+```html
+<!-- Just copy & paste this into an HTML file, and open it in your browser. -->
+<article>
+  <h2>Products</h2>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart.</p>
+  <product-list-component></product-list-component>
+</article>
+<article>
+  <h2>Cart</h2>
+  <cart-component></cart-component>
+</article>
 
-In the context of a `ReactiveElement`, you can create an observable using the `this.setup()` method. For example, to create an observable `count` with an initial value of `0`, you would do:
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
 
-```javascript
-// ...
-count = 0
-
-constructor() {
-  super();
-  this.setup({
-    observables: ['count'],
-  })
-}
-// ...
-```
-
-**Getting the Value:**
-
-You can get the current value of an observable by directly accessing it. For example, you can get the value of `count` like this:
-
-```javascript
-this.count;
-```
-
-**Setting the Value:**
-
-To update the value of an observable, you can just directly mutate it, and it will automatically trigger a re-render of the component's template. For example, to increment the count, you can do:
-
-```javascript
-this.count++
-```
-
-**Deeply Nested Updates and Array Manipulation:**
-
-Cami's observables support deeply nested updates. This means that if your observable's value is an object, you can update deeply nested properties within that object. Additionally, if the observable's value is an array, you can perform various array manipulations such as push, pop, shift, unshift, splice, sort, reverse, and more. These operations will trigger a re-render of the component's template. Here are some examples:
-
-```javascript
-// Updating deeply nested properties
-// ...
-user = {
-  name: {
-    first: 'John',
-    last: 'Doe',
-  },
-  age: 30,
-}
-
-constructor() {
-  super();
-  this.setup({
-    observables: ['user'],
-  })
-}
-
-user.update(value => {
-  value.name.first = 'Jane';
-});
-// ...
-```
-
-```javascript
-// Array manipulations
-// ...
-
-playlist = ['Song 1', 'Song 2', 'Song 3'];
-
-constructor() {
-  super();
-  this.setup({
-    observables: ['playlist'],
-  })
-}
-
-// Adding a song to the playlist
-playlist.push('Song 4');
-
-// Removing the first song from the playlist
-playlist.shift();
-
-// Reversing the order of the playlist
-playlist.reverse();
-// ...
-```
-
-In the first example, only the `first` property of the `name` object is updated. The rest of the `user` object remains the same. In the second example, various array manipulations are performed on the `playlist` observable.
-
-**Template Rendering:**
-
-Cami.js uses lit-html for its template rendering. This allows you to write HTML templates in JavaScript using tagged template literals. Think of it as fancy string interpolation.
-
-Here's the example from above:
-
-```javascript
-  template() {
-    return html`
-      <button @click=${this.count++}>Increment</button>
-      <p>Count: ${this.count}</p>
-    `;
-  }
-```
-
-In this example, `html` is a function that gets called with the template literal. It processes the template literal and creates a template instance that can be efficiently updated and rendered.
-
-The `${}` syntax inside the template literal is used to embed JavaScript expressions. These expressions can be variables, properties, or even functions. In the example above, `${this.count}` will be replaced with the current value of the `count` observable, and `${this.count++}` is a function that increments the count when the button is clicked.
-
-The `@click` syntax is used to attach event listeners to elements. In this case, a click event listener is attached to the button element.
-
-### Basics of Computed Properties, Effects, Observable Attributes, and Queries
-
-**Computed Properties:**
-
-Computed properties are a powerful feature in Cami.js that allow you to create properties that are derived from other observables. These properties automatically update whenever their dependencies change. This is particularly useful for calculations that depend on one or more parts of the state.
-
-Here is an example of a computed property `countSquared` which is defined as the square of the `count` observable:
-
-```javascript
-count = 0
-
-constructor() {
-  super();
-  this.setup({
-    observables: ['count'],
-    computed: ['countSquared'],
-  })
-}
-
-get countSquared() {
-  return this.count ** 2;
-}
-```
-
-In this case, `countSquared` will always hold the square of the current count value, and will automatically update whenever `count` changes.
-
-**Effects:**
-
-Effects in Cami.js are functions that run in response to changes in observable properties. They are a great way to handle side effects in your application, such as integrating with non-reactive components, emitting custom events, or logging/debugging.
-
-Here is an example of an effect that logs the current count and its square whenever either of them changes:
-
-```javascript
-this.effect(() => console.log(`Count: ${this.count} & Count Squared: ${this.countSquared}`));
-```
-
-This effect will run whenever `count` or `countSquared` changes, logging the new values to the console.
-
-**Observable Attributes:**
-
-Observable attributes in Cami.js are attributes that are observed for changes. When an attribute changes, the component's state is updated and the component is re-rendered.
-
-Here is an example of an observable attribute `todos` which is parsed from a JSON string:
-
-```javascript
-todos = []
-
-constructor() {
-  super();
-  this.setup({
-    observables: ['todos'],
-    attributes: {
-      todos: (v) => JSON.parse(v).data
+  const CartStore = cami.store({
+    cartItems: [],
+    add: (store, product) => {
+      const cartItem = { ...product, cartItemId: Date.now() };
+      store.cartItems.push(cartItem);
+    },
+    remove: (store, product) => {
+      store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
     }
   });
+
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+  };
+
+  CartStore.use(loggerMiddleware);
+
+  class ProductListElement extends ReactiveElement {
+    cartItems = this.connect(CartStore, 'cartItems');
+    products = this.query({
+      queryKey: ['products'],
+      queryFn: () => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+
+    addToCart(product) {
+      CartStore.add(product);
+    }
+
+    isProductInCart(product) {
+      return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+    }
+
+    isOutOfStock(product) {
+      return product.stock === 0;
+    }
+
+    template() {
+      if (this.products.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.products.status === "error") {
+        return html`<div>Error: ${this.products.error.message}</div>`;
+      }
+
+      if (this.products.data) {
+        return html`
+          <ul>
+            ${this.products.data.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
+                  Add to cart
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+  }
+
+  customElements.define('product-list-component', ProductListElement);
+
+  class CartElement extends ReactiveElement {
+    cartItems = this.connect(CartStore, 'cartItems');
+
+    get cartValue() {
+      return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+    }
+
+    removeFromCart(product) {
+      CartStore.remove(product);
+    }
+
+    template() {
+      return html`
+        <p>Cart value: $${(this.cartValue / 100).toFixed(2)}</p>
+        <ul>
+          ${this.cartItems.map(item => html`
+            <li>${item.name} - $${(item.price / 100).toFixed(2)} <button @click=${() => this.removeFromCart(item)}>Remove</button></li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('cart-component', CartElement);
+</script>
+```
+
+## Registration Form Component
+
+Notice that the email input is debounced. This is to prevent unnecessary API calls. Loading states are also handled automatically.
+
+```html
+<!-- Just copy & paste this into an HTML file, and open it in your browser. -->
+<article>
+  <h1>Registration Form</h1>
+  <form-component></form-component>
+</article>
+<small>
+<p>Try entering an email that is already taken, such as geovanniheaney@block.info (mock email)</p>
+</small>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class FormElement extends ReactiveElement {
+    emailError = ''
+    passwordError = ''
+    email = '';
+    password = '';
+    emailIsValid = null;
+    isEmailAvailable = null;
+
+    inputValidation$ = this.stream();
+    passwordValidation$ = this.stream();
+
+    onConnect() {
+      this.inputValidation$
+        .map(e => this.validateEmail(e.target.value))
+        .debounce(300)
+        .subscribe(({ isEmailValid, emailError, email }) => {
+          this.emailError = emailError;
+          this.isEmailValid = isEmailValid;
+          this.email = email;
+          this.isEmailAvailable = this.queryEmail(this.email)
+        });
+
+      this.passwordValidation$
+        .map(e => this.validatePassword(e.target.value))
+        .debounce(300)
+        .subscribe(({ isValid, password }) => {
+          this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
+          this.password = password;
+        });
+    }
+
+    validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let emailError = '';
+      let isEmailValid = null;
+      if (email === '') {
+        emailError = '';
+        isEmailValid = null;
+      } else if (!emailRegex.test(email)) {
+        emailError = 'Please enter a valid email address.';
+        isEmailValid = false;
+      } else {
+        emailError = '';
+        isEmailValid = true;
+      }
+      return { isEmailValid, emailError, email };
+    }
+
+    validatePassword(password) {
+      let isValid = false;
+      if (password === '') {
+        isValid = null;
+      } else if (password?.length >= 8) {
+        isValid = true;
+      }
+
+      return { isValid, password }
+    }
+
+    queryEmail(email) {
+      return this.query({
+        queryKey: ['Email', email],
+        queryFn: () => {
+          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+        },
+        staleTime: 1000 * 60 * 5
+      })
+    }
+
+    getEmailInputState() {
+      if (this.email === '') {
+        return '';
+      } else if (this.isEmailValid && this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length === 0) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    getPasswordInputState() {
+      if (this.password === '') {
+        return '';
+      } else if (this.passwordError === '') {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    template() {
+      return html`
+        <form action="/submit" method="POST">
+          <label>
+            Email:
+            <input type="email"
+              aria-invalid=${this.getEmailInputState()}
+              @input=${(e) => this.inputValidation$.next(e) } value=${this.email}>
+              <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
+            <span>${this.emailError}</span>
+          </label>
+          <label>
+            Password:
+            <input type="password" @input=${(e) => this.passwordValidation$.next(e) }
+              value=${this.password}
+              aria-invalid=${this.getPasswordInputState()}>
+            <span>${this.passwordError}</span>
+          </label>
+          <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+        </form>
+      `;
+    }
+  }
+
+  customElements.define('form-component', FormElement);
+</script>
+```
+
+## Motivation
+
+I wanted a minimalist javascript library that has no build steps, great debuggability, and didn't take over my front-end.
+
+My workflow is simple: I want to start any application with normal HTML/CSS, and if there were fragments or islands that needed to be interactive (such as dashboards & calculators), I needed a powerful enough library that I could easily drop in without rewriting my whole front-end. Unfortunately, the latter is the case for the majority of javascript libraries out there.
+
+That said, I like the idea of declarative templates, uni-directional data flow, time-travel debugging, and fine-grained reactivity. But I wanted no build steps (or at least make 'no build' the default). So I created Cami.
+
+## Who is this for?
+
+- **Lean Teams or Solo Devs**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
+- **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivity to your application.
+
+## Get Started & View Examples
+
+To see some examples, just do the following:
+
+```bash
+git clone git@github.com:kennyfrc/cami.js.git
+cd cami.js
+bun install --global serve
+bunx serve
+```
+
+Open http://localhost:3000 in your browser, then navigate to the examples folder. In the examples folder, you will find a series of examples that illustrate the key concepts of Cami.js. These examples are numbered & ordered by complexity.
+
+## Learn Cami by Example
+
+In this tutorial, we'll walk through creating a simple Task Manager component using Cami.js. By the end, you'll understand how to create interactive components with Cami's reactive system.
+
+### Step 1: Creating a Basic Component
+
+Let's start by creating a basic structure for our Task Manager component. We'll define the HTML structure and include the necessary scripts to use Cami.js.
+
+```html
+<article>
+  <h1>Task Manager</h1>
+  <task-manager-component></task-manager-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class TaskManagerElement extends ReactiveElement {
+    // This is where our component's internal state and logic will go
+
+    template() {
+      // Here we define the HTML structure of our component using Cami's html tagged template
+      return html`
+        <input id="taskInput" type="text" placeholder="Enter task name">
+        <button>Add Task</button>
+        <button>All</button>
+        <button>Active</button>
+        <button>Completed</button>
+        <ul>
+          <!-- Tasks will be dynamically inserted here -->
+        </ul>
+      `;
+    }
+  }
+
+  // This line registers our component with the browser so it can be used as a custom element
+  customElements.define('task-manager-component', TaskManagerElement);
+</script>
+```
+
+### Step 2: Adding Observables
+
+Now, let's add some reactivity to our component. We'll use observables to manage the tasks and the current filter state.
+
+```javascript
+class TaskManagerElement extends ReactiveElement {
+  tasks = []; // This observable array will hold our tasks
+  filter = 'all'; // This observable string will control the current filter
+
+  // ... rest of the component
+
+  getFilteredTasks() {
+    // This method will filter tasks based on the current filter state
+    switch (this.filter) {
+      case 'completed':
+        return this.tasks.filter(task => task.completed);
+      case 'active':
+        return this.tasks.filter(task => !task.completed);
+      default:
+        return this.tasks;
+    }
+  }
+
+  // ... rest of the component
 }
 ```
 
-In this case, `todos` will be updated whenever the `todos` attribute of the element changes.
+### Step 3: Adding Behavior
 
-**Queries:**
-
-Queries in Cami.js are a way to fetch data asynchronously and update the component's state when the data is available. The state is automatically updated with the loading status, the data, and any error that might occur.
-
-Here is an example of a query that fetches posts from a JSON placeholder API:
+Finally, we'll implement the methods to add, remove, and toggle tasks, as well as to change the filter. We'll also update the template to bind these methods to the respective buttons and inputs.
 
 ```javascript
-posts = {}
+class TaskManagerElement extends ReactiveElement {
+  // ... observables from Step 2
 
-constructor() {
-  super();
-  this.setup({
-    observables: ['posts'],
-  });
-}
-
-connectedCallback() {
-  super.connectedCallback();
-  this.posts = this.query({
-    queryKey: ["posts"],
-    queryFn: () => fetch("https://jsonplaceholder.typicode.com/posts").then(posts => posts.json())
-  });
-}
-```
-
-In this case, `posts` will be updated with the loading status, the fetched data, and any error that might occur.
-
-
-### `cami.store(initialState)`
-
-The `cami.store` function is a core part of Cami.js. It creates a new store with the provided initial state. The store is a singleton, meaning that if it has already been created, the existing instance will be returned. This store is a central place where all the state of your application lives. It's like a data warehouse where different components of your application can communicate and share data.
-
-This concept is particularly useful in scenarios where multiple components need to share and manipulate the same state. A classic example of this is a shopping cart in an e-commerce application, where various components like product listing, cart summary, and checkout need access to the same cart state.
-
-The store follows a flavor of the Flux architecture, which promotes unidirectional data flow. The cycle goes as follows: call a function -> update the store -> reflect changes in the view -> call another function. In addition, as we adhere to many of Redux's principles, our store is compatible with the Redux DevTools Chrome extension, which allows for time-travel debugging.
-
-**Parameters:**
-
-- `initialState` (Object): The initial state of the store. This is the starting point of your application state and can be any valid JavaScript object.
-
-**Example:**
-
-```javascript
-const CartStore = cami.store({
-  cartItems: [],
-  products: [
-    { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
-    { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
-    { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
-  ],
-  add: (store, product) => {
-    const cartItem = { ...product, cartItemId: Date.now() };
-    store.cartItems.push(cartItem);
-    store.products = store.products.map(p => {
-      if (p.id === product.id) {
-        p.stock--;
-      }
-      return p;
-    });
-  },
-  remove: (store, product) => {
-    store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-    store.products = store.products.map(p => {
-      if (p.id === product.id) {
-        p.stock++;
-      }
-      return p;
-    });
-  }
-});
-
-class CartElement extends ReactiveElement {
-  cartItems = this.connect(CartStore, 'cartItems');
-
-  constructor() {
-    super();
-    this.setup({
-      observables: ['cartItems'],
-      computed: ['cartValue'],
-    })
+  addTask(task) {
+    this.tasks.push({ name: task, completed: false });
   }
 
-  get cartValue() {
-    return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+  removeTask(index) {
+    this.tasks.splice(index, 1);
   }
 
-  removeFromCart(product) {
-    CartStore.remove(product);
+  toggleTask(index) {
+    this.tasks[index].completed = !this.tasks[index].completed;
+  }
+
+  setFilter(filter) {
+    this.filter = filter;
   }
 
   template() {
     return html`
-      <p>Cart value: ${this.cartValue}</p>
+      <input id="taskInput" type="text" placeholder="Enter task name">
+      <button @click=${() => {
+        const taskName = document.getElementById('taskInput').value;
+        this.addTask(taskName);
+        document.getElementById('taskInput').value = '';
+      }}>Add Task</button>
+      <button @click=${() => this.setFilter('all')}>All</button>
+      <button @click=${() => this.setFilter('active')}>Active</button>
+      <button @click=${() => this.setFilter('completed')}>Completed</button>
       <ul>
-        ${this.cartItems.map(item => html`
-          <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
+        ${this.getFilteredTasks().map((task, index) => html`
+          <li>
+            <input type="checkbox" .checked=${task.completed} @click=${() => this.toggleTask(index)}>
+            ${task.name}
+            <button @click=${() => this.removeTask(index)}>Remove</button>
+          </li>
         `)}
       </ul>
     `;
   }
 }
-
-customElements.define('cart-component', CartElement);
 ```
 
-In this example, `CartStore` is a store that holds the state of a shopping cart. It has two methods, `add` and `remove`, which can be used to add and remove items from the cart. The `CartElement` is a custom element that connects to the `CartStore` and updates its view whenever the `cartItems` state changes. It also provides a method `removeFromCart` that removes an item from the cart when a button is clicked.
-
-### `html`
-
-The `html` function in Cami.js is a tagged template literal, based on lit-html, that allows for the creation of declarative templates. It provides several powerful features that make it effective in the context of Cami.js:
-
-1. **Event Handling**: It supports event handling with directives like `@click`, which can be used to bind DOM events to methods in your components. For example:
-```javascript
-html`<button @click=${this.increment}>Increment</button>`
-```
-In this example, the `increment` method is called when the button is clicked.
-
-2. **Attribute Binding**: It allows for attribute binding, which means you can dynamically set the attributes of your HTML elements based on your component's state. For example:
-```javascript
-html`<div class=${this.isActive ? 'active' : 'inactive'}></div>`
-```
-In this example, the class of the div is dynamically set based on the `isActive` property of the component.
-
-3. **Caching**: It caches templates, which means that if you render the same template multiple times, it will only update the parts of the DOM that have changed. This makes rendering more efficient.
-
-
-4. **Expressions**: It allows for the use of JavaScript expressions inside your templates, which means you can include complex logic in your templates. For example:
-```javascript
-html`<div>${this.items.length > 0 ? this.renderItems() : 'No items'}</div>`
-```
-In this example, the template conditionally renders a list of items or a message saying 'No items' based on the length of the `items` array.
-
-For more detailed information, refer to the lit-html documentation: [docs](https://lit.dev/docs/templates/overview/)
+For a complete example, including observables and behavior, refer to the `examples/010_taskmgmt.html` file in the Cami.js repository.
 
 ## Examples
 
@@ -450,13 +480,6 @@ They are also listed below:
   class CounterElement extends ReactiveElement {
     count = 0
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['count']
-      })
-    }
-
     template() {
       return html`
         <button @click=${() => this.count--}>-</button>
@@ -474,9 +497,12 @@ They are also listed below:
 ```html
 <!-- ./examples/_002_formval.html -->
 <article>
-  <h1>Form Validation</h1>
+  <h1>Registration Form</h1>
   <form-component></form-component>
 </article>
+<small>
+<p>Try entering an email that is already taken, such as geovanniheaney@block.info (mock email)</p>
+</small>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -484,32 +510,91 @@ They are also listed below:
   const { html, ReactiveElement } = cami;
 
   class FormElement extends ReactiveElement {
+    emailError = ''
+    passwordError = ''
     email = '';
     password = '';
-    emailError = '';
-    passwordError = '';
+    emailIsValid = null;
+    isEmailAvailable = null;
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['email', 'password', 'emailError', 'passwordError']
+    inputValidation$ = this.stream();
+    passwordValidation$ = this.stream();
+
+    onConnect() {
+      this.inputValidation$
+        .map(e => this.validateEmail(e.target.value))
+        .debounce(300)
+        .subscribe(({ isEmailValid, emailError, email }) => {
+          this.emailError = emailError;
+          this.isEmailValid = isEmailValid;
+          this.email = email;
+          this.isEmailAvailable = this.queryEmail(this.email)
+        });
+
+      this.passwordValidation$
+        .map(e => this.validatePassword(e.target.value))
+        .debounce(300)
+        .subscribe(({ isValid, password }) => {
+          this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
+          this.password = password;
+        });
+    }
+
+    validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let emailError = '';
+      let isEmailValid = null;
+      if (email === '') {
+        emailError = '';
+        isEmailValid = null;
+      } else if (!emailRegex.test(email)) {
+        emailError = 'Please enter a valid email address.';
+        isEmailValid = false;
+      } else {
+        emailError = '';
+        isEmailValid = true;
+      }
+      return { isEmailValid, emailError, email };
+    }
+
+    validatePassword(password) {
+      let isValid = false;
+      if (password === '') {
+        isValid = null;
+      } else if (password?.length >= 8) {
+        isValid = true;
+      }
+
+      return { isValid, password }
+    }
+
+    queryEmail(email) {
+      return this.query({
+        queryKey: ['Email', email],
+        queryFn: () => {
+          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+        },
+        staleTime: 1000 * 60 * 5
       })
     }
 
-    validateEmail() {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email)) {
-        this.emailError = 'Please enter a valid email address.';
+    getEmailInputState() {
+      if (this.email === '') {
+        return '';
+      } else if (this.isEmailValid && this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length === 0) {
+        return false;
       } else {
-        this.emailError = '';
+        return true;
       }
     }
 
-    validatePassword() {
-      if (this.password.length < 8) {
-        this.passwordError = 'Password must be at least 8 characters long.';
+    getPasswordInputState() {
+      if (this.password === '') {
+        return '';
+      } else if (this.passwordError === '') {
+        return false;
       } else {
-        this.passwordError = '';
+        return true;
       }
     }
 
@@ -518,15 +603,20 @@ They are also listed below:
         <form action="/submit" method="POST">
           <label>
             Email:
-            <input type="email" @input=${(e) => { this.email = e.target.value; this.validateEmail(); }} value=${this.email}>
+            <input type="email"
+              aria-invalid=${this.getEmailInputState()}
+              @input=${(e) => this.inputValidation$.next(e) } value=${this.email}>
+              <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
             <span>${this.emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password" @input=${(e) => { this.password = e.target.value; this.validatePassword(); }} value=${this.password}>
+            <input type="password" @input=${(e) => this.passwordValidation$.next(e) }
+              value=${this.password}
+              aria-invalid=${this.getPasswordInputState()}>
             <span>${this.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError || this.passwordError}>
+          <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
         </form>
       `;
     }
@@ -538,65 +628,95 @@ They are also listed below:
 
 ```html
 <!-- ./examples/_003_todo.html -->
-<article>
+  <article>
   <h1>Todo List</h1>
+  <p><small class="note"></small></p>
   <todo-list-component></todo-list-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
-
-  // Step 1: Define the initial state of our store and the actions
-  const TodoStore = cami.store({
-    todos: [],
-    add: (store, todo) => {
-      store.todos.push(todo);
-    },
-    delete: (store, todo) => {
-      const index = store.todos.indexOf(todo);
-      if (index > -1) {
-        store.todos.splice(index, 1);
-      }
-    }
-  });
-
-  // Define a middleware function
-  const loggerMiddleware = (context) => {
-    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
-  };
-
-  // Use the middleware function with the initialState
-  TodoStore.use(loggerMiddleware);
+  const { html, ReactiveElement, http } = cami;
 
   class TodoListElement extends ReactiveElement {
-    todos = this.connect(TodoStore, 'todos');
+    todos = this.query({
+      queryKey: ['todos'],
+      queryFn: () => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
+    })
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['todos']
-      })
-    }
+    addTodo = this.mutation({
+      mutationFn: (newTodo) => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos", {
+          method: "POST",
+          body: JSON.stringify(newTodo),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        }).then(res => {
+          document.querySelector('.note').innerHTML = 'Todo was dispatched to the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
+          return res.json();
+        })
+      }
+    });
+
+    deleteTodo = this.mutation({
+      mutationFn: (todo) => {
+        return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/todos/${todo.id}`, {
+          method: "DELETE"
+        }).then(res => {
+          document.querySelector('.note').innerHTML = 'Todo was deleted from the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
+          return res.json();
+        })
+      }
+    });
 
     template() {
-      return html`
-        <input id="newTodo" type="text" />
-        <button @click=${() => {
-          const newTodo = document.getElementById('newTodo').value;
-          TodoStore.add(newTodo);
-          document.getElementById('newTodo').value = '';
-        }}>Add</button>
-        <ul>
-          ${this.todos.map(todo => html`
-            <li>
-              ${todo}
-              <button @click=${() => TodoStore.delete(todo)}>Delete</button>
-            </li>
-          `)}
-        </ul>
-      `;
+      if (this.todos.data) {
+        return html`
+          <input class="newTodo" type="text" />
+          <button @click=${() => {
+            this.addTodo.mutate({
+              title: document.querySelector('.newTodo').value,
+              completed: false
+            })
+            document.querySelector('.newTodo').value = '';
+      }}>Add</button>
+          <ul>
+            ${this.todos.data.slice().reverse().map(todo => html`
+              <li>
+                ${todo.title}
+                <button @click=${() => this.deleteTodo.mutate(todo)}>Delete</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+
+      if (this.todos.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.todos.status === "error") {
+        return html`<div>Error: ${this.todos.error.message}</div>`;
+      }
+
+      if (this.addTodo.status === "pending") {
+        return html`
+        ${this.addTodo.status === "pending" ? html`
+          <li style="opacity: 0.5;">
+            Adding new todo...
+          </li>
+        ` : ''}
+        <div>Adding todo...</div>`;
+      }
+
+      if (this.addTodo.status === "error") {
+        return html`<div>Error: ${this.addTodo.error.message}</div>`;
+      }
     }
   }
 
@@ -608,6 +728,7 @@ They are also listed below:
 <!-- ./examples/_004_cart.html -->
   <article>
   <h2>Products</h2>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart.</p>
   <product-list-component></product-list-component>
 </article>
 <article>
@@ -623,32 +744,14 @@ They are also listed below:
 
   const CartStore = cami.store({
     cartItems: [],
-    products: [
-      { id: 1, name: 'Product 1', price: 100, disabled: false, stock: 10 },
-      { id: 2, name: 'Product 2', price: 200, disabled: false, stock: 5 },
-      { id: 3, name: 'Product 3', price: 300, disabled: false, stock: 2 },
-    ],
     add: (store, product) => {
       const cartItem = { ...product, cartItemId: Date.now() };
       store.cartItems.push(cartItem);
-      store.products = store.products.map(p => {
-        if (p.id === product.id) {
-          p.stock--;
-        }
-        return p;
-      });
     },
     remove: (store, product) => {
       store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-      store.products = store.products.map(p => {
-        if (p.id === product.id) {
-          p.stock++;
-        }
-        return p;
-      });
     }
   });
-
 
   // Define a middleware function
   const loggerMiddleware = (context) => {
@@ -660,11 +763,13 @@ They are also listed below:
 
   class ProductListElement extends ReactiveElement {
     cartItems = this.connect(CartStore, 'cartItems');
-    products = this.connect(CartStore, 'products');
-
-    constructor() {
-      super();
-    }
+    products = this.query({
+      queryKey: ['products'],
+      queryFn: () => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
+    });
 
     addToCart(product) {
       CartStore.add(product);
@@ -679,18 +784,28 @@ They are also listed below:
     }
 
     template() {
-      return html`
-        <ul>
-          ${this.products.map(product => html`
-            <li>
-              ${product.name} - ${product.price} | Stock: ${product.stock}
-              <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
-                Add to cart
-              </button>
-            </li>
-          `)}
-        </ul>
-      `;
+      if (this.products.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.products.status === "error") {
+        return html`<div>Error: ${this.products.error.message}</div>`;
+      }
+
+      if (this.products.data) {
+        return html`
+          <ul>
+            ${this.products.data.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
+                  Add to cart
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
     }
   }
 
@@ -698,10 +813,6 @@ They are also listed below:
 
   class CartElement extends ReactiveElement {
     cartItems = this.connect(CartStore, 'cartItems');
-
-    constructor() {
-      super();
-    }
 
     get cartValue() {
       return this.cartItems.reduce((acc, item) => acc + item.price, 0);
@@ -713,10 +824,10 @@ They are also listed below:
 
     template() {
       return html`
-        <p>Cart value: ${this.cartValue}</p>
+        <p>Cart value: $${(this.cartValue / 100).toFixed(2)}</p>
         <ul>
           ${this.cartItems.map(item => html`
-            <li>${item.name} - ${item.price}</li><button @click=${() => this.removeFromCart(item)}>Remove</button>
+            <li>${item.name} - $${(item.price / 100).toFixed(2)} <button @click=${() => this.removeFromCart(item)}>Remove</button></li>
           `)}
         </ul>
       `;
@@ -740,14 +851,10 @@ They are also listed below:
   const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
-    user = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+    user = {};
 
-    constructor() {
-      super();
-      this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
-      this.setup({
-        observables: ['user']
-      });
+    onConnect() {
+      this.initialUser =  { name: 'Kenn', age: 34, email: 'kenn@example.com' };
       this.user.assign(this.initialUser);
     }
 
@@ -811,13 +918,6 @@ They are also listed below:
         }
       }
     };
-
-    constructor() {
-      super();
-      this.setup({
-        observables: ['user']
-      });
-    }
 
     changeUser() {
       const john = {
@@ -954,10 +1054,6 @@ They are also listed below:
   class UserListElement extends ReactiveElement {
     users = this.connect(userStore, 'users');
 
-    constructor() {
-      super();
-    }
-
     template() {
       return html`
         <ul>
@@ -998,13 +1094,6 @@ They are also listed below:
       { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]}
     ];
     editing = { isEditing: false, memberId: null };
-
-    constructor() {
-      super();
-      this.setup({
-        observables: ['teams', 'editing'],
-      });
-    }
 
     updateTeam(teamId, updateFunc) {
       this.teams.update(teams => {
@@ -1085,13 +1174,9 @@ They are also listed below:
   class MyComponent extends ReactiveElement {
     todos = []
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['todos'],
-        attributes: {
-          todos: (v) => JSON.parse(v).data
-        }
+    onConnect() {
+      this.observableAttributes({
+        todos: (v) => JSON.parse(v).data
       });
     }
 
@@ -1143,13 +1228,6 @@ They are also listed below:
   class TaskManagerElement extends ReactiveElement {
     tasks = [];
     filter = 'all';
-
-    constructor() {
-      super();
-      this.setup({
-        observables: ['tasks', 'filter'],
-      });
-    }
 
     addTask(task) {
       this.tasks.push({ name: task, completed: false });
@@ -1222,13 +1300,6 @@ They are also listed below:
   class PlaylistElement extends ReactiveElement {
     playlist = [];
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['playlist'],
-      })
-    }
-
     addSong(song) {
       this.playlist.push(song);
     }
@@ -1295,45 +1366,65 @@ They are also listed below:
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement, http } = cami;
 
   class BlogComponent extends ReactiveElement {
-    posts = this.jsonQuery("https://jsonplaceholder.typicode.com/posts")
-
-    addPost = this.jsonMutation("https://jsonplaceholder.typicode.com/posts", {
-      method: "POST"
+    posts = this.query({
+      queryKey: ["posts"],
+      queryFn: () => {
+        return fetch("https://jsonplaceholder.typicode.com/posts").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
     })
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['posts', 'addPost']
-      });
-    }
+    //
+    // This uses optimistic UI. To disable optimistic UI, remove the onMutate and onError handlers.
+    //
+    addPost = this.mutation({
+      mutationFn: (newPost) => {
+        return fetch("https://jsonplaceholder.typicode.com/posts", {
+          method: "POST",
+          body: JSON.stringify(newPost),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8"
+          }
+        }).then(res => res.json())
+      },
+      onMutate: (newPost) => {
+        // Snapshot the previous state
+        const previousPosts = this.posts.data;
+
+        // Optimistically update to the new value
+        this.posts.update(state => {
+          state.data.push({ ...newPost, id: Date.now() });
+        });
+
+        // Return the rollback function and the new post
+        return {
+          rollback: () => {
+            this.posts.update(state => {
+              state.data = previousPosts;
+            });
+          },
+          optimisticPost: newPost
+        };
+      },
+      onError: (error, newPost, context) => {
+        // Rollback to the previous state
+        if (context.rollback) {
+          context.rollback();
+        }
+      },
+      onSettled: () => {
+        // Invalidate the posts query to refetch the true state
+        if (!this.addPost.isSettled) {
+          this.invalidateQueries(['posts']);
+        }
+      }
+    });
 
     template() {
-      if (this.posts.status === "loading") {
-        console.log(`Client is loading...`)
-        return html`<div>Loading...</div>`;
-      }
-
-      if (this.posts.status === "error") {
-        console.log(`Client error: ${this.posts.error.message}`);
-        return html`<div>Error: ${this.posts.error.message}</div>`;
-      }
-
-      if (this.addPost.status === "pending") {
-        console.log(`addPost is loading...`);
-        return html`<div>Adding post...</div>`;
-      }
-
-      if (this.addPost.status === "error") {
-        console.log(`addPost error: ${this.addPost.error.message}`);
-        return html`<div>Error: ${this.addPost.error.message}</div>`;
-      }
-
       if (this.posts.data) {
-        console.log(`Client data has loaded`);
         return html`
           <button @click=${() => this.addPost.mutate({
             title: "New Post",
@@ -1341,7 +1432,7 @@ They are also listed below:
             userId: 1
           })}>Add Post</button>
           <ul>
-            ${this.posts.data.map(post => html`
+            ${this.posts.data.slice().reverse().map(post => html`
               <li>
                 <h2>${post.title}</h2>
                 <p>${post.body}</p>
@@ -1349,6 +1440,28 @@ They are also listed below:
             `)}
           </ul>
         `;
+      }
+
+      if (this.posts.status === "loading") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.posts.status === "error") {
+        return html`<div>Error: ${this.posts.error.message}</div>`;
+      }
+
+      if (this.addPost.status === "pending") {
+        return html`
+        ${this.addPost.status === "pending" ? html`
+          <li style="opacity: 0.5;">
+            Adding new post...
+          </li>
+        ` : ''}
+        <div>Adding post...</div>`;
+      }
+
+      if (this.addPost.status === "error") {
+        return html`<div>Error: ${this.addPost.error.message}</div>`;
       }
     }
   }
@@ -1392,16 +1505,8 @@ TBD
 - Zustand
 - MobX
 - lit-html
+- React Query
 
 ## Why "Cami"?
 
 It's short for [Camiguin](https://www.google.com/search?q=camiguin&sca_esv=576910264&tbm=isch&source=lnms&sa=X&sqi=2&ved=2ahUKEwjM_6rOp5SCAxV-9zgGHSW6CjYQ_AUoAnoECAMQBA&biw=1920&bih=944&dpr=1), a pretty nice island.
-
-
-## Roadmap
-
-- [ ] Add Tests
-- [ ] Middleware usage Example
-- [ ] Real-time Updates Example
-- [ ] Own devtools
-
