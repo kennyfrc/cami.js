@@ -24,18 +24,13 @@ class Subscriber {
    */
   constructor(observer) {
     if (typeof observer === 'function') {
-      /** @type {Object} */
       this.observer = { next: observer };
     } else {
-      /** @type {Object} */
       this.observer = observer;
     }
-    /** @type {Array<Function>} */
     this.teardowns = [];
     if (typeof AbortController !== 'undefined') {
-      /** @type {AbortController} */
       this.controller = new AbortController();
-      /** @type {AbortSignal} */
       this.signal = this.controller.signal;
     }
     this.isUnsubscribed = false;
@@ -43,7 +38,8 @@ class Subscriber {
 
   /**
    * @method
-   * @param {any} result - The result to pass to the observer's next method
+   * @description Notifies the observer of a new value.
+   * @param {any} result - The result to pass to the observer's next method.
    */
   next(result) {
     if (!this.isUnsubscribed && this.observer.next) {
@@ -51,6 +47,10 @@ class Subscriber {
     }
   }
 
+  /**
+   * @method
+   * @description Notifies the observer that the observable has completed and no more data will be emitted.
+   */
   complete() {
     if (!this.isUnsubscribed) {
       if (this.observer.complete) {
@@ -60,6 +60,11 @@ class Subscriber {
     }
   }
 
+  /**
+   * @method
+   * @description Notifies the observer that an error has occurred.
+   * @param {Error} error - The error to pass to the observer's error method.
+   */
   error(error) {
     if (!this.isUnsubscribed) {
       if (this.observer.error) {
@@ -79,6 +84,7 @@ class Subscriber {
 
   /**
    * @method
+   * @description Unsubscribes from the observable, preventing any further notifications to the observer and triggering any teardown logic.
    */
   unsubscribe() {
     if (!this.isUnsubscribed) {
@@ -108,9 +114,7 @@ class Observable {
    * @property {Function} subscribeCallback - The callback function to call when a new observer subscribes
    */
   constructor(subscribeCallback = () => () => {}) {
-    /** @type {Array<Subscriber>} */
     this._observers = [];
-    /** @type {Function} */
     this.subscribeCallback = subscribeCallback;
   }
 
@@ -130,7 +134,6 @@ class Observable {
         complete,
       };
     } else if (typeof observerOrNext === 'object') {
-      // If the first argument is an object, we assume it's an observer
       observer = observerOrNext;
     } else {
       throw new Error('[Cami.js] First argument to subscribe must be a next callback or an observer object');
@@ -223,6 +226,11 @@ class Observable {
     });
   }
 
+  /**
+   * @method
+   * @description Returns an AsyncIterator which allows asynchronous iteration over emitted values.
+   * @returns {AsyncIterator} An object that conforms to the AsyncIterator protocol.
+   */
   [Symbol.asyncIterator]() {
     let observer;
     let resolve;

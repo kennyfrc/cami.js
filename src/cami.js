@@ -3,6 +3,7 @@
  * Copyright (c) 2023 Kenn Costales
  * MIT License
  */
+
 /**
  * @module cami
  * @requires 'lit-html'
@@ -20,6 +21,10 @@ import { _trace } from './trace.js';
 import { http } from './http.js';
 
 
+/**
+ * A cache for storing the results of queries.
+ * @type {Map<string, any>}
+ */
 const QueryCache = new Map();
 
 /**
@@ -30,17 +35,17 @@ const QueryCache = new Map();
 /**
  * @class
  * @extends {HTMLElement}
- * This class is needed to create reactive web components that can automatically update their view when their state changes.
+ * @description This class is needed to create reactive web components that can automatically update their view when their state changes.
  */
 class ReactiveElement extends HTMLElement {
   /**
    * @constructor
+   * Constructs a new instance of ReactiveElement.
    */
   constructor() {
     super();
-    /** @type {Map<string, Function>} */
+    this.onCreate();
     this._unsubscribers = new Map();
-    /** @type {Array<Function>} */
     this._effects = [];
 
     /**
@@ -58,8 +63,18 @@ class ReactiveElement extends HTMLElement {
     this.effect = effect.bind(this);
 
     this._queryFunctions = new Map();
-    this._pendingObservableUpdates = new Set();
   }
+
+
+  /**
+   * @method
+   * @description Called when the component is created. Can be overridden by subclasses to add initialization logic.
+   */
+  onCreate() {
+    // Default implementation does nothing.
+    // Subclasses can override this to add initialization logic.
+  }
+
   /**
    * @method
    * @description Checks if the provided value is an object or an array
@@ -75,8 +90,9 @@ class ReactiveElement extends HTMLElement {
    * @description Handles the case when the provided value is an object or an array
    * @param {Object} context - The context in which the property is defined
    * @param {string} key - The property key
-   * @param {Observable} observable - The observable to bind to the property
+   * @param {ObservableState} observable - The observable to bind to the property
    * @param {boolean} [isAttribute=false] - Whether the property is an attribute
+   * @throws {TypeError} If observable is not an instance of ObservableState
    * @returns {void}
    */
   _handleObjectOrArray(context, key, observable, isAttribute = false) {
@@ -101,8 +117,9 @@ class ReactiveElement extends HTMLElement {
    * @description Handles the case when the provided value is not an object or an array
    * @param {Object} context - The context in which the property is defined
    * @param {string} key - The property key
-   * @param {Observable} observable - The observable to bind to the property
+   * @param {ObservableState} observable - The observable to bind to the property
    * @param {boolean} [isAttribute=false] - Whether the property is an attribute
+   * @throws {TypeError} If observable is not an instance of ObservableState
    * @returns {void}
    */
   _handleNonObject(context, key, observable, isAttribute = false) {
@@ -124,7 +141,8 @@ class ReactiveElement extends HTMLElement {
   /**
    * @method
    * @description Creates a proxy for the observable
-   * @param {Observable} observable - The observable to create a proxy for
+   * @param {ObservableState} observable - The observable to create a proxy for
+   * @throws {TypeError} If observable is not an instance of ObservableState
    * @returns {Proxy} The created proxy
    */
   _observableProxy(observable) {
@@ -171,92 +189,48 @@ class ReactiveElement extends HTMLElement {
    * @param {Object} config - The configuration object
    * @returns {void}
    */
-  setup(config) {
+  _setup(config) {
     if (config.infer === true) {
-      config.infer = ['observables', 'computed'];
-    }
-
-    if (config.infer) {
-      config.infer.forEach(type => {
-        if (type === 'observables') {
-          Object.keys(this).forEach(key => {
-            if (typeof this[key] !== 'function' && !key.startsWith('_')) {
-              if (this[key] instanceof Observable) {
-                return;
-              } else {
-                const observable = this.observable(this[key], key);
-                if (this._isObjectOrArray(observable.value)) {
-                  this._handleObjectOrArray(this, key, observable);
-                } else {
-                  this._handleNonObject(this, key, observable);
-                }
-              }
+      Object.keys(this).forEach(key => {
+        if (typeof this[key] !== 'function' && !key.startsWith('_')) {
+          if (this[key] instanceof Observable) {
+            return;
+          } else {
+            const observable = this._observable(this[key], key);
+            if (this._isObjectOrArray(observable.value)) {
+              this._handleObjectOrArray(this, key, observable);
+            } else {
+              this._handleNonObject(this, key, observable);
             }
-          });
-        } else if (type === 'computed') {
-          Object.getOwnPropertyNames(Object.getPrototypeOf(this))
-            .filter(key => {
-              const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), key);
-              return descriptor && typeof descriptor.get === 'function';
-            })
-            .forEach(key => {
-              const descriptor = Object.getOwnPropertyDescriptor(this, key);
-              if (descriptor && typeof descriptor.get === 'function') {
-                Object.defineProperty(this, key, {
-                  get: () => this.computed(descriptor.get).value
-                });
-              }
-            });
-        }
-      });
-    }
-    if (config.observables) {
-      config.observables.forEach(key => {
-        if (this[key] instanceof Observable) {
-          return;
-        }
-        const observable = this.observable(this[key], key);
-        if (this._isObjectOrArray(observable.value)) {
-          this._handleObjectOrArray(this, key, observable);
-        } else {
-          this._handleNonObject(this, key, observable);
-        }
-      });
-    }
-    if (config.computed) {
-      config.computed.forEach(key => {
-        if (typeof key === 'string') {
-          const descriptor = Object.getOwnPropertyDescriptor(this, key);
-          if (descriptor && typeof descriptor.get === 'function') {
-            Object.defineProperty(this, key, {
-              get: () => this.computed(descriptor.get).value
-            });
           }
-        } else if (typeof key === 'object' && typeof key.get === 'function') {
-          Object.defineProperty(this, key.name, {
-            get: () => this.computed(key.get).value
-          });
         }
-      });
+      })
     }
-    if (config.effects) {
-      config.effects.forEach(effectFn => {
-        this.effect(effectFn);
-      });
-    }
-    if (config.attributes) {
-      Object.entries(config.attributes).forEach(([attr, parseFn]) => {
-        const observableAttr = typeof parseFn === 'function'
-          ? this.observableAttr(attr, parseFn)
-          : this.observableAttr(attr);
+  }
 
-        if (this._isObjectOrArray(observableAttr.value)) {
-          this._handleObjectOrArray(this, attr, observableAttr, true);
-        } else {
-          this._handleNonObject(this, attr, observableAttr, true);
-        }
-      });
-    }
+  /**
+   * @method
+   * @description Creates observables from attributes and applies optional transformation functions.
+   * @param {Object} attributes - An object with attribute names as keys and optional parsing functions as values.
+   * @returns {void}
+   */
+  observableAttributes(attributes) {
+    Object.entries(attributes).forEach(([attrName, parseFn]) => {
+      // Retrieve the attribute value and apply the transformation function if provided
+      let attrValue = this.getAttribute(attrName);
+      const transformFn = typeof parseFn === 'function' ? parseFn : (v) => v;
+      attrValue = produce(attrValue, transformFn);
+
+      // Create an observable with the transformed value
+      const observable = this._observable(attrValue, attrName);
+
+      // Handle the observable based on whether its value is an object/array or not
+      if (this._isObjectOrArray(observable.value)) {
+        this._handleObjectOrArray(this, attrName, observable, true);
+      } else {
+        this._handleNonObject(this, attrName, observable, true);
+      }
+    });
   }
 
   /**
@@ -264,21 +238,18 @@ class ReactiveElement extends HTMLElement {
    * @description Creates an observable with an initial value
    * @param {any} initialValue - The initial value for the observable
    * @param {string} [name] - The name of the observable
-   * @returns {Observable} The observable
+   * @throws {Error} If the type of initialValue is not allowed in observables
+   * @returns {ObservableState} The observable
    */
-  observable(initialValue, name = null) {
+  _observable(initialValue, name = null) {
     if (!this._isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
       throw new Error(`[Cami.js] The type ${type} of initialValue is not allowed in observables.`);
     }
 
-    const observable = new ObservableState(initialValue, (value) => {
-      this.scheduleUpdate(observable);
-    }, { last: true, name });
+    const observable = new ObservableState(initialValue);
 
-    observable.scheduleUpdate = this.scheduleUpdate.bind(this, observable);
-
-    this.registerObservables(observable);
+    this._registerObservables(observable);
     return observable;
   }
 
@@ -286,7 +257,7 @@ class ReactiveElement extends HTMLElement {
    * @method
    * @description Fetches data from an API and caches it. This method is based on the TanStack Query defaults: https://tanstack.com/query/latest/docs/react/guides/important-defaults
    * @param {Object} options - The options for the query
-   * @param {Array} options.queryKey - The key for the query
+   * @param {Array|string} options.queryKey - The key for the query
    * @param {Function} options.queryFn - The function to fetch data
    * @param {number} [options.staleTime=0] - The stale time for the query
    * @param {boolean} [options.refetchOnWindowFocus=true] - Whether to refetch on window focus
@@ -306,7 +277,7 @@ class ReactiveElement extends HTMLElement {
 
     _trace('query', 'Starting query with key:', key);
 
-    const queryState = this.observable({
+    const queryState = this._observable({
       data: null,
       status: 'pending',
       fetchStatus: 'idle',
@@ -405,7 +376,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {Proxy} A proxy that contains the state of the mutation
    */
   mutation({ mutationFn, onMutate, onError, onSuccess, onSettled }) {
-    const mutationState = this.observable({
+    const mutationState = this._observable({
       data: null,
       status: 'idle',
       error: null,
@@ -477,27 +448,25 @@ class ReactiveElement extends HTMLElement {
   /**
    * Invalidates the queries with the given key, causing them to refetch if needed.
    * @param {Array|string} queryKey - The key for the query to invalidate.
+   * @returns {void}
    */
   invalidateQueries(queryKey) {
-
     // Convert the queryKey to a string if it's an array for consistency with the cache keys
     const key = Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
     _trace('invalidateQueries', 'Invalidating query with key:', key);
 
-    // Remove the query from the cache
     QueryCache.delete(key);
 
-    // Trigger a refetch for the invalidated query
     this.refetchQuery(key);
   }
 
   /**
    * Refetches the data for the given query key.
    * @param {string} key - The key for the query to refetch.
+   * @returns {void}
    */
   refetchQuery(key) {
     _trace('refetchQuery', 'Refetching query with key:', key);
-    // Find the query function associated with the key
     const queryFn = this._queryFunctions.get(key);
 
     if (queryFn) {
@@ -514,29 +483,25 @@ class ReactiveElement extends HTMLElement {
 
       // Trigger the refetch
       queryFn().then(data => {
-        // Update the QueryCache with the new data
         QueryCache.set(key, {
           data: data,
           status: 'success',
           error: null,
           lastUpdated: Date.now(),
         });
-        cosole.log('refetchQuery', 'Refetch successful for key:', key, data);
+        _trace('refetchQuery', 'Refetch successful for key:', key, data);
       }).catch(error => {
-        // Rollback to the previous state in case of an error
         if (previousState.data !== undefined) {
           _trace('refetchQuery', 'Rolling back refetch for key:', key);
           QueryCache.set(key, previousState);
         }
 
-        // Additionally, handle the error state
         QueryCache.set(key, {
           ...previousState,
           status: 'error',
           error: error,
         });
       }).finally(() => {
-        // Refetch the data to ensure the UI is in sync with the server state
         this.query({ queryKey: key, queryFn: queryFn });
         _trace('refetchQuery', 'Refetch complete for key:', key);
       });
@@ -575,18 +540,7 @@ class ReactiveElement extends HTMLElement {
     return prototype === null || prototype === Object.prototype;
   }
 
-  /**
-   * @method
-   * @description Creates an observable property from an attribute
-   * @param {string} attrName - The name of the attribute
-   * @param {Function} [parseFn=(v) => v] - The function to parse the attribute value
-   * @returns {Observable} The observable
-   */
-  observableAttr(attrName, parseFn = (v) => v) {
-    let attrValue = this.getAttribute(attrName);
-    attrValue = produce(attrValue, parseFn);
-    return this.observable(attrValue, attrName);
-  }
+
 
   /**
    * @method
@@ -608,7 +562,7 @@ class ReactiveElement extends HTMLElement {
    * @param {ObservableState} observableState - The observable state to register
    * @returns {void}
    */
-  registerObservables(observableState) {
+  _registerObservables(observableState) {
     if (!(observableState instanceof ObservableState)) {
       throw new TypeError('Expected observableState to be an instance of ObservableState');
     }
@@ -624,7 +578,7 @@ class ReactiveElement extends HTMLElement {
    */
   computed(computeFn) {
     const observableState = super.computed(computeFn);
-    this.registerObservables(observableState);
+    this._registerObservables(observableState);
     return observableState;
   }
 
@@ -651,7 +605,7 @@ class ReactiveElement extends HTMLElement {
       throw new TypeError('Expected store to be an instance of ObservableStore');
     }
 
-    const observable = this.observable(store.state[key], key);
+    const observable = this._observable(store.state[key], key);
     const unsubscribe = store.subscribe(newState => {
       observable.update(() => newState[key]);
     });
@@ -680,7 +634,18 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   connectedCallback() {
-    this.react();
+    this._setup({ infer: true });
+    this.effect(() => this._react());
+    this.onConnect();
+  }
+
+  /**
+   * @method
+   * Invoked when the custom element is connected to the document's DOM.
+   */
+  onConnect() {
+    // Default implementation does nothing.
+    // Subclasses can override this to add initialization logic when the component is added to the DOM.
   }
 
   /**
@@ -689,51 +654,62 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   disconnectedCallback() {
+    this.onDisconnect();
     this._unsubscribers.forEach(unsubscribe => unsubscribe());
     this._effects.forEach(({ cleanup }) => cleanup && cleanup());
   }
 
   /**
    * @method
-   * Processes all pending observable updates and triggers a re-render of the component.
-   * @private
-   * @returns {void}
-   */
-  _processUpdates() {
-    this._pendingObservableUpdates.forEach(observable => observable._applyUpdates());
-    this._pendingObservableUpdates.clear();
-    this._updateScheduled = false;
-    this.react();
+   * Invoked when the custom element is disconnected from the document's DOM.
+   **/
+  onDisconnect() {
+    // Default implementation does nothing.
+    // Subclasses can override this to add cleanup logic when the component is removed from the DOM.
   }
 
   /**
    * @method
-   * Schedules an update for the given observable. If no update is currently scheduled, it also schedules a call to _processUpdates.
-   * @param {Observable} observable - The observable that has pending updates.
-   * @returns {void}
-   */
-  scheduleUpdate(observable) {
-    this._pendingObservableUpdates.add(observable);
-    if (!this._updateScheduled) {
-      this._updateScheduled = true;
-      requestAnimationFrame(() => this._processUpdates());
-    }
+   * Invoked when the custom element is moved to a new document.
+   **/
+  attributeChangedCallback(name, oldValue, newValue) {
+    this.onAttributeChange(name, oldValue, newValue);
   }
 
   /**
    * @method
-   * Creates an event stream from a DOM event.
-   * @param {Event} e - The DOM event.
-   * @returns {Observable} An observable that emits whenever the event occurs.
-   */
-  eventStream(e) {
-    const observableElement = new ObservableElement(e.target);
-    return observableElement.on(e.type);
+   * Invoked when the custom element is moved to a new document.
+   **/
+  onAttributeChange(name, oldValue, newValue) {
+    // Default implementation does nothing.
+    // Subclasses can override this to add logic that should run when an attribute changes.
   }
 
-  stream(element, eventName) {
-    const observableElement = new ObservableElement(element);
-    return observableElement.on(eventName);
+  /**
+   * @method
+   * Invoked when the custom element is moved to a new document.
+   **/
+  adoptedCallback() {
+    this.onAdopt();
+  }
+
+  /**
+   * @method
+   * Invoked when the custom element is moved to a new document.
+   **/
+  onAdopt() {
+    // Default implementation does nothing.
+    // Subclasses can override this to add logic that should run when the component is moved to a new document.
+  }
+
+  /**
+   * @method
+   * Creates an ObservableStream from a subscription function.
+   * @param {Function} subscribeFn - The subscription function.
+   * @returns {ObservableStream} An ObservableStream that emits values produced by the subscription function.
+   */
+  stream(subscribeFn) {
+    return new ObservableStream(subscribeFn);
   }
 
   /**
@@ -742,7 +718,7 @@ class ReactiveElement extends HTMLElement {
    * This also triggers all effects.
    * @returns {void}
    */
-  react() {
+  _react() {
     const template = this.template();
     render(template, this);
     this._effects.forEach(({ effectFn }) => effectFn.call(this));
@@ -760,28 +736,11 @@ class ReactiveElement extends HTMLElement {
 
 /**
  * @function
- * @param {string} elementName - The name of the custom element
- * @param {class} ElementClass - The class of the custom element
- * @returns {void}
- *
- * This function is necessary to avoid DOMException errors that occur when a custom element is defined more than once (which happens when using AJAX)
- * This is particularly useful when using libraries like HTMX that dynamically inject HTML into the page.
- */
-function define(elementName, ElementClass) {
-  if (!customElements.get(elementName)) {
-    customElements.define(elementName, ElementClass);
-  }
-}
-
-/**
- * @function
  * @param {Object} initialState - The initial state of the store
  * @returns {ObservableStore} A new instance of ObservableStore with the provided initial state
  * @description This function creates a new instance of ObservableStore with the provided initial state
  */
-function store(initialState) {
-  return new ObservableStore(initialState);
-}
+const store = (initialState) => new ObservableStore(initialState);
 
 /**
  * @exports store
@@ -794,4 +753,4 @@ function store(initialState) {
  * @exports ObservableState
  */
 const { debug, events } = _config;
-export { store, html, ReactiveElement, define, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events };
+export { store, html, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events };

@@ -251,10 +251,10 @@ class ObservableState extends Observable {
    */
   update(updater) {
     this._pendingUpdates.push(updater);
-    this.scheduleUpdate();
+    this._scheduleupdate();
   }
 
-  scheduleUpdate() {
+  _scheduleupdate() {
     if (!this._updateScheduled) {
       this._updateScheduled = true;
       this._applyUpdates();
@@ -269,7 +269,7 @@ class ObservableState extends Observable {
    * If the observer is a function, it is called directly.
    * If the observer is an object with a 'next' method, the 'next' method is called.
    */
-  notifyObservers() {
+  _notifyObservers() {
     const observersWithLast = [...this._observers, this._lastObserver];
     observersWithLast.forEach(observer => {
       if (observer && typeof observer === 'function') {
@@ -290,10 +290,14 @@ class ObservableState extends Observable {
     let oldValue = this._value;
     while (this._pendingUpdates.length > 0) {
       const updater = this._pendingUpdates.shift();
-      this._value = produce(this._value, updater);
+      if ((typeof this._value === 'object' && this._value !== null && this._value.constructor === Object) || Array.isArray(this._value)) {
+        this._value = produce(this._value, updater);
+      } else {
+        this._value = updater(this._value);
+      }
     }
     if (oldValue !== this._value) {
-      this.notifyObservers();
+      this._notifyObservers();
 
       if (_config.events.isEnabled && typeof window !== 'undefined') {
         const event = new CustomEvent('cami:state:change', {
@@ -404,7 +408,7 @@ class ComputedState extends ObservableState {
 
     if (newValue !== this._value) {
       this._value = newValue;
-      this.notifyObservers();
+      this._notifyObservers();
     }
   }
 
