@@ -11,13 +11,6 @@
   class PlaylistElement extends ReactiveElement {
     playlist = [];
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['playlist'],
-      })
-    }
-
     addSong(song) {
       this.playlist.push(song);
     }

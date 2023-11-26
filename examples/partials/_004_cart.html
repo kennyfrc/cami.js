@@ -43,10 +43,6 @@
       staleTime: 1000 * 60 * 5 // 5 minutes
     });
 
-    constructor() {
-      super();
-    }
-
     addToCart(product) {
       CartStore.add(product);
     }
@@ -89,10 +85,6 @@
 
   class CartElement extends ReactiveElement {
     cartItems = this.connect(CartStore, 'cartItems');
-
-    constructor() {
-      super();
-    }
 
     get cartValue() {
       return this.cartItems.reduce((acc, item) => acc + item.price, 0);

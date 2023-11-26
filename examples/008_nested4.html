@@ -24,13 +24,6 @@
     ];
     editing = { isEditing: false, memberId: null };
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['teams', 'editing'],
-      });
-    }
-
     updateTeam(teamId, updateFunc) {
       this.teams.update(teams => {
         const team = teams.find(team => team.id === teamId);

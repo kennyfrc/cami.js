@@ -18,14 +18,10 @@
   const { html, ReactiveElement } = cami;
 
   class UserFormElement extends ReactiveElement {
-    user = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+    user = {};
 
-    constructor() {
-      super();
-      this.initialUser = { name: 'Kenn', age: 34, email: 'kenn@example.com' };
-      this.setup({
-        observables: ['user']
-      });
+    onConnect() {
+      this.initialUser =  { name: 'Kenn', age: 34, email: 'kenn@example.com' };
       this.user.assign(this.initialUser);
     }
 

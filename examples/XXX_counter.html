@@ -19,16 +19,8 @@
   class CounterElement extends ReactiveElement {
     count = 0;
 
-    constructor() {
-      super();
-
-      this.setup({
-        observables: ['count'],
-        computed: ['countSquared', 'countCubed', 'countQuadrupled', 'countPlusRandom', 'countSqrt'],
-        effects: [
-          () => console.log('count in define', this.count)
-        ]
-      })
+    onConnect() {
+      console.log('CounterElement connected');
     }
 
     get countSquared() {

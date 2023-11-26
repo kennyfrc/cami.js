@@ -21,13 +21,6 @@
     tasks = [];
     filter = 'all';
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['tasks', 'filter'],
-      });
-    }
-
     addTask(task) {
       this.tasks.push({ name: task, completed: false });
     }

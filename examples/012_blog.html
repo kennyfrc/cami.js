@@ -72,13 +72,6 @@
       }
     });
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['posts', 'addPost']
-      });
-    }
-
     template() {
       if (this.posts.data) {
         return html`

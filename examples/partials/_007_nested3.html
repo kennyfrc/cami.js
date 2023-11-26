@@ -62,10 +62,6 @@
   class UserListElement extends ReactiveElement {
     users = this.connect(userStore, 'users');
 
-    constructor() {
-      super();
-    }
-
     template() {
       return html`
         <ul>

@@ -44,13 +44,6 @@
       }
     });
 
-    constructor() {
-      super();
-      this.setup({
-        observables: ['todos']
-      })
-    }
-
     template() {
       if (this.todos.data) {
         return html`
