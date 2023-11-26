@@ -180,7 +180,6 @@ out
 /tests/build/
 /docs
 /utils
-/examples/build
 
 package-lib.json
 src/scratch.js
