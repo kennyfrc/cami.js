@@ -74,3 +74,5 @@ extra:
       icon: fontawesome/brands/github
       link: https://github.com/kennyfrc/cami.js
 copyright: Copyright &copy; 2023 Kenn Costales
+extra_files:
+  - CNAME
