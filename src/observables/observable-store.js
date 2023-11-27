@@ -4,12 +4,22 @@ import { produce } from "immer";
 /**
  * @class ObservableStore
  * @extends {Observable}
+ * @description This class is used to create a store that can be observed for changes. Adding the actions on the store is recommended.
+ * @example
+ * ```javascript
+ * const CartStore = cami.store({
+ *   cartItems: [],
+ *   add: (store, product) => {
+ *     const cartItem = { ...product, cartItemId: Date.now() };
+ *     store.cartItems.push(cartItem);
+ *   },
+ *   remove: (store, product) => {
+ *     store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+ *   }
+ * });
+ * ```
  */
 class ObservableStore extends Observable {
-  /**
-   * @constructor
-   * @param {Object} initialState - The initial state of the store
-   */
   constructor(initialState) {
     if (typeof initialState !== 'object' || initialState === null) {
       throw new TypeError('[Cami.js] initialState must be an object');
@@ -36,7 +46,7 @@ class ObservableStore extends Observable {
 
     this.reducers = {};
     this.middlewares = [];
-    this.devTools = this.connectToDevTools();
+    this.devTools = this._connectToDevTools();
 
     Object.keys(initialState).forEach(key => {
       if (typeof initialState[key] === 'function') {
@@ -48,11 +58,12 @@ class ObservableStore extends Observable {
   }
 
   /**
-   * Applies all registered middlewares to the given action and arguments.
-   *
+   * @private
+   * @method _applyMiddleware
    * @param {string} action - The action type
    * @param {...any} args - The arguments to pass to the action
    * @returns {void}
+   * @description This method applies all registered middlewares to the given action and arguments.
    */
   _applyMiddleware(action, ...args) {
     const context = {
@@ -67,10 +78,12 @@ class ObservableStore extends Observable {
   }
 
   /**
-   * @method connectToDevTools
+   * @private
+   * @method _connectToDevTools
    * @returns {Object|null} - Returns the devTools object if available, else null
+   * @description This method connects the store to the Redux DevTools extension if it is available.
    */
-  connectToDevTools() {
+  _connectToDevTools() {
     if (typeof window !== 'undefined' && window['__REDUX_DEVTOOLS_EXTENSION__']) {
       const devTools = window['__REDUX_DEVTOOLS_EXTENSION__'].connect();
       devTools.init(this.state);
@@ -81,7 +94,16 @@ class ObservableStore extends Observable {
 
   /**
    * @method use
+   * @memberof ObservableStore
    * @param {Function} middleware - The middleware function to use
+   * @description This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.
+   * @example
+   * ```javascript
+   * const loggerMiddleware = (context) => {
+   *   console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+   * };
+   * CartStore.use(loggerMiddleware);
+   * ```
    */
   use(middleware) {
     this.middlewares.push(middleware);
@@ -89,9 +111,18 @@ class ObservableStore extends Observable {
 
   /**
    * @method register
+   * @memberof ObservableStore
    * @param {string} action - The action type
    * @param {Function} reducer - The reducer function for the action
    * @throws {Error} - Throws an error if the action type is already registered
+   * @description This method registers a reducer function for a given action type. Useful if you like redux-style reducers.
+   * @example
+   * ```javascript
+   * CartStore.register('add', (store, product) => {
+   *   const cartItem = { ...product, cartItemId: Date.now() };
+   *   store.cartItems.push(cartItem);
+   * });
+   * ```
    */
   register(action, reducer) {
     if (this.reducers[action]) {
@@ -106,9 +137,15 @@ class ObservableStore extends Observable {
 
   /**
    * @method dispatch
+   * @memberof ObservableStore
    * @param {string|Function} action - The action type or a function
    * @param {Object} payload - The payload for the action
    * @throws {Error} - Throws an error if the action type is not a string
+   * @description This method dispatches an action to the store. Useful if you like redux-style actions / flux.
+   * @example
+   * ```javascript
+   * CartStore.dispatch('add', product);
+   * ```
    */
   dispatch(action, payload) {
     if (typeof action === 'function') {
@@ -139,4 +176,16 @@ class ObservableStore extends Observable {
   }
 }
 
-export { ObservableStore };
+/**
+ * @function
+ * @param {Object} initialState - The initial state of the store
+ * @returns {ObservableStore} A new instance of ObservableStore with the provided initial state
+ * @description This function creates a new instance of ObservableStore with the provided initial state.
+ * @example
+ * ```javascript
+ * const CartStore = store({ cartItems: [] });
+ * ```
+ */
+const store = (initialState) => new ObservableStore(initialState);
+
+export { ObservableStore, store };

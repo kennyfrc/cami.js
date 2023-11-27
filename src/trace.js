@@ -1,5 +1,16 @@
 import { _config } from './config.js';
 
+/**
+ * @private
+ * @function
+ * Logs the trace of a function execution if debug mode is enabled.
+ *
+ * @param {string} functionName - The name of the function to trace.
+ * @param {...any} messages - Additional messages to log in the console.
+ *
+ * @example
+ * _trace('myFunction', 'This is a test message');
+ */
 function _trace(functionName, ...messages) {
   if (_config.debug.isEnabled) {
     if (functionName === 'cami:state:change') {

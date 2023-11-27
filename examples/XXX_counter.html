@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-    <article>
-  <h1>Counter</h1>
+  <article>
+  <h1>Counter with Interval</h1>
   <counter-component></counter-component>
 </article>
 <script src="./build/cami.cdn.js"></script>
@@ -16,66 +16,32 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement } = cami;
-  class CounterElement extends ReactiveElement {
-    count = 0;
 
-    onConnect() {
-      console.log('CounterElement connected');
-    }
+class CounterElement extends ReactiveElement {
+  count = 0;
 
-    get countSquared() {
-      return this.count * this.count;
-    }
-
-    get countCubed() {
-      return this.countSquared * this.count;
-    }
-
-    get countQuadrupled() {
-      return this.countSquared * this.countSquared;
-    }
-
-    get countPlusRandom() {
-      return this.count + Math.random();
-    }
-
-    get countSqrt() {
-      return Math.sqrt(this.count);
-    }
-
-    increment() {
-      this.count++;
-    }
-
-    decrement() {
-      this.count--;
-    }
-
-    multiplyByTwo() {
-      this.count *= 2;
-    }
-
-    divideByTwo() {
-      this.count /= 2;
-    }
-
-    template() {
-      return html`
-        <button @click=${() => this.decrement()}>-</button>
-        <button @click=${() => this.increment()}>+</button>
-        <button @click=${() => this.multiplyByTwo()}>*2</button>
-        <button @click=${() => this.divideByTwo()}>/2</button>
-        <span>Base: ${this.count}</span>
-        <span>Squared: ${this.countSquared}</span>
-        <span>Cubed: ${this.countCubed}</span>
-        <span>Quadrupled: ${this.countQuadrupled}</span>
-        <span>Plus Random: ${this.countPlusRandom}</span>
-        <span>Sqrt: ${this.countSqrt ? this.countSqrt : 'N/A'}</span>
-      `;
-    }
+  get doubleCount() {
+    return this.count * 2;
   }
 
-  customElements.define('counter-component', CounterElement);
+  onConnect() {
+    setInterval(() => this.count++, 1000);
+    this.effect(() => {
+      console.log(`Count: ${this.count}`);
+    });
+    this.effect(() => {
+      console.log(`Double Count: ${this.doubleCount}`);
+    });
+  }
+
+  template() {
+    return html`
+      <div>Double Count: ${this.doubleCount}</div>
+    `;
+  }
+}
+
+customElements.define('counter-component', CounterElement);
 </script>
 
 </body>

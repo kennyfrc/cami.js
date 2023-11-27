@@ -8,7 +8,7 @@ Bundle Size: 14kb minified & gzipped.
 
 A minimalist yet powerful toolkit for interactive islands in web applications.
 
-[Documentation](https://camijs.com/)
+[Documentation](https://camijs.com/) | [API Reference](https://camijs.com/api/)
 
 ## Features include:
 
@@ -677,15 +677,33 @@ They are also listed below:
     });
 
     template() {
+      if (this.addTodo.status === "pending") {
+        return html`
+          <li style="opacity: 0.5;">
+            Adding new todo...
+          </li>
+        `;
+      }
+
+
+      if (this.deleteTodo.status === "pending") {
+        return html`
+          <li style="opacity: 0.5;">
+            Deleting todo...
+          </li>
+        `;
+      }
+
       if (this.todos.data) {
         return html`
           <input class="newTodo" type="text" />
           <button @click=${() => {
+            document.querySelector('.newTodo').value = '';
             this.addTodo.mutate({
               title: document.querySelector('.newTodo').value,
               completed: false
             })
-            document.querySelector('.newTodo').value = '';
+
       }}>Add</button>
           <ul>
             ${this.todos.data.slice().reverse().map(todo => html`
@@ -704,16 +722,6 @@ They are also listed below:
 
       if (this.todos.status === "error") {
         return html`<div>Error: ${this.todos.error.message}</div>`;
-      }
-
-      if (this.addTodo.status === "pending") {
-        return html`
-        ${this.addTodo.status === "pending" ? html`
-          <li style="opacity: 0.5;">
-            Adding new todo...
-          </li>
-        ` : ''}
-        <div>Adding todo...</div>`;
       }
 
       if (this.addTodo.status === "error") {

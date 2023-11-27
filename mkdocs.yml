@@ -35,7 +35,6 @@ theme:
     - search.highlight
     - search.share
     - toc.follow
-    - toc.integrate
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
@@ -48,17 +47,30 @@ plugins:
   - blog
   - search
 nav:
- - Introduction:
+  - Introduction:
     - index.md
     - features/features.md
     - features/reactive_web_components.md
     - features/async_state_management.md
     - features/streams.md
     - features/client_state_management.md
+    - API - Index: api/index.md
+    - API - Reactive Element: api/reactive_element.md
+    - API - Console Functions: api/console_functions.md
+  - API Reference:
+    - API Index: api/index.md
+    - api/reactive_element.md
+    - api/console_functions.md
+    - api/observable.md
+    - api/observable_state.md
+    - api/observable_store.md
+    - api/observable_stream.md
+    - HTTP: api/http.md
 extra_javascript:
   - javascripts/cami.cdn.js
 extra:
   social:
-    - icon: fontawesome/brands/github
+    -
+      icon: fontawesome/brands/github
       link: https://github.com/kennyfrc/cami.js
 copyright: Copyright &copy; 2023 Kenn Costales
