@@ -22,7 +22,7 @@ import { http } from './http.js';
 const { debug, events } = _config;
 
 /**
- * @exports store - The store object from observable-store.js
+ * @exports store - The store object from observable-store.js. This uses local storage by default.
  * @exports html - The html function from 'lit-html'
  * @exports ReactiveElement - The ReactiveElement class from reactive_element.js
  * @exports ObservableStream - The ObservableStream class from observable-stream.js

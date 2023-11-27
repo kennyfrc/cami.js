@@ -177,15 +177,107 @@ class ObservableStore extends Observable {
 }
 
 /**
- * @function
- * @param {Object} initialState - The initial state of the store
- * @returns {ObservableStore} A new instance of ObservableStore with the provided initial state
- * @description This function creates a new instance of ObservableStore with the provided initial state.
+ * @private
+ * @function _localStorageEnhancer
+ * @param {Function} StoreClass - The class of the store to enhance.
+ * @param {Object} initialState - The initial state for the new store instance.
+ * @param {Object} options - Configuration options for the store.
+ * @param {string} [options.name='default-store'] - The name of the store to use as the key in localStorage.
+ * @param {number} [options.expiry=86400000] - The time in milliseconds until the stored state expires (default is 24 hours).
+ * @returns {Function} A function that takes initialState and options, and returns an enhanced store instance with localStorage support.
+ * @description This enhancer adds the ability to persist the store's state in localStorage. It returns a function that, when called with initialState and options, creates a new store instance with localStorage support. The state of the store is automatically saved to localStorage whenever it changes, and it is rehydrated from localStorage when the store is created. The enhanced store also includes a `reset()` method for resetting the store's state.
  * @example
  * ```javascript
- * const CartStore = store({ cartItems: [] });
+ * // Enhance the ObservableStore with localStorage capabilities
+ * const enhancedCreateStore = _localStorageEnhancer(ObservableStore);
+ * // Create a store instance with initialState and provide a name to be used as the localStorage key
+ * const storeWithLocalStorage = enhancedCreateStore({ items: [] }, { name: 'my-store', expiry: 1000 * 60 * 60 * 24 });
+ * // Initialize or reset the store's state as needed
+ * storeWithLocalStorage.reset();
  * ```
  */
-const store = (initialState) => new ObservableStore(initialState);
+  const _localStorageEnhancer = (StoreClass) => {
+    return (initialState, options) => {
+      const storeName = options?.name || 'default-store';
+      const shouldLoad = options?.load !== false;
+      const defaultExpiry = 24 * 60 * 60 * 1000;
+      const expiry = options?.expiry !== undefined ? options.expiry : defaultExpiry;
+      const store = new StoreClass(initialState);
+
+      store.init = () => {
+        if (shouldLoad) {
+          const storedState = localStorage.getItem(storeName);
+          const storedExpiry = localStorage.getItem(`${storeName}-expiry`);
+          const currentTime = new Date().getTime();
+
+          if (storedState && storedExpiry) {
+            const isExpired = currentTime >= parseInt(storedExpiry, 10);
+            if (!isExpired) {
+              store.state = JSON.parse(storedState);
+            } else {
+              localStorage.removeItem(storeName);
+              localStorage.removeItem(`${storeName}-expiry`);
+            }
+          }
+        }
+      };
+
+      store.init();
+
+      store.reset = () => {
+        localStorage.removeItem(storeName);
+        localStorage.removeItem(`${storeName}-expiry`);
+
+        store.state = initialState;
+
+        store._observers.forEach(observer => observer.next(store.state));
+      };
+
+      store.subscribe((state) => {
+        const currentTime = new Date().getTime();
+        const expiryTime = currentTime + expiry;
+
+        localStorage.setItem(storeName, JSON.stringify(state));
+        localStorage.setItem(`${storeName}-expiry`, expiryTime.toString());
+      });
+
+      return store;
+    };
+  };
+
+/**
+ * @function store
+ * @param {Object} initialState - The initial state of the store.
+ * @param {Object} [options] - Configuration options for the store.
+ * @param {boolean} [options.localStorage=true] - Whether to use localStorage for state persistence.
+ * @param {string} [options.name='cami-store'] - The name of the store to use as the key in localStorage.
+ * @param {number} [options.expiry=86400000] - The time in milliseconds until the stored state expires (default is 24 hours).
+ * @returns {ObservableStore} A new instance of ObservableStore with the provided initial state, enhanced with localStorage if enabled.
+ * @description This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The `localStorage` option enables this behavior and can be toggled off if persistence is not needed.
+ * @example
+ * ```javascript
+ * // Create a store with default localStorage support
+ * const CartStore = store({ cartItems: [] });
+ *
+ * // Create a store without localStorage support
+ * const NonPersistentStore = store({ items: [] }, { localStorage: false });
+ * ```
+ */
+const store = (initialState, options = {}) => {
+  const defaultOptions = {
+    localStorage: true,
+    name: 'cami-store',
+    expiry: 86400000, // 24 hours
+  };
+
+  const finalOptions = { ...defaultOptions, ...options };
+
+  if (finalOptions.localStorage) {
+    const enhancedStore = _localStorageEnhancer(ObservableStore)(initialState, finalOptions);
+    return enhancedStore;
+  } else {
+    return new ObservableStore(initialState);
+  }
+}
 
 export { ObservableStore, store };

@@ -9,7 +9,7 @@
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
     <article>
   <h2>Products</h2>
-  <p>This fetches the products from an API, and uses a client-side store to manage the cart.</p>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
   <product-list-component></product-list-component>
 </article>
 <article>
@@ -32,7 +32,8 @@
     remove: (store, product) => {
       store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
     }
-  });
+  }, {name: 'CartStore', expiry: 1000 * 60 * 60 * 24 * 3}); // 3 days
+  // CartStore.reset() // if for some reason, you want to reset the store
 
   // Define a middleware function
   const loggerMiddleware = (context) => {
