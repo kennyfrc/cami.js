@@ -4,7 +4,7 @@ Cami.js is a minimalist yet powerful toolkit to build reactive web components in
 
 While minimalist, it has features you'd expect from a modern web framework, such as reactive web components, async state management, streams, and cross-component state management, ideal for creating internal tools, dashboards, and other web applications.
 
-API Reference is available [here](./api/index.md).
+API Reference is available [here](./api/index.md). Learn by example [here](./learn_by_example/counter.md).
 
 ## Getting Started
 
