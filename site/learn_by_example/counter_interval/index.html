@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../blog/">
       
       
-        <link rel="next" href="../reactive_web_components/">
+        <link rel="next" href="../data_props/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Feature Overview - Cami Web Components</title>
+        <title>Counter with Interval - Cami Web Components</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#feature-overview" class="md-skip">
+        <a href="#counter-with-interval" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Feature Overview
+              Counter with Interval
             
           </span>
         </div>
@@ -228,12 +228,10 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../.." class="md-tabs__link">
           
   
@@ -270,11 +268,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../learn_by_example/counter/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../counter/" class="md-tabs__link">
           
   
     
@@ -336,8 +336,6 @@
       
   
   
-    
-  
   
   
     
@@ -364,12 +362,14 @@
       
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1" >
         
           
           
@@ -391,7 +391,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Introduction
@@ -404,19 +404,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../features/features/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -425,7 +416,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -438,7 +428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reactive_web_components/" class="md-nav__link">
+      <a href="../../features/reactive_web_components/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -459,7 +449,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../async_state_management/" class="md-nav__link">
+      <a href="../../features/async_state_management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -480,7 +470,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../client_state_management/" class="md-nav__link">
+      <a href="../../features/client_state_management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -501,7 +491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../streams/" class="md-nav__link">
+      <a href="../../features/streams/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -752,8 +742,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -782,14 +774,12 @@
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -803,7 +793,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Learn by Example
@@ -817,7 +807,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/counter/" class="md-nav__link">
+      <a href="../counter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -838,7 +828,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/form_validation/" class="md-nav__link">
+      <a href="../form_validation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -859,7 +849,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/todo_list/" class="md-nav__link">
+      <a href="../todo_list/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -880,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/cart/" class="md-nav__link">
+      <a href="../cart/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -901,7 +891,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/simple_task_manager/" class="md-nav__link">
+      <a href="../simple_task_manager/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -922,7 +912,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/blog/" class="md-nav__link">
+      <a href="../blog/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -940,10 +930,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../learn_by_example/counter_interval/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -952,6 +951,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -964,7 +964,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/data_props/" class="md-nav__link">
+      <a href="../data_props/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -985,7 +985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/nested_updates/" class="md-nav__link">
+      <a href="../nested_updates/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1042,20 +1042,81 @@
   
 
 
-<h1 id="feature-overview">Feature Overview</h1>
-<ul>
-<li><strong>Reactive Web Components</strong>: Simplify your web development with <code>ReactiveElement</code>, which extends the standard <code>HTMLElement</code>. It automatically sets up reactive properties, so you don't have to write the usual boilerplate code. This feature supports complex scenarios like deep updates, array changes, and reactive attributes, making it easier to manage dynamic content.</li>
-<li><strong>Async State Management</strong>: Easily manage server data with our async tools. Use the <code>query</code> method to fetch and cache data, with options to control how often it refreshes. The <code>mutation</code> method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.</li>
-<li><strong>Streams &amp; Functional Reactive Programming (FRP)</strong>: Handle asynchronous events gracefully with Observable Streams. They offer powerful functions like <code>map</code>, <code>filter</code>, and <code>debounce</code> to process events in a sophisticated yet manageable way, perfect for writing clean, reactive code.</li>
-<li><strong>Cross-component State Management with a Singleton Store</strong>: Share state across different components with ease using a single store. This approach is compatible with Redux DevTools, giving you powerful debugging capabilities.</li>
-</ul>
-<h2>Internals that You Don't Need to Worry About</h2>
+<h1 id="counter-with-interval">Counter with Interval</h1>
+<p>For formulas (e.g. doubling), it's best to use getter methods. If you're familiar with <code>computeds</code>, I'd say that this functions in a similar way, where the <code>doubleCount</code> variable is updated lazily.</p>
+<p>This also demonstrates effects, which you can see in the console.</p>
+<hr>
 
-<ul>
-<li><strong>Dependency Tracking</strong>: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.</li>
-<li><strong>Automatic Disposal &amp; Garbage Collection</strong>: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, computeds, and effects when they are no longer needed, so you don't have to worry about it.</li>
-<li><strong>Automatic Expiry of Client-Side State</strong>: Keep your client-side state fresh with automatic expiry. Our store automatically expires state after a configurable duration (default is 24 hours), so you don't have to worry about stale data.</li>
-</ul>
+<article>
+  <counter-interval-be></counter-interval-be>
+</article>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+class CounterElement extends ReactiveElement {
+  count = 0;
+
+  get doubleCount() {
+    return this.count * 2;
+  }
+
+  onConnect() {
+    setInterval(() => this.count++, 1000);
+    this.effect(() => {
+      console.log(`Count: ${this.count}`);
+    });
+    this.effect(() => {
+      console.log(`Double Count: ${this.doubleCount}`);
+    });
+  }
+
+  template() {
+    return html`
+      <div>Double Count: ${this.doubleCount}</div>
+    `;
+  }
+}
+
+customElements.define('counter-interval-be', CounterElement);
+</script>
+
+<div class="language-html highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">&lt;</span><span class="nt">article</span><span class="p">&gt;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Counter with Interval<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  <span class="p">&lt;</span><span class="nt">counter-component</span><span class="p">&gt;&lt;/</span><span class="nt">counter-component</span><span class="p">&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">&lt;/</span><span class="nt">article</span><span class="p">&gt;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;./build/cami.cdn.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="cm">&lt;!-- CDN version below --&gt;</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="cm">&lt;!-- &lt;script src=&quot;https://unpkg.com/cami@latest/build/cami.cdn.js&quot;&gt;&lt;/script&gt; --&gt;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span><span class="p">&gt;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="kd">class</span><span class="w"> </span><span class="nx">CounterElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nx">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nx">get</span><span class="w"> </span><span class="nx">doubleCount</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2</span><span class="p">;</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nx">onConnect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="o">++</span><span class="p">,</span><span class="w"> </span><span class="mf">1000</span><span class="p">);</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">effect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Count: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="p">});</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">effect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Double Count: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">doubleCount</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="p">});</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="sb">      &lt;div&gt;Double Count: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">doubleCount</span><span class="si">}</span><span class="sb">&lt;/div&gt;</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="sb">    `</span><span class="p">;</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="p">}</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;counter-component&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">CounterElement</span><span class="p">);</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></div>
 
 
 
@@ -1077,7 +1138,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Cami">
+          <a href="../blog/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Blog with Optimistic UI">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1087,20 +1148,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Cami
+                Blog with Optimistic UI
               </div>
             </div>
           </a>
         
         
           
-          <a href="../reactive_web_components/" class="md-footer__link md-footer__link--next" aria-label="Next: Automatic Reactivity in Web Components">
+          <a href="../data_props/" class="md-footer__link md-footer__link--next" aria-label="Next: Task Manager (Attribute Data)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Automatic Reactivity in Web Components
+                Task Manager (Attribute Data)
               </div>
             </div>
             <div class="md-footer__button md-icon">

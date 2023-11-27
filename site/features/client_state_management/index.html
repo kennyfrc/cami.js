@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../streams/">
+        <link rel="prev" href="../async_state_management/">
       
       
-        <link rel="next" href="../../api/">
+        <link rel="next" href="../streams/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Cross-Component State Management - WIP - Cami Web Components</title>
+        <title>Cross-Component Client State Management - Cami Web Components</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cross-component-state-management-wip" class="md-skip">
+        <a href="#cross-component-client-state-management" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Cross-Component State Management - WIP
+              Cross-Component Client State Management
             
           </span>
         </div>
@@ -267,6 +267,26 @@
   
 
       
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../learn_by_example/counter/" class="md-tabs__link">
+          
+  
+    
+  
+  Learn by Example
+
+        </a>
+      </li>
+    
+  
+
+      
     </ul>
   </div>
 </nav>
@@ -331,14 +351,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-          
         
       
         
@@ -420,7 +432,7 @@
         
   
   <span class="md-ellipsis">
-    Reactive web components
+    Automatic Reactivity in Web Components
   </span>
   
 
@@ -441,28 +453,7 @@
         
   
   <span class="md-ellipsis">
-    Async state management
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../streams/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Streams - WIP
+    Asynchronous Server State Management
   </span>
   
 
@@ -488,15 +479,54 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Cross-Component Client State Management
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Cross-Component State Management - WIP
+    Cross-Component Client State Management
   </span>
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#live-demo-cross-component-state-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live Demo - Cross-Component State Management
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -510,53 +540,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/" class="md-nav__link">
+      <a href="../streams/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    API - Index
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/reactive_element/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    API - Reactive Element
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/console_functions/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    API - Console Functions
+    Streams
   </span>
   
 
@@ -799,6 +787,264 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Learn by Example
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Learn by Example
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simple Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/form_validation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interactive Registration Form
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/todo_list/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Todo List with Server State
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/cart/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping Cart with Server & Client State
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/simple_task_manager/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simple Task Manager
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/blog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Blog with Optimistic UI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/counter_interval/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter with Interval
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/data_props/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Task Manager (Attribute Data)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/nested_updates/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Nested Updates
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -819,6 +1065,23 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#live-demo-cross-component-state-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Live Demo - Cross-Component State Management
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -835,9 +1098,9 @@
   
 
 
-<h1 id="cross-component-state-management-wip">Cross-Component State Management - WIP</h1>
-<p>In Cami.js, cross-component state management is achieved through the use of stores. A store is a reactive state container that components can connect to and interact with. This allows for state to be shared across multiple components, and for changes in the state to automatically reflect in all connected components.</p>
-<p>Here's an example of defining a store and using it in two components:</p>
+<h1 id="cross-component-client-state-management">Cross-Component Client State Management</h1>
+<p>In Cami, cross-component state management is achieved through the use of stores. A store is a reactive state container that components can connect to and interact with. By default, Cami's store uses localStorage to persist state with an expiry of 24 hours, ensuring that the state is maintained across browser sessions. This expiry is configurable by passing a configuration object with an <code>expiry</code> property to the store.</p>
+<p>Here's an example of defining a store with a custom expiry and using it in two components:</p>
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">.</span><span class="nx">store</span><span class="p">({</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">add</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">store</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
@@ -847,7 +1110,7 @@
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="nx">remove</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">store</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nx">store</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">cartItemId</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">cartItemId</span><span class="p">);</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">});</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">expiry</span><span class="o">:</span><span class="w"> </span><span class="mf">1000</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">24</span><span class="w"> </span><span class="p">});</span><span class="w"> </span><span class="c1">// 24 hours</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="kd">class</span><span class="w"> </span><span class="nx">ProductListElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">CartStore</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;cartItems&#39;</span><span class="p">);</span>
@@ -859,8 +1122,203 @@
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="c1">// ...</span>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>In this example, both <code>ProductListElement</code> and <code>CartElement</code> connect to <code>CartStore</code>. When a product is added or removed in <code>ProductListElement</code>, the changes are reflected in <code>CartElement</code> because they both share the same state from <code>CartStore</code>.</p>
-<p>This makes it easy to manage and share state across multiple components, and ensures that the UI is always in sync with the state.</p>
+<p>Above, both <code>ProductListElement</code> and <code>CartElement</code> connect to <code>CartStore</code>. When a product is added or removed in <code>ProductListElement</code>, the changes are reflected in <code>CartElement</code> because they both share the same state from <code>CartStore</code>. The store's expiry is set to 24 hours, after which the state will no longer be persisted.</p>
+<p>The <code>ProductListElement</code> is initialized with a <code>query</code> that fetches product data from an API. This data is used to populate the <code>products</code> property. The <code>query</code> is configured with a <code>staleTime</code> of 5 minutes, indicating that the fetched data will be considered fresh for this duration before a new fetch is triggered.</p>
+<p>The <code>ProductListElement</code> also includes methods to add products to the cart, check if a product is already in the cart, and determine if a product is out of stock. The <code>template</code> method defines the HTML structure for the component, including a loading state, error handling, and the list of products with an "Add to cart" button that is disabled if the product is out of stock.</p>
+<p>Here is the relevant code for <code>ProductListElement</code>:
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="w">  </span><span class="kd">class</span><span class="w"> </span><span class="nx">ProductListElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">CartStore</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;cartItems&#39;</span><span class="p">);</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nx">products</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;products&#39;</span><span class="p">],</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3&quot;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="p">},</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nx">staleTime</span><span class="o">:</span><span class="w"> </span><span class="mf">1000</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="c1">// 5 minutes</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">});</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nx">addToCart</span><span class="p">(</span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nx">CartStore</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">product</span><span class="p">);</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nx">isProductInCart</span><span class="p">(</span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">some</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nx">isOutOfStock</span><span class="p">(</span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">stock</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">products</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;pending&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div&gt;Loading...&lt;/div&gt;`</span><span class="p">;</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">products</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div&gt;Error: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">products</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="sb">&lt;/div&gt;`</span><span class="p">;</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">products</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="sb">          &lt;ul&gt;</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="sb">            </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">products</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">product</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="sb">              &lt;li&gt;</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="sb">                </span><span class="si">${</span><span class="nx">product</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> - $</span><span class="si">${</span><span class="p">(</span><span class="nx">product</span><span class="p">.</span><span class="nx">price</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">100</span><span class="p">).</span><span class="nx">toFixed</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span><span class="si">}</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="sb">                &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">addToCart</span><span class="p">(</span><span class="nx">product</span><span class="p">)</span><span class="si">}</span><span class="sb"> ?disabled=</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">isOutOfStock</span><span class="p">(</span><span class="nx">product</span><span class="p">)</span><span class="si">}</span><span class="sb">&gt;</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="sb">                  Add to cart</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="sb">                &lt;/button&gt;</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="sb">              &lt;/li&gt;</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="sb">            `</span><span class="p">)</span><span class="si">}</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="sb">          &lt;/ul&gt;</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="sb">        `</span><span class="p">;</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;product-list-component&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">ProductListElement</span><span class="p">);</span>
+</span></code></pre></div></p>
+<p>This example demonstrates how <code>ProductListElement</code> interacts with <code>CartStore</code> and manages its own local state and UI rendering logic.</p>
+<p>Lastly, we then add the cart component to the page:</p>
+<p>The way this works is that <code>CartElement</code> extends <code>ReactiveElement</code> to create a reactive cart component. It connects to <code>CartStore</code> to listen for changes in the cart items and defines a getter <code>cartValue</code> to calculate the total value of the cart. It also includes a method <code>removeFromCart</code> to handle the removal of items from the cart. The <code>template</code> method returns the HTML structure for the cart, including the total cart value and a list of items with remove buttons.</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="w">  </span><span class="kd">class</span><span class="w"> </span><span class="nx">CartElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">CartStore</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;cartItems&#39;</span><span class="p">);</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nx">get</span><span class="w"> </span><span class="nx">cartValue</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">reduce</span><span class="p">((</span><span class="nx">acc</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">acc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">price</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nx">removeFromCart</span><span class="p">(</span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="nx">CartStore</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">product</span><span class="p">);</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="sb">        &lt;p&gt;Cart value: $</span><span class="si">${</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">cartValue</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">100</span><span class="p">).</span><span class="nx">toFixed</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span><span class="si">}</span><span class="sb">&lt;/p&gt;</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="sb">        &lt;ul&gt;</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="sb">          </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="sb">            &lt;li&gt;</span><span class="si">${</span><span class="nx">item</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb"> - $</span><span class="si">${</span><span class="p">(</span><span class="nx">item</span><span class="p">.</span><span class="nx">price</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">100</span><span class="p">).</span><span class="nx">toFixed</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span><span class="si">}</span><span class="sb"> &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">removeFromCart</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span><span class="si">}</span><span class="sb">&gt;Remove&lt;/button&gt;&lt;/li&gt;</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="sb">          `</span><span class="p">)</span><span class="si">}</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="sb">        &lt;/ul&gt;</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="sb">      `</span><span class="p">;</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;cart-component&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">CartElement</span><span class="p">);</span>
+</span></code></pre></div>
+<p>Below is the live demo.</p>
+<hr>
+
+<h3 id="live-demo-cross-component-state-management">Live Demo - Cross-Component State Management</h3>
+<article>
+  <h4>Products</h4>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
+  <h5>Product List</h5>
+  <product-list-cami-example></product-list-cami-example>
+</article>
+<article>
+  <h4>Cart</h4>
+  <cart-cami-example></cart-cami-example>
+</article>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  const CartStore = cami.store({
+    cartItems: [],
+    add: (store, product) => {
+      const cartItem = { ...product, cartItemId: Date.now() };
+      store.cartItems.push(cartItem);
+    },
+    remove: (store, product) => {
+      store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+    }
+  }, {name: 'CartStore', expiry: 1000 * 60 * 60 * 24 * 3}); // 3 days
+  // CartStore.reset() // if for some reason, you want to reset the store
+
+  // Define a middleware function
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+  };
+
+  // Use the middleware function with the initialState
+  CartStore.use(loggerMiddleware);
+
+  class ProductListElement extends ReactiveElement {
+    cartItems = this.connect(CartStore, 'cartItems');
+    products = this.query({
+      queryKey: ['products'],
+      queryFn: () => {
+        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3").then(res => res.json())
+      },
+      staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+
+    addToCart(product) {
+      CartStore.add(product);
+    }
+
+    isProductInCart(product) {
+      return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+    }
+
+    isOutOfStock(product) {
+      return product.stock === 0;
+    }
+
+    template() {
+      if (this.products.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.products.status === "error") {
+        return html`<div>Error: ${this.products.error.message}</div>`;
+      }
+
+      if (this.products.data) {
+        return html`
+          <ul>
+            ${this.products.data.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button class="md-button md-small" @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
+                  Add to cart
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+  }
+
+  customElements.define('product-list-cami-example', ProductListElement);
+
+  class CartElement extends ReactiveElement {
+    cartItems = this.connect(CartStore, 'cartItems');
+
+    get cartValue() {
+      return this.cartItems.reduce((acc, item) => acc + item.price, 0);
+    }
+
+    removeFromCart(product) {
+      CartStore.remove(product);
+    }
+
+    template() {
+      return html`
+        <p>Note: Refresh the page to see that the cart is persisted to localStorage. You can also look at <code>Chrome DevTools > Application > Local Storage</code> to see the cart items.</p>
+        <p>Cart value: $${(this.cartValue / 100).toFixed(2)}</p>
+        <ul>
+          ${this.cartItems.map(item => html`
+            <li>${item.name} - $${(item.price / 100).toFixed(2)} <button class="md-button md-small" @click=${() => this.removeFromCart(item)}>Remove</button></li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('cart-cami-example', CartElement);
+</script>
+
+<hr>
 
 
 
@@ -882,7 +1340,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../streams/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Streams - WIP">
+          <a href="../async_state_management/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Asynchronous Server State Management">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -892,20 +1350,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Streams - WIP
+                Asynchronous Server State Management
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../api/" class="md-footer__link md-footer__link--next" aria-label="Next: API - Index">
+          <a href="../streams/" class="md-footer__link md-footer__link--next" aria-label="Next: Streams">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                API - Index
+                Streams
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../counter_interval/">
       
       
-        <link rel="next" href="../reactive_web_components/">
+        <link rel="next" href="../nested_updates/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Feature Overview - Cami Web Components</title>
+        <title>Task Manager (Attribute Data) - Cami Web Components</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#feature-overview" class="md-skip">
+        <a href="#task-manager-attribute-data" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Feature Overview
+              Task Manager (Attribute Data)
             
           </span>
         </div>
@@ -228,12 +228,10 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../.." class="md-tabs__link">
           
   
@@ -270,11 +268,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../learn_by_example/counter/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../counter/" class="md-tabs__link">
           
   
     
@@ -336,8 +336,6 @@
       
   
   
-    
-  
   
   
     
@@ -364,12 +362,14 @@
       
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1" >
         
           
           
@@ -391,7 +391,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Introduction
@@ -404,19 +404,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../features/features/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -425,7 +416,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -438,7 +428,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reactive_web_components/" class="md-nav__link">
+      <a href="../../features/reactive_web_components/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -459,7 +449,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../async_state_management/" class="md-nav__link">
+      <a href="../../features/async_state_management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -480,7 +470,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../client_state_management/" class="md-nav__link">
+      <a href="../../features/client_state_management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -501,7 +491,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../streams/" class="md-nav__link">
+      <a href="../../features/streams/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -752,8 +742,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -782,14 +774,12 @@
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -803,7 +793,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Learn by Example
@@ -817,7 +807,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/counter/" class="md-nav__link">
+      <a href="../counter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -838,7 +828,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/form_validation/" class="md-nav__link">
+      <a href="../form_validation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -859,7 +849,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/todo_list/" class="md-nav__link">
+      <a href="../todo_list/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -880,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/cart/" class="md-nav__link">
+      <a href="../cart/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -901,7 +891,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/simple_task_manager/" class="md-nav__link">
+      <a href="../simple_task_manager/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -922,7 +912,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/blog/" class="md-nav__link">
+      <a href="../blog/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -943,7 +933,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/counter_interval/" class="md-nav__link">
+      <a href="../counter_interval/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -961,10 +951,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../learn_by_example/data_props/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -973,6 +972,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -985,7 +985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/nested_updates/" class="md-nav__link">
+      <a href="../nested_updates/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1042,20 +1042,119 @@
   
 
 
-<h1 id="feature-overview">Feature Overview</h1>
-<ul>
-<li><strong>Reactive Web Components</strong>: Simplify your web development with <code>ReactiveElement</code>, which extends the standard <code>HTMLElement</code>. It automatically sets up reactive properties, so you don't have to write the usual boilerplate code. This feature supports complex scenarios like deep updates, array changes, and reactive attributes, making it easier to manage dynamic content.</li>
-<li><strong>Async State Management</strong>: Easily manage server data with our async tools. Use the <code>query</code> method to fetch and cache data, with options to control how often it refreshes. The <code>mutation</code> method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.</li>
-<li><strong>Streams &amp; Functional Reactive Programming (FRP)</strong>: Handle asynchronous events gracefully with Observable Streams. They offer powerful functions like <code>map</code>, <code>filter</code>, and <code>debounce</code> to process events in a sophisticated yet manageable way, perfect for writing clean, reactive code.</li>
-<li><strong>Cross-component State Management with a Singleton Store</strong>: Share state across different components with ease using a single store. This approach is compatible with Redux DevTools, giving you powerful debugging capabilities.</li>
-</ul>
-<h2>Internals that You Don't Need to Worry About</h2>
+<h1 id="task-manager-attribute-data">Task Manager (Attribute Data)</h1>
+<p>If you somehow need to define data in the web components attribute (perhaps its easier in your server-side templating language), you can do so with <code>observableAttributes</code>. You can pass a parsing function to that.</p>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">&lt;</span><span class="nt">task-manager-props-be</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="na">todos</span><span class="o">=</span><span class="s">&#39;{&quot;data&quot;: [&quot;Buy milk&quot;, &quot;Buy eggs&quot;, &quot;Buy bread&quot;]}&#39;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  <span class="p">&gt;&lt;/</span><span class="nt">task-manager-props-be</span><span class="p">&gt;</span>
+</span></code></pre></div>
+<hr>
 
-<ul>
-<li><strong>Dependency Tracking</strong>: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.</li>
-<li><strong>Automatic Disposal &amp; Garbage Collection</strong>: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, computeds, and effects when they are no longer needed, so you don't have to worry about it.</li>
-<li><strong>Automatic Expiry of Client-Side State</strong>: Keep your client-side state fresh with automatic expiry. Our store automatically expires state after a configurable duration (default is 24 hours), so you don't have to worry about stale data.</li>
-</ul>
+<article>
+<task-manager-props-be
+    todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
+  ></task-manager-props-be>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class MyComponent extends ReactiveElement {
+    todos = []
+
+    onConnect() {
+      this.observableAttributes({
+        todos: (v) => JSON.parse(v).data
+      });
+    }
+
+    addTodo (todo) {
+      this.todos.push(todo);
+    }
+
+    deleteTodo (todo) {
+      this.todos.splice(this.todos.indexOf(todo), 1);
+    }
+
+    template() {
+      return html`
+        <input id="newTodo" type="text" class="md-input" placeholder="Add Task" />
+        <button class="md-button" @click=${() => {
+          this.addTodo(document.getElementById('newTodo').value); document.getElementById('newTodo').value = ''; }}
+        >Add</button>
+        <ul class="md-list">
+          ${this.todos.map(todo => html`
+            <li class="md-list-item">
+              ${todo}
+              <button class="md-button md-small" @click=${() => this.deleteTodo(todo)
+              }>Delete</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+
+  }
+
+  customElements.define('task-manager-props-be', MyComponent);
+
+</script>
+
+<p>HTML:</p>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">&lt;</span><span class="nt">article</span><span class="p">&gt;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">&lt;</span><span class="nt">task-manager-props-be</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="na">todos</span><span class="o">=</span><span class="s">&#39;{&quot;data&quot;: [&quot;Buy milk&quot;, &quot;Buy eggs&quot;, &quot;Buy bread&quot;]}&#39;</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  <span class="p">&gt;&lt;/</span><span class="nt">task-manager-props-be</span><span class="p">&gt;</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">&lt;/</span><span class="nt">article</span><span class="p">&gt;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;./build/cami.cdn.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="cm">&lt;!-- CDN version below --&gt;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="cm">&lt;!-- &lt;script src=&quot;https://unpkg.com/cami@latest/build/cami.cdn.js&quot;&gt;&lt;/script&gt; --&gt;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span><span class="p">&gt;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="kd">class</span><span class="w"> </span><span class="nx">MyComponent</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nx">todos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nx">onConnect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">observableAttributes</span><span class="p">({</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">        </span><span class="nx">todos</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">v</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">v</span><span class="p">).</span><span class="nx">data</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="p">});</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="nx">addTodo</span><span class="w"> </span><span class="p">(</span><span class="nx">todo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">todos</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">todo</span><span class="p">);</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="nx">deleteTodo</span><span class="w"> </span><span class="p">(</span><span class="nx">todo</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">todos</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">todos</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">todo</span><span class="p">),</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="sb">        &lt;input id=&quot;newTodo&quot; type=&quot;text&quot; class=&quot;md-input&quot; placeholder=&quot;Add Task&quot; /&gt;</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="sb">        &lt;button class=&quot;md-button&quot; @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">          </span><span class="k">this</span><span class="p">.</span><span class="nx">addTodo</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;newTodo&#39;</span><span class="p">).</span><span class="nx">value</span><span class="p">);</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;newTodo&#39;</span><span class="p">).</span><span class="nx">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">;</span><span class="w"> </span><span class="si">}</span><span class="sb">}</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="sb">        &gt;Add&lt;/button&gt;</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="sb">        &lt;ul class=&quot;md-list&quot;&gt;</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="sb">          </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">todos</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">todo</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="sb">            &lt;li class=&quot;md-list-item&quot;&gt;</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="sb">              </span><span class="si">${</span><span class="nx">todo</span><span class="si">}</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="sb">              &lt;button class=&quot;md-button md-small&quot; @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">deleteTodo</span><span class="p">(</span><span class="nx">todo</span><span class="p">)</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">              </span><span class="si">}</span><span class="sb">&gt;Delete&lt;/button&gt;</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="sb">            &lt;/li&gt;</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="sb">          `</span><span class="p">)</span><span class="si">}</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="sb">        &lt;/ul&gt;</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="sb">      `</span><span class="p">;</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;task-manager-props-be&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">MyComponent</span><span class="p">);</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></div>
 
 
 
@@ -1077,7 +1176,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../.." class="md-footer__link md-footer__link--prev" aria-label="Previous: Cami">
+          <a href="../counter_interval/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Counter with Interval">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1087,20 +1186,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Cami
+                Counter with Interval
               </div>
             </div>
           </a>
         
         
           
-          <a href="../reactive_web_components/" class="md-footer__link md-footer__link--next" aria-label="Next: Automatic Reactivity in Web Components">
+          <a href="../nested_updates/" class="md-footer__link md-footer__link--next" aria-label="Next: Nested Updates">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Automatic Reactivity in Web Components
+                Nested Updates
               </div>
             </div>
             <div class="md-footer__button md-icon">

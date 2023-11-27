@@ -72,6 +72,7 @@ nav:
     - learn_by_example/blog.md
     - learn_by_example/counter_interval.md
     - learn_by_example/data_props.md
+    - learn_by_example/nested_updates.md
 extra_javascript:
   - javascripts/cami.cdn.js
 extra:
