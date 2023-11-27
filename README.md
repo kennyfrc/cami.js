@@ -8,7 +8,7 @@ Bundle Size: 14kb minified & gzipped.
 
 A minimalist yet powerful toolkit for interactive islands in web applications.
 
-[Documentation](https://kennyfrc.github.io/cami.js/)
+[Documentation](https://camijs.com/)
 
 ## Features include:
 
