@@ -1,0 +1,64 @@
+site_name: Cami Web Components
+repo_url: https://github.com/kennyfrc/cami.js
+repo_name: Cami.js
+theme:
+  name: material
+  icon:
+      repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/lightbulb
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to system preference
+  font:
+    text: Noto Sans
+  language: en
+  features:
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.expand
+    - navigation.sections
+    - navigation.indexes
+    - navigation.footer
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+    - toc.integrate
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+plugins:
+  - blog
+  - search
+nav:
+ - Introduction:
+    - index.md
+    - features/features.md
+    - features/reactive_web_components.md
+    - features/async_state_management.md
+    - features/streams.md
+    - features/client_state_management.md
+extra_javascript:
+  - javascripts/cami.cdn.js
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/kennyfrc/cami.js
+copyright: Copyright &copy; 2023 Kenn Costales
