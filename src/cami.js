@@ -325,7 +325,7 @@ class ReactiveElement extends HTMLElement {
           }
         }
       }
-    };
+    }
 
     // Refetch data when new instances of the query mount
     if (refetchOnMount) {
@@ -388,16 +388,19 @@ class ReactiveElement extends HTMLElement {
     const performMutation = async (variables) => {
       _trace('mutation', 'Starting mutation for variables:', variables);
       let context;
-      // Capture the current state before the mutation
-      const previousState = mutationState.value; // Access the current state directly
+      const previousState = mutationState.value;
 
       if (onMutate) {
         _trace('mutation', 'Performing optimistic update for variables:', variables);
-        // Perform any optimistic updates required and capture rollback context
         context = onMutate(variables, previousState);
-        // Update the state optimistically
         mutationState.update(state => {
           state.data = context.optimisticData;
+          state.status = 'pending';
+          state.error = null;
+        });
+      } else {
+        _trace('mutation', 'Performing mutation without optimistic update for variables:', variables);
+        mutationState.update(state => {
           state.status = 'pending';
           state.error = null;
         });
@@ -418,7 +421,6 @@ class ReactiveElement extends HTMLElement {
         mutationState.update(state => {
           state.error = { message: error.message };
           state.status = 'error';
-          // Rollback to previous state if onError is not provided
           if (!onError && context && context.rollback) {
             _trace('mutation', 'Rolling back mutation for variables:', variables);
             context.rollback();
@@ -430,7 +432,7 @@ class ReactiveElement extends HTMLElement {
       } finally {
         if (!mutationState.value.isSettled) {
           mutationState.update(state => {
-            state.isSettled = true; // Set the flag to true
+            state.isSettled = true
           });
           if (onSettled) {
             _trace('mutation', 'Calling onSettled for variables:', variables);
@@ -441,6 +443,15 @@ class ReactiveElement extends HTMLElement {
     };
 
     mutationProxy.mutate = performMutation;
+
+    mutationProxy.reset = () => {
+      mutationState.update(state => {
+        state.data = null;
+        state.status = 'idle';
+        state.error = null;
+        state.isSettled = false;
+      });
+    };
 
     return mutationProxy;
   }
@@ -567,7 +578,12 @@ class ReactiveElement extends HTMLElement {
       throw new TypeError('Expected observableState to be an instance of ObservableState');
     }
 
-    this._unsubscribers.set(observableState, () => observableState.dispose());
+    // Only computeds and effects have a dispose method
+    this._unsubscribers.set(observableState, () => {
+     if (typeof observableState.dispose === 'function') {
+       observableState.dispose();
+     }
+   });
   }
 
   /**
