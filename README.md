@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.3.2.
+Current version: 0.3.3.
 
 Bundle Size: 14kb minified & gzipped.
 
@@ -55,13 +55,13 @@ Notice that you don't have to define observables or effects. You can just direct
 
 ## Shopping Cart Component
 
-Notice that product data is fetched through a query (server state), and the cart data is managed through a shared store (client state). Loading, error, and stale states are handled automatically.
+Notice that product data is fetched through a query (server state), and the cart data is managed through a shared store (client state) with persistence. The cart's state is stored in localStorage and expires after 3 days (Default is 24 hours).
 
 ```html
 <!-- Just copy & paste this into an HTML file, and open it in your browser. -->
-<article>
+  <article>
   <h2>Products</h2>
-  <p>This fetches the products from an API, and uses a client-side store to manage the cart.</p>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
   <product-list-component></product-list-component>
 </article>
 <article>
@@ -84,12 +84,15 @@ Notice that product data is fetched through a query (server state), and the cart
     remove: (store, product) => {
       store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
     }
-  });
+  }, {name: 'CartStore', expiry: 1000 * 60 * 60 * 24 * 3}); // 3 days
+  // CartStore.reset() // if for some reason, you want to reset the store
 
+  // Define a middleware function
   const loggerMiddleware = (context) => {
     console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
   };
 
+  // Use the middleware function with the initialState
   CartStore.use(loggerMiddleware);
 
   class ProductListElement extends ReactiveElement {
@@ -167,6 +170,7 @@ Notice that product data is fetched through a query (server state), and the cart
 
   customElements.define('cart-component', CartElement);
 </script>
+
 ```
 
 ## Registration Form Component
@@ -738,7 +742,7 @@ They are also listed below:
 <!-- ./examples/_004_cart.html -->
   <article>
   <h2>Products</h2>
-  <p>This fetches the products from an API, and uses a client-side store to manage the cart.</p>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
   <product-list-component></product-list-component>
 </article>
 <article>
@@ -761,7 +765,8 @@ They are also listed below:
     remove: (store, product) => {
       store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
     }
-  });
+  }, {name: 'CartStore', expiry: 1000 * 60 * 60 * 24 * 3}); // 3 days
+  // CartStore.reset() // if for some reason, you want to reset the store
 
   // Define a middleware function
   const loggerMiddleware = (context) => {
