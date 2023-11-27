@@ -2,11 +2,13 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.3.1. Follows [semver](https://semver.org/).
+Current version: 0.3.1.
 
 Bundle Size: 14kb minified & gzipped.
 
 A minimalist yet powerful toolkit for interactive islands in web applications.
+
+[Documentation](https://kennyfrc.github.io/cami.js/)
 
 ## Features include:
 
