@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.3.0. Follows [semver](https://semver.org/).
+Current version: 0.3.1. Follows [semver](https://semver.org/).
 
 Bundle Size: 14kb minified & gzipped.
 
@@ -20,7 +20,7 @@ Below covers three examples: a simple counter component to get you started, a sh
 
 ## Counter Component
 
-Notice that you don't have to define observables or effects. You can just directly mutate the state, and the component will automatically update its view. Loading, error, and data states are also handled automatically.
+Notice that you don't have to define observables or effects. You can just directly mutate the state, and the component will automatically update its view.
 
 ```html
 <!-- Just copy & paste this into an HTML file, and open it in your browser. -->
@@ -53,7 +53,7 @@ Notice that you don't have to define observables or effects. You can just direct
 
 ## Shopping Cart Component
 
-Notice that product data is fetched through a query (server state), and the cart data is managed through a shared store (client state).
+Notice that product data is fetched through a query (server state), and the cart data is managed through a shared store (client state). Loading, error, and stale states are handled automatically.
 
 ```html
 <!-- Just copy & paste this into an HTML file, and open it in your browser. -->
@@ -1372,7 +1372,8 @@ They are also listed below:
     posts = this.query({
       queryKey: ["posts"],
       queryFn: () => {
-        return fetch("https://jsonplaceholder.typicode.com/posts").then(res => res.json())
+        return fetch("https://jsonplaceholder.typicode.com/posts?_limit=5")
+          .then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
     })
