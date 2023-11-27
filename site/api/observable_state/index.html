@@ -1,0 +1,2780 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../observable/">
+      
+      
+        <link rel="next" href="../observable_store/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.14">
+    
+    
+      
+        <title>Observable state - Cami Web Components</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.fad675c6.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Noto Sans";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#classes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Cami Web Components" class="md-header__button md-logo" aria-label="Cami Web Components" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Cami Web Components
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Observable state
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_3" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_3">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/kennyfrc/cami.js" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Cami.js
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+    
+  
+  Introduction
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Cami Web Components" class="md-nav__button md-logo" aria-label="Cami Web Components" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Cami Web Components
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/kennyfrc/cami.js" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Cami.js
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/features/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Feature Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/reactive_web_components/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reactive web components
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/async_state_management/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Async state management
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/streams/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Streams - WIP
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/client_state_management/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cross-Component State Management - WIP
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API - Index
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reactive_element/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API - Reactive Element
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console_functions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API - Console Functions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reactive_element/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reactive element
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console_functions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Console Functions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observable/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observable
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Observable state
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Observable state
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observablestate-observable" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableState ⇐ Observable
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ObservableState ⇐ Observable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-observablestateinitialvalue-subscriber-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      new ObservableState(initialValue, subscriber, options)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatevalue-any" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.value() ⇒ any
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatevaluenewvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.value(newValue)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateassignobj" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.assign(obj)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatesetkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.set(key, value)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatedeletekey" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.delete(key)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateclear" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.clear()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatepushelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.push(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatepop" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.pop()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateshift" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.shift()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatesplicestart-deletecount-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.splice(start, deleteCount, ...items)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateunshiftelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.unshift(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatereverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.reverse()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatesortcomparefunction" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.sort([compareFunction])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatefillvalue-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.fill(value, [start], [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatecopywithintarget-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.copyWithin(target, start, [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateupdateupdater" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.update(updater)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatetostream-observablestream" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.toStream() ⇒ ObservableStream
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatecomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.complete()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#computedstate-observablestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      ComputedState ⇐ ObservableState
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ComputedState ⇐ ObservableState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-computedstatecomputefn" class="md-nav__link">
+    <span class="md-ellipsis">
+      new ComputedState(computeFn)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatevalue-any" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.value() ⇒ any
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatedispose" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.dispose()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateassignobj" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.assign(obj)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatesetkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.set(key, value)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatedeletekey" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.delete(key)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateclear" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.clear()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatepushelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.push(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatepop" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.pop()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateshift" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.shift()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatesplicestart-deletecount-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.splice(start, deleteCount, ...items)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateunshiftelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.unshift(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatereverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.reverse()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatesortcomparefunction" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.sort([compareFunction])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatefillvalue-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.fill(value, [start], [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatecopywithintarget-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.copyWithin(target, start, [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateupdateupdater" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.update(updater)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatetostream-observablestream" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.toStream() ⇒ ObservableStream
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatecomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.complete()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#computedcomputefn-computedstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      computed(computeFn) ⇒ ComputedState
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#effecteffectfn-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect(effectFn) ⇒ function
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="effect(effectFn) ⇒ function">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#effecttracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect~tracker
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effect_runeffect" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect~_runEffect()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effectdispose-void" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect~dispose() ⇒ void
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observable_store/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observable store
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observable_stream/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Observable stream
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../http/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    HTTP
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observablestate-observable" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableState ⇐ Observable
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ObservableState ⇐ Observable">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-observablestateinitialvalue-subscriber-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      new ObservableState(initialValue, subscriber, options)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatevalue-any" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.value() ⇒ any
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatevaluenewvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.value(newValue)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateassignobj" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.assign(obj)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatesetkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.set(key, value)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatedeletekey" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.delete(key)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateclear" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.clear()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatepushelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.push(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatepop" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.pop()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateshift" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.shift()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatesplicestart-deletecount-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.splice(start, deleteCount, ...items)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateunshiftelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.unshift(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatereverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.reverse()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatesortcomparefunction" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.sort([compareFunction])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatefillvalue-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.fill(value, [start], [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatecopywithintarget-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.copyWithin(target, start, [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestateupdateupdater" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.update(updater)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatetostream-observablestream" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.toStream() ⇒ ObservableStream
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestatecomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableState.complete()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#computedstate-observablestate" class="md-nav__link">
+    <span class="md-ellipsis">
+      ComputedState ⇐ ObservableState
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ComputedState ⇐ ObservableState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-computedstatecomputefn" class="md-nav__link">
+    <span class="md-ellipsis">
+      new ComputedState(computeFn)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatevalue-any" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.value() ⇒ any
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatedispose" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.dispose()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateassignobj" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.assign(obj)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatesetkey-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.set(key, value)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatedeletekey" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.delete(key)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateclear" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.clear()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatepushelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.push(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatepop" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.pop()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateshift" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.shift()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatesplicestart-deletecount-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.splice(start, deleteCount, ...items)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateunshiftelements" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.unshift(...elements)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatereverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.reverse()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatesortcomparefunction" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.sort([compareFunction])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatefillvalue-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.fill(value, [start], [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatecopywithintarget-start-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.copyWithin(target, start, [end])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstateupdateupdater" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.update(updater)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatetostream-observablestream" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.toStream() ⇒ ObservableStream
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#computedstatecomplete" class="md-nav__link">
+    <span class="md-ellipsis">
+      computedState.complete()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#computedcomputefn-computedstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      computed(computeFn) ⇒ ComputedState
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#effecteffectfn-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect(effectFn) ⇒ function
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="effect(effectFn) ⇒ function">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#effecttracker" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect~tracker
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effect_runeffect" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect~_runEffect()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#effectdispose-void" class="md-nav__link">
+    <span class="md-ellipsis">
+      effect~dispose() ⇒ void
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Observable state</h1>
+
+<h2 id="classes">Classes</h2>
+<dl>
+<dt><a href="#ObservableState">ObservableState</a> ⇐ <code>Observable</code></dt>
+<dd></dd>
+<dt><a href="#ComputedState">ComputedState</a> ⇐ <code><a href="#ObservableState">ObservableState</a></code></dt>
+<dd></dd>
+</dl>
+
+<h2 id="functions">Functions</h2>
+<dl>
+<dt><a href="#computed">computed(computeFn)</a> ⇒ <code><a href="#ComputedState">ComputedState</a></code></dt>
+<dd></dd>
+<dt><a href="#effect">effect(effectFn)</a> ⇒ <code>function</code></dt>
+<dd><p>This function sets up an effect that is run when the observable changes</p>
+</dd>
+</dl>
+
+<p><a name="ObservableState"></a></p>
+<h2 id="observablestate-observable">ObservableState ⇐ <code>Observable</code></h2>
+<p><strong>Kind</strong>: global class<br />
+<strong>Extends</strong>: <code>Observable</code>  </p>
+<ul>
+<li><a href="#ObservableState">ObservableState</a> ⇐ <code>Observable</code><ul>
+<li><a href="#new_ObservableState_new">new ObservableState(initialValue, subscriber, options)</a></li>
+<li><a href="#ObservableState+value">.value()</a> ⇒ <code>any</code></li>
+<li><a href="#ObservableState+value">.value(newValue)</a></li>
+<li><a href="#ObservableState+assign">.assign(obj)</a></li>
+<li><a href="#ObservableState+set">.set(key, value)</a></li>
+<li><a href="#ObservableState+delete">.delete(key)</a></li>
+<li><a href="#ObservableState+clear">.clear()</a></li>
+<li><a href="#ObservableState+push">.push(...elements)</a></li>
+<li><a href="#ObservableState+pop">.pop()</a></li>
+<li><a href="#ObservableState+shift">.shift()</a></li>
+<li><a href="#ObservableState+splice">.splice(start, deleteCount, ...items)</a></li>
+<li><a href="#ObservableState+unshift">.unshift(...elements)</a></li>
+<li><a href="#ObservableState+reverse">.reverse()</a></li>
+<li><a href="#ObservableState+sort">.sort([compareFunction])</a></li>
+<li><a href="#ObservableState+fill">.fill(value, [start], [end])</a></li>
+<li><a href="#ObservableState+copyWithin">.copyWithin(target, start, [end])</a></li>
+<li><a href="#ObservableState+update">.update(updater)</a></li>
+<li><a href="#ObservableState+toStream">.toStream()</a> ⇒ <code>ObservableStream</code></li>
+<li><a href="#ObservableState+complete">.complete()</a></li>
+</ul>
+</li>
+</ul>
+<p><a name="new_ObservableState_new"></a></p>
+<h3 id="new-observablestateinitialvalue-subscriber-options">new ObservableState(initialValue, subscriber, options)</h3>
+<p>This class extends the Observable class and adds methods for updating the value of the observable.</p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>initialValue</td>
+<td><code>any</code></td>
+<td><code></code></td>
+<td>The initial value of the observable</td>
+</tr>
+<tr>
+<td>subscriber</td>
+<td><code>Subscriber</code></td>
+<td><code></code></td>
+<td>The subscriber to the observable</td>
+</tr>
+<tr>
+<td>options</td>
+<td><code>Object</code></td>
+<td></td>
+<td>Additional options for the observable</td>
+</tr>
+<tr>
+<td>options.last</td>
+<td><code>boolean</code></td>
+<td></td>
+<td>Whether the subscriber is the last observer</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ObservableState</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;cami-js&#39;</span><span class="p">;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">observable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ObservableState</span><span class="p">(</span><span class="mf">10</span><span class="p">);</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">observable</span><span class="p">.</span><span class="nx">value</span><span class="p">);</span><span class="w"> </span><span class="c1">// 10</span>
+</span></code></pre></div>
+<a name="ObservableState+value"></a></p>
+<h3 id="observablestatevalue-any">observableState.value() ⇒ <code>any</code></h3>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Returns</strong>: <code>any</code> - The current value of the observable<br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">observable</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span>
+</span></code></pre></div>
+<a name="ObservableState+value"></a></p>
+<h3 id="observablestatevaluenewvalue">observableState.value(newValue)</h3>
+<p>This method sets a new value for the observable by calling the update method with the new value.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>newValue</td>
+<td><code>any</code></td>
+<td>The new value to set for the observable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">20</span><span class="p">;</span>
+</span></code></pre></div>
+<a name="ObservableState+assign"></a></p>
+<h3 id="observablestateassignobj">observableState.assign(obj)</h3>
+<p>Merges properties from the provided object into the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>obj</td>
+<td><code>Object</code></td>
+<td>The object whose properties to merge</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">assign</span><span class="p">({</span><span class="w"> </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="w"> </span><span class="p">});</span>
+</span></code></pre></div>
+<a name="ObservableState+set"></a></p>
+<h3 id="observablestatesetkey-value">observableState.set(key, value)</h3>
+<p>Sets a new key/value pair in the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key</td>
+<td><code>any</code></td>
+<td>The key to set</td>
+</tr>
+<tr>
+<td>value</td>
+<td><code>any</code></td>
+<td>The value to set</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+delete"></a></p>
+<h3 id="observablestatedeletekey">observableState.delete(key)</h3>
+<p>Removes a key/value pair from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key</td>
+<td><code>any</code></td>
+<td>The key to remove</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">observable</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+clear"></a></p>
+<h3 id="observablestateclear">observableState.clear()</h3>
+<p>Removes all key/value pairs from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">clear</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+push"></a></p>
+<h3 id="observablestatepushelements">observableState.push(...elements)</h3>
+<p>Adds one or more elements to the end of the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>...elements</td>
+<td><code>any</code></td>
+<td>The elements to add</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+pop"></a></p>
+<h3 id="observablestatepop">observableState.pop()</h3>
+<p>Removes the last element from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+shift"></a></p>
+<h3 id="observablestateshift">observableState.shift()</h3>
+<p>Removes the first element from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+splice"></a></p>
+<h3 id="observablestatesplicestart-deletecount-items">observableState.splice(start, deleteCount, ...items)</h3>
+<p>Changes the contents of the observable's value by removing, replacing, or adding elements</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>start</td>
+<td><code>number</code></td>
+<td>The index at which to start changing the array</td>
+</tr>
+<tr>
+<td>deleteCount</td>
+<td><code>number</code></td>
+<td>The number of elements to remove</td>
+</tr>
+<tr>
+<td>...items</td>
+<td><code>any</code></td>
+<td>The elements to add to the array</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;newElement&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+unshift"></a></p>
+<h3 id="observablestateunshiftelements">observableState.unshift(...elements)</h3>
+<p>Adds one or more elements to the beginning of the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>...elements</td>
+<td><code>any</code></td>
+<td>The elements to add</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="s1">&#39;newElement&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+reverse"></a></p>
+<h3 id="observablestatereverse">observableState.reverse()</h3>
+<p>Reverses the order of the elements in the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">reverse</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+sort"></a></p>
+<h3 id="observablestatesortcomparefunction">observableState.sort([compareFunction])</h3>
+<p>Sorts the elements in the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[compareFunction]</td>
+<td><code>function</code></td>
+<td>The function used to determine the order of the elements</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">sort</span><span class="p">((</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">b</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+fill"></a></p>
+<h3 id="observablestatefillvalue-start-end">observableState.fill(value, [start], [end])</h3>
+<p>Changes all elements in the observable's value to a static value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>value</td>
+<td><code>any</code></td>
+<td></td>
+<td>The value to fill the array with</td>
+</tr>
+<tr>
+<td>[start]</td>
+<td><code>number</code></td>
+<td><code>0</code></td>
+<td>The index to start filling at</td>
+</tr>
+<tr>
+<td>[end]</td>
+<td><code>number</code></td>
+<td><code>this._value.length</code></td>
+<td>The index to stop filling at</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">fill</span><span class="p">(</span><span class="s1">&#39;newElement&#39;</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+copyWithin"></a></p>
+<h3 id="observablestatecopywithintarget-start-end">observableState.copyWithin(target, start, [end])</h3>
+<p>Shallow copies part of the observable's value to another location in the same array</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>target</td>
+<td><code>number</code></td>
+<td></td>
+<td>The index to copy the elements to</td>
+</tr>
+<tr>
+<td>start</td>
+<td><code>number</code></td>
+<td></td>
+<td>The start index to begin copying elements from</td>
+</tr>
+<tr>
+<td>[end]</td>
+<td><code>number</code></td>
+<td><code>this._value.length</code></td>
+<td>The end index to stop copying elements from</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">copyWithin</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+update"></a></p>
+<h3 id="observablestateupdateupdater">observableState.update(updater)</h3>
+<p>This method adds the updater function to the pending updates queue.
+It uses a synchronous approach to schedule the updates, ensuring the whole state is consistent at each tick.
+This is done to batch multiple updates together and avoid unnecessary re-renders.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>updater</td>
+<td><code>function</code></td>
+<td>The function to update the value</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+toStream"></a></p>
+<h3 id="observablestatetostream-observablestream">observableState.toStream() ⇒ <code>ObservableStream</code></h3>
+<p>Converts the ObservableState to an ObservableStream.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Returns</strong>: <code>ObservableStream</code> - The ObservableStream that emits the same values as the ObservableState.<br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">observable</span><span class="p">.</span><span class="nx">toStream</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+complete"></a></p>
+<h3 id="observablestatecomplete">observableState.complete()</h3>
+<p>Calls the complete method of all observers.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">complete</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ComputedState"></a></p>
+<h2 id="computedstate-observablestate">ComputedState ⇐ <a href="#ObservableState"><code>ObservableState</code></a></h2>
+<p><strong>Kind</strong>: global class<br />
+<strong>Extends</strong>: <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<ul>
+<li><a href="#ComputedState">ComputedState</a> ⇐ <a href="#ObservableState"><code>ObservableState</code></a><ul>
+<li><a href="#new_ComputedState_new">new ComputedState(computeFn)</a></li>
+<li><a href="#ComputedState+value">.value()</a> ⇒ <code>any</code></li>
+<li><a href="#ComputedState+dispose">.dispose()</a></li>
+<li><a href="#ObservableState+assign">.assign(obj)</a></li>
+<li><a href="#ObservableState+set">.set(key, value)</a></li>
+<li><a href="#ObservableState+delete">.delete(key)</a></li>
+<li><a href="#ObservableState+clear">.clear()</a></li>
+<li><a href="#ObservableState+push">.push(...elements)</a></li>
+<li><a href="#ObservableState+pop">.pop()</a></li>
+<li><a href="#ObservableState+shift">.shift()</a></li>
+<li><a href="#ObservableState+splice">.splice(start, deleteCount, ...items)</a></li>
+<li><a href="#ObservableState+unshift">.unshift(...elements)</a></li>
+<li><a href="#ObservableState+reverse">.reverse()</a></li>
+<li><a href="#ObservableState+sort">.sort([compareFunction])</a></li>
+<li><a href="#ObservableState+fill">.fill(value, [start], [end])</a></li>
+<li><a href="#ObservableState+copyWithin">.copyWithin(target, start, [end])</a></li>
+<li><a href="#ObservableState+update">.update(updater)</a></li>
+<li><a href="#ObservableState+toStream">.toStream()</a> ⇒ <code>ObservableStream</code></li>
+<li><a href="#ObservableState+complete">.complete()</a></li>
+</ul>
+</li>
+</ul>
+<p><a name="new_ComputedState_new"></a></p>
+<h3 id="new-computedstatecomputefn">new ComputedState(computeFn)</h3>
+<p>ComputedState class that extends ObservableState and holds additional methods for computed observables</p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>computeFn</td>
+<td><code>function</code></td>
+<td>The function to compute the value of the observable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">computedState</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ComputedState</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">observable</span><span class="p">.</span><span class="nx">value</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">2</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ComputedState+value"></a></p>
+<h3 id="computedstatevalue-any">computedState.value() ⇒ <code>any</code></h3>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+value"><code>value</code></a><br />
+<strong>Returns</strong>: <code>any</code> - The current value of the observable<br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computedState</span><span class="p">.</span><span class="nx">value</span><span class="p">;</span>
+</span></code></pre></div>
+<a name="ComputedState+dispose"></a></p>
+<h3 id="computedstatedispose">computedState.dispose()</h3>
+<p>Unsubscribes from all dependencies</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1">// Assuming `obs` is an instance of ObservableState</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="nx">obs</span><span class="p">.</span><span class="nx">dispose</span><span class="p">();</span><span class="w"> </span><span class="c1">// This will unsubscribe obs from all its dependencies</span>
+</span></code></pre></div>
+<a name="ObservableState+assign"></a></p>
+<h3 id="computedstateassignobj">computedState.assign(obj)</h3>
+<p>Merges properties from the provided object into the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+assign"><code>assign</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>obj</td>
+<td><code>Object</code></td>
+<td>The object whose properties to merge</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">assign</span><span class="p">({</span><span class="w"> </span><span class="nx">key</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="w"> </span><span class="p">});</span>
+</span></code></pre></div>
+<a name="ObservableState+set"></a></p>
+<h3 id="computedstatesetkey-value">computedState.set(key, value)</h3>
+<p>Sets a new key/value pair in the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+set"><code>set</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key</td>
+<td><code>any</code></td>
+<td>The key to set</td>
+</tr>
+<tr>
+<td>value</td>
+<td><code>any</code></td>
+<td>The value to set</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+delete"></a></p>
+<h3 id="computedstatedeletekey">computedState.delete(key)</h3>
+<p>Removes a key/value pair from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+delete"><code>delete</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key</td>
+<td><code>any</code></td>
+<td>The key to remove</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nx">observable</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+clear"></a></p>
+<h3 id="computedstateclear">computedState.clear()</h3>
+<p>Removes all key/value pairs from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+clear"><code>clear</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">clear</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+push"></a></p>
+<h3 id="computedstatepushelements">computedState.push(...elements)</h3>
+<p>Adds one or more elements to the end of the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+push"><code>push</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>...elements</td>
+<td><code>any</code></td>
+<td>The elements to add</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+pop"></a></p>
+<h3 id="computedstatepop">computedState.pop()</h3>
+<p>Removes the last element from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+pop"><code>pop</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+shift"></a></p>
+<h3 id="computedstateshift">computedState.shift()</h3>
+<p>Removes the first element from the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+shift"><code>shift</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">shift</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+splice"></a></p>
+<h3 id="computedstatesplicestart-deletecount-items">computedState.splice(start, deleteCount, ...items)</h3>
+<p>Changes the contents of the observable's value by removing, replacing, or adding elements</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+splice"><code>splice</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>start</td>
+<td><code>number</code></td>
+<td>The index at which to start changing the array</td>
+</tr>
+<tr>
+<td>deleteCount</td>
+<td><code>number</code></td>
+<td>The number of elements to remove</td>
+</tr>
+<tr>
+<td>...items</td>
+<td><code>any</code></td>
+<td>The elements to add to the array</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;newElement&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+unshift"></a></p>
+<h3 id="computedstateunshiftelements">computedState.unshift(...elements)</h3>
+<p>Adds one or more elements to the beginning of the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+unshift"><code>unshift</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>...elements</td>
+<td><code>any</code></td>
+<td>The elements to add</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="s1">&#39;newElement&#39;</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+reverse"></a></p>
+<h3 id="computedstatereverse">computedState.reverse()</h3>
+<p>Reverses the order of the elements in the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+reverse"><code>reverse</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">reverse</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+sort"></a></p>
+<h3 id="computedstatesortcomparefunction">computedState.sort([compareFunction])</h3>
+<p>Sorts the elements in the observable's value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+sort"><code>sort</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[compareFunction]</td>
+<td><code>function</code></td>
+<td>The function used to determine the order of the elements</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">sort</span><span class="p">((</span><span class="nx">a</span><span class="p">,</span><span class="w"> </span><span class="nx">b</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nx">b</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+fill"></a></p>
+<h3 id="computedstatefillvalue-start-end">computedState.fill(value, [start], [end])</h3>
+<p>Changes all elements in the observable's value to a static value</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+fill"><code>fill</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>value</td>
+<td><code>any</code></td>
+<td></td>
+<td>The value to fill the array with</td>
+</tr>
+<tr>
+<td>[start]</td>
+<td><code>number</code></td>
+<td><code>0</code></td>
+<td>The index to start filling at</td>
+</tr>
+<tr>
+<td>[end]</td>
+<td><code>number</code></td>
+<td><code>this._value.length</code></td>
+<td>The index to stop filling at</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">fill</span><span class="p">(</span><span class="s1">&#39;newElement&#39;</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+copyWithin"></a></p>
+<h3 id="computedstatecopywithintarget-start-end">computedState.copyWithin(target, start, [end])</h3>
+<p>Shallow copies part of the observable's value to another location in the same array</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+copyWithin"><code>copyWithin</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>target</td>
+<td><code>number</code></td>
+<td></td>
+<td>The index to copy the elements to</td>
+</tr>
+<tr>
+<td>start</td>
+<td><code>number</code></td>
+<td></td>
+<td>The start index to begin copying elements from</td>
+</tr>
+<tr>
+<td>[end]</td>
+<td><code>number</code></td>
+<td><code>this._value.length</code></td>
+<td>The end index to stop copying elements from</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">copyWithin</span><span class="p">(</span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+update"></a></p>
+<h3 id="computedstateupdateupdater">computedState.update(updater)</h3>
+<p>This method adds the updater function to the pending updates queue.
+It uses a synchronous approach to schedule the updates, ensuring the whole state is consistent at each tick.
+This is done to batch multiple updates together and avoid unnecessary re-renders.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+update"><code>update</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>updater</td>
+<td><code>function</code></td>
+<td>The function to update the value</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableState+toStream"></a></p>
+<h3 id="computedstatetostream-observablestream">computedState.toStream() ⇒ <code>ObservableStream</code></h3>
+<p>Converts the ObservableState to an ObservableStream.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+toStream"><code>toStream</code></a><br />
+<strong>Returns</strong>: <code>ObservableStream</code> - The ObservableStream that emits the same values as the ObservableState.<br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">observable</span><span class="p">.</span><span class="nx">toStream</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="ObservableState+complete"></a></p>
+<h3 id="computedstatecomplete">computedState.complete()</h3>
+<p>Calls the complete method of all observers.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
+<strong>Overrides</strong>: <a href="#ObservableState+complete"><code>complete</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">complete</span><span class="p">();</span>
+</span></code></pre></div>
+<a name="computed"></a></p>
+<h2 id="computedcomputefn-computedstate">computed(computeFn) ⇒ <a href="#ComputedState"><code>ComputedState</code></a></h2>
+<p><strong>Kind</strong>: global function<br />
+<strong>Returns</strong>: <a href="#ComputedState"><code>ComputedState</code></a> - A new instance of ComputedState  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>computeFn</td>
+<td><code>function</code></td>
+<td>The function to compute the value of the observable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1">// Assuming `computeFn` is a function that computes the value of the observable</span>
+</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">computedValue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">computed</span><span class="p">(</span><span class="nx">computeFn</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="effect"></a></p>
+<h2 id="effecteffectfn-function">effect(effectFn) ⇒ <code>function</code></h2>
+<p>This function sets up an effect that is run when the observable changes</p>
+<p><strong>Kind</strong>: global function<br />
+<strong>Returns</strong>: <code>function</code> - A function that when called, unsubscribes from all dependencies and runs cleanup function  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>effectFn</td>
+<td><code>function</code></td>
+<td>The function to call for the effect</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1">// Assuming `effectFn` is a function that is called when the observable changes</span>
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">effectFunction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">effect</span><span class="p">(</span><span class="nx">effectFn</span><span class="p">);</span>
+</span></code></pre></div></p>
+<ul>
+<li><a href="#effect">effect(effectFn)</a> ⇒ <code>function</code><ul>
+<li><a href="#effect..tracker">~tracker</a></li>
+<li><a href="#effect.._runEffect">~_runEffect()</a></li>
+<li><a href="#effect..dispose">~dispose()</a> ⇒ <code>void</code></li>
+</ul>
+</li>
+</ul>
+<p><a name="effect..tracker"></a></p>
+<h3 id="effecttracker">effect~tracker</h3>
+<p>The tracker object is used to keep track of dependencies for the effect function.
+It provides a method to add a dependency (an observable) to the dependencies set.
+If the observable is not already a dependency, it is added to the set and a subscription is created
+to run the effect function whenever the observable's value changes.
+This mechanism allows the effect function to respond to state changes in its dependencies.</p>
+<p><strong>Kind</strong>: inner constant of <a href="#effect"><code>effect</code></a><br />
+<a name="effect.._runEffect"></a></p>
+<h3 id="effect_runeffect">effect~_runEffect()</h3>
+<p>The _runEffect function is responsible for running the effect function and managing its dependencies.
+Before the effect function is run, any cleanup from the previous run is performed and the current tracker
+is set to this tracker. This allows the effect function to add dependencies via the tracker while it is running.
+After the effect function has run, the current tracker is set back to null to prevent further dependencies
+from being added outside of the effect function.
+The effect function is expected to return a cleanup function, which is saved for the next run.
+The cleanup function, initially empty, is replaced by the one returned from effectFn (run by the observable) before each new run and on effect disposal.</p>
+<p><strong>Kind</strong>: inner method of <a href="#effect"><code>effect</code></a><br />
+<a name="effect..dispose"></a></p>
+<h3 id="effectdispose-void">effect~dispose() ⇒ <code>void</code></h3>
+<p>Unsubscribes from all dependencies and runs cleanup function</p>
+<p><strong>Kind</strong>: inner method of <a href="#effect"><code>effect</code></a><br />
+<strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1">// Assuming `dispose` is the function returned by `effect`</span>
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="nx">dispose</span><span class="p">();</span><span class="w"> </span><span class="c1">// This will unsubscribe from all dependencies and run cleanup function</span>
+</span></code></pre></div></p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../observable/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Observable">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Observable
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../observable_store/" class="md-footer__link md-footer__link--next" aria-label="Next: Observable store">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Observable store
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2023 Kenn Costales
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/kennyfrc/cami.js" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.tabs", "navigation.expand", "navigation.sections", "navigation.indexes", "navigation.footer", "content.code.copy", "search.suggest", "search.highlight", "search.share", "toc.follow"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.cd18aaf1.min.js"></script>
+      
+        <script src="../../javascripts/cami.cdn.js"></script>
+      
+    
+  </body>
+</html>

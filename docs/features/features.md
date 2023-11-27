@@ -9,4 +9,4 @@
 <h2>Internals that You Don't Need to Worry About</h2>
 
 * **Dependency Tracking**: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.
-* **Automatic Disposal & Garbage Collection**: **: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, computeds, and effects when they are no longer needed, so you don't have to worry about it.
+* **Automatic Disposal & Garbage Collection**: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, computeds, and effects when they are no longer needed, so you don't have to worry about it.

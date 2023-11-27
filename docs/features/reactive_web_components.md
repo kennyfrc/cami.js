@@ -57,7 +57,7 @@ This is how everything comes together:
 </script>
 ```
 
-#### Live Demo of Reactive Web Components (Simple Counter)
+#### Live Demo - Counter Component
 
 Now, when you load your HTML file, you will see a counter with two buttons to increment and decrement the count. The count is displayed and updated in real-time as you click the buttons.
 

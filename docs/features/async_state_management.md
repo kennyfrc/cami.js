@@ -96,7 +96,7 @@ class BlogPostsElement extends ReactiveElement {
 
 This way, the `onConnect()` method is used to start the data fetching process, and the `renderPosts()` method is used to handle the display of the posts, keeping the code clean and easy to understand.
 
-#### Live Demo of Async State Management (Blog Posts - Query)
+#### Live Demo of Query
 
 Below is a live demo of the component in action. The only change is that we're fetching a random number of posts between 1 and 5 just so you can see states change.
 
@@ -199,7 +199,7 @@ if (this.addPost.status === "error") {
 
 By using mutations, Cami enables developers to handle server-side updates in a consistent and powerful way, similar to how queries are used for fetching data.
 
-#### Live Demo of Async State Management (Blog Posts - With Mutations)
+#### Live Demo of Mutations
 
 This live demo includes a form to submit a new post, which uses a mutation to update the server-side data. The mutation is defined in the `BlogPostsElement` class, and it handles the post submission process. The UI reflects the state of the mutation, showing a loading message while the request is pending and an error message if the request fails.
 

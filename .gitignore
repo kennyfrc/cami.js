@@ -178,7 +178,6 @@ out
 
 # Hide build files
 /tests/build/
-/docs
 /utils
 
 package-lib.json

@@ -6,9 +6,25 @@
 
 import { ObservableStream } from './observables/observable-stream.js';
 
+/**
+ * @class HTTPStream
+ * @extends ObservableStream
+ * @description A class that extends ObservableStream and provides additional methods for handling HTTP requests.
+ */
 class HTTPStream extends ObservableStream {
   _handlers = {};
 
+  /**
+   * @method toJson
+   * @memberof HTTPStream
+   * @description Converts the response data to JSON.
+   * @returns {Promise} A promise that resolves to the JSON data.
+   * @example
+   * http('https://api.example.com/data')
+   *   .toJson()
+   *   .then(data => console.log(data))
+   *   .catch(error => console.error(error));
+   */
   toJson() {
     return new Promise((resolve, reject) => {
       this.subscribe({
@@ -28,6 +44,14 @@ class HTTPStream extends ObservableStream {
     });
   }
 
+  /**
+   * @method on
+   * @memberof HTTPStream
+   * @description Registers an event handler for a specified event.
+   * @param {string} event - The event to register the handler for.
+   * @param {function} handler - The handler function.
+   * @returns {HTTPStream} The HTTPStream instance.
+   */
   on(event, handler) {
     if (!this._handlers[event]) {
       this._handlers[event] = [];
@@ -37,11 +61,15 @@ class HTTPStream extends ObservableStream {
   }
 }
 
-// Axios-like HTTP client
 /**
  * @function http
- * @param {Object|string} config - The configuration object or URL string
- * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ * @description Sends an HTTP request.
+ * @param {Object|string} config - The configuration object or URL string.
+ * @returns {HTTPStream} An HTTPStream that resolves to the response data.
+ * @example
+ * http('https://api.example.com/data')
+ *   .tap(data => console.log(data))
+ *   .catchError(error => console.error(error));
  **/
 const http = (config) => {
   if (typeof config === 'string') {
@@ -52,7 +80,6 @@ const http = (config) => {
     const xhr = new XMLHttpRequest();
     xhr.open(config.method || 'GET', config.url);
 
-    // Set headers
     if (config.headers) {
       Object.keys(config.headers).forEach((key) => {
         xhr.setRequestHeader(key, config.headers[key]);
@@ -61,7 +88,6 @@ const http = (config) => {
 
     xhr.onload = () => {
       let response = xhr.responseText;
-      // Transform response
       const transformResponse = config.transformResponse || ((data) => {
         try {
           return JSON.parse(data);
@@ -77,7 +103,6 @@ const http = (config) => {
     xhr.onerror = () => observer.error(xhr.statusText);
     xhr.send(config.data ? JSON.stringify(config.data) : null);
 
-    // Return teardown function
     return () => {
       xhr.abort();
     };
@@ -86,9 +111,14 @@ const http = (config) => {
 
 /**
  * @function http.get
- * @param {string} url - The URL to send the GET request to
- * @param {Object} [config={}] - Optional configuration object
- * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ * @description Sends a GET request.
+ * @param {string} url - The URL to send the GET request to.
+ * @param {Object} [config={}] - Optional configuration object.
+ * @returns {HTTPStream} An HTTPStream that resolves to the response data.
+ * @example
+ * http.get('https://api.example.com/data')
+ *   .tap(data => console.log(data))
+ *   .catchError(error => console.error(error));
  */
 http.get = (url, config = {}) => {
   config.url = url;
@@ -98,15 +128,15 @@ http.get = (url, config = {}) => {
 
 /**
  * @function http.post
- * @param {string} url - The URL to send the POST request to
- * @param {Object} [data={}] - The data to send in the body of the POST request
- * @param {Object} [config={}] - Optional configuration object
- * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ * @description Sends a POST request.
+ * @param {string} url - The URL to send the POST request to.
+ * @param {Object} [data={}] - The data to send in the body of the POST request.
+ * @param {Object} [config={}] - Optional configuration object.
+ * @returns {HTTPStream} An HTTPStream that resolves to the response data.
  * @example
- * // POST request
  * http.post('https://jsonplaceholder.typicode.com/posts', { title: 'foo', body: 'bar', userId: 1 })
- *   .then(data => console.log(data))
- *   .catch(error => console.error(error));
+ *   .tap(data => console.log(data))
+ *   .catchError(error => console.error(error));
  */
 http.post = (url, data = {}, config = {}) => {
   config.url = url;
@@ -117,10 +147,15 @@ http.post = (url, data = {}, config = {}) => {
 
 /**
  * @function http.put
- * @param {string} url - The URL to send the PUT request to
- * @param {Object} [data={}] - The data to send in the body of the PUT request
- * @param {Object} [config={}] - Optional configuration object
- * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ * @description Sends a PUT request.
+ * @param {string} url - The URL to send the PUT request to.
+ * @param {Object} [data={}] - The data to send in the body of the PUT request.
+ * @param {Object} [config={}] - Optional configuration object.
+ * @returns {HTTPStream} An HTTPStream that resolves to the response data.
+ * @example
+ * http.put('https://jsonplaceholder.typicode.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 })
+ *   .tap(data => console.log(data))
+ *   .catchError(error => console.error(error));
  */
 http.put = (url, data = {}, config = {}) => {
   config.url = url;
@@ -131,10 +166,15 @@ http.put = (url, data = {}, config = {}) => {
 
 /**
  * @function http.patch
- * @param {string} url - The URL to send the PATCH request to
- * @param {Object} [data={}] - The data to send in the body of the PATCH request
- * @param {Object} [config={}] - Optional configuration object
- * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ * @description Sends a PATCH request.
+ * @param {string} url - The URL to send the PATCH request to.
+ * @param {Object} [data={}] - The data to send in the body of the PATCH request.
+ * @param {Object} [config={}] - Optional configuration object.
+ * @returns {HTTPStream} An HTTPStream that resolves to the response data.
+ * @example
+ * http.patch('https://jsonplaceholder.typicode.com/posts/1', { title: 'foo' })
+ *   .tap(data => console.log(data))
+ *   .catchError(error => console.error(error));
  */
 http.patch = (url, data = {}, config = {}) => {
   config.url = url;
@@ -145,9 +185,14 @@ http.patch = (url, data = {}, config = {}) => {
 
 /**
  * @function http.delete
- * @param {string} url - The URL to send the DELETE request to
- * @param {Object} [config={}] - Optional configuration object
- * @returns {HTTPStream} - Returns an HTTPStream that resolves to the response data
+ * @description Sends a DELETE request.
+ * @param {string} url - The URL to send the DELETE request to.
+ * @param {Object} [config={}] - Optional configuration object.
+ * @returns {HTTPStream} An HTTPStream that resolves to the response data.
+ * @example
+ * http.delete('https://jsonplaceholder.typicode.com/posts/1')
+ *   .tap(data => console.log(data))
+ *   .catchError(error => console.error(error));
  */
 http.delete = (url, config = {}) => {
   config.url = url;
@@ -157,15 +202,19 @@ http.delete = (url, config = {}) => {
 
 /**
  * @function http.sse
- * @param {string} url - The URL to establish a Server-Sent Events connection
- * @param {Object} [config={}] - Optional configuration object
- * @returns {HTTPStream} - Returns an HTTPStream with methods to register event handlers, handle errors, and close the connection
+ * @description Establishes a Server-Sent Events connection.
+ * @param {string} url - The URL to establish a Server-Sent Events connection.
+ * @param {Object} [config={}] - Optional configuration object.
+ * @returns {HTTPStream} An HTTPStream with methods to register event handlers, handle errors, and close the connection.
+ * @example
+ * const stream = http.sse('https://api.example.com/events');
+ * stream.on('message', event => console.log(event.data));
+ * stream.catchError(error => console.error(error));
  */
 http.sse = (url, config = {}) => {
   const stream = new HTTPStream((observer) => {
     const source = new EventSource(url, config);
 
-    // Handle events
     source.onmessage = (event) => {
       if (stream._handlers[event.type]) {
         stream._handlers[event.type].forEach(handler => handler(event));
@@ -174,7 +223,6 @@ http.sse = (url, config = {}) => {
     };
     source.onerror = (error) => observer.error(error);
 
-    // Return teardown function
     return () => {
       source.close();
     };

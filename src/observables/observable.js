@@ -1,26 +1,22 @@
-/**
- * @module observable
- * @description This module exports the Observable class
- * @requires immer
- */
-
 import { produce } from "immer";
 
 /**
- * @typedef {Object} Observable
- * @property {any} _value - The current value of the observable
- * @property {Array<Subscriber>} _observers - The list of observers subscribed to the observable
- * @property {Subscriber} _lastObserver - The last observer to be notified
+ * @typedef {Object} Observer
+ * @description The observer object or function.
+ * @property {Function} next - Function to handle new values.
+ * @property {Function} error - Function to handle errors.
+ * @property {Function} complete - Function to handle completion.
  */
 
 /**
  * @class
- * @description Subscriber class that holds observer object and related methods
+ * @description Class representing a Subscriber.
  */
 class Subscriber {
   /**
    * @constructor
-   * @param {Object|Function} observer - The observer object or function
+   * @description Creates a new Subscriber instance.
+   * @param {Observer|Function} observer - The observer object or function.
    */
   constructor(observer) {
     if (typeof observer === 'function') {
@@ -40,6 +36,8 @@ class Subscriber {
    * @method
    * @description Notifies the observer of a new value.
    * @param {any} result - The result to pass to the observer's next method.
+   * @example
+   * subscriber.next('Hello, world!');
    */
   next(result) {
     if (!this.isUnsubscribed && this.observer.next) {
@@ -50,6 +48,8 @@ class Subscriber {
   /**
    * @method
    * @description Notifies the observer that the observable has completed and no more data will be emitted.
+   * @example
+   * subscriber.complete();
    */
   complete() {
     if (!this.isUnsubscribed) {
@@ -64,6 +64,8 @@ class Subscriber {
    * @method
    * @description Notifies the observer that an error has occurred.
    * @param {Error} error - The error to pass to the observer's error method.
+   * @example
+   * subscriber.error(new Error('Something went wrong'));
    */
   error(error) {
     if (!this.isUnsubscribed) {
@@ -76,7 +78,8 @@ class Subscriber {
 
   /**
    * @method
-   * @param {Function} teardown - The teardown function to add to the teardowns array
+   * @description Adds a teardown function to the teardowns array.
+   * @param {Function} teardown - The teardown function to add to the teardowns array.
    */
   addTeardown(teardown) {
     this.teardowns.push(teardown);
@@ -85,6 +88,8 @@ class Subscriber {
   /**
    * @method
    * @description Unsubscribes from the observable, preventing any further notifications to the observer and triggering any teardown logic.
+   * @example
+   * subscriber.unsubscribe();
    */
   unsubscribe() {
     if (!this.isUnsubscribed) {
@@ -104,14 +109,13 @@ class Subscriber {
 
 /**
  * @class
- * @description Observable class that holds a list of observers and related methods
+ * @description Class representing an Observable.
  */
 class Observable {
   /**
    * @constructor
-   * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes
-   * @property {Array<Subscriber>} _observers - The list of observers
-   * @property {Function} subscribeCallback - The callback function to call when a new observer subscribes
+   * @description Creates a new Observable instance.
+   * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes.
    */
   constructor(subscribeCallback = () => () => {}) {
     this._observers = [];
@@ -120,14 +124,23 @@ class Observable {
 
   /**
    * @method
-   * @param {Object} observer - The observer to subscribe. Default is an empty function.
+   * @description Subscribes an observer to the observable.
+   * @param {Observer|Function} observerOrNext - The observer to subscribe or the next function. Default is an empty function.
+   * @param {Function} error - The error function. Default is an empty function.
+   * @param {Function} complete - The complete function. Default is an empty function.
    * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   * @example
+   * const observable = new Observable();
+   * const subscription = observable.subscribe({
+   *   next: value => console.log(value),
+   *   error: err => console.error(err),
+   *   complete: () => console.log('Completed'),
+   * });
    */
   subscribe(observerOrNext = () => {}, error = () => {}, complete = () => {}) {
     let observer;
 
     if (typeof observerOrNext === 'function') {
-      // If the first argument is a function, we assume it's the next callback
       observer = {
         next: observerOrNext,
         error,
@@ -165,7 +178,11 @@ class Observable {
 
   /**
    * @method
+   * @description Passes a value to the observer's next method.
    * @param {*} value - The value to be passed to the observer's next method.
+   * @example
+   * const observable = new Observable();
+   * observable.next('Hello, world!');
    */
   next(value) {
     this._observers.forEach(observer => {
@@ -175,7 +192,11 @@ class Observable {
 
   /**
    * @method
+   * @description Passes an error to the observer's error method.
    * @param {*} error - The error to be passed to the observer's error method.
+   * @example
+   * const observable = new Observable();
+   * observable.error(new Error('Something went wrong'));
    */
   error(error) {
     this._observers.forEach(observer => {
@@ -185,7 +206,10 @@ class Observable {
 
   /**
    * @method
-   * Calls the complete method on all observers.
+   * @description Calls the complete method on all observers.
+   * @example
+   * const observable = new Observable();
+   * observable.complete();
    */
   complete() {
     this._observers.forEach(observer => {
@@ -195,8 +219,12 @@ class Observable {
 
   /**
    * @method
+   * @description Subscribes an observer with a next function to the observable.
    * @param {Function} callbackFn - The callback function to call when a new value is emitted.
    * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   * @example
+   * const observable = new Observable();
+   * const subscription = observable.onValue(value => console.log(value));
    */
   onValue(callbackFn) {
     return this.subscribe({
@@ -206,8 +234,12 @@ class Observable {
 
   /**
    * @method
+   * @description Subscribes an observer with an error function to the observable.
    * @param {Function} callbackFn - The callback function to call when an error is emitted.
    * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   * @example
+   * const observable = new Observable();
+   * const subscription = observable.onError(err => console.error(err));
    */
   onError(callbackFn) {
     return this.subscribe({
@@ -217,8 +249,12 @@ class Observable {
 
   /**
    * @method
+   * @description Subscribes an observer with a complete function to the observable.
    * @param {Function} callbackFn - The callback function to call when the observable completes.
    * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
+   * @example
+   * const observable = new Observable();
+   * const subscription = observable.onEnd(() => console.log('Completed'));
    */
   onEnd(callbackFn) {
     return this.subscribe({
@@ -230,6 +266,11 @@ class Observable {
    * @method
    * @description Returns an AsyncIterator which allows asynchronous iteration over emitted values.
    * @returns {AsyncIterator} An object that conforms to the AsyncIterator protocol.
+   * @example
+   * const observable = new Observable();
+   * for await (const value of observable) {
+   *   console.log(value);
+   * }
    */
   [Symbol.asyncIterator]() {
     let observer;

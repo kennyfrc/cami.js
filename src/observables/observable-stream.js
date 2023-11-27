@@ -2,7 +2,7 @@ import { Observable } from './observable.js';
 import { ObservableState } from './observable-state.js';
 
 /**
- * @class
+ * @class ObservableStream
  * @description ObservableStream class that extends Observable and provides additional methods for data transformation
  * @extends Observable
  */
@@ -14,11 +14,7 @@ class ObservableStream extends Observable {
    * @returns {ObservableStream} A new ObservableStream that emits the values from the value
    *
    * @example
-   * // Example 1: Creating an ObservableStream from an API data stream
-   * const apiDataStream = fetch('https://api.example.com/data').then(response => response.json());
-   * const observableStream = ObservableStream.from(apiDataStream);
-   *
-   * // Example 2: Creating an ObservableStream from a user event stream
+   * // Example 1: Creating an ObservableStream from a user event stream
    * const clickStream = new ObservableStream(subscriber => {
    *   document.addEventListener('click', event => subscriber.next(event));
    * });

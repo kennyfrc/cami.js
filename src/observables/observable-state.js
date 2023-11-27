@@ -5,9 +5,11 @@ import { _config } from '../config.js';
 import { _trace } from '../trace.js';
 
 /**
- * @type {Object}
+ * @private
+ * @class
  * @description DependencyTracker is an object that holds the current dependency.
  * It is used to track dependencies between observables.
+ * @type {Object}
  */
 const DependencyTracker = {
   current: null
@@ -15,8 +17,12 @@ const DependencyTracker = {
 
 /**
  * @class
- * @description Observable class that holds a value and allows updates to it.
- * It uses the Immer library to handle immutable updates.
+ * @extends Observable
+ * @description This class extends the Observable class and adds methods for updating the value of the observable.
+ * @example
+ * import { ObservableState } from 'cami-js';
+ * const observable = new ObservableState(10);
+ * console.log(observable.value); // 10
  */
 class ObservableState extends Observable {
   /**
@@ -25,28 +31,27 @@ class ObservableState extends Observable {
    * @param {Subscriber} subscriber - The subscriber to the observable
    * @param {Object} options - Additional options for the observable
    * @param {boolean} options.last - Whether the subscriber is the last observer
+   * @example
+   * const observable = new ObservableState(10);
    */
   constructor(initialValue = null, subscriber = null, {last = false, name = null} = {}) {
     super();
     if (last) {
-      /** @type {Subscriber} */
       this._lastObserver = subscriber;
     } else {
       this._observers.push(subscriber);
     }
-    /** @type {any} */
     this._value = produce(initialValue, draft => {});
-    /** @type {Array<Function>} */
     this._pendingUpdates = [];
-    /** @type {boolean} */
     this._updateScheduled = false;
-    /** @type {string} */
     this._name = name;
   }
 
   /**
    * @method
    * @returns {any} The current value of the observable
+   * @example
+   * const value = observable.value;
    */
   get value() {
     if (DependencyTracker.current != null) {
@@ -59,6 +64,8 @@ class ObservableState extends Observable {
    * @method
    * @param {any} newValue - The new value to set for the observable
    * @description This method sets a new value for the observable by calling the update method with the new value.
+   * @example
+   * observable.value = 20;
    */
   set value(newValue) {
     this.update(() => newValue);
@@ -68,6 +75,8 @@ class ObservableState extends Observable {
    * @method
    * @description Merges properties from the provided object into the observable's value
    * @param {Object} obj - The object whose properties to merge
+   * @example
+   * observable.assign({ key: 'value' });
    */
   assign(obj) {
     if (typeof this._value !== 'object' || this._value === null) {
@@ -81,6 +90,8 @@ class ObservableState extends Observable {
    * @description Sets a new key/value pair in the observable's value
    * @param {any} key - The key to set
    * @param {any} value - The value to set
+   * @example
+   * observable.set('key', 'value');
    */
   set(key, value) {
     if (typeof this._value !== 'object' || this._value === null) {
@@ -95,6 +106,8 @@ class ObservableState extends Observable {
    * @method
    * @description Removes a key/value pair from the observable's value
    * @param {any} key - The key to remove
+   * @example
+   * observable.delete('key');
    */
   delete(key) {
     if (typeof this._value !== 'object' || this._value === null) {
@@ -108,6 +121,8 @@ class ObservableState extends Observable {
   /**
    * @method
    * @description Removes all key/value pairs from the observable's value
+   * @example
+   * observable.clear();
    */
   clear() {
     this.update(() => ({}));
@@ -117,6 +132,8 @@ class ObservableState extends Observable {
    * @method
    * @description Adds one or more elements to the end of the observable's value
    * @param {...any} elements - The elements to add
+   * @example
+   * observable.push(1, 2, 3);
    */
   push(...elements) {
     if (!Array.isArray(this._value)) {
@@ -130,6 +147,8 @@ class ObservableState extends Observable {
   /**
    * @method
    * @description Removes the last element from the observable's value
+   * @example
+   * observable.pop();
    */
   pop() {
     if (!Array.isArray(this._value)) {
@@ -143,6 +162,8 @@ class ObservableState extends Observable {
   /**
    * @method
    * @description Removes the first element from the observable's value
+   * @example
+   * observable.shift();
    */
   shift() {
     if (!Array.isArray(this._value)) {
@@ -159,6 +180,8 @@ class ObservableState extends Observable {
    * @param {number} start - The index at which to start changing the array
    * @param {number} deleteCount - The number of elements to remove
    * @param {...any} items - The elements to add to the array
+   * @example
+   * observable.splice(0, 1, 'newElement');
    */
   splice(start, deleteCount, ...items) {
     if (!Array.isArray(this._value)) {
@@ -173,6 +196,8 @@ class ObservableState extends Observable {
    * @method
    * @description Adds one or more elements to the beginning of the observable's value
    * @param {...any} elements - The elements to add
+   * @example
+   * observable.unshift('newElement');
    */
   unshift(...elements) {
     if (!Array.isArray(this._value)) {
@@ -186,6 +211,8 @@ class ObservableState extends Observable {
   /**
    * @method
    * @description Reverses the order of the elements in the observable's value
+   * @example
+   * observable.reverse();
    */
   reverse() {
     if (!Array.isArray(this._value)) {
@@ -200,6 +227,8 @@ class ObservableState extends Observable {
    * @method
    * @description Sorts the elements in the observable's value
    * @param {Function} [compareFunction] - The function used to determine the order of the elements
+   * @example
+   * observable.sort((a, b) => a - b);
    */
   sort(compareFunction) {
     if (!Array.isArray(this._value)) {
@@ -216,6 +245,8 @@ class ObservableState extends Observable {
    * @param {any} value - The value to fill the array with
    * @param {number} [start=0] - The index to start filling at
    * @param {number} [end=this._value.length] - The index to stop filling at
+   * @example
+   * observable.fill('newElement', 0, 2);
    */
   fill(value, start = 0, end = this._value.length) {
     if (!Array.isArray(this._value)) {
@@ -232,6 +263,8 @@ class ObservableState extends Observable {
    * @param {number} target - The index to copy the elements to
    * @param {number} start - The start index to begin copying elements from
    * @param {number} [end=this._value.length] - The end index to stop copying elements from
+   * @example
+   * observable.copyWithin(0, 1, 2);
    */
   copyWithin(target, start, end = this._value.length) {
     if (!Array.isArray(this._value)) {
@@ -248,6 +281,8 @@ class ObservableState extends Observable {
    * @description This method adds the updater function to the pending updates queue.
    * It uses a synchronous approach to schedule the updates, ensuring the whole state is consistent at each tick.
    * This is done to batch multiple updates together and avoid unnecessary re-renders.
+   * @example
+   * observable.update(value => value + 1);
    */
   update(updater) {
     this._pendingUpdates.push(updater);
@@ -262,6 +297,7 @@ class ObservableState extends Observable {
   }
 
   /**
+   * @private
    * @method
    * @description This method notifies all observers of the observable with the current value.
    * It first creates a list of observers by combining the regular observers and the last observer.
@@ -319,6 +355,8 @@ class ObservableState extends Observable {
    * @method
    * @description Converts the ObservableState to an ObservableStream.
    * @returns {ObservableStream} The ObservableStream that emits the same values as the ObservableState.
+   * @example
+   * const stream = observable.toStream();
    */
   toStream() {
     const stream = new ObservableStream();
@@ -333,6 +371,8 @@ class ObservableState extends Observable {
   /**
    * @method
    * @description Calls the complete method of all observers.
+   * @example
+   * observable.complete();
    */
   complete() {
     this._observers.forEach(observer => {
@@ -345,24 +385,29 @@ class ObservableState extends Observable {
 
 /**
  * @class
+ * @extends ObservableState
  * @description ComputedState class that extends ObservableState and holds additional methods for computed observables
  */
 class ComputedState extends ObservableState {
   /**
    * @constructor
    * @param {Function} computeFn - The function to compute the value of the observable
+   * @example
+   * const computedState = new ComputedState(() => observable.value * 2);
    */
   constructor(computeFn) {
     super(null);
     this.computeFn = computeFn;
     this.dependencies = new Set();
     this.subscriptions = new Map();
-    this.compute();
+    this._compute();
   }
 
   /**
    * @method
    * @returns {any} The current value of the observable
+   * @example
+   * const value = computedState.value;
    */
   get value() {
     if (DependencyTracker.current) {
@@ -372,10 +417,11 @@ class ComputedState extends ObservableState {
   }
 
   /**
+   * @private
    * @method
    * @description Computes the new value of the observable and notifies observers if it has changed
    */
-  compute() {
+  _compute() {
     /**
      * @description The tracker object is used to manage dependencies between observables.
      * It has a method 'addDependency' which takes an observable as an argument.
@@ -387,7 +433,7 @@ class ComputedState extends ObservableState {
     const tracker = {
       addDependency: (observable) => {
         if (!this.dependencies.has(observable)) {
-          const subscription = observable.onValue(() => this.compute());
+          const subscription = observable.onValue(() => this._compute());
           this.dependencies.add(observable);
           this.subscriptions.set(observable, subscription);
         }
@@ -415,6 +461,9 @@ class ComputedState extends ObservableState {
   /**
    * @method
    * @description Unsubscribes from all dependencies
+   * @example
+   * // Assuming `obs` is an instance of ObservableState
+   * obs.dispose(); // This will unsubscribe obs from all its dependencies
    */
   dispose() {
     this.subscriptions.forEach((subscription) => {
@@ -427,6 +476,9 @@ class ComputedState extends ObservableState {
  * @function
  * @param {Function} computeFn - The function to compute the value of the observable
  * @returns {ComputedState} A new instance of ComputedState
+ * @example
+ * // Assuming `computeFn` is a function that computes the value of the observable
+ * const computedValue = computed(computeFn);
  */
 const computed = function(computeFn) {
   return new ComputedState(computeFn);
@@ -435,8 +487,11 @@ const computed = function(computeFn) {
 /**
  * @function
  * @param {Function} effectFn - The function to call for the effect
- * @returns {void}
+ * @returns {Function} A function that when called, unsubscribes from all dependencies and runs cleanup function
  * @description This function sets up an effect that is run when the observable changes
+ * @example
+ * // Assuming `effectFn` is a function that is called when the observable changes
+ * const effectFunction = effect(effectFn);
  */
 const effect = function(effectFn) {
   let cleanup = () => {};
@@ -453,7 +508,7 @@ const effect = function(effectFn) {
   const tracker = {
     addDependency: (observable) => {
       if (!dependencies.has(observable)) {
-        const subscription = observable.onValue(runEffect);
+        const subscription = observable.onValue(_runEffect);
         dependencies.add(observable);
         subscriptions.set(observable, subscription);
       }
@@ -461,7 +516,7 @@ const effect = function(effectFn) {
   };
 
   /**
-   * The runEffect function is responsible for running the effect function and managing its dependencies.
+   * The _runEffect function is responsible for running the effect function and managing its dependencies.
    * Before the effect function is run, any cleanup from the previous run is performed and the current tracker
    * is set to this tracker. This allows the effect function to add dependencies via the tracker while it is running.
    * After the effect function has run, the current tracker is set back to null to prevent further dependencies
@@ -469,7 +524,7 @@ const effect = function(effectFn) {
    * The effect function is expected to return a cleanup function, which is saved for the next run.
    * The cleanup function, initially empty, is replaced by the one returned from effectFn (run by the observable) before each new run and on effect disposal.
    */
-  const runEffect = () => {
+  const _runEffect = () => {
     cleanup();
     DependencyTracker.current = tracker;
     cleanup = effectFn() || (() => {});
@@ -477,14 +532,18 @@ const effect = function(effectFn) {
   };
 
   if (typeof window !== 'undefined') {
-    requestAnimationFrame(runEffect);
+    requestAnimationFrame(_runEffect);
   } else {
-    setTimeout(runEffect, 0);
+    setTimeout(_runEffect, 0);
   }
 
   /**
    * @method
    * @description Unsubscribes from all dependencies and runs cleanup function
+   * @returns {void}
+   * @example
+   * // Assuming `dispose` is the function returned by `effect`
+   * dispose(); // This will unsubscribe from all dependencies and run cleanup function
    */
   const dispose = () => {
     subscriptions.forEach((subscription) => {
