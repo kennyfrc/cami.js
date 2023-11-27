@@ -74,11 +74,20 @@
     });
 
     template() {
+      if (this.addPost.status === "pending") {
+        return html`
+        <div>Adding post...</div>`;
+      }
+
+      if (this.addPost.status === "error") {
+        return html`<div>Error: ${this.addPost.error.message}</div>`;
+      }
+
       if (this.posts.data) {
         return html`
           <button @click=${() => this.addPost.mutate({
-            title: "New Post",
-            body: "This is a new post.",
+            title: "New Post, Made Optimistically",
+            body: "This is a new post created with optimistic UI. I actually won't persist to the server though. So upon refresh, I will rollback (either through window change, refresh, or after stale time of 5 minutes)",
             userId: 1
           })}>Add Post</button>
           <ul>
@@ -98,20 +107,6 @@
 
       if (this.posts.status === "error") {
         return html`<div>Error: ${this.posts.error.message}</div>`;
-      }
-
-      if (this.addPost.status === "pending") {
-        return html`
-        ${this.addPost.status === "pending" ? html`
-          <li style="opacity: 0.5;">
-            Adding new post...
-          </li>
-        ` : ''}
-        <div>Adding post...</div>`;
-      }
-
-      if (this.addPost.status === "error") {
-        return html`<div>Error: ${this.addPost.error.message}</div>`;
       }
     }
   }

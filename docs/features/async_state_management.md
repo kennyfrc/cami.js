@@ -1,6 +1,8 @@
+# Asynchronous Server State Management
+
 Cami provides a powerful async state management system that allows components to fetch and manage asynchronous data with ease. Here's how it works:
 
-### Queries
+## Queries
 
 Queries are used to fetch data asynchronously and serve it to your components. They are defined with a `queryKey`, a unique identifier for the query's data in the internal cache, and a `queryFn`, a function that fetches the data. The result of a query is an observable object that automatically updates its `data`, `status`, and `error` keys based on the query's execution, allowing you to declaratively render UI based on the state of the asynchronous operation.
 
@@ -96,7 +98,7 @@ class BlogPostsElement extends ReactiveElement {
 
 This way, the `onConnect()` method is used to start the data fetching process, and the `renderPosts()` method is used to handle the display of the posts, keeping the code clean and easy to understand.
 
-#### Live Demo of Query
+### Live Demo of Query
 
 Below is a live demo of the component in action. The only change is that we're fetching a random number of posts between 1 and 5 just so you can see states change.
 
@@ -165,7 +167,7 @@ Below is a live demo of the component in action. The only change is that we're f
 
 <hr>
 
-### Mutations
+## Mutations
 
 Mutations are used to modify server-side data and reflect those changes in the UI. They are defined with a `mutationFn`, which performs the update.
 
@@ -199,7 +201,7 @@ if (this.addPost.status === "error") {
 
 By using mutations, Cami enables developers to handle server-side updates in a consistent and powerful way, similar to how queries are used for fetching data.
 
-#### Live Demo of Mutations
+### Live Demo of Mutations
 
 This live demo includes a form to submit a new post, which uses a mutation to update the server-side data. The mutation is defined in the `BlogPostsElement` class, and it handles the post submission process. The UI reflects the state of the mutation, showing a loading message while the request is pending and an error message if the request fails.
 

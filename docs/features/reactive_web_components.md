@@ -1,3 +1,5 @@
+# Automatic Reactivity in Web Components
+
 Let's take the example of creating a counter component. In contrast to other frameworks where you might need to define a counter with something like `count = signal(0)` or `count = ref(0)`, and then retrieve the value with `count()` or `count.value`, Cami.js simplifies this process significantly.
 
 You can directly define `count = 0` within your `CounterElement` class and access it just like a regular JavaScript variable.
@@ -57,11 +59,11 @@ This is how everything comes together:
 </script>
 ```
 
-#### Live Demo - Counter Component
+<hr>
+
+#### Live Demo of Reactive Web Components (Simple Counter)
 
 Now, when you load your HTML file, you will see a counter with two buttons to increment and decrement the count. The count is displayed and updated in real-time as you click the buttons.
-
-<hr>
 
 <article>
   <counter-component

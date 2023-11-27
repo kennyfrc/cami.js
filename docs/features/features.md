@@ -10,3 +10,4 @@
 
 * **Dependency Tracking**: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.
 * **Automatic Disposal & Garbage Collection**: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, computeds, and effects when they are no longer needed, so you don't have to worry about it.
+* **Automatic Expiry of Client-Side State**: Keep your client-side state fresh with automatic expiry. Our store automatically expires state after a configurable duration (default is 24 hours), so you don't have to worry about stale data.

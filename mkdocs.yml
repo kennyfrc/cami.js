@@ -52,11 +52,8 @@ nav:
     - features/features.md
     - features/reactive_web_components.md
     - features/async_state_management.md
-    - features/streams.md
     - features/client_state_management.md
-    - API - Index: api/index.md
-    - API - Reactive Element: api/reactive_element.md
-    - API - Console Functions: api/console_functions.md
+    - features/streams.md
   - API Reference:
     - API Index: api/index.md
     - api/reactive_element.md
@@ -66,6 +63,15 @@ nav:
     - api/observable_store.md
     - api/observable_stream.md
     - HTTP: api/http.md
+  - Learn by Example:
+    - learn_by_example/counter.md
+    - learn_by_example/form_validation.md
+    - learn_by_example/todo_list.md
+    - learn_by_example/cart.md
+    - learn_by_example/simple_task_manager.md
+    - learn_by_example/blog.md
+    - learn_by_example/counter_interval.md
+    - learn_by_example/data_props.md
 extra_javascript:
   - javascripts/cami.cdn.js
 extra:
