@@ -57,6 +57,7 @@ In our example earlier, `count` is an Observable Property. Any changes to `count
 ## How it works (More Intuitively)
 
 That's a lot of abstractions, but you can think of it this way:
+
 - For a given primitive (e.g. number, string, boolean), this gets converted into an ObservableState instance. ObservableState instances are wrapper objects with `.value` getters/setters. And to make it easier to use, we wrap the ObservableState instance with an ObservableProperty, which is just an `Object.defineProperty` with a getter and setter, you can then just call `this.count` to get the value, and `this.count = 1` to set the value.
 - For a given non-primitive (e.g. object, array), this gets converted into an ObservableState instance. ObservableState instances are wrapper objects with `.value` getters/setters. And to make it easier to use, we wrap the ObservableState instance with an ObservableProxy, which is just a Proxy object with a getter and setter, you can then just call `this.todos` to get the value, and `this.todos = []` to set the value. The reason we use Proxy instead of Object.defineProperty is because Proxy allows us to handle nested properties.
 
