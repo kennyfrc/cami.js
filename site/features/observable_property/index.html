@@ -20,7 +20,7 @@
     
     
       
-        <title>Core Concept: Observable Properties - Cami Web Components</title>
+        <title>Core Concepts: Observable Properties, Observable State, and Observable Proxy - Cami Web Components</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#core-concept-observable-properties" class="md-skip">
+        <a href="#core-concepts-observable-properties-observable-state-and-observable-proxy" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Core Concept: Observable Properties
+              Core Concepts: Observable Properties, Observable State, and Observable Proxy
             
           </span>
         </div>
@@ -443,7 +443,7 @@
           
   
   <span class="md-ellipsis">
-    Core Concept: Observable Properties
+    Core Concepts: Observable Properties, Observable State, and Observable Proxy
   </span>
   
 
@@ -454,7 +454,7 @@
         
   
   <span class="md-ellipsis">
-    Core Concept: Observable Properties
+    Core Concepts: Observable Properties, Observable State, and Observable Proxy
   </span>
   
 
@@ -476,6 +476,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#counter-example-observable-properties-primitive-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Counter Example (Observable Properties &amp; Primitive Values)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it works
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works-more-intuitively" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it works (More Intuitively)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-manager-example-observable-properties-non-primitive-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task Manager Example (Observable Properties &amp; Non-Primitive Values)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task Manager Example (Observable Properties & Non-Primitive Values)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#observableproperty" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableProperty
@@ -483,8 +520,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#observablestate" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableState
@@ -492,13 +529,18 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#observableproxy" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableProxy
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1113,6 +1155,43 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#counter-example-observable-properties-primitive-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Counter Example (Observable Properties &amp; Primitive Values)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it works
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works-more-intuitively" class="md-nav__link">
+    <span class="md-ellipsis">
+      How it works (More Intuitively)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-manager-example-observable-properties-non-primitive-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task Manager Example (Observable Properties &amp; Non-Primitive Values)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Task Manager Example (Observable Properties & Non-Primitive Values)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#observableproperty" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableProperty
@@ -1120,8 +1199,8 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#observablestate" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableState
@@ -1129,13 +1208,18 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#observableproxy" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableProxy
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1157,10 +1241,9 @@
   
 
 
-<h1 id="core-concept-observable-properties">Core Concept: Observable Properties</h1>
-<p>Observable Properties are a fundamental concept in Cami. They are properties of a ReactiveElement instance that are automatically observed for changes. When a change occurs, the ReactiveElement instance is notified and can react accordingly, typically by re-rendering the component.</p>
-<p>An Observable Property is created using <code>Object.defineProperty</code> with a getter and setter. The getter function returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties.</p>
-<p>The setter function updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. When the setter is called, it triggers a re-render of the component.</p>
+<h1 id="core-concepts-observable-properties-observable-state-and-observable-proxy">Core Concepts: Observable Properties, Observable State, and Observable Proxy</h1>
+<p>Observable Properties are a fundamental concept in Cami. They are properties of a ReactiveElement instance that are automatically observed for changes. When a change occurs, the ReactiveElement instance is notified and re-renders the return value of the <code>template()</code> method. The <code>template()</code> method is a method that returns a template literal that is then rendered to the DOM. If you're familiar with React, tagged template literals are similar to JSX, and our version of <code>render()</code> is done automatically by the ReactiveElement instance upon a change to an Observable Property.</p>
+<h2 id="counter-example-observable-properties-primitive-values">Counter Example (Observable Properties &amp; Primitive Values)</h2>
 <p>Here is an example of an Observable Property in a ReactiveElement class:
 <div class="language-js highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">class</span><span class="w"> </span><span class="nx">CounterElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nx">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span>
@@ -1174,7 +1257,6 @@
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="p">}</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">}</span>
 </span></code></pre></div></p>
-<p>In this example, <code>count</code> is an Observable Property. Any changes to <code>count</code> will automatically trigger a re-render of the component.</p>
 <hr>
 
 <article>
@@ -1202,6 +1284,15 @@
 
 <hr>
 
+<h2 id="how-it-works">How it works</h2>
+<p>Under the hood, the Observable Property is created using <code>Object.defineProperty</code> with a getter and setter. The getter function returns the current value of the property. If the property is a primitive value, this will return the value directly from the <a href="/features/observable_property/#observablestate">ObservableState</a> instance. If the property is a non-primitive value, this will return an <a href="/features/observable_property/#observableproxy">ObservableProxy</a> that wraps the ObservableState instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties.</p>
+<p>The setter function updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. When the setter is called, it triggers a re-render of the component.</p>
+<p>In our example earlier, <code>count</code> is an Observable Property. Any changes to <code>count</code> will automatically trigger a re-render of the component.</p>
+<h2 id="how-it-works-more-intuitively">How it works (More Intuitively)</h2>
+<p>That's a lot of abstractions, but you can think of it this way:
+- For a given primitive (e.g. number, string, boolean), this gets converted into an ObservableState instance. ObservableState instances are wrapper objects with <code>.value</code> getters/setters. And to make it easier to use, we wrap the ObservableState instance with an ObservableProperty, which is just an <code>Object.defineProperty`` with a getter and setter, you can then just call</code>this.count<code>to get the value, and</code>this.count = 1<code>to set the value.
+- For a given non-primitive (e.g. object, array), this gets converted into an ObservableState instance. ObservableState instances are wrapper objects with</code>.value<code>getters/setters. And to make it easier to use, we wrap the ObservableState instance with an ObservableProxy, which is just a Proxy object with a getter and setter, you can then just call</code>this.todos<code>to get the value, and</code>this.todos = []` to set the value. The reason we use Proxy instead of Object.defineProperty is because Proxy allows us to handle nested properties.</p>
+<h2 id="task-manager-example-observable-properties-non-primitive-values">Task Manager Example (Observable Properties &amp; Non-Primitive Values)</h2>
 <p>Observable Properties can also handle non-primitive values and nested properties. This is achieved by returning an ObservableProxy instead of the value directly. The ObservableProxy wraps the ObservableState instance and allows for nested properties to be observed. Here is an example:
 <div class="language-js highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">class</span><span class="w"> </span><span class="nx">TaskManagerElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">tasks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>

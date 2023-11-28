@@ -1,10 +1,8 @@
-# Core Concept: Observable Properties
+# Core Concepts: Observable Properties, Observable State, and Observable Proxy
 
 Observable Properties are a fundamental concept in Cami. They are properties of a ReactiveElement instance that are automatically observed for changes. When a change occurs, the ReactiveElement instance is notified and re-renders the return value of the `template()` method. The `template()` method is a method that returns a template literal that is then rendered to the DOM. If you're familiar with React, tagged template literals are similar to JSX, and our version of `render()` is done automatically by the ReactiveElement instance upon a change to an Observable Property.
 
-An Observable Property is created using `Object.defineProperty` with a getter and setter. The getter function returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties.
-
-The setter function updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. When the setter is called, it triggers a re-render of the component.
+## Counter Example (Observable Properties & Primitive Values)
 
 Here is an example of an Observable Property in a ReactiveElement class:
 ```js
@@ -20,8 +18,6 @@ class CounterElement extends ReactiveElement {
   }
 }
 ```
-
-In this example, `count` is an Observable Property. Any changes to `count` will automatically trigger a re-render of the component.
 
 <hr>
 
@@ -49,6 +45,22 @@ In this example, `count` is an Observable Property. Any changes to `count` will 
 </script>
 
 <hr>
+
+## How it works
+
+Under the hood, the Observable Property is created using `Object.defineProperty` with a getter and setter. The getter function returns the current value of the property. If the property is a primitive value, this will return the value directly from the [ObservableState](/features/observable_property/#observablestate) instance. If the property is a non-primitive value, this will return an [ObservableProxy](/features/observable_property/#observableproxy) that wraps the ObservableState instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties.
+
+The setter function updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. When the setter is called, it triggers a re-render of the component.
+
+In our example earlier, `count` is an Observable Property. Any changes to `count` will automatically trigger a re-render of the component.
+
+## How it works (More Intuitively)
+
+That's a lot of abstractions, but you can think of it this way:
+- For a given primitive (e.g. number, string, boolean), this gets converted into an ObservableState instance. ObservableState instances are wrapper objects with `.value` getters/setters. And to make it easier to use, we wrap the ObservableState instance with an ObservableProperty, which is just an `Object.defineProperty`` with a getter and setter, you can then just call `this.count` to get the value, and `this.count = 1` to set the value.
+- For a given non-primitive (e.g. object, array), this gets converted into an ObservableState instance. ObservableState instances are wrapper objects with `.value` getters/setters. And to make it easier to use, we wrap the ObservableState instance with an ObservableProxy, which is just a Proxy object with a getter and setter, you can then just call `this.todos` to get the value, and `this.todos = []` to set the value. The reason we use Proxy instead of Object.defineProperty is because Proxy allows us to handle nested properties.
+
+## Task Manager Example (Observable Properties & Non-Primitive Values)
 
 Observable Properties can also handle non-primitive values and nested properties. This is achieved by returning an ObservableProxy instead of the value directly. The ObservableProxy wraps the ObservableState instance and allows for nested properties to be observed. Here is an example:
 ```js
