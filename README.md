@@ -12,7 +12,7 @@ It has features you'd expect from a modern UI framework, such as reactive web co
 
 Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.
 
-[Documentation](https://camijs.com/) | [API Reference](https://camijs.com/api/) | [CDN Link](https://unpkg.com/cami@latest/build/cami.cdn.js)
+[Documentation](https://camijs.com/) | [API Reference](https://camijs.com/api/) | [CDN Link](https://unpkg.com/cami@latest/build/cami.cdn.js) | [Core Concepts](https://camijs.com/features/observable_property/)
 
 ## Features include:
 
@@ -21,7 +21,7 @@ Note that Cami specializes in bringing rich interactivity to your web applicatio
 * **Cross-component State Management with  Stores**: Share state across different components with ease using a single store using [`cami.store`](https://camijs.com/features/client_state_management). By default, this uses `localStorage` to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.
 * **Streams & Functional Reactive Programming (FRP)**: Handle asynchronous events gracefully with [Observable Streams](https://camijs.com/features/streams/). They offer powerful functions like `map`, `filter`, `flatMap`, and `debounce` to process events in a sophisticated yet manageable way, for clean & declarative code.
 
-Please visit our [Documentation](https://camijs.com/), [API Reference](https://camijs.com/api/), or [Examples](https://camijs.com/learn_by_example/counter/) to learn more.
+Please visit our [Documentation](https://camijs.com/), [API Reference](https://camijs.com/api/), [Examples](https://camijs.com/learn_by_example/counter/), or [Core Concepts](https://camijs.com/features/observable_property/) to learn more.
 
 ## Motivation
 

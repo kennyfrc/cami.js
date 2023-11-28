@@ -6,7 +6,7 @@ It has features you'd expect from a modern UI framework, such as reactive web co
 
 Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.
 
-API Reference is available [here](./api/index.md). Learn by example [here](./learn_by_example/counter.md).
+Core concepts are explained [here](./features/observable_property.md). Learn by example [here](./learn_by_example/counter.md). API Reference is available [here](./api/index.md).
 
 ## Getting Started
 
