@@ -8,8 +8,8 @@
 ## Functions
 
 <dl>
-<dt><a href="#store">store(initialState)</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
-<dd><p>This function creates a new instance of ObservableStore with the provided initial state.</p>
+<dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
+<dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
 </dl>
 
@@ -106,17 +106,25 @@ CartStore.dispatch('add', product);
 ```
 <a name="store"></a>
 
-## store(initialState) ⇒ [<code>ObservableStore</code>](#ObservableStore)
-This function creates a new instance of ObservableStore with the provided initial state.
+## store(initialState, [options]) ⇒ [<code>ObservableStore</code>](#ObservableStore)
+This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The `localStorage` option enables this behavior and can be toggled off if persistence is not needed.
 
 **Kind**: global function  
-**Returns**: [<code>ObservableStore</code>](#ObservableStore) - A new instance of ObservableStore with the provided initial state  
+**Returns**: [<code>ObservableStore</code>](#ObservableStore) - A new instance of ObservableStore with the provided initial state, enhanced with localStorage if enabled.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| initialState | <code>Object</code> | The initial state of the store |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| initialState | <code>Object</code> |  | The initial state of the store. |
+| [options] | <code>Object</code> |  | Configuration options for the store. |
+| [options.localStorage] | <code>boolean</code> | <code>true</code> | Whether to use localStorage for state persistence. |
+| [options.name] | <code>string</code> | <code>&quot;&#x27;cami-store&#x27;&quot;</code> | The name of the store to use as the key in localStorage. |
+| [options.expiry] | <code>number</code> | <code>86400000</code> | The time in milliseconds until the stored state expires (default is 24 hours). |
 
 **Example**  
 ```javascript
+// Create a store with default localStorage support
 const CartStore = store({ cartItems: [] });
+
+// Create a store without localStorage support
+const NonPersistentStore = store({ items: [] }, { localStorage: false });
 ```

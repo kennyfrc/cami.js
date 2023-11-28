@@ -786,9 +786,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storeinitialstate-observablestore" class="md-nav__link">
+  <a href="#storeinitialstate-options-observablestore" class="md-nav__link">
     <span class="md-ellipsis">
-      store(initialState) ⇒ ObservableStore
+      store(initialState, [options]) ⇒ ObservableStore
     </span>
   </a>
   
@@ -1204,9 +1204,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storeinitialstate-observablestore" class="md-nav__link">
+  <a href="#storeinitialstate-options-observablestore" class="md-nav__link">
     <span class="md-ellipsis">
-      store(initialState) ⇒ ObservableStore
+      store(initialState, [options]) ⇒ ObservableStore
     </span>
   </a>
   
@@ -1240,8 +1240,8 @@
 
 <h2 id="functions">Functions</h2>
 <dl>
-<dt><a href="#store">store(initialState)</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
-<dd><p>This function creates a new instance of ObservableStore with the provided initial state.</p>
+<dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
+<dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
 </dl>
 
@@ -1367,15 +1367,16 @@
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="store"></a></p>
-<h2 id="storeinitialstate-observablestore">store(initialState) ⇒ <a href="#ObservableStore"><code>ObservableStore</code></a></h2>
-<p>This function creates a new instance of ObservableStore with the provided initial state.</p>
+<h2 id="storeinitialstate-options-observablestore">store(initialState, [options]) ⇒ <a href="#ObservableStore"><code>ObservableStore</code></a></h2>
+<p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 <p><strong>Kind</strong>: global function<br />
-<strong>Returns</strong>: <a href="#ObservableStore"><code>ObservableStore</code></a> - A new instance of ObservableStore with the provided initial state  </p>
+<strong>Returns</strong>: <a href="#ObservableStore"><code>ObservableStore</code></a> - A new instance of ObservableStore with the provided initial state, enhanced with localStorage if enabled.  </p>
 <table>
 <thead>
 <tr>
 <th>Param</th>
 <th>Type</th>
+<th>Default</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -1383,12 +1384,41 @@
 <tr>
 <td>initialState</td>
 <td><code>Object</code></td>
-<td>The initial state of the store</td>
+<td></td>
+<td>The initial state of the store.</td>
+</tr>
+<tr>
+<td>[options]</td>
+<td><code>Object</code></td>
+<td></td>
+<td>Configuration options for the store.</td>
+</tr>
+<tr>
+<td>[options.localStorage]</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Whether to use localStorage for state persistence.</td>
+</tr>
+<tr>
+<td>[options.name]</td>
+<td><code>string</code></td>
+<td><code>&quot;&#x27;cami-store&#x27;&quot;</code></td>
+<td>The name of the store to use as the key in localStorage.</td>
+</tr>
+<tr>
+<td>[options.expiry]</td>
+<td><code>number</code></td>
+<td><code>86400000</code></td>
+<td>The time in milliseconds until the stored state expires (default is 24 hours).</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">});</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Create a store with default localStorage support</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">});</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">// Create a store without localStorage support</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">NonPersistentStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">localStorage</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">});</span>
 </span></code></pre></div></p>
 
 
