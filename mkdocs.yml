@@ -50,6 +50,7 @@ nav:
   - Introduction:
     - index.md
     - features/features.md
+    - features/observable_property.md
     - features/reactive_web_components.md
     - features/async_state_management.md
     - features/client_state_management.md

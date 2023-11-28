@@ -12,7 +12,7 @@
         <link rel="prev" href="../..">
       
       
-        <link rel="next" href="../reactive_web_components/">
+        <link rel="next" href="../observable_property/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -357,6 +357,8 @@
       
         
       
+        
+      
     
     
     
@@ -426,6 +428,27 @@
 
       </a>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observable_property/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Core Concept: Observable Properties
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1044,17 +1067,18 @@
 
 <h1 id="feature-overview">Feature Overview</h1>
 <ul>
-<li><strong>Reactive Web Components</strong>: Simplify your web development with <code>ReactiveElement</code>, which extends the standard <code>HTMLElement</code>. It automatically sets up reactive properties, so you don't have to write the usual boilerplate code. This feature supports complex scenarios like deep updates, array changes, and reactive attributes, making it easier to manage dynamic content.</li>
-<li><strong>Async State Management</strong>: Easily manage server data with our async tools. Use the <code>query</code> method to fetch and cache data, with options to control how often it refreshes. The <code>mutation</code> method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.</li>
-<li><strong>Streams &amp; Functional Reactive Programming (FRP)</strong>: Handle asynchronous events gracefully with Observable Streams. They offer powerful functions like <code>map</code>, <code>filter</code>, and <code>debounce</code> to process events in a sophisticated yet manageable way, perfect for writing clean, reactive code.</li>
-<li><strong>Cross-component State Management with a Singleton Store</strong>: Share state across different components with ease using a single store. This approach is compatible with Redux DevTools, giving you powerful debugging capabilities.</li>
+<li><strong>Reactive Web Components</strong>: Simplifies front-end web development with <code>ReactiveElement</code>. This is done through <a href="/features/observable_property">Observable Properties</a>. They are properties of a <code>ReactiveElement</code> instance that are automatically observed for changes. When a change occurs, the <code>ReactiveElement</code> instance is notified and can react accordingly by re-rendering the component. Observable properties support deep updates, array changes, and reactive attributes, making it easier to manage dynamic content. Lastly, this removes the boilerplate of <code>signal()</code>, <code>setState()</code>, or <code>reactive()</code> that you might find in other libraries.</li>
+<li><strong>Async State Management</strong>: Easily manage server data. Our library provides a simple API for fetching and updating data with <a href="/features/async_state_management"><code>query</code> and <code>mutation</code></a>. Use the <code>query</code> method to fetch and cache data, with options to control how often it refreshes. The <code>mutation</code> method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.</li>
+<li><strong>Cross-component State Management with  Stores</strong>: Share state across different components with ease using a single store using <a href="/features/client_state_management"><code>cami.store</code></a>. By default, this uses <code>localStorage</code> to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.</li>
+<li><strong>Streams &amp; Functional Reactive Programming (FRP)</strong>: Handle asynchronous events gracefully with <a href="/features/streams/">Observable Streams</a>. They offer powerful functions like <code>map</code>, <code>filter</code>, <code>flatMap</code>, and <code>debounce</code> to process events in a sophisticated yet manageable way, for clean &amp; declarative code.</li>
 </ul>
 <h2>Internals that You Don't Need to Worry About</h2>
 
 <ul>
-<li><strong>Dependency Tracking</strong>: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.</li>
-<li><strong>Automatic Disposal &amp; Garbage Collection</strong>: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, computeds, and effects when they are no longer needed, so you don't have to worry about it.</li>
+<li><strong>Caching, Refetching, and Stale Data Handling for Server-side State</strong>: Keep your data fresh with automatic caching and refetching. Our library automatically caches data and refetches it when needed, so you don't have to worry about stale data.</li>
 <li><strong>Automatic Expiry of Client-Side State</strong>: Keep your client-side state fresh with automatic expiry. Our store automatically expires state after a configurable duration (default is 24 hours), so you don't have to worry about stale data.</li>
+<li><strong>Dependency Tracking</strong>: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.</li>
+<li><strong>Automatic Disposal &amp; Garbage Collection</strong>: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, and effects when they are no longer needed, so you don't have to worry about it.</li>
 </ul>
 
 
@@ -1094,13 +1118,13 @@
         
         
           
-          <a href="../reactive_web_components/" class="md-footer__link md-footer__link--next" aria-label="Next: Automatic Reactivity in Web Components">
+          <a href="../observable_property/" class="md-footer__link md-footer__link--next" aria-label="Next: Core Concept: Observable Properties">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Automatic Reactivity in Web Components
+                Core Concept: Observable Properties
               </div>
             </div>
             <div class="md-footer__button md-icon">
