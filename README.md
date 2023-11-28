@@ -21,7 +21,7 @@ Note that Cami specializes in bringing rich interactivity to your web applicatio
 * **Cross-component State Management with  Stores**: Share state across different components with ease using a single store using [`cami.store`](https://camijs.com/features/client_state_management). By default, this uses `localStorage` to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.
 * **Streams & Functional Reactive Programming (FRP)**: Handle asynchronous events gracefully with [Observable Streams](https://camijs.com/features/streams/). They offer powerful functions like `map`, `filter`, `flatMap`, and `debounce` to process events in a sophisticated yet manageable way, for clean & declarative code.
 
-Visit Our [Documentation](https://camijs.com/)or [API Reference](https://camijs.com/api/) to learn more.
+Please visit our [Documentation](https://camijs.com/), [API Reference](https://camijs.com/api/), or [Examples](https://camijs.com/learn_by_example/counter/) to learn more.
 
 ## Motivation
 
