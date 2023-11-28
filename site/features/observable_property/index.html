@@ -476,6 +476,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#foundational-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foundational Concepts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observable-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observable Properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#counter-example-observable-properties-primitive-values" class="md-nav__link">
     <span class="md-ellipsis">
       Counter Example (Observable Properties &amp; Primitive Values)
@@ -1149,6 +1167,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#foundational-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Foundational Concepts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observable-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observable Properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#counter-example-observable-properties-primitive-values" class="md-nav__link">
     <span class="md-ellipsis">
       Counter Example (Observable Properties &amp; Primitive Values)
@@ -1230,6 +1266,15 @@
 
 
 <h1 id="core-concepts-observable-properties-observable-state-and-observable-proxy">Core Concepts: Observable Properties, Observable State, and Observable Proxy</h1>
+<h2 id="foundational-concepts">Foundational Concepts</h2>
+<p>Before we dive into the Core Concepts, we need to understand a few more foundational ideas first. I suggest reading the following links before continuing:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty">Object.defineProperty</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy">Proxy</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">Template Literals</a></li>
+<li><a href="https://refactoring.guru/design-patterns/observer">Observer Pattern</a></li>
+</ul>
+<h2 id="observable-properties">Observable Properties</h2>
 <p>Observable Properties are a fundamental concept in Cami. They are properties of a ReactiveElement instance that are automatically observed for changes. When a change occurs, the ReactiveElement instance is notified and re-renders the return value of the <code>template()</code> method. The <code>template()</code> method is a method that returns a template literal that is then rendered to the DOM. If you're familiar with React, tagged template literals are similar to JSX, and our version of <code>render()</code> is done automatically by the ReactiveElement instance upon a change to an Observable Property.</p>
 <h2 id="counter-example-observable-properties-primitive-values">Counter Example (Observable Properties &amp; Primitive Values)</h2>
 <p>Here is an example of an Observable Property in a ReactiveElement class:

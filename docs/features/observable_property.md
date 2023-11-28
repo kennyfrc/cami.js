@@ -1,5 +1,16 @@
 # Core Concepts: Observable Properties, Observable State, and Observable Proxy
 
+## Foundational Concepts
+
+Before we dive into the Core Concepts, we need to understand a few more foundational ideas first. I suggest reading the following links before continuing:
+
+- [Object.defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty)
+- [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+- [Template Literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals)
+- [Observer Pattern](https://refactoring.guru/design-patterns/observer)
+
+## Observable Properties
+
 Observable Properties are a fundamental concept in Cami. They are properties of a ReactiveElement instance that are automatically observed for changes. When a change occurs, the ReactiveElement instance is notified and re-renders the return value of the `template()` method. The `template()` method is a method that returns a template literal that is then rendered to the DOM. If you're familiar with React, tagged template literals are similar to JSX, and our version of `render()` is done automatically by the ReactiveElement instance upon a change to an Observable Property.
 
 ## Counter Example (Observable Properties & Primitive Values)
