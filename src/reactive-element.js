@@ -61,8 +61,8 @@ import { _trace } from './trace.js';
 
 /**
  * @typedef ObservableState
- * @property {any} value - The current value of the observable state. This is the value that is returned when accessing a primitive property on a ReactiveElement instance.
- * @property {function(function(any): void): void} update - A function that updates the value of the observable state. It takes an updater function that receives the current value and returns the new value. This is used when assigning a new value to a primitive property on a ReactiveElement instance.
+ * @property {any} value - The current value of the observable state. This is the value that is returned when accessing a primitive property on a ReactiveElement instance. It can also be used to set a new value for the observable state.
+ * @property {function(function(any): any): void} update - A function that updates the value of the observable state. It takes an updater function that receives the current value and returns the new value. This is used when assigning a new value to a primitive property on a ReactiveElement instance. It allows deeply nested updates.
  * @property {function(): void} [dispose] - An optional function that cleans up the observable state when it is no longer needed. This is used internally by ReactiveElement to manage memory.
  */
 
