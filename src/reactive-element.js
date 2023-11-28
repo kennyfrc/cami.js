@@ -7,6 +7,25 @@ import { ObservableStream } from './observables/observable-stream.js';
 import { _trace } from './trace.js';
 
 /**
+ * @typedef ObservableProperty
+ * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing the property on a ReactiveElement instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values.
+ * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. Note that this is not an example of ad-hoc polymorphism (function overloading) found in functional programming, as the setter's behavior does not change based on the input type.
+ */
+
+/**
+ * @typedef ObservableState
+ * @property {any} value - The current value of the observable state. This is the value that is returned when accessing a primitive property on a ReactiveElement instance.
+ * @property {function(function(any): void): void} update - A function that updates the value of the observable state. It takes an updater function that receives the current value and returns the new value. This is used when assigning a new value to a primitive property on a ReactiveElement instance.
+ * @property {function(): void} [dispose] - An optional function that cleans up the observable state when it is no longer needed. This is used internally by ReactiveElement to manage memory.
+ */
+
+/**
+ * @typedef ObservableProxy
+ * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing a non-primitive property on a ReactiveElement instance.
+ * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to a non-primitive property on a ReactiveElement instance.
+ */
+
+/**
  * @private
  * @description A cache for storing the results of queries.
  * @type {Map<string, any>}
@@ -15,12 +34,14 @@ const QueryCache = new Map();
 
 /**
  * @class
- * @description This class is needed to create reactive web components that can automatically update their view when their state changes. All properties are automatically converted to observables.
+ * @description This class is needed to create reactive web components that can automatically update their view when their state changes. All properties are automatically converted to observables. This is achieved by using creating an ObservableProperty, which provides a getter and setter for the property. The getter returns the current value of the property, and the setter updates the value of the property and triggers a re-render of the component.
  * @example
  * ```javascript
  * const { html, ReactiveElement } = cami;
  *
  * class CounterElement extends ReactiveElement {
+ *   // Here, 'count' is automatically initialized as an ObservableProperty.
+ *   // This means that any changes to 'count' will automatically trigger a re-render of the component.
  *   count = 0
  *
  *   template() {
@@ -51,7 +72,7 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @description Creates observables from attributes and applies optional transformation functions.
+   * @description Creates ObservableProperty or ObservableProxy instances for all properties in the provided object.
    * @param {Object} attributes - An object with attribute names as keys and optional parsing functions as values.
    * @example
    * // In _009_dataFromProps.html, the todos attribute is parsed as JSON and the data property is extracted:
@@ -67,14 +88,12 @@ class ReactiveElement extends HTMLElement {
       const transformFn = typeof parseFn === 'function' ? parseFn : (v) => v;
       attrValue = produce(attrValue, transformFn);
 
-      // Create an observable with the transformed value
+      // Create an ObservableProperty or ObservableProxy for the attribute
       const observable = this._observable(attrValue, attrName);
-
-      // Handle the observable based on whether its value is an object/array or not
       if (this._isObjectOrArray(observable.value)) {
-        this._handleObjectOrArray(this, attrName, observable, true);
+        this._createObservablePropertyForObjOrArr(this, attrName, observable, true);
       } else {
-        this._handleNonObject(this, attrName, observable, true);
+        this._createObservablePropertyForPrimitive(this, attrName, observable, true);
       }
     });
   }
@@ -103,8 +122,9 @@ class ReactiveElement extends HTMLElement {
   /**
    * @method
    * @description Creates an effect and registers its dispose function. The effect is used to perform side effects in response to state changes.
+   * This method is useful when working with ObservableProperties or ObservableProxies because it triggers the effect whenever the value of the underlying ObservableState changes.
    * @example
-   * // Assuming `this.count` is an observable
+   * // Assuming `this.count` is an ObservableProperty
    * this.effect(() => {
    *   console.log(`The count is now: ${this.count}`);
    * });
@@ -128,9 +148,9 @@ class ReactiveElement extends HTMLElement {
    * // `cartItems` will be an observable reflecting the current state of cart items in the store
    * this.cartItems = this.connect(CartStore, 'cartItems');
    *
-   * @param {Store} store - The store to subscribe to
+   * @param {ObservableStore} store - The store to subscribe to
    * @param {string} key - The key in the store to create an observable for
-   * @returns {Observable|Proxy} The observable or a proxy for the observable
+   * @returns {ObservableProxy} An observable property or proxy for the store key
    */
   connect(store, key) {
     if (!(store instanceof ObservableStore)) {
@@ -217,7 +237,7 @@ class ReactiveElement extends HTMLElement {
    *   queryFn: () => fetch("https://jsonplaceholder.typicode.com/posts?_limit=5").then(res => res.json()),
    *   staleTime: 1000 * 60 * 5
    * });
-   * @returns {Proxy} A proxy that contains the state of the query.
+   * @returns {ObservableProxy} A proxy that contains the state of the query.
    */
   query({ queryKey, queryFn, staleTime = 0, refetchOnWindowFocus = true, refetchOnMount = true, refetchOnReconnect = true, refetchInterval = null, gcTime = 1000 * 60 * 5, retry = 3, retryDelay = (attempt) => Math.pow(2, attempt) * 1000 }) {
     const key = Array.isArray(queryKey)
@@ -351,7 +371,7 @@ class ReactiveElement extends HTMLElement {
    *     };
    *   }
    * });
-   * @returns {Proxy} A proxy that contains the state of the mutation.
+   * @returns {ObservableProxy} A proxy that contains the state of the mutation.
    */
   mutation({ mutationFn, onMutate, onError, onSuccess, onSettled }) {
     const mutationState = this._observable({
@@ -640,7 +660,7 @@ class ReactiveElement extends HTMLElement {
   /**
    * @private
    * @method
-   * @description Handles the case when the provided value is an object or an array.
+   * @description Private method. Creates an ObservableProperty for the provided key in the given context when the provided value is an object or an array.
    * @param {Object} context - The context in which the property is defined.
    * @param {string} key - The property key.
    * @param {ObservableState} observable - The observable to bind to the property.
@@ -648,7 +668,7 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  _handleObjectOrArray(context, key, observable, isAttribute = false) {
+  _createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError('Expected observable to be an instance of ObservableState');
     }
@@ -668,7 +688,12 @@ class ReactiveElement extends HTMLElement {
   /**
    * @private
    * @method
-   * @description Handles the case when the provided value is not an object or an array.
+   * @description Private method. Handles the case when the provided value is not an object or an array.
+   * This method creates an ObservableProperty for the provided key in the given context.
+   * An ObservableProperty is a special type of property that can notify about changes in its state.
+   * This is achieved by defining a getter and a setter for the property using Object.defineProperty.
+   * The getter simply returns the current value of the observable.
+   * The setter updates the observable with the new value and, if the property is an attribute, also updates the attribute.
    * @param {Object} context - The context in which the property is defined.
    * @param {string} key - The property key.
    * @param {ObservableState} observable - The observable to bind to the property.
@@ -676,7 +701,7 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  _handleNonObject(context, key, observable, isAttribute = false) {
+  _createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError('Expected observable to be an instance of ObservableState');
     }
@@ -696,9 +721,9 @@ class ReactiveElement extends HTMLElement {
    * @private
    * @method
    * @description Creates a proxy for the observable.
-   * @param {ObservableState} observable - The observable to create a proxy for.
+   * @param {ObservableState} observable - The observable for which a proxy is to be created.
    * @throws {TypeError} If observable is not an instance of ObservableState.
-   * @returns {Proxy} The created proxy.
+   * @returns {ObservableProxy} The created proxy.
    */
   _observableProxy(observable) {
     if (!(observable instanceof ObservableState)) {
@@ -754,9 +779,9 @@ class ReactiveElement extends HTMLElement {
           } else {
             const observable = this._observable(this[key], key);
             if (this._isObjectOrArray(observable.value)) {
-              this._handleObjectOrArray(this, key, observable);
+              this._createObservablePropertyForObjOrArr(this, key, observable);
             } else {
-              this._handleNonObject(this, key, observable);
+              this._createObservablePropertyForPrimitive(this, key, observable);
             }
           }
         }
@@ -771,6 +796,7 @@ class ReactiveElement extends HTMLElement {
    * @param {any} initialValue - The initial value for the observable.
    * @param {string} [name] - The name of the observable.
    * @throws {Error} If the type of initialValue is not allowed in observables.
+   * @returns {ObservableState} The created observable state.
    */
   _observable(initialValue, name = null) {
     if (!this._isAllowedType(initialValue)) {
@@ -893,7 +919,6 @@ class ReactiveElement extends HTMLElement {
    * @private
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
-   * This also triggers all effects.
    * @returns {void}
    */
   _react() {

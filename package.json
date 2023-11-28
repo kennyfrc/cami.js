@@ -47,7 +47,7 @@
     "build:minify": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js docs/javascripts/cami.cdn.js && cp build/cami.cdn.js.map docs/javascripts/cami.cdn.js.map && sh build_examples.sh",
     "type-check": "tsc --noEmit --allowJs --checkJs",
     "test": "bunx serve tests",
-    "docs": "jsdoc2md ./src/reactive-element.js > ./docs/api/reactive_element.md && jsdoc2md ./src/http.js > ./docs/api/http.md && jsdoc2md ./src/observables/observable.js > ./docs/api/observable.md && jsdoc2md ./src/observables/observable-state.js > ./docs/api/observable_state.md && jsdoc2md ./src/observables/observable-store.js > ./docs/api/observable_store.md && jsdoc2md ./src/observables/observable-stream.js > ./docs/api/observable_stream.md && mkdocs build",
+    "docs:build": "jsdoc2md ./src/reactive-element.js > ./docs/api/reactive_element.md && jsdoc2md ./src/http.js > ./docs/api/http.md && jsdoc2md ./src/observables/observable.js > ./docs/api/observable.md && jsdoc2md ./src/observables/observable-state.js > ./docs/api/observable_state.md && jsdoc2md ./src/observables/observable-store.js > ./docs/api/observable_store.md && jsdoc2md ./src/observables/observable-stream.js > ./docs/api/observable_stream.md && mkdocs build",
     "watch": "nodemon --watch src/cami.js --exec \"bun run build\"",
     "dev": "concurrently \"bunx serve\" \"npm run watch\""
   },
