@@ -493,7 +493,7 @@ validatePassword(password) {
 
 ### Querying Email Availability
 
-An API query is performed to check if the entered email is already in use. The `query` method is part of Cami's asynchronous state management system, which is detailed in [async state management](/features/async_state_management). It allows the component to declare a data dependency that is fetched asynchronously, and the component's UI can react to the data, loading, and error states of the query.
+An API query is performed to check if the entered email is already in use. The `query` method is part of Cami's asynchronous state management system, which is detailed in [async state management](async_state_management.md). It allows the component to declare a data dependency that is fetched asynchronously, and the component's UI can react to the data, loading, and error states of the query.
 
 ```js
 queryEmail(email) {
@@ -567,4 +567,4 @@ getPasswordInputState() {
 
 Each step incrementally builds upon the previous one, resulting in a dynamic and responsive form that provides real-time feedback to the user.
 
-To review the form again, [go here](/features/streams/#demo-registration-form).
+To review the form again, [go here](#demo-registration-form).

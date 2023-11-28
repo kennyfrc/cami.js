@@ -48,7 +48,7 @@ class CounterElement extends ReactiveElement {
 
 ## How it works
 
-Under the hood, the Observable Property is created using `Object.defineProperty` with a getter and setter. The getter function returns the current value of the property. If the property is a primitive value, this will return the value directly from the [ObservableState](/features/observable_property/#observablestate) instance. If the property is a non-primitive value, this will return an [ObservableProxy](/features/observable_property/#observableproxy) that wraps the ObservableState instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties.
+Under the hood, the Observable Property is created using `Object.defineProperty` with a getter and setter. The getter function returns the current value of the property. If the property is a primitive value, this will return the value directly from the [ObservableState](#observablestate) instance. If the property is a non-primitive value, this will return an [ObservableProxy](#observableproxy) that wraps the ObservableState instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties.
 
 The setter function updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. When the setter is called, it triggers a re-render of the component.
 
@@ -152,9 +152,9 @@ In this example, `tasks` is an Observable Property that is an array. Any changes
 
 <hr>
 
-Below is the API Reference for Observable Properties. Updated version is at the [API Reference](/api/reactive_element).
+Below is the API Reference for Observable Properties. Updated version is at the [API Reference](../api/reactive_element.md).
 
-### ObservableProperty
+## ObservableProperty
 **Kind**: global typedef
 **Properties**
 
@@ -214,7 +214,7 @@ class TaskManagerElement extends ReactiveElement {
 ```
 <a name="ObservableState"></a>
 
-### ObservableState
+## ObservableState
 **Kind**: global typedef
 **Properties**
 
@@ -226,7 +226,7 @@ class TaskManagerElement extends ReactiveElement {
 
 <a name="ObservableProxy"></a>
 
-### ObservableProxy
+## ObservableProxy
 **Kind**: global typedef
 **Properties**
 
