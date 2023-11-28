@@ -179,6 +179,7 @@ out
 # Hide build files
 /tests/build/
 /utils
+/examples/build
 
 package-lib.json
 src/scratch.js

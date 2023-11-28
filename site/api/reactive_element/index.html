@@ -2069,7 +2069,7 @@ Subclasses can override this to add logic that should run when the component is 
 <tr>
 <td>get</td>
 <td><code>function</code></td>
-<td>A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing the property on a ReactiveElement instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values. It's just Object.defineProperty with a getter and setter, but it's called ObservableProperty to distinguish it from a regular property. The Object context is the ReactiveElement instance.</td>
+<td>A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing the property on a ReactiveElement instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties (only proxies can handle nested properties, whereas getters/setter traps cannot)</td>
 </tr>
 <tr>
 <td>set</td>
