@@ -48,17 +48,16 @@ bun install
 ### Building
 
 ```bash
-bun run build:module
-bun run build:cdn
+bun run build:docs
+bun run build:minify
 ```
 
-### Typechecking
+### How Docs are Built
 
-JSDoc is used for typechecking & documentation.
+JSDoc is used to build the API reference. We use Material for MkDocs for the documentation.
 
-```bash
-bun run type-check
-```
+To make JSDoc be compatible with MkDocs, we use jsdoc2md to generate markdown files from JSDoc comments. We use then use MkDocs to build the documentation site.
+
 
 ### Testing
 
@@ -66,12 +65,13 @@ TBD
 
 ## Prior Art
 
-- Immer
-- Redux
-- Zustand
-- MobX
-- lit-html
-- React Query
+Cami is grateful to the following projects for inspiration:
+
+- Immer (immutable state)
+- Redux / Zustand (client state management)
+- React Query (server state management)
+- MobX (observable state)
+- lit-html (declarative templates)
 
 ## Why "Cami"?
 
