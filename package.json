@@ -54,6 +54,7 @@
   },
   "type": "module",
   "dependencies": {
+    "goober": "^2.1.13",
     "immer": "^10.0.3",
     "lit-html": "^3.0.0"
   }
