@@ -8,8 +8,55 @@ import { _trace } from './trace.js';
 
 /**
  * @typedef ObservableProperty
- * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing the property on a ReactiveElement instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values.
- * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance. Note that this is not an example of ad-hoc polymorphism (function overloading) found in functional programming, as the setter's behavior does not change based on the input type.
+ * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing the property on a ReactiveElement instance. This polymorphic behavior allows the ObservableProperty to handle both primitive and non-primitive values, and handle nested properties (only proxies can handle nested properties, whereas getters/setter traps cannot)
+ * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to the property on a ReactiveElement instance.
+ * @example
+ * // Primitive value example from _001_counter.html
+ * // this.count is an ObservableProperty, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
+ * // ObservableProperty is just Object.defineProperty with a getter and setter, where the Object is the ReactiveElement instance
+ * class CounterElement extends ReactiveElement {
+ *   count = 0
+ *
+ *   template() {
+ *     return html`
+ *       <button @click=${() => this.count--}>-</button>
+ *       <button @click=${() => this.count++}>+</button>
+ *       <div>Count: ${this.count}</div>
+ *     `;
+ *   }
+ * }
+ *
+ * // Non-primitive value example from _003_todo.html
+ * // this.query returns an ObservableProperty / ObservableProxy
+ * // this.todos is an ObservableProxy, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
+ * // We use Proxy instead of Object.defineProperty because it allows us to handle nested properties
+ * class TodoListElement extends ReactiveElement {
+ *   todos = this.query({
+ *     queryKey: ['todos'],
+ *     queryFn: () => {
+ *       return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5").then(res => res.json())
+ *     },
+ *     staleTime: 1000 * 60 * 5 // 5 minutes
+ *   })
+ *
+ *   template() {
+ *     // ...template code...
+ *   }
+ * }
+ *
+ * // Array value example from _010_taskmgmt.html
+ * // this.tasks is an ObservableProxy, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
+ * // We use Proxy instead of Object.defineProperty because it allows us to handle nested properties
+ * class TaskManagerElement extends ReactiveElement {
+ *   tasks = [];
+ *   filter = 'all';
+ *
+ *   // ...other methods...
+ *
+ *   template() {
+ *     // ...template code...
+ *   }
+ * }
  */
 
 /**
@@ -21,7 +68,7 @@ import { _trace } from './trace.js';
 
 /**
  * @typedef ObservableProxy
- * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing a non-primitive property on a ReactiveElement instance.
+ * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing a non-primitive property on a ReactiveElement instance. We use Proxy instead of Object.defineProperty because it allows us to handle nested properties.
  * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to a non-primitive property on a ReactiveElement instance.
  */
 
