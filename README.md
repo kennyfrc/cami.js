@@ -65,8 +65,6 @@ TBD
 
 ## Prior Art
 
-Cami is grateful to the following projects for inspiration:
-
 - Immer (immutable state)
 - Redux / Zustand (client state management)
 - React Query (server state management)
