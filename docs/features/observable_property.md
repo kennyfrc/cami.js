@@ -2,7 +2,7 @@
 
 ## Foundational Concepts
 
-Before we dive into the Core Concepts, we need to understand a few more foundational ideas first. I suggest reading the following links before continuing:
+Before we dive into the Core Concepts, we need to understand a few foundational ideas first. I suggest reading the following links before continuing:
 
 - [Object.defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty)
 - [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
