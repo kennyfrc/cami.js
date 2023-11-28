@@ -6,10 +6,13 @@ Current version: 0.3.3.
 
 Bundle Size: 14kb minified & gzipped.
 
-A minimalist yet powerful toolkit for interactive islands in web applications.
+A minimalist yet powerful toolkit for interactive islands in web applications. No build step required.
 
-[Documentation](https://camijs.com/) | [API Reference](https://camijs.com/api/) | [Examples](https://camijs.com/learn_by_example/counter/) |
-[CDN Link](https://unpkg.com/cami@latest/build/cami.cdn.js)
+It has features you'd expect from a modern UI framework, such as reactive web components, async state management, streams, and cross-component state management.
+
+Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.
+
+[Documentation](https://camijs.com/) | [API Reference](https://camijs.com/api/) | [CDN Link](https://unpkg.com/cami@latest/build/cami.cdn.js)
 
 ## Features include:
 
@@ -18,7 +21,7 @@ A minimalist yet powerful toolkit for interactive islands in web applications.
 * **Cross-component State Management with  Stores**: Share state across different components with ease using a single store using [`cami.store`](https://camijs.com/features/client_state_management). By default, this uses `localStorage` to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.
 * **Streams & Functional Reactive Programming (FRP)**: Handle asynchronous events gracefully with [Observable Streams](https://camijs.com/features/streams/). They offer powerful functions like `map`, `filter`, `flatMap`, and `debounce` to process events in a sophisticated yet manageable way, for clean & declarative code.
 
-Please visit our [Documentation](https://camijs.com/), [API Reference](https://camijs.com/api/), or [Examples](https://camijs.com/learn_by_example/counter/) to learn more.
+Visit Our [Documentation](https://camijs.com/)or [API Reference](https://camijs.com/api/) to learn more.
 
 ## Motivation
 

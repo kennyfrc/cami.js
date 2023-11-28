@@ -1,8 +1,10 @@
 # Cami
 
-Cami.js is a minimalist yet powerful toolkit to build reactive web components in web applications. No build step required.
+Cami.js is a minimalist yet powerful toolkit for interactive islands in web applications. No build step required.
 
-While minimalist, it has features you'd expect from a modern web framework, such as reactive web components, async state management, streams, and cross-component state management, ideal for creating internal tools, dashboards, and other web applications.
+It has features you'd expect from a modern UI framework, such as reactive web components, async state management, streams, and cross-component state management.
+
+Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.
 
 API Reference is available [here](./api/index.md). Learn by example [here](./learn_by_example/counter.md).
 
