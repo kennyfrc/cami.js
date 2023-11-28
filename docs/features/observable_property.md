@@ -11,7 +11,11 @@ Before we dive into the Core Concepts, we need to understand a few more foundati
 
 ## Observable Properties
 
-Observable Properties are a fundamental concept in Cami. They are properties of a ReactiveElement instance that are automatically observed for changes. When a change occurs, the ReactiveElement instance is notified and re-renders the return value of the `template()` method. The `template()` method is a method that returns a template literal that is then rendered to the DOM. If you're familiar with React, tagged template literals are similar to JSX, and our version of `render()` is done automatically by the ReactiveElement instance upon a change to an Observable Property.
+Observable Properties are a key idea in Cami, building upon the foundational concepts mentioned above. These properties belong to instances of the ReactiveElement class and are automatically monitored for any changes.
+
+When a change is detected in an Observable Property (e.g. `this.count++`), the ReactiveElement instance is informed and triggers a re-rendering of the `template()` method's return value (e.g. `<p>Count: ${this.count}</p>`). This template method returns a template literal which is then parsed then rendered to the DOM.
+
+If you're familiar with React, you can think of tagged template literals as similar to JSX. The rendering process, akin to React's `render()` method, is automatically handled by the ReactiveElement instance when an Observable Property changes. This automatic re-rendering is a manifestation of the Observer Pattern, where the ReactiveElement instance acts as the observer, reacting to changes in the Observable Properties.
 
 ## Counter Example (Observable Properties & Primitive Values)
 
