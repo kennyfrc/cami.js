@@ -177,12 +177,10 @@ out
 /playwright/.cache/
 
 # Hide build files
-/tests/build/
 /utils
 /examples/build
 
 package-lib.json
 src/scratch.js
-tests/*
 src/spike.js
 src/test.js

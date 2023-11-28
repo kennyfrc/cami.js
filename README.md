@@ -65,7 +65,13 @@ To make JSDoc be compatible with MkDocs, we use jsdoc2md to generate markdown fi
 
 ### Testing
 
-TBD
+We use Jasmine for testing. To run the tests, run:
+
+```bash
+bunx serve # serves the test files (it's just html)
+```
+
+Then open `http://localhost:8080/test/SpecRunner.html` in your browser.
 
 ## Prior Art
 

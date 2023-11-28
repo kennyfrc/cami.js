@@ -33,6 +33,7 @@
   "devDependencies": {
     "bun-types": "latest",
     "concurrently": "^8.2.2",
+    "fetch-mock": "^9.11.0",
     "nodemon": "^3.0.1"
   },
   "main": "build/cami.cdn.js",
