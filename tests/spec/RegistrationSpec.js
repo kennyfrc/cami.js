@@ -1,4 +1,4 @@
-describe('RegistrationFormElement', () => {
+describe('Strings are Observable - RegistrationFormElement', () => {
   let regForm;
 
   beforeEach(async () => {

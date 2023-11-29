@@ -1,4 +1,4 @@
-describe('CounterElement', () => {
+describe('Integers are Observable - CounterElement', () => {
   let counter;
 
   beforeEach(async () => {

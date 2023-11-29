@@ -1,4 +1,4 @@
-describe('TaskManagerElement', () => {
+describe('Arrays are Observable - TaskManagerElement', () => {
   let taskManager;
 
   beforeEach(async () => {
