@@ -105,33 +105,41 @@ observable.assign({ key: 'value' });
 <a name="ObservableState+set"></a>
 
 ### observableState.set(key, value)
-Sets a new key/value pair in the observable's value
+Sets a new value for a specific key in the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
 
 **Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Throws**:
+
+- Will throw an error if the observable's value is not an object
+
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>any</code> | The key to set |
-| value | <code>any</code> | The value to set |
+| key | <code>string</code> | The key to set the new value for |
+| value | <code>any</code> | The new value to set |
 
 **Example**  
 ```js
-observable.set('key', 'value');
+observable.set('key.subkey', 'new value');
 ```
 <a name="ObservableState+delete"></a>
 
 ### observableState.delete(key)
-Removes a key/value pair from the observable's value
+Deletes a specific key from the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
 
 **Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Throws**:
+
+- Will throw an error if the observable's value is not an object
+
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>any</code> | The key to remove |
+| key | <code>string</code> | The key to delete |
 
 **Example**  
 ```js
-observable.delete('key');
+observable.delete('key.subkey');
 ```
 <a name="ObservableState+clear"></a>
 
@@ -388,35 +396,43 @@ observable.assign({ key: 'value' });
 <a name="ObservableState+set"></a>
 
 ### computedState.set(key, value)
-Sets a new key/value pair in the observable's value
+Sets a new value for a specific key in the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
 
 **Kind**: instance method of [<code>ComputedState</code>](#ComputedState)  
 **Overrides**: [<code>set</code>](#ObservableState+set)  
+**Throws**:
+
+- Will throw an error if the observable's value is not an object
+
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>any</code> | The key to set |
-| value | <code>any</code> | The value to set |
+| key | <code>string</code> | The key to set the new value for |
+| value | <code>any</code> | The new value to set |
 
 **Example**  
 ```js
-observable.set('key', 'value');
+observable.set('key.subkey', 'new value');
 ```
 <a name="ObservableState+delete"></a>
 
 ### computedState.delete(key)
-Removes a key/value pair from the observable's value
+Deletes a specific key from the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
 
 **Kind**: instance method of [<code>ComputedState</code>](#ComputedState)  
 **Overrides**: [<code>delete</code>](#ObservableState+delete)  
+**Throws**:
+
+- Will throw an error if the observable's value is not an object
+
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>any</code> | The key to remove |
+| key | <code>string</code> | The key to delete |
 
 **Example**  
 ```js
-observable.delete('key');
+observable.delete('key.subkey');
 ```
 <a name="ObservableState+clear"></a>
 

@@ -2125,8 +2125,12 @@
 </span></code></pre></div>
 <a name="ObservableState+set"></a></p>
 <h3 id="observablestatesetkey-value">observableState.set(key, value)</h3>
-<p>Sets a new key/value pair in the observable's value</p>
-<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<p>Sets a new value for a specific key in the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Throws</strong>:</p>
+<ul>
+<li>Will throw an error if the observable's value is not an object</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -2138,23 +2142,27 @@
 <tbody>
 <tr>
 <td>key</td>
-<td><code>any</code></td>
-<td>The key to set</td>
+<td><code>string</code></td>
+<td>The key to set the new value for</td>
 </tr>
 <tr>
 <td>value</td>
 <td><code>any</code></td>
-<td>The value to set</td>
+<td>The new value to set</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-js highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;key.subkey&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;new value&#39;</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="ObservableState+delete"></a></p>
 <h3 id="observablestatedeletekey">observableState.delete(key)</h3>
-<p>Removes a key/value pair from the observable's value</p>
-<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a>  </p>
+<p>Deletes a specific key from the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableState"><code>ObservableState</code></a><br />
+<strong>Throws</strong>:</p>
+<ul>
+<li>Will throw an error if the observable's value is not an object</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -2166,13 +2174,13 @@
 <tbody>
 <tr>
 <td>key</td>
-<td><code>any</code></td>
-<td>The key to remove</td>
+<td><code>string</code></td>
+<td>The key to delete</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-js highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">observable</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">);</span>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">observable</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;key.subkey&#39;</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="ObservableState+clear"></a></p>
 <h3 id="observablestateclear">observableState.clear()</h3>
@@ -2510,9 +2518,13 @@ This is done to batch multiple updates together and avoid unnecessary re-renders
 </span></code></pre></div>
 <a name="ObservableState+set"></a></p>
 <h3 id="computedstatesetkey-value">computedState.set(key, value)</h3>
-<p>Sets a new key/value pair in the observable's value</p>
+<p>Sets a new value for a specific key in the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.</p>
 <p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
-<strong>Overrides</strong>: <a href="#ObservableState+set"><code>set</code></a>  </p>
+<strong>Overrides</strong>: <a href="#ObservableState+set"><code>set</code></a><br />
+<strong>Throws</strong>:</p>
+<ul>
+<li>Will throw an error if the observable's value is not an object</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -2524,24 +2536,28 @@ This is done to batch multiple updates together and avoid unnecessary re-renders
 <tbody>
 <tr>
 <td>key</td>
-<td><code>any</code></td>
-<td>The key to set</td>
+<td><code>string</code></td>
+<td>The key to set the new value for</td>
 </tr>
 <tr>
 <td>value</td>
 <td><code>any</code></td>
-<td>The value to set</td>
+<td>The new value to set</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-js highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="p">);</span>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nx">observable</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;key.subkey&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;new value&#39;</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="ObservableState+delete"></a></p>
 <h3 id="computedstatedeletekey">computedState.delete(key)</h3>
-<p>Removes a key/value pair from the observable's value</p>
+<p>Deletes a specific key from the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.</p>
 <p><strong>Kind</strong>: instance method of <a href="#ComputedState"><code>ComputedState</code></a><br />
-<strong>Overrides</strong>: <a href="#ObservableState+delete"><code>delete</code></a>  </p>
+<strong>Overrides</strong>: <a href="#ObservableState+delete"><code>delete</code></a><br />
+<strong>Throws</strong>:</p>
+<ul>
+<li>Will throw an error if the observable's value is not an object</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -2553,13 +2569,13 @@ This is done to batch multiple updates together and avoid unnecessary re-renders
 <tbody>
 <tr>
 <td>key</td>
-<td><code>any</code></td>
-<td>The key to remove</td>
+<td><code>string</code></td>
+<td>The key to delete</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-js highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nx">observable</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">);</span>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nx">observable</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;key.subkey&#39;</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="ObservableState+clear"></a></p>
 <h3 id="computedstateclear">computedState.clear()</h3>
