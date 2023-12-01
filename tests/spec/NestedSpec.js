@@ -1,4 +1,4 @@
-describe('Objects are - Observable UserFormElement', () => {
+describe('Objects are Observable - UserFormElement', () => {
   let userFormElement;
 
   beforeEach(async () => {
