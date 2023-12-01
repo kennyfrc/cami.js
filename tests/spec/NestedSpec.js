@@ -66,7 +66,7 @@ describe('Objects are - Observable UserFormElement', () => {
     await userFormElement.updateComplete;
     userFormElement.user.delete('name');
     await userFormElement.updateComplete;
-    expect(userFormElement.user.value.name).toBeUndefined();
+    expect(userFormElement.user.name).toBeUndefined();
     const nameInput = userFormElement.querySelector('input[type="text"]');
     expect(nameInput.value).toBe('undefined');
   });
@@ -74,7 +74,7 @@ describe('Objects are - Observable UserFormElement', () => {
   it('should set new user name correctly', async () => {
     userFormElement.user.set('name', 'New Name');
     await userFormElement.updateComplete;
-    expect(userFormElement.user.value.name).toBe('New Name');
+    expect(userFormElement.user.name).toBe('New Name');
     const nameInput = userFormElement.querySelector('input[type="text"]');
     expect(nameInput.value).toBe('New Name');
   });
@@ -84,6 +84,35 @@ describe('Objects are - Observable UserFormElement', () => {
     userFormElement.user.clear();
     await userFormElement.updateComplete;
     const nameInput = userFormElement.querySelector('input[type="text"]');
+    expect(nameInput.value).toBe('undefined');
+  });
+
+  it('should set new user data correctly', async () => {
+    userFormElement.user.set('address.street', 'New Street');
+    await userFormElement.updateComplete;
+    const streetInput = userFormElement.querySelector('input[name="street"]');
+    expect(streetInput.value).toBe('New Street');
+  });
+
+  it('should delete user data correctly', async () => {
+    userFormElement.user.delete('address.street');
+    await userFormElement.updateComplete;
+    const streetInput = userFormElement.querySelector('input[name="street"]');
+    expect(streetInput.value).toBe('undefined');
+  });
+
+  it('should add new user data correctly', async () => {
+    userFormElement.user.set('address.postcode', '12345');
+    await userFormElement.updateComplete;
+    const postcodeInput = userFormElement.querySelector('input[name="postcode"]');
+    expect(postcodeInput.value).toBe('12345');
+  });
+
+  it('should clear user data correctly', async () => {
+    userFormElement.user.set('name', 'New Name');
+    userFormElement.user.clear();
+    await userFormElement.updateComplete;
+    const nameInput = userFormElement.querySelector('input[name="name"]');
     expect(nameInput.value).toBe('undefined');
   });
 });
