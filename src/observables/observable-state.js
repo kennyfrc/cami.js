@@ -87,34 +87,46 @@ class ObservableState extends Observable {
 
   /**
    * @method
-   * @description Sets a new key/value pair in the observable's value
-   * @param {any} key - The key to set
-   * @param {any} value - The value to set
+   * @description Sets a new value for a specific key in the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
+   * @param {string} key - The key to set the new value for
+   * @param {any} value - The new value to set
+   * @throws Will throw an error if the observable's value is not an object
    * @example
-   * observable.set('key', 'value');
+   * observable.set('key.subkey', 'new value');
    */
   set(key, value) {
     if (typeof this._value !== 'object' || this._value === null) {
       throw new Error('[Cami.js] Observable value is not an object');
     }
     this.update(state => {
-      state[key] = value;
+      const keys = key.split('.');
+      let current = state;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+      }
+      current[keys[keys.length - 1]] = value;
     });
   }
 
   /**
    * @method
-   * @description Removes a key/value pair from the observable's value
-   * @param {any} key - The key to remove
+   * @description Deletes a specific key from the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
+   * @param {string} key - The key to delete
+   * @throws Will throw an error if the observable's value is not an object
    * @example
-   * observable.delete('key');
+   * observable.delete('key.subkey');
    */
   delete(key) {
     if (typeof this._value !== 'object' || this._value === null) {
       throw new Error('[Cami.js] Observable value is not an object');
     }
     this.update(state => {
-      delete state[key];
+      const keys = key.split('.');
+      let current = state;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+      }
+      delete current[keys[keys.length - 1]];
     });
   }
 
