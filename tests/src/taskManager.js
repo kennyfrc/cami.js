@@ -4,43 +4,43 @@ class TaskManagerElement extends ReactiveElement {
   tasks = [];
 
   addTask(task) {
-    this.tasks.push(task); // push
+    this.tasks.push(task);
   }
 
   removeFirstTask() {
-    this.tasks.shift(); // shift
+    this.tasks.shift();
   }
 
   removeLastTask() {
-    this.tasks.pop(); // pop
+    this.tasks.pop();
   }
 
   addTaskToFront(task) {
-    this.tasks.unshift(task); // unshift
+    this.tasks.unshift(task);
   }
 
   removeTask(index) {
-    this.tasks.splice(index, 1); // splice
+    this.tasks.splice(index, 1);
   }
 
   replaceTask(index, task) {
-    this.tasks.splice(index, 1, task); // splice for replacement
+    this.tasks.splice(index, 1, task);
   }
 
   sortTasks() {
-    this.tasks.sort(); // sort
+    this.tasks.sort();
   }
 
   reverseTasks() {
-    this.tasks.reverse(); // reverse
+    this.tasks.reverse();
   }
 
   fillTasks(task) {
-    this.tasks.fill(task); // fill
+    this.tasks.fill(task);
   }
 
   copyWithinTasks(target, start, end) {
-    this.tasks.copyWithin(target, start, end); // copyWithin
+    this.tasks.copyWithin(target, start, end);
   }
 
   template() {
