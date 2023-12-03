@@ -10,14 +10,14 @@
     todos = this.query({
       queryKey: ['todos'],
       queryFn: () => {
-        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5").then(res => res.json())
+        return fetch("https://api.camijs.com/todos?_limit=5").then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
     })
 
     addTodo = this.mutation({
       mutationFn: (newTodo) => {
-        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos", {
+        return fetch("https://api.camijs.com/todos", {
           method: "POST",
           body: JSON.stringify(newTodo),
           headers: {
@@ -32,7 +32,7 @@
 
     deleteTodo = this.mutation({
       mutationFn: (todo) => {
-        return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/todos/${todo.id}`, {
+        return fetch(`https://api.camijs.com/todos/${todo.id}`, {
           method: "DELETE"
         }).then(res => {
           document.querySelector('.note').innerHTML = 'Todo was deleted from the server. Since we are using a mock API, this wont work. In your server environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
@@ -115,14 +115,14 @@ HTML:
     todos = this.query({
       queryKey: ['todos'],
       queryFn: () => {
-        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5").then(res => res.json())
+        return fetch("https://api.camijs.com/todos?_limit=5").then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
     })
 
     addTodo = this.mutation({
       mutationFn: (newTodo) => {
-        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos", {
+        return fetch("https://api.camijs.com/todos", {
           method: "POST",
           body: JSON.stringify(newTodo),
           headers: {
@@ -137,7 +137,7 @@ HTML:
 
     deleteTodo = this.mutation({
       mutationFn: (todo) => {
-        return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/todos/${todo.id}`, {
+        return fetch(`https://api.camijs.com/todos/${todo.id}`, {
           method: "DELETE"
         }).then(res => {
           document.querySelector('.note').innerHTML = 'Todo was deleted from the server. Since we are using a mock API, this wont work. In your server environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';

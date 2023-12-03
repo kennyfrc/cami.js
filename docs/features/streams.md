@@ -21,7 +21,7 @@ Here's how that registration form might look like. The button is disabled by def
 ### Demo - Registration Form
 
 <article>
-  <small>Try entering an email that is already taken, such as geovanniheaney@block.info (this is a mock email in our API)</small>
+  <small>Try entering an email that is already taken, such as trevinowanda@example.net (this is a mock email in our API)</small>
   <registration-form-cami-example></registration-form-cami-example>
 </article>
 <small>
@@ -95,7 +95,7 @@ Here's how that registration form might look like. The button is disabled by def
       return this.query({
         queryKey: ['Email', email],
         queryFn: () => {
-          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
         },
         staleTime: 1000 * 60 * 5
       })
@@ -184,7 +184,7 @@ Hope the example is motivating :) As the code can be a bit of a doozy. Explanati
   <form-component></form-component>
 </article>
 <small>
-<p>Try entering an email that is already taken, such as geovanniheaney@block.info (mock email)</p>
+<p>Try entering an email that is already taken, such as trevinowanda@example.net (mock email)</p>
 </small>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -255,7 +255,7 @@ Hope the example is motivating :) As the code can be a bit of a doozy. Explanati
       return this.query({
         queryKey: ['Email', email],
         queryFn: () => {
-          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
         },
         staleTime: 1000 * 60 * 5
       })
@@ -502,7 +502,7 @@ queryEmail(email) {
     queryKey: ['Email', email], // The queryKey uniquely identifies this query
     queryFn: () => {
       // Perform a fetch request to check if the email is already in use
-      return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`)
+      return fetch(`https://api.camijs.com/users?email=${email}`)
         .then(res => res.json());
     },
     staleTime: 1000 * 60 * 5 // Data is considered fresh for 5 minutes

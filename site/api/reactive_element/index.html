@@ -1561,7 +1561,7 @@
 
 <p><a name="ReactiveElement"></a></p>
 <h2 id="reactiveelement">ReactiveElement</h2>
-<p><strong>Kind</strong>: global class  </p>
+<p><strong>Kind</strong>: global class</p>
 <ul>
 <li><a href="#ReactiveElement">ReactiveElement</a><ul>
 <li><a href="#new_ReactiveElement_new">new ReactiveElement()</a></li>
@@ -1588,7 +1588,7 @@
 <p><a name="new_ReactiveElement_new"></a></p>
 <h3 id="new-reactiveelement">new ReactiveElement()</h3>
 <p>This class is needed to create reactive web components that can automatically update their view when their state changes. All properties are automatically converted to observables. This is achieved by using creating an ObservableProperty, which provides a getter and setter for the property. The getter returns the current value of the property, and the setter updates the value of the property and triggers a re-render of the component.</p>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kd">class</span><span class="w"> </span><span class="nx">CounterElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
@@ -1610,7 +1610,7 @@
 <a name="ReactiveElement+observableAttributes"></a></p>
 <h3 id="reactiveelementobservableattributesattributes-void">reactiveElement.observableAttributes(attributes) ⇒ <code>void</code></h3>
 <p>Creates ObservableProperty or ObservableProxy instances for all properties in the provided object.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a></p>
 <table>
 <thead>
 <tr>
@@ -1627,7 +1627,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// In _009_dataFromProps.html, the todos attribute is parsed as JSON and the data property is extracted:</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">this</span><span class="p">.</span><span class="nx">observableAttributes</span><span class="p">({</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">todos</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">v</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">v</span><span class="p">).</span><span class="nx">data</span>
@@ -1637,7 +1637,7 @@
 <h3 id="reactiveelementeffecteffectfn-void">reactiveElement.effect(effectFn) ⇒ <code>void</code></h3>
 <p>Creates an effect and registers its dispose function. The effect is used to perform side effects in response to state changes.
 This method is useful when working with ObservableProperties or ObservableProxies because it triggers the effect whenever the value of the underlying ObservableState changes.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a></p>
 <table>
 <thead>
 <tr>
@@ -1654,7 +1654,7 @@ This method is useful when working with ObservableProperties or ObservableProxie
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// Assuming `this.count` is an ObservableProperty</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">this</span><span class="p">.</span><span class="nx">effect</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`The count is now: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
@@ -1665,8 +1665,8 @@ This method is useful when working with ObservableProperties or ObservableProxie
 <h3 id="reactiveelementconnectstore-key-observableproxy">reactiveElement.connect(store, key) ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></h3>
 <p>Subscribes to a store and creates an observable for a specific key in the store. This is useful for
 synchronizing the component's state with a global store.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - An observable property or proxy for the store key  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - An observable property or proxy for the store key</p>
 <table>
 <thead>
 <tr>
@@ -1688,7 +1688,7 @@ synchronizing the component's state with a global store.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Assuming there is a store for cart items</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1">// `cartItems` will be an observable reflecting the current state of cart items in the store</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">this</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="nx">CartStore</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;cartItems&#39;</span><span class="p">);</span>
@@ -1696,8 +1696,8 @@ synchronizing the component's state with a global store.</p>
 <a name="ReactiveElement+stream"></a></p>
 <h3 id="reactiveelementstreamsubscribefn-observablestream">reactiveElement.stream(subscribeFn) ⇒ <code>ObservableStream</code></h3>
 <p>Creates an ObservableStream from a subscription function.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <code>ObservableStream</code> - An ObservableStream that emits values produced by the subscription function.  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Returns</strong>: <code>ObservableStream</code> - An ObservableStream that emits values produced by the subscription function.</p>
 <table>
 <thead>
 <tr>
@@ -1714,7 +1714,7 @@ synchronizing the component's state with a global store.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// In a FormElement component</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">inputValidation$</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">stream</span><span class="p">();</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nx">inputValidation$</span>
@@ -1729,12 +1729,12 @@ synchronizing the component's state with a global store.</p>
 </span></code></pre></div>
 <a name="ReactiveElement+template"></a></p>
 <h3 id="reactiveelementtemplate-void">reactiveElement.template() ⇒ <code>void</code></h3>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
 <strong>Throws</strong>:</p>
 <ul>
 <li><code>Error</code> If the method template() is not implemented</li>
 </ul>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// Here&#39;s a simple example of a template method implementation</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div&gt;Hello World&lt;/div&gt;`</span><span class="p">;</span>
@@ -1743,8 +1743,8 @@ synchronizing the component's state with a global store.</p>
 <a name="ReactiveElement+query"></a></p>
 <h3 id="reactiveelementqueryoptions-observableproxy">reactiveElement.query(options) ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></h3>
 <p>Fetches data from an API and caches it. This method is based on the TanStack Query defaults: https://tanstack.com/query/latest/docs/react/guides/important-defaults.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - A proxy that contains the state of the query.  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - A proxy that contains the state of the query.</p>
 <table>
 <thead>
 <tr>
@@ -1823,7 +1823,7 @@ synchronizing the component's state with a global store.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// In _012_blog.html, a query is set up to fetch posts with a stale time of 5 minutes:</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;posts&quot;</span><span class="p">],</span>
@@ -1834,8 +1834,8 @@ synchronizing the component's state with a global store.</p>
 <a name="ReactiveElement+mutation"></a></p>
 <h3 id="reactiveelementmutationoptions-observableproxy">reactiveElement.mutation(options) ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></h3>
 <p>Performs a mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - A proxy that contains the state of the mutation.  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - A proxy that contains the state of the mutation.</p>
 <table>
 <thead>
 <tr>
@@ -1877,7 +1877,7 @@ synchronizing the component's state with a global store.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// In _012_blog.html, a mutation is set up to add a new post with optimistic UI updates:</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">addPost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">mutation</span><span class="p">({</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nx">mutationFn</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">newPost</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://jsonplaceholder.typicode.com/posts&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
@@ -1909,7 +1909,7 @@ synchronizing the component's state with a global store.</p>
 <a name="ReactiveElement+invalidateQueries"></a></p>
 <h3 id="reactiveelementinvalidatequeriesquerykey-void">reactiveElement.invalidateQueries(queryKey) ⇒ <code>void</code></h3>
 <p>Invalidates the queries with the given key, causing them to refetch if needed. This method is particularly useful when used in conjunction with mutations, such as in the <code>onSettled</code> callback, to ensure that the UI reflects the latest state.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a></p>
 <table>
 <thead>
 <tr>
@@ -1926,7 +1926,7 @@ synchronizing the component's state with a global store.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// In a mutation&#39;s `onSettled` callback within a `BlogComponent`:</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">mutation</span><span class="p">({</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="c1">// ...mutation config...</span>
@@ -1940,8 +1940,8 @@ synchronizing the component's state with a global store.</p>
 <h3 id="reactiveelementoncreate-void">reactiveElement.onCreate() ⇒ <code>void</code></h3>
 <p>Called when the component is created. Can be overridden by subclasses to add initialization logic.
 This method is a hook for the connectedCallback, which is invoked each time the custom element is appended into a document-connected element.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nx">onCreate</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="c1">// Example initialization logic here</span>
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
@@ -1958,8 +1958,8 @@ This method is a hook for the connectedCallback, which is invoked each time the 
 <h3 id="reactiveelementconnectedcallback-void">reactiveElement.connectedCallback() ⇒ <code>void</code></h3>
 <p>Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
 This is typically used to initialize component state, fetch data, and set up event listeners.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// In a TodoList component</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nx">connectedCallback</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="k">super</span><span class="p">.</span><span class="nx">connectedCallback</span><span class="p">();</span>
@@ -1969,9 +1969,9 @@ This is typically used to initialize component state, fetch data, and set up eve
 <a name="ReactiveElement+onConnect"></a></p>
 <h3 id="reactiveelementonconnect-void">reactiveElement.onConnect() ⇒ <code>void</code></h3>
 <p>Invoked when the custom element is connected to the document's DOM.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <code>void</code> - Subclasses can override this to add initialization logic when the component is added to the DOM.<br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Returns</strong>: <code>void</code> - Subclasses can override this to add initialization logic when the component is added to the DOM.
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// In a UserCard component</span>
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nx">onConnect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">showUserDetails</span><span class="p">();</span><span class="w"> </span><span class="c1">// Display user details when the component is connected</span>
@@ -1981,8 +1981,8 @@ This is typically used to initialize component state, fetch data, and set up eve
 <h3 id="reactiveelementdisconnectedcallback-void-void">reactiveElement.disconnectedCallback() ⇒ <code>void</code> | <code>void</code></h3>
 <p>Invoked when the custom element is disconnected from the document's DOM.
 This is a good place to remove event listeners, cancel any ongoing network requests, or clean up any resources.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// In a Modal component</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nx">disconnectedCallback</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="k">super</span><span class="p">.</span><span class="nx">disconnectedCallback</span><span class="p">();</span>
@@ -1993,8 +1993,8 @@ This is a good place to remove event listeners, cancel any ongoing network reque
 <h3 id="reactiveelementondisconnect-void">reactiveElement.onDisconnect() ⇒ <code>void</code></h3>
 <p>Invoked when the custom element is disconnected from the document's DOM.
 Subclasses can override this to add cleanup logic when the component is removed from the DOM.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1">// In a VideoPlayer component</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nx">onDisconnect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">stopPlayback</span><span class="p">();</span><span class="w"> </span><span class="c1">// Stop video playback when the component is removed</span>
@@ -2004,7 +2004,7 @@ Subclasses can override this to add cleanup logic when the component is removed 
 <h3 id="reactiveelementattributechangedcallbackname-oldvalue-newvalue-void">reactiveElement.attributeChangedCallback(name, oldValue, newValue) ⇒ <code>void</code></h3>
 <p>Invoked when an attribute of the custom element is added, removed, updated, or replaced.
 This can be used to react to attribute changes, such as updating the component state or modifying its appearance.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>  </p>
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a></p>
 <table>
 <thead>
 <tr>
@@ -2031,7 +2031,7 @@ This can be used to react to attribute changes, such as updating the component s
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// In a ThemeSwitcher component</span>
 </span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nx">attributeChangedCallback</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">oldValue</span><span class="p">,</span><span class="w"> </span><span class="nx">newValue</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="k">super</span><span class="p">.</span><span class="nx">attributeChangedCallback</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">oldValue</span><span class="p">,</span><span class="w"> </span><span class="nx">newValue</span><span class="p">);</span>
@@ -2043,9 +2043,9 @@ This can be used to react to attribute changes, such as updating the component s
 <a name="ReactiveElement+onAttributeChange"></a></p>
 <h3 id="reactiveelementonattributechange-void">reactiveElement.onAttributeChange() ⇒ <code>void</code></h3>
 <p>Invoked when an attribute of the custom element is added, removed, updated, or replaced.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <code>void</code> - Subclasses can override this to add logic that should run when an attribute changes.<br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Returns</strong>: <code>void</code> - Subclasses can override this to add logic that should run when an attribute changes.
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">// In a CollapsiblePanel component</span>
 </span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nx">onAttributeChange</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">oldValue</span><span class="p">,</span><span class="w"> </span><span class="nx">newValue</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">name</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;collapsed&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -2057,8 +2057,8 @@ This can be used to react to attribute changes, such as updating the component s
 <h3 id="reactiveelementadoptedcallback-void-void">reactiveElement.adoptedCallback() ⇒ <code>void</code> | <code>void</code></h3>
 <p>Invoked when the custom element is moved to a new document.
 This can be used to update bindings or perform re-initialization as needed when the component is adopted into a new DOM context.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">// In a DragDropContainer component</span>
 </span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nx">adoptedCallback</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="k">super</span><span class="p">.</span><span class="nx">adoptedCallback</span><span class="p">();</span>
@@ -2069,8 +2069,8 @@ This can be used to update bindings or perform re-initialization as needed when 
 <h3 id="reactiveelementonadopt-void">reactiveElement.onAdopt() ⇒ <code>void</code></h3>
 <p>Invoked when the custom element is moved to a new document.
 Subclasses can override this to add logic that should run when the component is moved to a new document.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Example</strong><br />
+<p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>
+<strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1">// In a DataGrid component</span>
 </span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nx">onAdopt</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">refreshData</span><span class="p">();</span><span class="w"> </span><span class="c1">// Refresh data when the component is adopted into a new document</span>
@@ -2078,7 +2078,7 @@ Subclasses can override this to add logic that should run when the component is 
 </span></code></pre></div>
 <a name="ObservableProperty"></a></p>
 <h2 id="observableproperty">ObservableProperty</h2>
-<p><strong>Kind</strong>: global typedef<br />
+<p><strong>Kind</strong>: global typedef
 <strong>Properties</strong></p>
 <table>
 <thead>
@@ -2101,7 +2101,7 @@ Subclasses can override this to add logic that should run when the component is 
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong><br />
+<p><strong>Example</strong>
 <div class="language-js highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">// Primitive value example from _001_counter.html</span>
 </span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="c1">// this.count is an ObservableProperty, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value</span>
 </span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="c1">// ObservableProperty is just Object.defineProperty with a getter and setter, where the Object is the ReactiveElement instance</span>
@@ -2125,7 +2125,7 @@ Subclasses can override this to add logic that should run when the component is 
 </span><span id="__span-18-21"><a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a><span class="w">  </span><span class="nx">todos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
 </span><span id="__span-18-22"><a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a><span class="w">    </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;todos&#39;</span><span class="p">],</span>
 </span><span id="__span-18-23"><a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a><span class="w">    </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-18-24"><a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5&quot;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
+</span><span id="__span-18-24"><a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://api.camijs.com/todos?_limit=5&quot;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
 </span><span id="__span-18-25"><a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a><span class="w">    </span><span class="p">},</span>
 </span><span id="__span-18-26"><a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a><span class="w">    </span><span class="nx">staleTime</span><span class="o">:</span><span class="w"> </span><span class="mf">1000</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="c1">// 5 minutes</span>
 </span><span id="__span-18-27"><a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a><span class="w">  </span><span class="p">})</span>
@@ -2151,7 +2151,7 @@ Subclasses can override this to add logic that should run when the component is 
 </span></code></pre></div>
 <a name="ObservableState"></a></p>
 <h2 id="observablestate">ObservableState</h2>
-<p><strong>Kind</strong>: global typedef<br />
+<p><strong>Kind</strong>: global typedef
 <strong>Properties</strong></p>
 <table>
 <thead>
@@ -2181,7 +2181,7 @@ Subclasses can override this to add logic that should run when the component is 
 </table>
 <p><a name="ObservableProxy"></a></p>
 <h2 id="observableproxy">ObservableProxy</h2>
-<p><strong>Kind</strong>: global typedef<br />
+<p><strong>Kind</strong>: global typedef
 <strong>Properties</strong></p>
 <table>
 <thead>

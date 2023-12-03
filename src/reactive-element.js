@@ -34,7 +34,7 @@ import { _trace } from './trace.js';
  *   todos = this.query({
  *     queryKey: ['todos'],
  *     queryFn: () => {
- *       return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/todos?limit=5").then(res => res.json())
+ *       return fetch("https://api.camijs.com/todos?_limit=5").then(res => res.json())
  *     },
  *     staleTime: 1000 * 60 * 5 // 5 minutes
  *   })

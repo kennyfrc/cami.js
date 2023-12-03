@@ -1,7 +1,7 @@
 # Interactive Registration Form
 
 <article>
-  <small>Try entering an email that is already taken, such as geovanniheaney@block.info (this is a mock email in our API)</small>
+  <small>Try entering an email that is already taken, such as trevinowanda@example.net (this is a mock email in our API)</small>
   <registration-form-cami-example-be></registration-form-cami-example-be>
 </article>
 <small>
@@ -75,7 +75,7 @@
       return this.query({
         queryKey: ['Email', email],
         queryFn: () => {
-          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
         },
         staleTime: 1000 * 60 * 5
       })
@@ -160,7 +160,7 @@ HTML:
 
 ```html
 <article>
-  <small>Try entering an email that is already taken, such as geovanniheaney@block.info (this is a mock email in our API)</small>
+  <small>Try entering an email that is already taken, such as trevinowanda@example.net (this is a mock email in our API)</small>
   <registration-form-cami-example-be></registration-form-cami-example-be>
 </article>
 <small>
@@ -234,7 +234,7 @@ HTML:
       return this.query({
         queryKey: ['Email', email],
         queryFn: () => {
-          return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
         },
         staleTime: 1000 * 60 * 5
       })

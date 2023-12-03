@@ -1206,7 +1206,7 @@
 <p>Here's an example of defining a query in a component and using it to render UI:</p>
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;posts&quot;</span><span class="p">],</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://jsonplaceholder.typicode.com/posts&quot;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://api.camijs.com/posts&quot;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nx">staleTime</span><span class="o">:</span><span class="w"> </span><span class="mf">1000</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="c1">// Optional: data is considered fresh for 5 minutes</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">});</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
@@ -1247,7 +1247,7 @@
 </span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nx">fetchPosts</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">query</span><span class="p">({</span>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;posts&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">limit</span><span class="w"> </span><span class="p">}],</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`https://jsonplaceholder.typicode.com/posts?_limit=5`</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`https://api.camijs.com/posts?_limit=5`</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
 </span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="p">});</span>
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="p">}</span>
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
@@ -1291,7 +1291,7 @@
 
 <article>
   <h5>Blog Posts Component</h5>
-  <p><small class="note">The data fetches a random number of posts between 1 and 5 just so you can see states change.</small></p>
+  <p><small class="note">The data fetches a random number of post titles between 1 and 5 just so you can see states change.</small></p>
   <blog-posts-query-example></blog-posts-query-example>
 </article>
 <script type="module">
@@ -1305,10 +1305,10 @@
     }
 
     fetchPosts() {
-      const limit = Math.floor(Math.random() * 5) + 1; // Generate a random limit between 1 and 5
+      const limit = Math.floor(Math.random() * 5) + 1; // Generate a random limit between 1 and 3
       this.posts = this.query({
         queryKey: ['posts', { limit }],
-        queryFn: () => fetch(`https://jsonplaceholder.typicode.com/posts?_limit=${limit}`).then(res => res.json()),
+        queryFn: () => fetch(`https://api.camijs.com/posts?_limit=${limit}`).then(res => res.json()),
         staleTime: 0
       });
     }
@@ -1337,7 +1337,6 @@
               ${this.posts.data.map(post => html`
                 <li class="md-list-item">
                   <h5 class="md-title">${post.title}</h5>
-                  <p class="md-body-1">${post.body}</p>
                 </li>
               `)}
             </ul>
@@ -1356,7 +1355,7 @@
 <p>Mutations are used to modify server-side data and reflect those changes in the UI. They are defined with a <code>mutationFn</code>, which performs the update.</p>
 <p>Here's an example of defining a mutation in a component:</p>
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">addPost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">mutation</span><span class="p">({</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">mutationFn</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">newPost</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://jsonplaceholder.typicode.com/posts&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">mutationFn</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">newPost</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s2">&quot;https://api.camijs.com/posts&quot;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span><span class="p">,</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">newPost</span><span class="p">),</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
@@ -1394,7 +1393,7 @@
 
     addPost = this.mutation({
       mutationFn: (newPost) => {
-        return fetch("https://jsonplaceholder.typicode.com/posts", {
+        return fetch("https://api.camijs.com/posts", {
           method: "POST",
           body: JSON.stringify(newPost),
           headers: {
@@ -1412,7 +1411,7 @@
       const limit = Math.floor(Math.random() * 5) + 1; // Generate a random limit between 1 and 5
       this.posts = this.query({
         queryKey: ['posts', { limit }],
-        queryFn: () => fetch(`https://jsonplaceholder.typicode.com/posts?_limit=${limit}`).then(res => res.json()),
+        queryFn: () => fetch(`https://api.camijs.com/posts?_limit=${limit}`).then(res => res.json()),
         staleTime: 0
       });
     }
@@ -1435,9 +1434,9 @@
 
       return html`
         <input type="text" name="title" placeholder="Post Title">
-        <input type="text" name="body" placeholder="Post Body">
+        <!-- <input type="text" name="body" placeholder="Post Body"> -->
         <button class="md-button md-button--primary"
-        @click=${() => this.addPost.mutate({ title: document.querySelector('input[name="title"]').value, body: document.querySelector('input[name="body"]').value })}>Add Post</button>
+        @click=${() => this.addPost.mutate({ title: document.querySelector('input[name="title"]').value })}>Add Post</button>
         <button class="md-button md-button--primary"
         @click=${() => this.fetchPosts()}>Refetch Posts</button>
         ${this.renderPosts()}
@@ -1460,7 +1459,7 @@
               ${this.posts.data.map(post => html`
                 <li class="md-list-item">
                   <h5 class="md-title">${post.title}</h5>
-                  <p class="md-body-1">${post.body}</p>
+                  <!-- <p class="md-body-1">${post.body}</p> -->
                 </li>
               `)}
             </ul>

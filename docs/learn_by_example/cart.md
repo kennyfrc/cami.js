@@ -38,7 +38,7 @@
     products = this.query({
       queryKey: ['products'],
       queryFn: () => {
-        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3").then(res => res.json())
+        return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
     });
@@ -152,7 +152,7 @@ HTML:
     products = this.query({
       queryKey: ['products'],
       queryFn: () => {
-        return fetch("https://mockend.com/api/kennyfrc/cami-mock-api/products?limit=3").then(res => res.json())
+        return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
     });

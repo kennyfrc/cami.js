@@ -11,7 +11,7 @@ Here's an example of defining a query in a component and using it to render UI:
 ```javascript
 posts = this.query({
   queryKey: ["posts"],
-  queryFn: () => fetch("https://jsonplaceholder.typicode.com/posts").then(res => res.json()),
+  queryFn: () => fetch("https://api.camijs.com/posts").then(res => res.json()),
   staleTime: 1000 * 60 * 5 // Optional: data is considered fresh for 5 minutes
 });
 
@@ -58,7 +58,7 @@ class BlogPostsElement extends ReactiveElement {
   fetchPosts() {
     this.posts = this.query({
       queryKey: ['posts', { limit }],
-      queryFn: () => fetch(`https://jsonplaceholder.typicode.com/posts?_limit=5`).then(res => res.json())
+      queryFn: () => fetch(`https://api.camijs.com/posts?_limit=5`).then(res => res.json())
     });
   }
 
@@ -106,7 +106,7 @@ Below is a live demo of the component in action. The only change is that we're f
 
 <article>
   <h5>Blog Posts Component</h5>
-  <p><small class="note">The data fetches a random number of posts between 1 and 5 just so you can see states change.</small></p>
+  <p><small class="note">The data fetches a random number of post titles between 1 and 5 just so you can see states change.</small></p>
   <blog-posts-query-example></blog-posts-query-example>
 </article>
 <script type="module">
@@ -120,10 +120,10 @@ Below is a live demo of the component in action. The only change is that we're f
     }
 
     fetchPosts() {
-      const limit = Math.floor(Math.random() * 5) + 1; // Generate a random limit between 1 and 5
+      const limit = Math.floor(Math.random() * 5) + 1; // Generate a random limit between 1 and 3
       this.posts = this.query({
         queryKey: ['posts', { limit }],
-        queryFn: () => fetch(`https://jsonplaceholder.typicode.com/posts?_limit=${limit}`).then(res => res.json()),
+        queryFn: () => fetch(`https://api.camijs.com/posts?_limit=${limit}`).then(res => res.json()),
         staleTime: 0
       });
     }
@@ -152,7 +152,6 @@ Below is a live demo of the component in action. The only change is that we're f
               ${this.posts.data.map(post => html`
                 <li class="md-list-item">
                   <h5 class="md-title">${post.title}</h5>
-                  <p class="md-body-1">${post.body}</p>
                 </li>
               `)}
             </ul>
@@ -175,7 +174,7 @@ Here's an example of defining a mutation in a component:
 
 ```javascript
 addPost = this.mutation({
-  mutationFn: (newPost) => fetch("https://jsonplaceholder.typicode.com/posts", {
+  mutationFn: (newPost) => fetch("https://api.camijs.com/posts", {
     method: "POST",
     body: JSON.stringify(newPost),
     headers: {
@@ -220,7 +219,7 @@ This live demo includes a form to submit a new post, which uses a mutation to up
 
     addPost = this.mutation({
       mutationFn: (newPost) => {
-        return fetch("https://jsonplaceholder.typicode.com/posts", {
+        return fetch("https://api.camijs.com/posts", {
           method: "POST",
           body: JSON.stringify(newPost),
           headers: {
@@ -238,7 +237,7 @@ This live demo includes a form to submit a new post, which uses a mutation to up
       const limit = Math.floor(Math.random() * 5) + 1; // Generate a random limit between 1 and 5
       this.posts = this.query({
         queryKey: ['posts', { limit }],
-        queryFn: () => fetch(`https://jsonplaceholder.typicode.com/posts?_limit=${limit}`).then(res => res.json()),
+        queryFn: () => fetch(`https://api.camijs.com/posts?_limit=${limit}`).then(res => res.json()),
         staleTime: 0
       });
     }
@@ -261,9 +260,9 @@ This live demo includes a form to submit a new post, which uses a mutation to up
 
       return html`
         <input type="text" name="title" placeholder="Post Title">
-        <input type="text" name="body" placeholder="Post Body">
+        <!-- <input type="text" name="body" placeholder="Post Body"> -->
         <button class="md-button md-button--primary"
-        @click=${() => this.addPost.mutate({ title: document.querySelector('input[name="title"]').value, body: document.querySelector('input[name="body"]').value })}>Add Post</button>
+        @click=${() => this.addPost.mutate({ title: document.querySelector('input[name="title"]').value })}>Add Post</button>
         <button class="md-button md-button--primary"
         @click=${() => this.fetchPosts()}>Refetch Posts</button>
         ${this.renderPosts()}
@@ -286,7 +285,7 @@ This live demo includes a form to submit a new post, which uses a mutation to up
               ${this.posts.data.map(post => html`
                 <li class="md-list-item">
                   <h5 class="md-title">${post.title}</h5>
-                  <p class="md-body-1">${post.body}</p>
+                  <!-- <p class="md-body-1">${post.body}</p> -->
                 </li>
               `)}
             </ul>

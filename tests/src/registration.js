@@ -63,7 +63,7 @@ class RegistrationFormElement extends ReactiveElement {
     return this.query({
       queryKey: ['Email', email],
       queryFn: () => {
-        return fetch(`https://mockend.com/api/kennyfrc/cami-mock-api/users?email_eq=${email}`).then(res => res.json())
+        return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
       },
       staleTime: 1000 * 60 * 5
     })
