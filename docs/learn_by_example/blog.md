@@ -16,7 +16,7 @@ Our query can also do optimistic UI if:
     posts = this.query({
       queryKey: ["posts"],
       queryFn: () => {
-        return fetch("https://jsonplaceholder.typicode.com/posts?_limit=5")
+        return fetch("https://api.camijs.com/posts?_limit=5")
           .then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
@@ -27,7 +27,7 @@ Our query can also do optimistic UI if:
     //
     addPost = this.mutation({
       mutationFn: (newPost) => {
-        return fetch("https://jsonplaceholder.typicode.com/posts", {
+        return fetch("https://api.camijs.com/posts", {
           method: "POST",
           body: JSON.stringify(newPost),
           headers: {
@@ -128,7 +128,7 @@ Our query can also do optimistic UI if:
     posts = this.query({
       queryKey: ["posts"],
       queryFn: () => {
-        return fetch("https://jsonplaceholder.typicode.com/posts?_limit=5")
+        return fetch("https://api.camijs.com/posts?_limit=5")
           .then(res => res.json())
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
@@ -139,7 +139,7 @@ Our query can also do optimistic UI if:
     //
     addPost = this.mutation({
       mutationFn: (newPost) => {
-        return fetch("https://jsonplaceholder.typicode.com/posts", {
+        return fetch("https://api.camijs.com/posts", {
           method: "POST",
           body: JSON.stringify(newPost),
           headers: {

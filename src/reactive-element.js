@@ -281,7 +281,7 @@ class ReactiveElement extends HTMLElement {
    * // In _012_blog.html, a query is set up to fetch posts with a stale time of 5 minutes:
    * const posts = this.query({
    *   queryKey: ["posts"],
-   *   queryFn: () => fetch("https://jsonplaceholder.typicode.com/posts?_limit=5").then(res => res.json()),
+   *   queryFn: () => fetch("https://api.camijs.com/posts?_limit=5").then(res => res.json()),
    *   staleTime: 1000 * 60 * 5
    * });
    * @returns {ObservableProxy} A proxy that contains the state of the query.
@@ -393,7 +393,7 @@ class ReactiveElement extends HTMLElement {
    * @example
    * // In _012_blog.html, a mutation is set up to add a new post with optimistic UI updates:
    * const addPost = this.mutation({
-   *   mutationFn: (newPost) => fetch("https://jsonplaceholder.typicode.com/posts", {
+   *   mutationFn: (newPost) => fetch("https://api.camijs.com/posts", {
    *     method: "POST",
    *     body: JSON.stringify(newPost),
    *     headers: {
@@ -539,7 +539,7 @@ class ReactiveElement extends HTMLElement {
    *   this.posts = this.query({
    *     queryKey: ["posts"],
    *     queryFn: () => {
-   *       return fetch("https://jsonplaceholder.typicode.com/posts?_limit=5")
+   *       return fetch("https://api.camijs.com/posts?_limit=5")
    *         .then(res => res.json())
    *     },
    *     staleTime: 1000 * 60 * 5 // 5 minutes

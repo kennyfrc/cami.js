@@ -12,7 +12,7 @@
     const resultDiv = document.getElementById('result');
 
     document.getElementById('get').addEventListener('click', () => {
-      http.get('https://jsonplaceholder.typicode.com/posts/1').toJson()
+      http.get('https://api.camijs.com/posts/1').toJson()
         .then(data => {
           console.log('GET:', data);
           resultDiv.textContent = 'GET: ' + JSON.stringify(data);
@@ -24,7 +24,7 @@
     });
 
     document.getElementById('post').addEventListener('click', () => {
-      http.post('https://jsonplaceholder.typicode.com/posts', { title: 'foo', body: 'bar', userId: 1 }).toJson()
+      http.post('https://api.camijs.com/posts', { title: 'foo', body: 'bar', userId: 1 }).toJson()
         .then(data => {
           console.log('POST:', data);
           resultDiv.textContent = 'POST: ' + JSON.stringify(data);
@@ -36,7 +36,7 @@
     });
 
     document.getElementById('put').addEventListener('click', () => {
-      http.put('https://jsonplaceholder.typicode.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 }).toJson()
+      http.put('https://api.camijs.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 }).toJson()
         .then(data => {
           console.log('PUT:', data);
           resultDiv.textContent = 'PUT: ' + JSON.stringify(data);
@@ -48,7 +48,7 @@
     });
 
     document.getElementById('patch').addEventListener('click', () => {
-      http.patch('https://jsonplaceholder.typicode.com/posts/1', { title: 'foo updated' }).toJson()
+      http.patch('https://api.camijs.com/posts/1', { title: 'foo updated' }).toJson()
         .then(data => {
           console.log('PATCH:', data);
           resultDiv.textContent = 'PATCH: ' + JSON.stringify(data);
@@ -60,7 +60,7 @@
     });
 
     document.getElementById('delete').addEventListener('click', () => {
-      http.delete('https://jsonplaceholder.typicode.com/posts/1').toJson()
+      http.delete('https://api.camijs.com/posts/1').toJson()
         .then(data => {
           console.log('DELETE:', data);
           resultDiv.textContent = 'DELETE: ' + JSON.stringify(data);
@@ -72,7 +72,7 @@
     });
 
     document.getElementById('getStream').addEventListener('click', () => {
-      const stream = http.get('https://jsonplaceholder.typicode.com/posts/1');
+      const stream = http.get('https://api.camijs.com/posts/1');
 
       stream
         .catchError(error => {

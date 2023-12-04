@@ -1,6 +1,7 @@
 # Todo List with Server State
 
 <article>
+  <p><small class="note"></small></p>
   <todo-list-component-be></todo-list-component-be>
 </article>
 <script type="module">

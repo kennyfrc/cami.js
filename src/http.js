@@ -134,7 +134,7 @@ http.get = (url, config = {}) => {
  * @param {Object} [config={}] - Optional configuration object.
  * @returns {HTTPStream} An HTTPStream that resolves to the response data.
  * @example
- * http.post('https://jsonplaceholder.typicode.com/posts', { title: 'foo', body: 'bar', userId: 1 })
+ * http.post('https://api.camijs.com/posts', { title: 'foo', body: 'bar', userId: 1 })
  *   .tap(data => console.log(data))
  *   .catchError(error => console.error(error));
  */
@@ -153,7 +153,7 @@ http.post = (url, data = {}, config = {}) => {
  * @param {Object} [config={}] - Optional configuration object.
  * @returns {HTTPStream} An HTTPStream that resolves to the response data.
  * @example
- * http.put('https://jsonplaceholder.typicode.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 })
+ * http.put('https://api.camijs.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 })
  *   .tap(data => console.log(data))
  *   .catchError(error => console.error(error));
  */
@@ -172,7 +172,7 @@ http.put = (url, data = {}, config = {}) => {
  * @param {Object} [config={}] - Optional configuration object.
  * @returns {HTTPStream} An HTTPStream that resolves to the response data.
  * @example
- * http.patch('https://jsonplaceholder.typicode.com/posts/1', { title: 'foo' })
+ * http.patch('https://api.camijs.com/posts/1', { title: 'foo' })
  *   .tap(data => console.log(data))
  *   .catchError(error => console.error(error));
  */
@@ -190,7 +190,7 @@ http.patch = (url, data = {}, config = {}) => {
  * @param {Object} [config={}] - Optional configuration object.
  * @returns {HTTPStream} An HTTPStream that resolves to the response data.
  * @example
- * http.delete('https://jsonplaceholder.typicode.com/posts/1')
+ * http.delete('https://api.camijs.com/posts/1')
  *   .tap(data => console.log(data))
  *   .catchError(error => console.error(error));
  */
