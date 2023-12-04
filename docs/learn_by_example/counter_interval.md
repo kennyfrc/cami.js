@@ -39,6 +39,11 @@ class CounterElement extends ReactiveElement {
 customElements.define('counter-interval-be', CounterElement);
 </script>
 
+## JS Fiddle:
+
+[https://jsfiddle.net/kennyfrc12/cdzhtpLf/4/](https://jsfiddle.net/kennyfrc12/cdzhtpLf/4/)
+
+## HTML:
 
 ```html
 <article>

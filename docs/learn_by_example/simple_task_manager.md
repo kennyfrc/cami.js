@@ -73,8 +73,11 @@ Just in-memory state. Good example for learning the basic workings of cami.
   customElements.define('task-manager-component-be', TaskManagerElement);
 </script>
 
+## JS Fiddle:
 
-HTML:
+[https://jsfiddle.net/kennyfrc12/ak7xh153/2/](https://jsfiddle.net/kennyfrc12/ak7xh153/2/)
+
+## HTML:
 
 ```html
 <article>

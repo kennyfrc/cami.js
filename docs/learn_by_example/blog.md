@@ -111,7 +111,11 @@ Our query can also do optimistic UI if:
   customElements.define('blog-component-be', BlogComponent);
 </script>
 
-HTML:
+## JS Fiddle:
+
+[https://jsfiddle.net/kennyfrc12/69ceahtw/](https://jsfiddle.net/kennyfrc12/69ceahtw/)
+
+## HTML:
 
 ```html
 <article>

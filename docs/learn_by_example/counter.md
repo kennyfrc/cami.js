@@ -22,7 +22,11 @@
   customElements.define('counter-component-be', CounterElement);
 </script>
 
-### HTML
+## JSFiddle
+
+Link: [https://jsfiddle.net/kennyfrc12/69w128vd/8/](https://jsfiddle.net/kennyfrc12/69w128vd/8/)
+
+## HTML
 
 ```html
 <article>

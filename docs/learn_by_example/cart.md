@@ -110,8 +110,12 @@
   customElements.define('cart-cami-example', CartElement);
 </script>
 
+## JS Fiddle:
 
-HTML:
+[https://jsfiddle.net/kennyfrc12/qjs8c2gb/1/](https://jsfiddle.net/kennyfrc12/qjs8c2gb/1/)
+
+
+## HTML:
 
 ```html
 <article>

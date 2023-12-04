@@ -98,8 +98,11 @@
   customElements.define('todo-list-component-be', TodoListElement);
 </script>
 
+## JS Fiddle:
 
-HTML:
+[https://jsfiddle.net/kennyfrc12/wLzanrsf/1/](https://jsfiddle.net/kennyfrc12/wLzanrsf/1/)
+
+## HTML:
 
 ```html
 <article>

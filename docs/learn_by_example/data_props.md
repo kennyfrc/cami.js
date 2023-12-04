@@ -62,8 +62,11 @@ If you somehow need to define data in the web components attribute (perhaps its 
 
 </script>
 
+## JS Fiddle:
 
-HTML:
+[https://jsfiddle.net/kennyfrc12/fmqag6rw/3/](https://jsfiddle.net/kennyfrc12/fmqag6rw/3/)
+
+## HTML:
 
 ```html
 <article>

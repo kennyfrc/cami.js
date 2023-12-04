@@ -98,8 +98,11 @@ For deeply nested data, you can use the `update` method to update the data. This
   customElements.define('nested-data-be', NestedObservableElement);
 </script>
 
+## JS Fiddle:
 
-HTML:
+[https://jsfiddle.net/kennyfrc12/nt4k1f90/1/](https://jsfiddle.net/kennyfrc12/nt4k1f90/1/)
+
+## HTML:
 
 ```html
 <article>

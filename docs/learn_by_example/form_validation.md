@@ -156,7 +156,11 @@
   customElements.define('registration-form-cami-example-be', FormElement);
 </script>
 
-HTML:
+## JS Fiddle:
+
+[https://jsfiddle.net/kennyfrc12/1nL0ybj2/7/](https://jsfiddle.net/kennyfrc12/1nL0ybj2/7/)
+
+## HTML:
 
 ```html
 <article>
