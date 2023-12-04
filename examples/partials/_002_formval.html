@@ -118,7 +118,7 @@
               aria-invalid=${this.getPasswordInputState()}>
             <span>${this.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+          <input type="submit" value="Submit" style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
         </form>
       `;
     }

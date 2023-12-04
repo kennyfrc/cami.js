@@ -146,7 +146,7 @@
           </div>
           <div class="md-form-group">
             <input type="submit" class="md-button md-button--primary" value="Submit"
-              ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+              style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
           </div>
         </form>
       `;
@@ -309,7 +309,7 @@
           </div>
           <div class="md-form-group">
             <input type="submit" class="md-button md-button--primary" value="Submit"
-              ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+              style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
           </div>
         </form>
       `;

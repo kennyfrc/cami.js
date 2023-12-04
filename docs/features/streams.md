@@ -299,7 +299,7 @@ Hope the example is motivating :) As the code can be a bit of a doozy. Explanati
               aria-invalid=${this.getPasswordInputState()}>
             <span>${this.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+          <input type="submit" value="Submit" style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
         </form>
       `;
     }
@@ -332,7 +332,7 @@ template() {
         <input type="password" value="" aria-invalid="">
         <span></span> <!-- Placeholder for password error message -->
       </label>
-      <input type="submit" value="Submit" disabled>
+      <input type="submit" value="Submit" style="opacity: 0.5"> <!-- we use opacity to show that the state is invalid -->
     </form>
   `;
 }
@@ -380,7 +380,7 @@ template() {
           aria-invalid="">
         <span>${this.passwordError}</span>
       </label>
-      <input type="submit" value="Submit" disabled>
+      <input type="submit" value="Submit" style="opacity: 0.5"> <!-- we use opacity to show that the state is invalid -->
     </form>
   `;
 }
@@ -451,7 +451,7 @@ template() {
           aria-invalid=${this.getPasswordInputState()}>
         <span>${this.passwordError}</span>
       </label>
-      <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+      <input type="submit" value="Submit" style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
     </form>
   `;
 }
@@ -535,7 +535,7 @@ template() {
           aria-invalid=${this.getPasswordInputState()}>
         <span>${this.passwordError}</span>
       </label>
-      <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+      <input type="submit" value="Submit" style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
     </form>
   `;
 }
