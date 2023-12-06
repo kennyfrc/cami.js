@@ -37,4 +37,4 @@ const { debug, events } = _config;
  * @exports debug - The debug property from _config
  * @exports events - The events property from _config
  */
-export { store, html, svg, css, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events };
+export { store, html, svg, css, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events, computed, effect };
