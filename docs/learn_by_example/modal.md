@@ -59,7 +59,7 @@ This is a [WAI-ARIA compliant](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-m
     }
 
     focusFirstElement() {
-    	const dialog = this.querySelector('dialog');
+      const dialog = this.querySelector('dialog');
       this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
       const hasFocusables = this.focusableElements.length > 0;
       hasFocusables && this.focusableElements[0].focus();

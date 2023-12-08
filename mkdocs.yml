@@ -74,6 +74,7 @@ nav:
     - learn_by_example/counter_interval.md
     - learn_by_example/data_props.md
     - learn_by_example/nested_updates.md
+    - learn_by_example/modal.md
 extra_javascript:
   - javascripts/cami.cdn.js
 extra:
