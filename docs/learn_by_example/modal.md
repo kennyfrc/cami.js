@@ -1,0 +1,102 @@
+# Modal
+
+This is a [WAI-ARIA compliant](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) modal. It has the following interactions implemented:
+
+- Escape key closes the modal
+- Clicking outside the modal closes the modal
+- Focus is trapped within the modal
+- Maintains focus on the first focusable element within the modal
+- Maintains focus on the modal when it is closed and re-opened
+
+<script async src="//jsfiddle.net/kennyfrc12/wLzanrsf/216/embed/result/"></script>
+
+## JS Fiddle:
+
+[https://jsfiddle.net/kennyfrc12/wLzanrsf/103/](https://jsfiddle.net/kennyfrc12/wLzanrsf/103/)
+
+## HTML:
+
+```html
+  <style>
+    .dialog__backdrop {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .dialog__backdrop--hidden {
+      display: none;
+    }
+  </style>
+<cami-modal></cami-modal>
+<!-- <script src="./build/cami.cdn.js"></script> -->
+<!-- CDN version below -->
+<script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class DialogElement extends ReactiveElement {
+    isOpen = false;
+    lastFocusedElement = null;
+    focusableElements = [];
+
+    openDialog() {
+      this.isOpen = true;
+      this.querySelector('dialog').setAttribute('open', '');
+      this.lastFocusedElement = document.activeElement;
+      this.focusFirstElement();
+    }
+
+    closeDialog() {
+      this.isOpen = false;
+      this.querySelector('dialog').removeAttribute('open');
+      this.lastFocusedElement && this.lastFocusedElement.focus();
+    }
+
+    focusFirstElement() {
+    	const dialog = this.querySelector('dialog');
+      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+      const hasFocusables = this.focusableElements.length > 0;
+      hasFocusables && this.focusableElements[0].focus();
+    }
+
+    template() {
+      return html`
+      	<aside @click=${() => this.closeDialog()} class="dialog__backdrop ${this.isOpen ? '' : 'dialog__backdrop--hidden'}">
+          <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
+            <article>
+              <h2 id="dialog-title">Hi! I'm a Modal</h2>
+              <label>Add Label Here</label>
+              <input></input>
+              <button @click=${() => this.closeDialog()} aria-label="Close Modal">Close</button>
+            </article>
+          </dialog>
+        </aside>
+        <button @click=${() => this.openDialog()}>Show Modal</button>
+      `;
+    }
+
+    onConnect() {
+      this.addEventListener('keydown', (event) => {
+        const preventDefault = () => { event.preventDefault(); return true; };
+        const isEscape = event.key === 'Escape';
+        const isTab = event.key === 'Tab';
+        const isShiftTab = isTab && event.shiftKey;
+        const isTabAtStart = isTab && document.activeElement === this.focusableElements[0];
+        const isTabAtEnd = isTab && document.activeElement === this.focusableElements[this.focusableElements.length - 1];
+
+        isEscape && this.closeDialog();
+        isTabAtStart && preventDefault() && this.focusableElements[this.focusableElements.length - 1]?.focus();
+        isTabAtEnd && preventDefault() && this.focusFirstElement();
+      });
+    }
+  }
+
+  customElements.define('cami-modal', DialogElement);
+</script>
+```
