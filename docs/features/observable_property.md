@@ -1,8 +1,8 @@
-# Core Concepts: Observable Properties, Observable State, and Observable Proxy
+# How it Works: Observable Properties, Observable State, and Observable Proxy
 
 ## Foundational Concepts
 
-Before we dive into the Core Concepts, we need to understand a few foundational ideas first. I suggest reading the following links before continuing:
+Before we do a deep dive on how Cami works, we need to understand a few foundational ideas first. I suggest reading the following links before continuing:
 
 - [Object.defineProperty](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty)
 - [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
@@ -82,7 +82,6 @@ Observable Properties can also handle non-primitive values and nested properties
 ```js
 class TaskManagerElement extends ReactiveElement {
   tasks = [];
-  filter = 'all';
 
   // ...other methods...
 
@@ -95,11 +94,11 @@ class TaskManagerElement extends ReactiveElement {
 In this example, `tasks` is an Observable Property that is an array. Any changes to the `tasks` array or any of its elements will automatically trigger a re-render of the component.
 
 <hr>
-
 <article>
-  <h5>Simple Task Manager Demo (In-Memory Data)</h5>
-  <task-manager-component-f1></task-manager-component-f1>
+  <h5>Todo List (In-Memory State)</h5>
+  <cami-todo-list-simple-demo></cami-todo-list-simple-demo>
 </article>
+
 <script type="module">
   const { html, ReactiveElement } = cami;
 
@@ -115,47 +114,18 @@ In this example, `tasks` is an Observable Property that is an array. Any changes
       this.tasks.splice(index, 1);
     }
 
-    toggleTask(index) {
-      this.tasks.update(tasks => {
-        tasks[index].completed = !tasks[index].completed;
-      });
-    }
-
-    setFilter(filter) {
-      this.filter = filter;
-    }
-
-    getFilteredTasks() {
-      switch (this.filter) {
-        case 'completed':
-          return this.tasks.filter(task => task.completed);
-        case 'active':
-          return this.tasks.filter(task => !task.completed);
-        default:
-          return this.tasks;
-      }
-    }
-
     template() {
       return html`
-        <div class="md-form-group">
-          <input id="taskInput" class="md-input" type="text" placeholder="Enter task name">
-          <button class="md-button" @click=${() => {
-            this.addTask(document.getElementById('taskInput').value);
-            document.getElementById('taskInput').value = '';
-          }}>Add Task</button>
-        </div>
-        <div class="md-button-group">
-          <button class="md-button" @click=${() => this.setFilter('all')}>All</button>
-          <button class="md-button" @click=${() => this.setFilter('active')}>Active</button>
-          <button class="md-button" @click=${() => this.setFilter('completed')}>Completed</button>
-        </div>
-        <ul class="md-list">
-          ${this.getFilteredTasks().map((task, index) => html`
-            <li class="md-list-item">
-              <input class="md-checkbox" type="checkbox" .checked=${task.completed} @click=${() => this.toggleTask(index)}>
-              <span class="md-text">${task.name}</span>
-              <a class="md-link" @click=${() => this.removeTask(index)}>Remove</a>
+        <input class="md-input" id="taskInput" type="text" placeholder="Enter task name">
+        <button class="md-button" @click=${() => {
+          this.addTask(document.getElementById('taskInput').value);
+          document.getElementById('taskInput').value = '';
+        }}>Add Task</button>
+        <ul>
+          ${this.tasks.map((task, index) => html`
+            <li>
+              ${task.name}
+              <a @click=${() => this.removeTask(index)}>Remove</a>
             </li>
           `)}
         </ul>
@@ -163,7 +133,7 @@ In this example, `tasks` is an Observable Property that is an array. Any changes
     }
   }
 
-  customElements.define('task-manager-component-f1', TaskManagerElement);
+  customElements.define('cami-todo-list-simple-demo', TaskManagerElement);
 </script>
 
 <hr>
@@ -181,7 +151,6 @@ Below is the API Reference for Observable Properties. Updated version is at the 
 
 **Example**
 ```js
-// Primitive value example from _001_counter.html
 // this.count is an ObservableProperty, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
 // ObservableProperty is just Object.defineProperty with a getter and setter, where the Object is the ReactiveElement instance
 class CounterElement extends ReactiveElement {
@@ -196,7 +165,6 @@ class CounterElement extends ReactiveElement {
   }
 }
 
-// Non-primitive value example from _003_todo.html
 // this.query returns an ObservableProperty / ObservableProxy
 // this.todos is an ObservableProxy, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
 // We use Proxy instead of Object.defineProperty because it allows us to handle nested properties
@@ -214,7 +182,6 @@ class TodoListElement extends ReactiveElement {
   }
 }
 
-// Array value example from _010_taskmgmt.html
 // this.tasks is an ObservableProxy, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
 // We use Proxy instead of Object.defineProperty because it allows us to handle nested properties
 class TaskManagerElement extends ReactiveElement {
