@@ -66,13 +66,13 @@ nav:
     - HTTP: api/http.md
   - Learn by Example:
     - learn_by_example/counter.md
-    - learn_by_example/form_validation.md
-    - learn_by_example/todo_list.md
-    - learn_by_example/cart.md
-    - learn_by_example/simple_task_manager.md
-    - learn_by_example/blog.md
     - learn_by_example/counter_interval.md
-    - learn_by_example/data_props.md
+    - learn_by_example/form_validation.md
+    - learn_by_example/todo_list_server.md
+    - learn_by_example/todo_list_simple.md
+    - learn_by_example/todo_list_attributes.md
+    - learn_by_example/cart.md
+    - learn_by_example/blog.md
     - learn_by_example/nested_updates.md
     - learn_by_example/modal.md
 extra_javascript:

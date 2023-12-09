@@ -1,47 +1,12 @@
-# Counter with Interval
+# Counter (Interval)
 
-For formulas (e.g. doubling), it's best to use getter methods. If you're familiar with `computeds`, I'd say that this functions in a similar way, where the `doubleCount` variable is updated lazily.
+This interval counter demonstrates how you might want to use formulas and effects. Here, we have a `count` variable that is then used to define a `doubleCount` getter method. If you're coming from other frameworks, this is similar to a computed property.
 
-This also demonstrates effects, which you can see in the console.
+Similarly, we have two effects that are run whenever `count` changes. An `effect` is a method that is run whenever an observed property is changed. In this case, we have two effects that are run whenever `count` changes. The first effect logs the `count` value, and the second effect logs the `doubleCount` value.
 
-<hr>
+`Effects` are observer methods, which track the changes in the observed properties. If you're coming from other frameworks, this is similar to a `watcher` or `autorun`. Under the hood, Cami uses `effect` to render the template whenever the observed properties in the `template` method change.
 
-<article>
-  <counter-interval-be></counter-interval-be>
-</article>
-<script type="module">
-  const { html, ReactiveElement } = cami;
-
-class CounterElement extends ReactiveElement {
-  count = 0;
-
-  get doubleCount() {
-    return this.count * 2;
-  }
-
-  onConnect() {
-    setInterval(() => this.count++, 1000);
-    this.effect(() => {
-      console.log(`Count: ${this.count}`);
-    });
-    this.effect(() => {
-      console.log(`Double Count: ${this.doubleCount}`);
-    });
-  }
-
-  template() {
-    return html`
-      <div>Double Count: ${this.doubleCount}</div>
-    `;
-  }
-}
-
-customElements.define('counter-interval-be', CounterElement);
-</script>
-
-## JS Fiddle:
-
-[https://jsfiddle.net/kennyfrc12/cdzhtpLf/4/](https://jsfiddle.net/kennyfrc12/cdzhtpLf/4/)
+<iframe width="100%" height="200" src="//jsfiddle.net/kennyfrc12/cdzhtpLf/7/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
 ## HTML:
 
@@ -65,12 +30,8 @@ class CounterElement extends ReactiveElement {
 
   onConnect() {
     setInterval(() => this.count++, 1000);
-    this.effect(() => {
-      console.log(`Count: ${this.count}`);
-    });
-    this.effect(() => {
-      console.log(`Double Count: ${this.doubleCount}`);
-    });
+    this.effect(() => console.log(`Count: ${this.count}`));
+    this.effect(() => console.log(`Double Count: ${this.doubleCount}`));
   }
 
   template() {

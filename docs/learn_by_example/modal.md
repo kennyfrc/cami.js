@@ -10,10 +10,6 @@ This is a [WAI-ARIA compliant](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-m
 
 <script async src="//jsfiddle.net/kennyfrc12/wLzanrsf/216/embed/result/"></script>
 
-## JS Fiddle:
-
-[https://jsfiddle.net/kennyfrc12/wLzanrsf/103/](https://jsfiddle.net/kennyfrc12/wLzanrsf/103/)
-
 ## HTML:
 
 ```html
