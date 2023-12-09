@@ -16,8 +16,8 @@
 <a name="HTTPStream"></a>
 
 ## HTTPStream ⇐ <code>ObservableStream</code>
-**Kind**: global class
-**Extends**: <code>ObservableStream</code>
+**Kind**: global class  
+**Extends**: <code>ObservableStream</code>  
 
 * [HTTPStream](#HTTPStream) ⇐ <code>ObservableStream</code>
     * [new HTTPStream()](#new_HTTPStream_new)
@@ -34,9 +34,9 @@ A class that extends ObservableStream and provides additional methods for handli
 ### HTTPStream.toJson() ⇒ <code>Promise</code>
 Converts the response data to JSON.
 
-**Kind**: static method of [<code>HTTPStream</code>](#HTTPStream)
-**Returns**: <code>Promise</code> - A promise that resolves to the JSON data.
-**Example**
+**Kind**: static method of [<code>HTTPStream</code>](#HTTPStream)  
+**Returns**: <code>Promise</code> - A promise that resolves to the JSON data.  
+**Example**  
 ```js
 http('https://api.example.com/data')
   .toJson()
@@ -48,8 +48,8 @@ http('https://api.example.com/data')
 ### HTTPStream.on(event, handler) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Registers an event handler for a specified event.
 
-**Kind**: static method of [<code>HTTPStream</code>](#HTTPStream)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - The HTTPStream instance.
+**Kind**: static method of [<code>HTTPStream</code>](#HTTPStream)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - The HTTPStream instance.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -61,14 +61,14 @@ Registers an event handler for a specified event.
 ## http(config) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Sends an HTTP request.
 
-**Kind**: global function
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.
+**Kind**: global function  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | config | <code>Object</code> \| <code>string</code> | The configuration object or URL string. |
 
-**Example**
+**Example**  
 ```js
 http('https://api.example.com/data')
   .tap(data => console.log(data))
@@ -88,15 +88,15 @@ http('https://api.example.com/data')
 ### http.get(url, [config]) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Sends a GET request.
 
-**Kind**: static method of [<code>http</code>](#http)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.
+**Kind**: static method of [<code>http</code>](#http)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | url | <code>string</code> |  | The URL to send the GET request to. |
 | [config] | <code>Object</code> | <code>{}</code> | Optional configuration object. |
 
-**Example**
+**Example**  
 ```js
 http.get('https://api.example.com/data')
   .tap(data => console.log(data))
@@ -107,8 +107,8 @@ http.get('https://api.example.com/data')
 ### http.post(url, [data], [config]) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Sends a POST request.
 
-**Kind**: static method of [<code>http</code>](#http)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.
+**Kind**: static method of [<code>http</code>](#http)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ Sends a POST request.
 | [data] | <code>Object</code> | <code>{}</code> | The data to send in the body of the POST request. |
 | [config] | <code>Object</code> | <code>{}</code> | Optional configuration object. |
 
-**Example**
+**Example**  
 ```js
 http.post('https://api.camijs.com/posts', { title: 'foo', body: 'bar', userId: 1 })
   .tap(data => console.log(data))
@@ -127,8 +127,8 @@ http.post('https://api.camijs.com/posts', { title: 'foo', body: 'bar', userId: 1
 ### http.put(url, [data], [config]) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Sends a PUT request.
 
-**Kind**: static method of [<code>http</code>](#http)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.
+**Kind**: static method of [<code>http</code>](#http)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -136,7 +136,7 @@ Sends a PUT request.
 | [data] | <code>Object</code> | <code>{}</code> | The data to send in the body of the PUT request. |
 | [config] | <code>Object</code> | <code>{}</code> | Optional configuration object. |
 
-**Example**
+**Example**  
 ```js
 http.put('https://api.camijs.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 })
   .tap(data => console.log(data))
@@ -147,8 +147,8 @@ http.put('https://api.camijs.com/posts/1', { id: 1, title: 'foo', body: 'bar', u
 ### http.patch(url, [data], [config]) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Sends a PATCH request.
 
-**Kind**: static method of [<code>http</code>](#http)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.
+**Kind**: static method of [<code>http</code>](#http)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -156,7 +156,7 @@ Sends a PATCH request.
 | [data] | <code>Object</code> | <code>{}</code> | The data to send in the body of the PATCH request. |
 | [config] | <code>Object</code> | <code>{}</code> | Optional configuration object. |
 
-**Example**
+**Example**  
 ```js
 http.patch('https://api.camijs.com/posts/1', { title: 'foo' })
   .tap(data => console.log(data))
@@ -167,15 +167,15 @@ http.patch('https://api.camijs.com/posts/1', { title: 'foo' })
 ### http.delete(url, [config]) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Sends a DELETE request.
 
-**Kind**: static method of [<code>http</code>](#http)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.
+**Kind**: static method of [<code>http</code>](#http)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream that resolves to the response data.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | url | <code>string</code> |  | The URL to send the DELETE request to. |
 | [config] | <code>Object</code> | <code>{}</code> | Optional configuration object. |
 
-**Example**
+**Example**  
 ```js
 http.delete('https://api.camijs.com/posts/1')
   .tap(data => console.log(data))
@@ -186,15 +186,15 @@ http.delete('https://api.camijs.com/posts/1')
 ### http.sse(url, [config]) ⇒ [<code>HTTPStream</code>](#HTTPStream)
 Establishes a Server-Sent Events connection.
 
-**Kind**: static method of [<code>http</code>](#http)
-**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream with methods to register event handlers, handle errors, and close the connection.
+**Kind**: static method of [<code>http</code>](#http)  
+**Returns**: [<code>HTTPStream</code>](#HTTPStream) - An HTTPStream with methods to register event handlers, handle errors, and close the connection.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | url | <code>string</code> |  | The URL to establish a Server-Sent Events connection. |
 | [config] | <code>Object</code> | <code>{}</code> | Optional configuration object. |
 
-**Example**
+**Example**  
 ```js
 const stream = http.sse('https://api.example.com/events');
 stream.on('message', event => console.log(event.data));

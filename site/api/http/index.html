@@ -1001,7 +1001,28 @@
         
   
   <span class="md-ellipsis">
-    Simple Counter
+    Counter (Simple)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/counter_interval/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter (Interval)
   </span>
   
 
@@ -1022,7 +1043,7 @@
         
   
   <span class="md-ellipsis">
-    Interactive Registration Form
+    Interactive Registration
   </span>
   
 
@@ -1039,11 +1060,53 @@
   
   
     <li class="md-nav__item">
-      <a href="../../learn_by_example/todo_list/" class="md-nav__link">
+      <a href="../../learn_by_example/todo_list_server/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Todo List with Server State
+    Todo List (Server State)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/todo_list_simple/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Todo List (In-Memory State)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../learn_by_example/todo_list_attributes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Todo List (Attribute Data)
   </span>
   
 
@@ -1064,28 +1127,7 @@
         
   
   <span class="md-ellipsis">
-    Shopping Cart with Server & Client State
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../learn_by_example/simple_task_manager/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Simple Task Manager
+    Cart with Server & Client State
   </span>
   
 
@@ -1107,48 +1149,6 @@
   
   <span class="md-ellipsis">
     Blog with Optimistic UI
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../learn_by_example/counter_interval/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Counter with Interval
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../learn_by_example/data_props/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Task Manager (Attribute Data)
   </span>
   
 
@@ -1395,8 +1395,8 @@
 
 <p><a name="HTTPStream"></a></p>
 <h2 id="httpstream-observablestream">HTTPStream ⇐ <code>ObservableStream</code></h2>
-<p><strong>Kind</strong>: global class
-<strong>Extends</strong>: <code>ObservableStream</code></p>
+<p><strong>Kind</strong>: global class<br />
+<strong>Extends</strong>: <code>ObservableStream</code>  </p>
 <ul>
 <li><a href="#HTTPStream">HTTPStream</a> ⇐ <code>ObservableStream</code><ul>
 <li><a href="#new_HTTPStream_new">new HTTPStream()</a></li>
@@ -1411,9 +1411,9 @@
 <p><a name="HTTPStream.toJson"></a></p>
 <h3 id="httpstreamtojson-promise">HTTPStream.toJson() ⇒ <code>Promise</code></h3>
 <p>Converts the response data to JSON.</p>
-<p><strong>Kind</strong>: static method of <a href="#HTTPStream"><code>HTTPStream</code></a>
-<strong>Returns</strong>: <code>Promise</code> - A promise that resolves to the JSON data.
-<strong>Example</strong>
+<p><strong>Kind</strong>: static method of <a href="#HTTPStream"><code>HTTPStream</code></a><br />
+<strong>Returns</strong>: <code>Promise</code> - A promise that resolves to the JSON data.<br />
+<strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">http</span><span class="p">(</span><span class="s1">&#39;https://api.example.com/data&#39;</span><span class="p">)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">toJson</span><span class="p">()</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
@@ -1422,8 +1422,8 @@
 <a name="HTTPStream.on"></a></p>
 <h3 id="httpstreamonevent-handler-httpstream">HTTPStream.on(event, handler) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Registers an event handler for a specified event.</p>
-<p><strong>Kind</strong>: static method of <a href="#HTTPStream"><code>HTTPStream</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - The HTTPStream instance.</p>
+<p><strong>Kind</strong>: static method of <a href="#HTTPStream"><code>HTTPStream</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - The HTTPStream instance.  </p>
 <table>
 <thead>
 <tr>
@@ -1448,8 +1448,8 @@
 <p><a name="http"></a></p>
 <h2 id="httpconfig-httpstream">http(config) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h2>
 <p>Sends an HTTP request.</p>
-<p><strong>Kind</strong>: global function
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.</p>
+<p><strong>Kind</strong>: global function<br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.  </p>
 <table>
 <thead>
 <tr>
@@ -1466,7 +1466,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">http</span><span class="p">(</span><span class="s1">&#39;https://api.example.com/data&#39;</span><span class="p">)</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1485,8 +1485,8 @@
 <p><a name="http.get"></a></p>
 <h3 id="httpgeturl-config-httpstream">http.get(url, [config]) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Sends a GET request.</p>
-<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.</p>
+<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.  </p>
 <table>
 <thead>
 <tr>
@@ -1511,7 +1511,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">http</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;https://api.example.com/data&#39;</span><span class="p">)</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1519,8 +1519,8 @@
 <a name="http.post"></a></p>
 <h3 id="httpposturl-data-config-httpstream">http.post(url, [data], [config]) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Sends a POST request.</p>
-<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.</p>
+<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.  </p>
 <table>
 <thead>
 <tr>
@@ -1551,7 +1551,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">http</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;foo&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;bar&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">userId</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">})</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1559,8 +1559,8 @@
 <a name="http.put"></a></p>
 <h3 id="httpputurl-data-config-httpstream">http.put(url, [data], [config]) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Sends a PUT request.</p>
-<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.</p>
+<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.  </p>
 <table>
 <thead>
 <tr>
@@ -1591,7 +1591,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">http</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts/1&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;foo&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;bar&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">userId</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">})</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1599,8 +1599,8 @@
 <a name="http.patch"></a></p>
 <h3 id="httppatchurl-data-config-httpstream">http.patch(url, [data], [config]) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Sends a PATCH request.</p>
-<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.</p>
+<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.  </p>
 <table>
 <thead>
 <tr>
@@ -1631,7 +1631,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nx">http</span><span class="p">.</span><span class="nx">patch</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts/1&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;foo&#39;</span><span class="w"> </span><span class="p">})</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1639,8 +1639,8 @@
 <a name="http.delete"></a></p>
 <h3 id="httpdeleteurl-config-httpstream">http.delete(url, [config]) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Sends a DELETE request.</p>
-<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.</p>
+<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream that resolves to the response data.  </p>
 <table>
 <thead>
 <tr>
@@ -1665,7 +1665,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">http</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts/1&#39;</span><span class="p">)</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1673,8 +1673,8 @@
 <a name="http.sse"></a></p>
 <h3 id="httpsseurl-config-httpstream">http.sse(url, [config]) ⇒ <a href="#HTTPStream"><code>HTTPStream</code></a></h3>
 <p>Establishes a Server-Sent Events connection.</p>
-<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a>
-<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream with methods to register event handlers, handle errors, and close the connection.</p>
+<p><strong>Kind</strong>: static method of <a href="#http"><code>http</code></a><br />
+<strong>Returns</strong>: <a href="#HTTPStream"><code>HTTPStream</code></a> - An HTTPStream with methods to register event handlers, handle errors, and close the connection.  </p>
 <table>
 <thead>
 <tr>
@@ -1699,7 +1699,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Example</strong>
+<p><strong>Example</strong><br />
 <div class="language-js highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">stream</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">http</span><span class="p">.</span><span class="nx">sse</span><span class="p">(</span><span class="s1">&#39;https://api.example.com/events&#39;</span><span class="p">);</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">stream</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">event</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">));</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nx">stream</span><span class="p">.</span><span class="nx">catchError</span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">));</span>
@@ -1742,13 +1742,13 @@
         
         
           
-          <a href="../../learn_by_example/counter/" class="md-footer__link md-footer__link--next" aria-label="Next: Simple Counter">
+          <a href="../../learn_by_example/counter/" class="md-footer__link md-footer__link--next" aria-label="Next: Counter (Simple)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Simple Counter
+                Counter (Simple)
               </div>
             </div>
             <div class="md-footer__button md-icon">

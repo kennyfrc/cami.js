@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../simple_task_manager/">
+        <link rel="prev" href="../cart/">
       
       
-        <link rel="next" href="../counter_interval/">
+        <link rel="next" href="../nested_updates/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -836,7 +836,28 @@
         
   
   <span class="md-ellipsis">
-    Simple Counter
+    Counter (Simple)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../counter_interval/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter (Interval)
   </span>
   
 
@@ -857,7 +878,7 @@
         
   
   <span class="md-ellipsis">
-    Interactive Registration Form
+    Interactive Registration
   </span>
   
 
@@ -874,11 +895,53 @@
   
   
     <li class="md-nav__item">
-      <a href="../todo_list/" class="md-nav__link">
+      <a href="../todo_list_server/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Todo List with Server State
+    Todo List (Server State)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../todo_list_simple/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Todo List (In-Memory State)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../todo_list_attributes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Todo List (Attribute Data)
   </span>
   
 
@@ -899,28 +962,7 @@
         
   
   <span class="md-ellipsis">
-    Shopping Cart with Server & Client State
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../simple_task_manager/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Simple Task Manager
+    Cart with Server & Client State
   </span>
   
 
@@ -983,15 +1025,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#js-fiddle" class="md-nav__link">
-    <span class="md-ellipsis">
-      JS Fiddle:
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#html" class="md-nav__link">
     <span class="md-ellipsis">
       HTML:
@@ -1004,48 +1037,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../counter_interval/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Counter with Interval
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../data_props/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Task Manager (Attribute Data)
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1127,15 +1118,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#js-fiddle" class="md-nav__link">
-    <span class="md-ellipsis">
-      JS Fiddle:
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#html" class="md-nav__link">
     <span class="md-ellipsis">
       HTML:
@@ -1163,122 +1145,13 @@
 
 
 <h1 id="blog-with-optimistic-ui">Blog with Optimistic UI</h1>
-<p>Our query can also do optimistic UI if:</p>
-<ul>
-<li>In the <code>onMutate</code> callback definition, you snapshot the previous state, optimistically update to the new value, and return a rollback function.</li>
-</ul>
-<hr>
+<p>This example demonstrates optimistic UI with our Mock API. Optimistic UI is a technique where you update the UI optimistically before the server responds. The optimistic UI logic is handled in the <code>onMutate</code> handler of the <code>addPost</code> mutation. In the <code>onMutate</code> handler, you snapshot the previous state, optimistically update the UI, and return a rollback function.</p>
+<p>If the server responds with an error, then you invoke the rollback function to rollback the UI to the previous state in the <code>onError</code> handler. If the server responds with a success, then you invalidate the cache to refetch the true state from the server in the <code>onSettled</code> handler.</p>
+<iframe width="100%" height="600" src="//jsfiddle.net/kennyfrc12/69ceahtw/11/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
-<article>
-  <blog-component-be></blog-component-be>
-</article>
-<script type="module">
-  const { html, ReactiveElement, http } = cami;
-
-  class BlogComponent extends ReactiveElement {
-    posts = this.query({
-      queryKey: ["posts"],
-      queryFn: () => {
-        return fetch("https://api.camijs.com/posts?_limit=5")
-          .then(res => res.json())
-      },
-      staleTime: 1000 * 60 * 5 // 5 minutes
-    })
-
-    //
-    // This uses optimistic UI. To disable optimistic UI, remove the onMutate and onError handlers.
-    //
-    addPost = this.mutation({
-      mutationFn: (newPost) => {
-        return fetch("https://api.camijs.com/posts", {
-          method: "POST",
-          body: JSON.stringify(newPost),
-          headers: {
-            "Content-type": "application/json; charset=UTF-8"
-          }
-        }).then(res => res.json())
-      },
-      onMutate: (newPost) => {
-        // Snapshot the previous state
-        const previousPosts = this.posts.data;
-
-        // Optimistically update to the new value
-        this.posts.update(state => {
-          state.data.push({ ...newPost, id: Date.now() });
-        });
-
-        // Return the rollback function and the new post
-        return {
-          rollback: () => {
-            this.posts.update(state => {
-              state.data = previousPosts;
-            });
-          },
-          optimisticPost: newPost
-        };
-      },
-      onError: (error, newPost, context) => {
-        // Rollback to the previous state
-        if (context.rollback) {
-          context.rollback();
-        }
-      },
-      onSettled: () => {
-        // Invalidate the posts query to refetch the true state
-        if (!this.addPost.isSettled) {
-          this.invalidateQueries(['posts']);
-        }
-      }
-    });
-
-    template() {
-      if (this.addPost.status === "pending") {
-        return html`
-        <div class="md-loading">Adding post...</div>`;
-      }
-
-      if (this.addPost.status === "error") {
-        return html`<div class="md-error">Error: ${this.addPost.error.message}</div>`;
-      }
-
-      if (this.posts.data) {
-        return html`
-          <h3>Blog Posts</h3>
-          <button class="md-button" @click=${() => this.addPost.mutate({
-            title: "New Post, Made Optimistically",
-            body: "This is a new post created with optimistic UI. I actually won't persist to the server though. So upon refresh, I will rollback (either through window change, refresh, or after stale time of 5 minutes)",
-            userId: 1
-          })}>Add Post</button>
-          <ul class="md-list">
-            ${this.posts.data.slice().reverse().map(post => html`
-              <li class="md-list-item">
-                <h2 class="md-title">${post.title}</h2>
-                <p class="md-body">${post.body}</p>
-              </li>
-            `)}
-          </ul>
-        `;
-      }
-
-      if (this.posts.status === "loading") {
-        return html`<div class="md-loading">Loading...</div>`;
-      }
-
-      if (this.posts.status === "error") {
-        return html`<div class="md-error">Error: ${this.posts.error.message}</div>`;
-      }
-    }
-  }
-
-
-  customElements.define('blog-component-be', BlogComponent);
-</script>
-
-<h2 id="js-fiddle">JS Fiddle:</h2>
-<p><a href="https://jsfiddle.net/kennyfrc12/69ceahtw/">https://jsfiddle.net/kennyfrc12/69ceahtw/</a></p>
 <h2 id="html">HTML:</h2>
 <div class="language-html highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">&lt;</span><span class="nt">article</span><span class="p">&gt;</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  <span class="p">&lt;</span><span class="nt">blog-component-be</span><span class="p">&gt;&lt;/</span><span class="nt">blog-component-be</span><span class="p">&gt;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  <span class="p">&lt;</span><span class="nt">blog-component</span><span class="p">&gt;&lt;/</span><span class="nt">blog-component</span><span class="p">&gt;</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">&lt;/</span><span class="nt">article</span><span class="p">&gt;</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span><span class="p">&gt;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="p">,</span><span class="w"> </span><span class="nx">http</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
@@ -1342,25 +1215,25 @@
 </span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;pending&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a><span class="sb">        &lt;div class=&quot;md-loading&quot;&gt;Adding post...&lt;/div&gt;`</span><span class="p">;</span>
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a><span class="sb">        &lt;div&gt;Adding post...&lt;/div&gt;`</span><span class="p">;</span>
 </span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a><span class="w">      </span><span class="p">}</span>
 </span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>
 </span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div class=&quot;md-error&quot;&gt;Error: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="sb">&lt;/div&gt;`</span><span class="p">;</span>
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div&gt;Error: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="sb">&lt;/div&gt;`</span><span class="p">;</span>
 </span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a><span class="w">      </span><span class="p">}</span>
 </span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>
 </span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-74"><a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
-</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a><span class="sb">          &lt;button class=&quot;md-button&quot; @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="p">.</span><span class="nx">mutate</span><span class="p">({</span>
+</span><span id="__span-0-75"><a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a><span class="sb">          &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="p">.</span><span class="nx">mutate</span><span class="p">({</span>
 </span><span id="__span-0-76"><a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a><span class="w">            </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;New Post, Made Optimistically&quot;</span><span class="p">,</span>
-</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a><span class="w">            </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;This is a new post created with optimistic UI. I actually won&#39;t persist to the server though. So upon refresh, I will rollback (either through window change, refresh, or after stale time of 5 minutes)&quot;</span><span class="p">,</span>
+</span><span id="__span-0-77"><a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a><span class="w">            </span><span class="nx">body</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;This is a new post created with optimistic UI. This actually won&#39;t persist to the server as we&#39;re using a Mock API. So once you refresh, this Blog will rollback to the original state. Refreshes are triggered through window tab changes and full page reloads.&quot;</span><span class="p">,</span>
 </span><span id="__span-0-78"><a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a><span class="w">            </span><span class="nx">userId</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span>
 </span><span id="__span-0-79"><a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a><span class="w">          </span><span class="si">}</span><span class="sb">)}&gt;Add Post&lt;/button&gt;</span>
-</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a><span class="sb">          &lt;ul class=&quot;md-list&quot;&gt;</span>
+</span><span id="__span-0-80"><a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a><span class="sb">          &lt;ul&gt;</span>
 </span><span id="__span-0-81"><a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a><span class="sb">            </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">slice</span><span class="p">().</span><span class="nx">reverse</span><span class="p">().</span><span class="nx">map</span><span class="p">(</span><span class="nx">post</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
-</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a><span class="sb">              &lt;li class=&quot;md-list-item&quot;&gt;</span>
-</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a><span class="sb">                &lt;h2 class=&quot;md-title&quot;&gt;</span><span class="si">${</span><span class="nx">post</span><span class="p">.</span><span class="nx">title</span><span class="si">}</span><span class="sb">&lt;/h2&gt;</span>
-</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a><span class="sb">                &lt;p class=&quot;md-body&quot;&gt;</span><span class="si">${</span><span class="nx">post</span><span class="p">.</span><span class="nx">body</span><span class="si">}</span><span class="sb">&lt;/p&gt;</span>
+</span><span id="__span-0-82"><a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a><span class="sb">              &lt;li&gt;</span>
+</span><span id="__span-0-83"><a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a><span class="sb">                &lt;h2&gt;</span><span class="si">${</span><span class="nx">post</span><span class="p">.</span><span class="nx">title</span><span class="si">}</span><span class="sb">&lt;/h2&gt;</span>
+</span><span id="__span-0-84"><a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a><span class="sb">                &lt;p&gt;</span><span class="si">${</span><span class="nx">post</span><span class="p">.</span><span class="nx">body</span><span class="si">}</span><span class="sb">&lt;/p&gt;</span>
 </span><span id="__span-0-85"><a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a><span class="sb">              &lt;/li&gt;</span>
 </span><span id="__span-0-86"><a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a><span class="sb">            `</span><span class="p">)</span><span class="si">}</span>
 </span><span id="__span-0-87"><a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a><span class="sb">          &lt;/ul&gt;</span>
@@ -1368,18 +1241,17 @@
 </span><span id="__span-0-89"><a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a><span class="w">      </span><span class="p">}</span>
 </span><span id="__span-0-90"><a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>
 </span><span id="__span-0-91"><a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;loading&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div class=&quot;md-loading&quot;&gt;Loading...&lt;/div&gt;`</span><span class="p">;</span>
+</span><span id="__span-0-92"><a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div&gt;Loading...&lt;/div&gt;`</span><span class="p">;</span>
 </span><span id="__span-0-93"><a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a><span class="w">      </span><span class="p">}</span>
 </span><span id="__span-0-94"><a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>
 </span><span id="__span-0-95"><a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div class=&quot;md-error&quot;&gt;Error: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="sb">&lt;/div&gt;`</span><span class="p">;</span>
+</span><span id="__span-0-96"><a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;div&gt;Error: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">message</span><span class="si">}</span><span class="sb">&lt;/div&gt;`</span><span class="p">;</span>
 </span><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a><span class="w">      </span><span class="p">}</span>
 </span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a><span class="w">    </span><span class="p">}</span>
 </span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a><span class="w">  </span><span class="p">}</span>
 </span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a>
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;blog-component-be&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">BlogComponent</span><span class="p">);</span>
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;blog-component&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">BlogComponent</span><span class="p">);</span>
+</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
 </span></code></pre></div>
 
 
@@ -1402,7 +1274,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../simple_task_manager/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Simple Task Manager">
+          <a href="../cart/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Cart with Server &amp; Client State">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1412,20 +1284,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Simple Task Manager
+                Cart with Server & Client State
               </div>
             </div>
           </a>
         
         
           
-          <a href="../counter_interval/" class="md-footer__link md-footer__link--next" aria-label="Next: Counter with Interval">
+          <a href="../nested_updates/" class="md-footer__link md-footer__link--next" aria-label="Next: Nested Updates">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Counter with Interval
+                Nested Updates
               </div>
             </div>
             <div class="md-footer__button md-icon">
