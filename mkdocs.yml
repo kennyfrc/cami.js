@@ -75,6 +75,11 @@ nav:
     - learn_by_example/blog.md
     - learn_by_example/nested_updates.md
     - learn_by_example/modal.md
+    - learn_by_example/temperature_converter.md
+    - learn_by_example/flight_booker.md
+    - learn_by_example/timer.md
+    - learn_by_example/contact_manager.md
+    - learn_by_example/circle_drawer.md
 extra_javascript:
   - javascripts/cami.cdn.js
 extra:

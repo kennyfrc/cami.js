@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <!-- CircleDrawerElement.html -->
+<article>
+  <h1 style="text-align: center; margin-bottom: 5px;"
+  >Circle Drawer</h1>
+  <circle-drawer></circle-drawer>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<style>
+  .circle-drawer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+  .button-group {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+  .canvas-container {
+    width: 500px;
+    height: 400px;
+    border: 1px solid black;
+    position: relative;
+  }
+</style>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class CircleDrawerElement extends ReactiveElement {
+    circles = [];
+    selectedCircle = null;
+    canvasClick$ = this.stream();
+    canvasMouseMove$ = this.stream();
+    history = [[]];
+    historyIndex = 0;
+
+    onConnect() {
+      this.canvasClick$
+        .map(e => {
+          const rect = canvas.getBoundingClientRect();
+          return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        })
+        .subscribe(({ x, y }) => {
+          console.log(x, y);
+          const selectedCircle = this.circles.find(circle => this.isInsideCircle(x, y, circle));
+          if (selectedCircle) {
+            alert("clicked inside circle");
+          } else {
+            this.circles.push({ x, y, radius: 25, color: 'white', borderColor: 'black' });
+          }
+          this.history = this.history.slice(0, this.historyIndex + 1);
+          this.history.push([...this.circles]);
+          this.historyIndex++;
+        });
+
+      this.canvasMouseMove$
+        .filter(() => this.selectedCircle !== null)
+        .map(e => {
+          const rect = e.target.getBoundingClientRect();
+          return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        })
+        .subscribe(({ x, y }) => {
+          const index = this.circles.indexOf(this.selectedCircle);
+          if (index !== -1) {
+            const updatedCircle = { ...this.selectedCircle, x, y };
+            this.circles[index] = updatedCircle;
+            this.selectedCircle = updatedCircle;
+            this.history = this.history.slice(0, this.historyIndex + 1);
+            this.history.push([...this.circles]);
+            this.historyIndex++;
+          }
+        });
+    }
+
+    isInsideCircle(x, y, circle) {
+      const dx = circle.x - x;
+      const dy = circle.y - y;
+      return dx * dx + dy * dy <= circle.radius * circle.radius;
+    }
+
+    undo() {
+      if (this.historyIndex > 0) {
+        this.historyIndex--;
+        this.circles = [...this.history[this.historyIndex]];
+      }
+    }
+
+    redo() {
+      if (this.historyIndex < this.history.length - 1) {
+        this.historyIndex++;
+        this.circles = [...this.history[this.historyIndex]];
+      }
+    }
+
+    template() {
+      return html`
+        <main class="circle-drawer-container">
+            <section class="button-group">
+              <button @click=${() => this.undo()}>Undo</button>
+              <button @click=${() => this.redo()}>Redo</button>
+            </section>
+            <section class="canvas-container" id="canvas" @click=${e => this.canvasClick$.next(e)} @mousemove=${e => this.canvasMouseMove$.next(e)}>
+              ${this.circles.map(circle => html`
+                <div
+                  role="img"
+                  aria-label="circle"
+                  style=${`position: absolute; left: ${circle.x - circle.radius}px; top: ${circle.y - circle.radius}px; width: ${circle.radius * 2}px; height: ${circle.radius * 2}px; border-radius: 50%; background-color: ${circle.color}; border: 1px solid ${circle.borderColor};`}
+                  @mouseover=${() => {
+                    const updatedCircle = { ...circle, color: 'gray' };
+                    const index = this.circles.indexOf(circle);
+                    this.circles.update(circles => {
+                      circles[index] = updatedCircle;
+                    });
+                  }}
+                  @mouseout=${() => {
+                    const updatedCircle = { ...circle, color: 'white' };
+                    const index = this.circles.indexOf(circle);
+                    this.circles.update(circles => {
+                      circles[index] = updatedCircle;
+                    });
+                  }}
+                ></div>
+              `)}
+            </section>
+        </main>
+      `;
+    }
+  }
+
+  customElements.define('circle-drawer', CircleDrawerElement);
+</script>
+
+</body>
+</html>

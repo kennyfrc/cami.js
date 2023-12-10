@@ -6,6 +6,29 @@ It has features you'd expect from a modern UI framework, such as reactive web co
 
 Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.
 
+```html
+<!-- The most basic example: the counter -->
+<cami-counter></cami-counter>
+<script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class CounterElement extends ReactiveElement {
+    count = 0
+
+    template() {
+      return html`
+        <button @click=${() => this.count--}>-</button>
+        <button @click=${() => this.count++}>+</button>
+        <div>Count: ${this.count}</div>
+      `;
+    }
+  }
+
+  customElements.define('cami-counter', CounterElement);
+</script>
+```
+
 ## Getting Started
 
 In any HTML file, just add the CDN link:
@@ -26,14 +49,14 @@ This template literal is a special type of string that allows you to embed javas
 
 Below, we create a `CounterElement` that has a `count` property. When we mutate `count`, the component will re-render `template()`.
 
-To use it, you'll need to create a custom element and register it with `customElements.define`. Then you can use it in your HTML file by adding the tag `<counter-component></counter-component>` like any other HTML tag.
+To use it, you'll need to create a custom element and register it with `customElements.define`. Then you can use it in your HTML file by adding the tag `<cami-counter></cami-counter>` like any other HTML tag.
 
 ```html
 <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
 <article>
   <h1>Counter</h1>
-  <counter-component
-  ></counter-component>
+  <cami-counter
+  ></cami-counter>
 </article>
 <script type="module">
   const { html, ReactiveElement } = cami;
@@ -50,7 +73,7 @@ To use it, you'll need to create a custom element and register it with `customEl
     }
   }
 
-  customElements.define('counter-component', CounterElement);
+  customElements.define('cami-counter', CounterElement);
 </script>
 ```
 
@@ -60,8 +83,8 @@ And here's how it would look like:
 
 <article>
   <h4>Counter</h4>
-  <counter-component
-  ></counter-component>
+  <cami-counter
+  ></cami-counter>
 </article>
 <script type="module">
   const { html, ReactiveElement } = cami;
@@ -80,7 +103,7 @@ And here's how it would look like:
     }
   }
 
-  customElements.define('counter-component', CounterElement);
+  customElements.define('cami-counter', CounterElement);
 </script>
 
 ## Next Steps

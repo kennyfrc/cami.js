@@ -12,6 +12,29 @@ It has features you'd expect from a modern UI framework, such as reactive web co
 
 Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.
 
+```html
+<!-- The most basic example: the counter -->
+<cami-counter></cami-counter>
+<script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class CounterElement extends ReactiveElement {
+    count = 0
+
+    template() {
+      return html`
+        <button @click=${() => this.count--}>-</button>
+        <button @click=${() => this.count++}>+</button>
+        <div>Count: ${this.count}</div>
+      `;
+    }
+  }
+
+  customElements.define('cami-counter', CounterElement);
+</script>
+```
+
 [Documentation](https://camijs.com/) | [API Reference](https://camijs.com/api/) | [CDN Link](https://unpkg.com/cami@latest/build/cami.cdn.js) | [Introduction](https://camijs.com/)
 
 ## Learn By Example

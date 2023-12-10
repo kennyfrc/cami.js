@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <temperature-converter></temperature-converter>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class TemperatureConverterElement extends ReactiveElement {
+    celsius = '';
+    fahrenheit = '';
+
+    convertToFahrenheit(celsius) {
+      if (!isNaN(celsius) && celsius !== '') {
+        this.fahrenheit = celsius * (9/5) + 32;
+      }
+    }
+
+    convertToCelsius(fahrenheit) {
+      if (!isNaN(fahrenheit) && fahrenheit !== '') {
+        this.celsius = (fahrenheit - 32) * (5/9);
+      }
+    }
+
+    template() {
+      return html`
+        <label>
+          Celsius:
+          <input type="number" .value=${this.celsius} @input=${(e) => this.convertToFahrenheit(e.target.value)}>
+        </label>
+        <label>
+          Fahrenheit:
+          <input type="number" .value=${this.fahrenheit} @input=${(e) => this.convertToCelsius(e.target.value)}>
+        </label>
+      `;
+    }
+  }
+
+  customElements.define('temperature-converter', TemperatureConverterElement);
+</script>
+
+</body>
+</html>
