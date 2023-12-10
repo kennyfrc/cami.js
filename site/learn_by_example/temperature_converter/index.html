@@ -9,23 +9,25 @@
       
       
       
+        <link rel="prev" href="../modal/">
       
-        <link rel="next" href="features/features/">
+      
+        <link rel="next" href="../flight_booker/">
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.14">
     
     
       
-        <title>Cami - Cami Web Components</title>
+        <title>Temperature Converter - Cami Web Components</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.fad675c6.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.fad675c6.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.356b1318.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
       
       
 
@@ -44,7 +46,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cami" class="md-skip">
+        <a href="#temperature-converter" class="md-skip">
           Skip to content
         </a>
       
@@ -87,7 +89,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Cami Web Components" class="md-header__button md-logo" aria-label="Cami Web Components" data-md-component="logo">
+    <a href="../.." title="Cami Web Components" class="md-header__button md-logo" aria-label="Cami Web Components" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -107,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Cami
+              Temperature Converter
             
           </span>
         </div>
@@ -226,13 +228,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="." class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
           
   
     
@@ -252,7 +252,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="api/" class="md-tabs__link">
+        <a href="../../api/" class="md-tabs__link">
           
   
     
@@ -268,11 +268,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="learn_by_example/counter/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../counter/" class="md-tabs__link">
           
   
     
@@ -307,7 +309,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Cami Web Components" class="md-nav__button md-logo" aria-label="Cami Web Components" data-md-component="logo">
+    <a href="../.." title="Cami Web Components" class="md-nav__button md-logo" aria-label="Cami Web Components" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -334,8 +336,6 @@
       
   
   
-    
-  
   
   
     
@@ -364,17 +364,19 @@
       
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1" >
         
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="." class="md-nav__link md-nav__link--active">
+            <a href="../.." class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -385,13 +387,13 @@
             </a>
             
               
-              <label class="md-nav__link md-nav__link--active" for="__nav_1" id="__nav_1_label" tabindex="">
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Introduction
@@ -407,7 +409,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/features/" class="md-nav__link">
+      <a href="../../features/features/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -428,7 +430,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/observable_property/" class="md-nav__link">
+      <a href="../../features/observable_property/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -449,7 +451,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/reactive_web_components/" class="md-nav__link">
+      <a href="../../features/reactive_web_components/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -470,7 +472,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/async_state_management/" class="md-nav__link">
+      <a href="../../features/async_state_management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -491,7 +493,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/client_state_management/" class="md-nav__link">
+      <a href="../../features/client_state_management/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -512,7 +514,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/streams/" class="md-nav__link">
+      <a href="../../features/streams/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -579,7 +581,7 @@
           
           
           <div class="md-nav__link md-nav__container">
-            <a href="api/" class="md-nav__link ">
+            <a href="../../api/" class="md-nav__link ">
               
   
   <span class="md-ellipsis">
@@ -612,7 +614,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/reactive_element/" class="md-nav__link">
+      <a href="../../api/reactive_element/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -633,7 +635,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/console_functions/" class="md-nav__link">
+      <a href="../../api/console_functions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -654,7 +656,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/observable/" class="md-nav__link">
+      <a href="../../api/observable/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -675,7 +677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/observable_state/" class="md-nav__link">
+      <a href="../../api/observable_state/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -696,7 +698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/observable_store/" class="md-nav__link">
+      <a href="../../api/observable_store/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -717,7 +719,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/observable_stream/" class="md-nav__link">
+      <a href="../../api/observable_stream/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -738,7 +740,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/http/" class="md-nav__link">
+      <a href="../../api/http/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -763,8 +765,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -805,14 +809,12 @@
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -826,7 +828,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Learn by Example
@@ -840,7 +842,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/counter/" class="md-nav__link">
+      <a href="../counter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -861,7 +863,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/counter_interval/" class="md-nav__link">
+      <a href="../counter_interval/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -882,7 +884,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/form_validation/" class="md-nav__link">
+      <a href="../form_validation/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -903,7 +905,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/todo_list_server/" class="md-nav__link">
+      <a href="../todo_list_server/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -924,7 +926,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/todo_list_simple/" class="md-nav__link">
+      <a href="../todo_list_simple/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -945,7 +947,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/todo_list_attributes/" class="md-nav__link">
+      <a href="../todo_list_attributes/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -966,7 +968,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/cart/" class="md-nav__link">
+      <a href="../cart/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -987,7 +989,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/blog/" class="md-nav__link">
+      <a href="../blog/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1008,7 +1010,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/nested_updates/" class="md-nav__link">
+      <a href="../nested_updates/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1029,7 +1031,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/modal/" class="md-nav__link">
+      <a href="../modal/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1047,10 +1049,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="learn_by_example/temperature_converter/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Temperature Converter
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1059,6 +1081,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#html" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTML
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1071,7 +1122,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/flight_booker/" class="md-nav__link">
+      <a href="../flight_booker/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1092,7 +1143,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/timer/" class="md-nav__link">
+      <a href="../timer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1113,7 +1164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/contact_manager/" class="md-nav__link">
+      <a href="../contact_manager/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1134,7 +1185,7 @@
   
   
     <li class="md-nav__item">
-      <a href="learn_by_example/circle_drawer/" class="md-nav__link">
+      <a href="../circle_drawer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1182,77 +1233,11 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#html" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Started
+      HTML
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-concepts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key Concepts:
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Key Concepts:">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reactiveelement-html-tagged-template-literals" class="md-nav__link">
-    <span class="md-ellipsis">
-      ReactiveElement &amp; HTML Tagged Template Literals
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#demo" class="md-nav__link">
-    <span class="md-ellipsis">
-      Demo
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Next Steps
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Next Steps">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#learn-by-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Learn By Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1274,111 +1259,51 @@
   
 
 
-<h1 id="cami">Cami</h1>
-<p>Cami.js is a simple yet powerful toolkit for interactive islands in web applications. No build step required.</p>
-<p>It has features you'd expect from a modern UI framework, such as reactive web components, async state management, streams, and cross-component state management.</p>
-<p>Note that Cami specializes in bringing rich interactivity to your web application. As such, it's meant to be used alongside a backend framework such as FastAPI, Rails, Sinatra, or any server really that responds with HTML. Just paste in Cami's CDN link (or import the bundle) and you'll get the power of many modern UI frameworks without it taking over your workflow. Just progressively enhance your HTML with Cami web components.</p>
-<div class="language-html highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cm">&lt;!-- The most basic example: the counter --&gt;</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">&lt;</span><span class="nt">cami-counter</span><span class="p">&gt;&lt;/</span><span class="nt">cami-counter</span><span class="p">&gt;</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://unpkg.com/cami@latest/build/cami.cdn.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span><span class="p">&gt;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="kd">class</span><span class="w"> </span><span class="nx">CounterElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nx">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sb">        &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="o">--</span><span class="si">}</span><span class="sb">&gt;-&lt;/button&gt;</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sb">        &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="o">++</span><span class="si">}</span><span class="sb">&gt;+&lt;/button&gt;</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sb">        &lt;div&gt;Count: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="si">}</span><span class="sb">&lt;/div&gt;</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sb">      `</span><span class="p">;</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="p">}</span>
+<h1 id="temperature-converter">Temperature Converter</h1>
+<iframe width="100%" height="500" src="//jsfiddle.net/kennyfrc12/q9ajzdu7/5/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+
+<h2 id="html">HTML</h2>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">&lt;</span><span class="nt">article</span><span class="p">&gt;</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Temperature Converter<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  <span class="p">&lt;</span><span class="nt">temperature-converter</span><span class="p">&gt;&lt;/</span><span class="nt">temperature-converter</span><span class="p">&gt;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">&lt;/</span><span class="nt">article</span><span class="p">&gt;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://unpkg.com/cami@latest/build/cami.cdn.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span><span class="p">&gt;</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="kd">class</span><span class="w"> </span><span class="nx">TemperatureConverterElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nx">celsius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nx">fahrenheit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nx">convertToFahrenheit</span><span class="p">(</span><span class="nx">celsius</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nb">isNaN</span><span class="p">(</span><span class="nx">celsius</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">celsius</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">fahrenheit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">celsius</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">9</span><span class="o">/</span><span class="mf">5</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">32</span><span class="p">;</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="p">}</span>
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;cami-counter&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">CounterElement</span><span class="p">);</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="nx">convertToCelsius</span><span class="p">(</span><span class="nx">fahrenheit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nb">isNaN</span><span class="p">(</span><span class="nx">fahrenheit</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">fahrenheit</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">celsius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">fahrenheit</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">32</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">5</span><span class="o">/</span><span class="mf">9</span><span class="p">);</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="sb">        &lt;label&gt;</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="sb">          Celsius:</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="sb">          &lt;input type=&quot;number&quot; .value=</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">celsius</span><span class="si">}</span><span class="sb"> @input=</span><span class="si">${</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">convertToFahrenheit</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span><span class="si">}</span><span class="sb">&gt;</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="sb">        &lt;/label&gt;</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="sb">        &lt;label&gt;</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="sb">          Fahrenheit:</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="sb">          &lt;input type=&quot;number&quot; .value=</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">fahrenheit</span><span class="si">}</span><span class="sb"> @input=</span><span class="si">${</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">convertToCelsius</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span><span class="si">}</span><span class="sb">&gt;</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="sb">        &lt;/label&gt;</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="sb">      `</span><span class="p">;</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;temperature-converter&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">TemperatureConverterElement</span><span class="p">);</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
 </span></code></pre></div>
-<h2 id="getting-started">Getting Started</h2>
-<p>In any HTML file, just add the CDN link:</p>
-<div class="language-html highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://unpkg.com/cami@latest/build/cami.cdn.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-</span></code></pre></div>
-<h2 id="key-concepts">Key Concepts:</h2>
-<h3 id="reactiveelement-html-tagged-template-literals">ReactiveElement &amp; HTML Tagged Template Literals</h3>
-<p>When you first create a web component, you'll need to subclass <code>ReactiveElement</code>. This is an extension of <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements"><code>HTMLElement</code></a> that turns all of your properties into observable properties. These properties are observed for changes, which then triggers a re-render of <code>template()</code>.</p>
-<p>The <code>template()</code> method returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates:~:text=This%20is%20useful%20for%20many%20tools%20which%20give%20special%20treatment%20to%20literals%20tagged%20by%20a%20particular%20name">template literals</a> tagged with the html tag. The html tag is a function and you pass it a tagged template literal. It looks strange at first as it's not wrapped in parentheses, but it's just a function call with a special syntax for passing in a template literal.</p>
-<p>This template literal is a special type of string that allows you to embed javascript expressions in it using normal string interpolation <code>${}</code>. Events are handled using <code>@</code> (event listeners), such as <code>@click</code>, <code>@input</code>, <code>@change</code>, etc. Just prepend <a href="https://developer.mozilla.org/en-US/docs/Web/Events#:~:text=wheel%20event-,Element,-animationcancel%20event">any event</a> with <code>@</code> and you can handle it by passing a function, such as <code>@click=${() =&gt; alert('clicked')}</code>.</p>
-<p>Below, we create a <code>CounterElement</code> that has a <code>count</code> property. When we mutate <code>count</code>, the component will re-render <code>template()</code>.</p>
-<p>To use it, you'll need to create a custom element and register it with <code>customElements.define</code>. Then you can use it in your HTML file by adding the tag <code>&lt;cami-counter&gt;&lt;/cami-counter&gt;</code> like any other HTML tag.</p>
-<div class="language-html highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://unpkg.com/cami@latest/build/cami.cdn.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">&lt;</span><span class="nt">article</span><span class="p">&gt;</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Counter<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  <span class="p">&lt;</span><span class="nt">cami-counter</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  <span class="p">&gt;&lt;/</span><span class="nt">cami-counter</span><span class="p">&gt;</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">&lt;/</span><span class="nt">article</span><span class="p">&gt;</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span><span class="p">&gt;</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">html</span><span class="p">,</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">;</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="kd">class</span><span class="w"> </span><span class="nx">CounterElement</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">ReactiveElement</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nx">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="nx">template</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">html</span><span class="sb">`</span>
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="sb">        &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="o">--</span><span class="si">}</span><span class="sb">&gt;-&lt;/button&gt;</span>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="sb">        &lt;button @click=</span><span class="si">${</span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="o">++</span><span class="si">}</span><span class="sb">&gt;+&lt;/button&gt;</span>
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="sb">        &lt;div&gt;Count: </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">count</span><span class="si">}</span><span class="sb">&lt;/div&gt;</span>
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="sb">      `</span><span class="p">;</span>
-</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>
-</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nx">customElements</span><span class="p">.</span><span class="nx">define</span><span class="p">(</span><span class="s1">&#39;cami-counter&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">CounterElement</span><span class="p">);</span>
-</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
-</span></code></pre></div>
-<h2 id="demo">Demo</h2>
-<p>And here's how it would look like:</p>
-<article>
-  <h4>Counter</h4>
-  <cami-counter
-  ></cami-counter>
-</article>
-<script type="module">
-  const { html, ReactiveElement } = cami;
-
-  class CounterElement extends ReactiveElement {
-    count = 0
-
-    template() {
-      return html`
-        <button class="md-button md-button--primary"
-        @click=${() => this.count--}>-</button>
-        <button class="md-button md-button--primary"
-        @click=${() => this.count++}>+</button>
-        <p>Count: ${this.count}</p
-      `;
-    }
-  }
-
-  customElements.define('cami-counter', CounterElement);
-</script>
-
-<h2 id="next-steps">Next Steps</h2>
-<p>I hope you see how easy it is to create interactive components with Cami. You can use it to progressively enhance your HTML with interactive components. And you can also use it to create a complex web application with many components that share server and client state.</p>
-<p>Below, there are two next steps: either to learn from examples or to read the documentation.</p>
-<h3 id="learn-by-example">Learn By Example</h3>
-<ul>
-<li><a href="https://camijs.com/learn_by_example/counter/">Counter</a></li>
-<li><a href="https://camijs.com/learn_by_example/form_validation/">Interactive Registration Form</a></li>
-<li><a href="https://camijs.com/learn_by_example/todo_list_server/">Todo List with Server State Management</a></li>
-<li><a href="https://camijs.com/learn_by_example/cart/">Cart with Client &amp; Server State Management</a></li>
-<li><a href="https://camijs.com/learn_by_example/blog/">Blog with Optimistic UI</a></li>
-<li><a href="https://camijs.com/learn_by_example/nested_updates/">Nested Key Updates</a></li>
-<li><a href="https://camijs.com/learn_by_example/modal/">WAI-ARIA Compliant Modal</a></li>
-</ul>
-<h3 id="documentation">Documentation</h3>
-<ul>
-<li><a href="https://camijs.com/api/">API Reference</a></li>
-<li><a href="https://camijs.com/features/observable_property/">How it Works</a></li>
-</ul>
 
 
 
@@ -1399,15 +1324,31 @@
       
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
+          
+          <a href="../modal/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Modal">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Modal
+              </div>
+            </div>
+          </a>
+        
         
           
-          <a href="features/features/" class="md-footer__link md-footer__link--next" aria-label="Next: Feature Overview">
+          <a href="../flight_booker/" class="md-footer__link md-footer__link--next" aria-label="Next: Flight Booker">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Feature Overview
+                Flight Booker
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1460,12 +1401,12 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tracking", "navigation.tabs", "navigation.expand", "navigation.sections", "navigation.indexes", "navigation.footer", "content.code.copy", "search.suggest", "search.highlight", "search.share", "toc.follow"], "search": "assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.tabs", "navigation.expand", "navigation.sections", "navigation.indexes", "navigation.footer", "content.code.copy", "search.suggest", "search.highlight", "search.share", "toc.follow"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.cd18aaf1.min.js"></script>
+      <script src="../../assets/javascripts/bundle.cd18aaf1.min.js"></script>
       
-        <script src="javascripts/cami.cdn.js"></script>
+        <script src="../../javascripts/cami.cdn.js"></script>
       
     
   </body>
