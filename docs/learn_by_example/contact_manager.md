@@ -1,6 +1,6 @@
 # Contact Manager (In-Memory State)
 
-<iframe width="100%" height="1000" src="//jsfiddle.net/kennyfrc12/p94uz03n/6/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<iframe width="100%" height="1000" src="//jsfiddle.net/kennyfrc12/p94uz03n/36/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
 ## HTML
 
@@ -28,7 +28,6 @@
     border: 1px solid gray;
   }
   select {
-    border: none;
     overflow: -moz-scrollbars-none;
     -ms-overflow-style: none;
   }
