@@ -1,19 +1,12 @@
-# Modal
-
-This is a [WAI-ARIA compliant](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) modal. It has the following interactions implemented:
-
-- Escape key closes the modal
-- Clicking outside the modal closes the modal
-- Focus is trapped within the modal
-- Maintains focus on the first focusable element within the modal
-- Maintains focus on the modal when it is closed and re-opened
-
-<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/y0zc5fxw/1/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
-
-## HTML:
-
-```html
-  <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+    <style>
     .dialog__backdrop {
       position: fixed;
       top: 0;
@@ -95,4 +88,6 @@ This is a [WAI-ARIA compliant](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-m
 
   customElements.define('cami-modal', DialogElement);
 </script>
-```
+
+</body>
+</html>

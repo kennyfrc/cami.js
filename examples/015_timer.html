@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Application Shell</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
   <timer-element></timer-element>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -29,7 +28,11 @@
       this.timer = setInterval(() => {
         if (this.elapsedTime < this.duration) {
           this.elapsedTime += 0.1;
-        } else {
+          if (this.elapsedTime > this.duration) {
+            this.elapsedTime = this.duration;
+          }
+        }
+        if (this.elapsedTime >= this.duration) {
           clearInterval(this.timer);
         }
       }, 100);
