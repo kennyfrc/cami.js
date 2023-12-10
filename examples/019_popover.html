@@ -6,8 +6,13 @@
     <title>Application Shell</title>
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <cami-popover></cami-popover>
+  <h1>Popover</h1>
+<p>When you click on either the top / bottom / left / right buttons, a popover will appear in the corresponding position against the reference element.</p>
+<cami-popover></cami-popover>
 <style>
+  h1, p {
+    text-align: center;
+  }
   .popover__backdrop {
     position: fixed;
     top: 0;
@@ -28,14 +33,13 @@
 <script type="module">
   const { html, ReactiveElement } = cami;
 
-  class PopoverElement extends ReactiveElement {
+  class ReactiveModalElement extends ReactiveElement {
     isOpen = false;
     lastFocusedElement = null;
     focusableElements = [];
-    referenceElement = null;
-    placement = null;
 
-    onConnect() {
+    connectedCallback() {
+    	super.connectedCallback();
       this.addEventListener('keydown', (event) => {
         const preventDefault = () => { event.preventDefault(); return true; };
         const isEscape = event.key === 'Escape';
@@ -48,10 +52,6 @@
         isTabAtStart && preventDefault() && this.focusableElements[this.focusableElements.length - 1]?.focus();
         isTabAtEnd && preventDefault() && this.focusFirstElement();
       });
-      this._react(); // early render to get referenceElement
-      this.referenceElement = document.querySelector(".referenceElement");
-      this.placement = 'bottom';
-      this.positionPopover();
     }
 
     openDialog() {
@@ -59,6 +59,28 @@
       this.querySelector('dialog').setAttribute('open', '');
       this.lastFocusedElement = document.activeElement;
       this.focusFirstElement();
+    }
+
+    closeDialog() {
+      this.isOpen = false;
+      this.querySelector('dialog').removeAttribute('open');
+      this.lastFocusedElement && this.lastFocusedElement.focus();
+    }
+
+    focusFirstElement() {
+      const dialog = this.querySelector('dialog');
+      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+      const hasFocusables = this.focusableElements.length > 0;
+      hasFocusables && this.focusableElements[0].focus();
+    }
+  }
+
+  class ReactivePopoverElement extends ReactiveModalElement {
+    referenceElement = null;
+    placement = null;
+
+    openDialog() {
+      super.openDialog();
       this.positionPopover();
     }
 
@@ -136,39 +158,40 @@
       popover.style.top = `${position.top + window.scrollY}px`;
       popover.style.left = `${position.left + window.scrollX}px`;
     }
+  }
 
-    closeDialog() {
-      this.isOpen = false;
-      this.querySelector('dialog').removeAttribute('open');
-      this.lastFocusedElement && this.lastFocusedElement.focus();
-    }
+  class DemoPopoverElement extends ReactivePopoverElement {
+  	referenceElement = null
+    placement = null
 
-    focusFirstElement() {
-    	const dialog = this.querySelector('dialog');
-      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
-      const hasFocusables = this.focusableElements.length > 0;
-      hasFocusables && this.focusableElements[0].focus();
+  	onConnect() {
+    	this.render(); // early render because we need the referenceElement to be set
+  	  this.referenceElement = document.querySelector(".referenceElement");
+      this.placement = 'top';
     }
 
     template() {
       return html`
-        <div class="popover__backdrop ${this.isOpen ? '' : 'popover__backdrop--hidden'}" @click=${() => this.closeDialog()}>
           <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
             <article>
-              <h2 id="dialog-title">Hi! I'm a Popover</h2>
-              <label>Add Label Here</label>
-              <input></input>
+              <small id="dialog-title">Hi! I'm a Popover</small>
               <button @click=${() => this.closeDialog()} aria-label="Close Popover">Close</button>
             </article>
           </dialog>
         </div>
-        <button class="referenceElement" style="margin-left: 50px;"
-        @click=${() => this.openDialog()}>Show Popover</button>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 200px;">
+          <button @click=${() => { this.placement = 'top'; this.openDialog(); }}>Top</button>
+          <div style="display: flex; gap: 200px;">
+            <button @click=${() => { this.placement = 'left'; this.openDialog(); }}>Left</button>
+            <button class="referenceElement" style="margin-left: 10px;" disabled>Reference</button>
+            <button @click=${() => { this.placement = 'right'; this.openDialog(); }}>Right</button>
+          </div>
+          <button @click=${() => { this.placement = 'bottom'; this.openDialog(); }}>Bottom</button>
       `;
     }
   }
 
-  customElements.define('cami-popover', PopoverElement);
+  customElements.define('cami-popover', DemoPopoverElement);
 </script>
 
 </body>
