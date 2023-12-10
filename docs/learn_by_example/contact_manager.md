@@ -1,5 +1,7 @@
 # Contact Manager (In-Memory State)
 
+Note: In Mobile Safari, the list of names is hidden and you'll need to click on the select box to see it. This is a known issue with Mobile Safari and is not a bug with Cami. I'll fix this minor issue in a future release.
+
 <iframe width="100%" height="1000" src="//jsfiddle.net/kennyfrc12/p94uz03n/36/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
 ## HTML
