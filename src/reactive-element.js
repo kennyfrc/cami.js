@@ -1,4 +1,4 @@
-import { html, render } from 'lit-html';
+import { html, render as _litRender } from 'lit-html';
 import { produce } from "immer"
 import { Observable } from './observables/observable.js';
 import { ObservableStore } from './observables/observable-store.js';
@@ -567,7 +567,7 @@ class ReactiveElement extends HTMLElement {
    */
   connectedCallback() {
     this._setup({ infer: true });
-    this.effect(() => this._react());
+    this.effect(() => this.render());
     this.onConnect();
   }
 
@@ -963,14 +963,13 @@ class ReactiveElement extends HTMLElement {
   }
 
   /**
-   * @private
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
    * @returns {void}
    */
-  _react() {
+  render() {
     const template = this.template();
-    render(template, this);
+    _litRender(template, this);
   }
 }
 
