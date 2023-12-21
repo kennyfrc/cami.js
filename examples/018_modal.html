@@ -6,7 +6,7 @@
     <title>Application Shell</title>
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-    <style>
+  <style>
     .dialog__backdrop {
       position: fixed;
       top: 0;
@@ -27,15 +27,50 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement, store } = cami;
 
-  class ReactiveModalElement extends ReactiveElement {
+  class DialogElement extends ReactiveElement {
     isOpen = false;
     lastFocusedElement = null;
     focusableElements = [];
 
-    connectedCallback() {
-    	super.connectedCallback();
+    openDialog() {
+			this.isOpen = true;
+      this.querySelector('dialog').setAttribute('open', '');
+      this.lastFocusedElement = document.activeElement;
+      this.focusFirstElement();
+    }
+
+    closeDialog() {
+			this.isOpen = false;
+      this.querySelector('dialog').removeAttribute('open');
+      this.lastFocusedElement && this.lastFocusedElement.focus();
+    }
+
+    focusFirstElement() {
+    	const dialog = this.querySelector('dialog');
+      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+      const hasFocusables = this.focusableElements.length > 0;
+      hasFocusables && this.focusableElements[0].focus();
+    }
+
+    template() {
+      return html`
+        <aside @click=${() => this.closeDialog()} class="dialog__backdrop ${this.isOpen ? '' : 'dialog__backdrop--hidden'}">
+          <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
+            <article>
+              <h2 id="dialog-title">Hi! I'm a Modal</h2>
+              <label>Add Label Here</label>
+              <input></input>
+              <button @click=${() => this.closeDialog()} aria-label="Close Modal">Close</button>
+            </article>
+          </dialog>
+        </aside>
+        <button @click=${() => this.openDialog()}>Show Modal</button>
+      `;
+    }
+
+    onConnect() {
       this.addEventListener('keydown', (event) => {
         const preventDefault = () => { event.preventDefault(); return true; };
         const isEscape = event.key === 'Escape';
@@ -49,45 +84,9 @@
         isTabAtEnd && preventDefault() && this.focusFirstElement();
       });
     }
-
-    openDialog() {
-      this.isOpen = true;
-      this.querySelector('dialog').setAttribute('open', '');
-      this.lastFocusedElement = document.activeElement;
-      this.focusFirstElement();
-    }
-
-    closeDialog() {
-      this.isOpen = false;
-      this.querySelector('dialog').removeAttribute('open');
-      this.lastFocusedElement && this.lastFocusedElement.focus();
-    }
-
-    focusFirstElement() {
-      const dialog = this.querySelector('dialog');
-      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
-      const hasFocusables = this.focusableElements.length > 0;
-      hasFocusables && this.focusableElements[0].focus();
-    }
-
-    template() {
-      return html`
-      	<aside @click=${() => this.closeDialog()} class="dialog__backdrop ${this.isOpen ? '' : 'dialog__backdrop--hidden'}">
-          <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
-            <article>
-              <h2 id="dialog-title">Hi! I'm a Modal</h2>
-              <label>Add Label Here</label>
-              <input></input>
-              <button @click=${() => this.closeDialog()} aria-label="Close Modal">Close</button>
-            </article>
-          </dialog>
-        </aside>
-        <button @click=${() => this.openDialog()}>Show Modal</button>
-      `;
-    }
   }
 
-  customElements.define('cami-modal', ReactiveModalElement);
+  customElements.define('cami-modal', DialogElement);
 </script>
 
 </body>
