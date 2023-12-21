@@ -199,33 +199,25 @@ class ReactiveElement extends HTMLElement {
    * @param {string} key - The key in the store to create an observable for
    * @returns {ObservableProxy} An observable property or proxy for the store key
    */
-  connect(store, key) {
-    if (!(store instanceof ObservableStore)) {
-      throw new TypeError('Expected store to be an instance of ObservableStore');
-    }
+    connect(store, key) {
+      if (!(store instanceof ObservableStore)) {
+        throw new TypeError('Expected store to be an instance of ObservableStore');
+      }
 
-    const observable = this._observable(store.state[key], key);
-    const unsubscribe = store.subscribe(newState => {
-      observable.update(() => newState[key]);
-    });
-    this._unsubscribers.set(key, unsubscribe);
-
-    if (this._isObjectOrArray(observable.value)) {
-      return this._observableProxy(observable);
-    } else {
-      return new Proxy(observable, {
-        get: () => observable.value,
-        set: (target, property, value) => {
-          if (property === 'value') {
-            observable.update(() => value);
-          } else {
-            target[property] = value;
-          }
-          return true;
-        }
+      const observable = this._observable(store.state[key], key);
+      const unsubscribe = store.subscribe(newState => {
+        observable.update(() => newState[key]);
       });
+      this._unsubscribers.set(key, unsubscribe);
+
+      if (this._isObjectOrArray(observable.value)) {
+        this._createObservablePropertyForObjOrArr(this, key, observable);
+        return this[key];
+      } else {
+        this._createObservablePropertyForPrimitive(this, key, observable);
+        return this[key];
+      }
     }
-  }
 
   /**
    * @method
