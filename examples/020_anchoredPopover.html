@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <h1>Anchored Popover</h1>
+<p>An anchored popover relative to any coordinate. In this example, we're usign the mouse position as the reference element.</p>
+<cami-anchored-popover></cami-anchored-popover>
+<style>
+  h1, p {
+    text-align: center;
+  }
+  .popover__backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .popover__backdrop--hidden {
+    display: none;
+  }
+</style>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class ReactiveModalElement extends ReactiveElement {
+    isOpen = false;
+    lastFocusedElement = null;
+    focusableElements = [];
+
+    connectedCallback() {
+    	super.connectedCallback();
+      this.addEventListener('keydown', (event) => {
+        const preventDefault = () => { event.preventDefault(); return true; };
+        const isEscape = event.key === 'Escape';
+        const isTab = event.key === 'Tab';
+        const isShiftTab = isTab && event.shiftKey;
+        const isTabAtStart = isTab && document.activeElement === this.focusableElements[0];
+        const isTabAtEnd = isTab && document.activeElement === this.focusableElements[this.focusableElements.length - 1];
+
+        isEscape && this.closeDialog();
+        isTabAtStart && preventDefault() && this.focusableElements[this.focusableElements.length - 1]?.focus();
+        isTabAtEnd && preventDefault() && this.focusFirstElement();
+      });
+    }
+
+    openDialog() {
+      this.isOpen = true;
+      this.querySelector('dialog').setAttribute('open', '');
+      this.lastFocusedElement = document.activeElement;
+      this.focusFirstElement();
+    }
+
+    closeDialog() {
+      this.isOpen = false;
+      this.querySelector('dialog').removeAttribute('open');
+      this.lastFocusedElement && this.lastFocusedElement.focus();
+    }
+
+    focusFirstElement() {
+      const dialog = this.querySelector('dialog');
+      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+      const hasFocusables = this.focusableElements.length > 0;
+      hasFocusables && this.focusableElements[0].focus();
+    }
+  }
+
+  class ReactivePopoverElement extends ReactiveModalElement {
+    referenceElement = null;
+    placement = null;
+
+    positionPopover() {
+      this.openDialog();
+      this.setPopover();
+    }
+
+    setPopover() {
+      if (!this.referenceElement) return;
+      const rect = this.referenceElement.getBoundingClientRect();
+      let popover = this.querySelector('dialog');
+
+      ['top', 'left', 'right', 'bottom'].forEach((prop) => popover.style[prop] = 'auto');
+
+      let popoverRect = popover.getBoundingClientRect();
+      const placements = {
+        'top-start': { top: rect.top - popoverRect.height, left: rect.left },
+        'top': { top: rect.top - popoverRect.height, left: rect.left + rect.width / 2 - popoverRect.width / 2 },
+        'top-end': { top: rect.top - popoverRect.height, left: rect.right - popoverRect.width },
+               'right-start': { top: rect.top, left: rect.right },
+        'right': { top: rect.top + rect.height / 2 - popoverRect.height / 2, left: rect.right },
+               'right-end': { top: rect.bottom - popoverRect.height, left: rect.right },
+        'bottom-start': { top: rect.bottom, left: rect.left },
+        'bottom': { top: rect.bottom, left: rect.left + rect.width / 2 - popoverRect.width / 2 },
+        'bottom-end': { top: rect.bottom, left: rect.right - popoverRect.width },
+        'left-start': { top: rect.top, left: rect.left - popoverRect.width },
+        'left': { top: rect.top + rect.height / 2 - popoverRect.height / 2, left: rect.left - popoverRect.width },
+        'left-end': { top: rect.bottom - popoverRect.height, left: rect.left - popoverRect.width }
+      };
+
+      const availableSpaceLeft = rect.left;
+      const availableSpaceRight = window.innerWidth - rect.right;
+
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const hasSpaceAbove = spaceAbove >= popoverRect.height;
+
+      // If not enough space above, flip to bottom
+      if (!hasSpaceAbove && spaceBelow >= popoverRect.height) {
+        this.placement = this.placement.replace('top', 'bottom');
+      }
+
+      let position = placements[this.placement];
+
+      // Adjust for viewport overflow
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Flip to the right if it would cover the reference element when placed to the left
+      if (this.placement === 'left' && availableSpaceLeft < popoverRect.width) {
+        this.placement = 'right';
+        position.left = availableSpaceLeft + rect.width;
+      }
+
+      // If flipping to the right causes overflow, adjust the left position
+      if (this.placement === 'right' && availableSpaceRight < popoverRect.width) {
+        position.left = viewportWidth - popoverRect.width * 1.3;
+      }
+
+      // Check for right overflow
+      if (position.left + popoverRect.width > viewportWidth) {
+        position.left = viewportWidth - popoverRect.width;
+      }
+      // Check for bottom overflow
+      if (position.top + popoverRect.height > viewportHeight) {
+        position.top = viewportHeight - popoverRect.height;
+      }
+      // Check for left overflow
+      if (position.left < 0) {
+        position.left = 0;
+      }
+      // Check for top overflow
+      if (position.top < 0) {
+        position.top = 0;
+      }
+
+      // Apply the adjusted position
+      popover.style.position = 'absolute';
+      popover.style.top = `${position.top + window.scrollY}px`;
+      popover.style.left = `${position.left + window.scrollX}px`;
+    }
+  }
+
+  class AnchoredPopover extends ReactivePopoverElement {
+  	referenceElement = null
+    placement = null
+
+    createVirtualElement(x, y) {
+      return {
+        getBoundingClientRect: () => ({
+          width: 0,
+          height: 0,
+          top: y,
+          right: x,
+          bottom: y,
+          left: x,
+          x: x,
+          y: y,
+        }),
+        clientWidth: 0,
+        clientHeight: 0,
+      };
+    }
+
+  	onConnect() {
+    	this.render(); // early render because we need the dialog to be in the DOM
+  	  this.referenceElement = null;
+      this.placement = 'top';
+
+      document.addEventListener('mousemove', (event) => {
+        this.referenceElement = this.createVirtualElement(event.clientX, event.clientY);
+        this.positionPopover();
+      });
+    }
+
+    template() {
+      return html`
+        <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
+          <article>
+            <small id="dialog-title">Hi! I'm pinned to the mouse position</small>
+          </article>
+        </dialog>
+      `;
+    }
+  }
+
+  customElements.define('cami-anchored-popover', AnchoredPopover);
+</script>
+
+</body>
+</html>
