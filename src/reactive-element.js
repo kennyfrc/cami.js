@@ -560,6 +560,7 @@ class ReactiveElement extends HTMLElement {
   connectedCallback() {
     this._setup({ infer: true });
     this.effect(() => this.render());
+    this.render();
     this.onConnect();
   }
 
