@@ -1,12 +1,31 @@
 {
   "name": "cami",
-  "version": "0.3.7",
+  "version": "0.3.8",
+  "author": "Kenn Costales <kenn@askmonolith.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kennyfrc/cami.js.git"
+  },
+  "main": "build/cami.cdn.js",
+  "module": "build/cami.module.js",
+  "devDependencies": {
+    "bun-types": "latest",
+    "concurrently": "^8.2.2",
+    "fetch-mock": "^9.11.0",
+    "nodemon": "^3.0.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/kennyfrc/cami.js/issues"
+  },
   "description": "A minimalist & flexible toolkit for interactive islands & state management in hypermedia-driven web applications.",
   "files": [
     "build"
   ],
-  "license": "MIT",
   "homepage": "https://github.com/kennyfrc/cami",
+  "jsdelivr": "build/cami.cdn.js",
   "keywords": [
     "observable",
     "state",
@@ -22,27 +41,7 @@
     "web components",
     "lit-html"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kennyfrc/cami.js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/kennyfrc/cami.js/issues"
-  },
-  "author": "Kenn Costales <kenn@askmonolith.com>",
-  "devDependencies": {
-    "bun-types": "latest",
-    "concurrently": "^8.2.2",
-    "fetch-mock": "^9.11.0",
-    "nodemon": "^3.0.1"
-  },
-  "main": "build/cami.cdn.js",
-  "module": "build/cami.module.js",
-  "unpkg": "build/cami.cdn.js",
-  "jsdelivr": "build/cami.cdn.js",
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
+  "license": "MIT",
   "scripts": {
     "build": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && esbuild src/cami.js --bundle --target=es2015 --format=iife --global-name=cami --outfile=docs/javascripts/cami.cdn.js && sh build_examples.sh",
     "build:minify": "esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js docs/javascripts/cami.cdn.js && cp build/cami.cdn.js.map docs/javascripts/cami.cdn.js.map && sh build_examples.sh",
@@ -53,9 +52,5 @@
     "dev": "concurrently \"bunx serve\" \"npm run watch\""
   },
   "type": "module",
-  "dependencies": {
-    "goober": "^2.1.13",
-    "immer": "^10.0.3",
-    "lit-html": "^3.0.0"
-  }
+  "unpkg": "build/cami.cdn.js"
 }
