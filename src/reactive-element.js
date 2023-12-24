@@ -1,5 +1,5 @@
-import { html, render as _litRender } from 'lit-html';
-import { produce } from "immer"
+import { html, render as _litRender } from './html.js';
+import { produce } from "./produce.js"
 import { Observable } from './observables/observable.js';
 import { ObservableStore } from './observables/observable-store.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';

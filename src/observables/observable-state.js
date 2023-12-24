@@ -1,6 +1,6 @@
 import { Observable } from './observable.js';
 import { ObservableStream } from './observable-stream.js';
-import { produce } from 'immer';
+import { produce } from '../produce.js';
 import { _config } from '../config.js';
 import { _trace } from '../trace.js';
 

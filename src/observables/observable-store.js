@@ -1,5 +1,5 @@
 import { Observable } from './observable.js';
-import { produce } from "immer";
+import { produce } from "../produce.js";
 
 /**
  * @class ObservableStore

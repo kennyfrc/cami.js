@@ -1,5 +1,6 @@
 /**
  * @license
+ * cami.js
  * Copyright (c) 2023 Kenn Costales
  * MIT License
  */
@@ -7,9 +8,8 @@
 /**
  * @module cami
  */
-import { html, render, svg } from 'lit-html';
-import { css } from 'goober';
-import { produce } from "immer"
+import { html, render, svg } from './html.js';
+import { produce } from "./produce.js"
 import { ReactiveElement } from './reactive-element.js';
 import { ObservableStore, store } from './observables/observable-store.js';
 import { Observable } from './observables/observable.js';
@@ -37,4 +37,4 @@ const { debug, events } = _config;
  * @exports debug - The debug property from _config
  * @exports events - The events property from _config
  */
-export { store, html, svg, css, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events, computed, effect };
+export { store, html, svg, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events, computed, effect };
