@@ -24,9 +24,8 @@ const { debug, events } = _config;
 
 /**
  * @exports store - The store object from observable-store.js. This uses local storage by default.
- * @exports html - The html function from 'lit-html'
- * @exports svg - The svg function from 'lit-html'
- * @exports css - The css function from 'goober'
+ * @exports html - The html function from html.js
+ * @exports svg - The svg function from html.js
  * @exports ReactiveElement - The ReactiveElement class from reactive_element.js
  * @exports ObservableStream - The ObservableStream class from observable-stream.js
  * @exports ObservableElement - The ObservableElement class from observable-element.js
