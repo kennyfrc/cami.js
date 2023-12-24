@@ -2,7 +2,6 @@
  * @license
  * Immer
  * Copyright (c) 2017 Michel Weststrate
- * Slighly modified in Cami for easier debugging
  * MIT License
  */
 // src/utils/env.ts
