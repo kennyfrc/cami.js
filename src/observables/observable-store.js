@@ -26,8 +26,8 @@ class ObservableStore extends Observable {
     }
 
     super(subscriber => {
-      this._subscriber = subscriber;
-      return () => { this._subscriber = null; };
+      this.__subscriber = subscriber;
+      return () => { this.__subscriber = null; };
     });
 
     this.state = new Proxy(initialState, {
@@ -36,7 +36,7 @@ class ObservableStore extends Observable {
       },
       set: (target, property, value) => {
         target[property] = value;
-        this._observers.forEach(observer => observer.next(this.state));
+        this.__observers.forEach(observer => observer.next(this.state));
         if (this.devTools) {
           this.devTools.send(property, this.state);
         }
@@ -46,7 +46,7 @@ class ObservableStore extends Observable {
 
     this.reducers = {};
     this.middlewares = [];
-    this.devTools = this._connectToDevTools();
+    this.devTools = this.__connectToDevTools();
 
     Object.keys(initialState).forEach(key => {
       if (typeof initialState[key] === 'function') {
@@ -65,7 +65,7 @@ class ObservableStore extends Observable {
    * @returns {void}
    * @description This method applies all registered middlewares to the given action and arguments.
    */
-  _applyMiddleware(action, ...args) {
+  __applyMiddleware(action, ...args) {
     const context = {
       state: this.state,
       action,
@@ -83,7 +83,7 @@ class ObservableStore extends Observable {
    * @returns {Object|null} - Returns the devTools object if available, else null
    * @description This method connects the store to the Redux DevTools extension if it is available.
    */
-  _connectToDevTools() {
+  __connectToDevTools() {
     if (typeof window !== 'undefined' && window['__REDUX_DEVTOOLS_EXTENSION__']) {
       const devTools = window['__REDUX_DEVTOOLS_EXTENSION__'].connect();
       devTools.init(this.state);
@@ -162,13 +162,13 @@ class ObservableStore extends Observable {
       return;
     }
 
-    this._applyMiddleware(action, payload);
+    this.__applyMiddleware(action, payload);
 
     this.state = produce(this.state, draft => {
       reducer(draft, payload);
     });
 
-    this._observers.forEach(observer => observer.next(this.state));
+    this.__observers.forEach(observer => observer.next(this.state));
 
     if (this.devTools) {
       this.devTools.send(action, this.state);
@@ -230,7 +230,7 @@ class ObservableStore extends Observable {
 
         store.state = initialState;
 
-        store._observers.forEach(observer => observer.next(store.state));
+        store.__observers.forEach(observer => observer.next(store.state));
       };
 
       store.subscribe((state) => {

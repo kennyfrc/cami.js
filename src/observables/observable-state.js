@@ -1,8 +1,8 @@
 import { Observable } from './observable.js';
 import { ObservableStream } from './observable-stream.js';
 import { produce } from '../produce.js';
-import { _config } from '../config.js';
-import { _trace } from '../trace.js';
+import { __config } from '../config.js';
+import { __trace } from '../trace.js';
 
 /**
  * @private
@@ -37,14 +37,14 @@ class ObservableState extends Observable {
   constructor(initialValue = null, subscriber = null, {last = false, name = null} = {}) {
     super();
     if (last) {
-      this._lastObserver = subscriber;
+      this.__lastObserver = subscriber;
     } else {
-      this._observers.push(subscriber);
+      this.__observers.push(subscriber);
     }
-    this._value = produce(initialValue, draft => {});
-    this._pendingUpdates = [];
-    this._updateScheduled = false;
-    this._name = name;
+    this.__value = produce(initialValue, draft => {});
+    this.__pendingUpdates = [];
+    this.__updateScheduled = false;
+    this.__name = name;
   }
 
   /**
@@ -57,7 +57,7 @@ class ObservableState extends Observable {
     if (DependencyTracker.current != null) {
       DependencyTracker.current.addDependency(this);
     }
-    return this._value;
+    return this.__value;
   }
 
   /**
@@ -79,7 +79,7 @@ class ObservableState extends Observable {
    * observable.assign({ key: 'value' });
    */
   assign(obj) {
-    if (typeof this._value !== 'object' || this._value === null) {
+    if (typeof this.__value !== 'object' || this.__value === null) {
       throw new Error('[Cami.js] Observable value is not an object');
     }
     this.update(value => Object.assign(value, obj));
@@ -95,7 +95,7 @@ class ObservableState extends Observable {
    * observable.set('key.subkey', 'new value');
    */
   set(key, value) {
-    if (typeof this._value !== 'object' || this._value === null) {
+    if (typeof this.__value !== 'object' || this.__value === null) {
       throw new Error('[Cami.js] Observable value is not an object');
     }
     this.update(state => {
@@ -117,7 +117,7 @@ class ObservableState extends Observable {
    * observable.delete('key.subkey');
    */
   delete(key) {
-    if (typeof this._value !== 'object' || this._value === null) {
+    if (typeof this.__value !== 'object' || this.__value === null) {
       throw new Error('[Cami.js] Observable value is not an object');
     }
     this.update(state => {
@@ -148,7 +148,7 @@ class ObservableState extends Observable {
    * observable.push(1, 2, 3);
    */
   push(...elements) {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(value => {
@@ -163,7 +163,7 @@ class ObservableState extends Observable {
    * observable.pop();
    */
   pop() {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(value => {
@@ -178,7 +178,7 @@ class ObservableState extends Observable {
    * observable.shift();
    */
   shift() {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(value => {
@@ -196,7 +196,7 @@ class ObservableState extends Observable {
    * observable.splice(0, 1, 'newElement');
    */
   splice(start, deleteCount, ...items) {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(arr => {
@@ -212,7 +212,7 @@ class ObservableState extends Observable {
    * observable.unshift('newElement');
    */
   unshift(...elements) {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(value => {
@@ -227,7 +227,7 @@ class ObservableState extends Observable {
    * observable.reverse();
    */
   reverse() {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(value => {
@@ -243,7 +243,7 @@ class ObservableState extends Observable {
    * observable.sort((a, b) => a - b);
    */
   sort(compareFunction) {
-    if (!Array.isArray(this._value)) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(value => {
@@ -256,12 +256,12 @@ class ObservableState extends Observable {
    * @description Changes all elements in the observable's value to a static value
    * @param {any} value - The value to fill the array with
    * @param {number} [start=0] - The index to start filling at
-   * @param {number} [end=this._value.length] - The index to stop filling at
+   * @param {number} [end=this.__value.length] - The index to stop filling at
    * @example
    * observable.fill('newElement', 0, 2);
    */
-  fill(value, start = 0, end = this._value.length) {
-    if (!Array.isArray(this._value)) {
+  fill(value, start = 0, end = this.__value.length) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(arr => {
@@ -274,12 +274,12 @@ class ObservableState extends Observable {
    * @description Shallow copies part of the observable's value to another location in the same array
    * @param {number} target - The index to copy the elements to
    * @param {number} start - The start index to begin copying elements from
-   * @param {number} [end=this._value.length] - The end index to stop copying elements from
+   * @param {number} [end=this.__value.length] - The end index to stop copying elements from
    * @example
    * observable.copyWithin(0, 1, 2);
    */
-  copyWithin(target, start, end = this._value.length) {
-    if (!Array.isArray(this._value)) {
+  copyWithin(target, start, end = this.__value.length) {
+    if (!Array.isArray(this.__value)) {
       throw new Error('[Cami.js] Observable value is not an array');
     }
     this.update(arr => {
@@ -297,14 +297,14 @@ class ObservableState extends Observable {
    * observable.update(value => value + 1);
    */
   update(updater) {
-    this._pendingUpdates.push(updater);
-    this._scheduleupdate();
+    this.__pendingUpdates.push(updater);
+    this.__scheduleupdate();
   }
 
-  _scheduleupdate() {
-    if (!this._updateScheduled) {
-      this._updateScheduled = true;
-      this._applyUpdates();
+  __scheduleupdate() {
+    if (!this.__updateScheduled) {
+      this.__updateScheduled = true;
+      this.__applyUpdates();
     }
   }
 
@@ -317,13 +317,13 @@ class ObservableState extends Observable {
    * If the observer is a function, it is called directly.
    * If the observer is an object with a 'next' method, the 'next' method is called.
    */
-  _notifyObservers() {
-    const observersWithLast = [...this._observers, this._lastObserver];
+  __notifyObservers() {
+    const observersWithLast = [...this.__observers, this.__lastObserver];
     observersWithLast.forEach(observer => {
       if (observer && typeof observer === 'function') {
-        observer(this._value);
+        observer(this.__value);
       } else if (observer && observer.next) {
-        observer.next(this._value);
+        observer.next(this.__value);
       }
     });
   }
@@ -334,33 +334,33 @@ class ObservableState extends Observable {
    * @description This method applies all the pending updates to the value.
    * It then notifies all the observers with the updated value.
    */
-  _applyUpdates() {
-    let oldValue = this._value;
-    while (this._pendingUpdates.length > 0) {
-      const updater = this._pendingUpdates.shift();
-      if ((typeof this._value === 'object' && this._value !== null && this._value.constructor === Object) || Array.isArray(this._value)) {
-        this._value = produce(this._value, updater);
+  __applyUpdates() {
+    let oldValue = this.__value;
+    while (this.__pendingUpdates.length > 0) {
+      const updater = this.__pendingUpdates.shift();
+      if ((typeof this.__value === 'object' && this.__value !== null && this.__value.constructor === Object) || Array.isArray(this.__value)) {
+        this.__value = produce(this.__value, updater);
       } else {
-        this._value = updater(this._value);
+        this.__value = updater(this.__value);
       }
     }
-    if (oldValue !== this._value) {
-      this._notifyObservers();
+    if (oldValue !== this.__value) {
+      this.__notifyObservers();
 
-      if (_config.events.isEnabled && typeof window !== 'undefined') {
+      if (__config.events.isEnabled && typeof window !== 'undefined') {
         const event = new CustomEvent('cami:state:change', {
           detail: {
-            name: this._name,
+            name: this.__name,
             oldValue: oldValue,
-            newValue: this._value
+            newValue: this.__value
           }
         });
         window.dispatchEvent(event);
       }
 
-      _trace('cami:state:change', this._name, oldValue, this._value);
+      __trace('cami:state:change', this.__name, oldValue, this.__value);
     }
-    this._updateScheduled = false;
+    this.__updateScheduled = false;
   }
 
   /**
@@ -387,7 +387,7 @@ class ObservableState extends Observable {
    * observable.complete();
    */
   complete() {
-    this._observers.forEach(observer => {
+    this.__observers.forEach(observer => {
       if (observer && typeof observer.complete === 'function') {
         observer.complete();
       }
@@ -412,7 +412,7 @@ class ComputedState extends ObservableState {
     this.computeFn = computeFn;
     this.dependencies = new Set();
     this.subscriptions = new Map();
-    this._compute();
+    this.__compute();
   }
 
   /**
@@ -425,7 +425,7 @@ class ComputedState extends ObservableState {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
-    return this._value;
+    return this.__value;
   }
 
   /**
@@ -433,7 +433,7 @@ class ComputedState extends ObservableState {
    * @method
    * @description Computes the new value of the observable and notifies observers if it has changed
    */
-  _compute() {
+  __compute() {
     /**
      * @description The tracker object is used to manage dependencies between observables.
      * It has a method 'addDependency' which takes an observable as an argument.
@@ -445,7 +445,7 @@ class ComputedState extends ObservableState {
     const tracker = {
       addDependency: (observable) => {
         if (!this.dependencies.has(observable)) {
-          const subscription = observable.onValue(() => this._compute());
+          const subscription = observable.onValue(() => this.__compute());
           this.dependencies.add(observable);
           this.subscriptions.set(observable, subscription);
         }
@@ -464,9 +464,9 @@ class ComputedState extends ObservableState {
     const newValue = this.computeFn();
     DependencyTracker.current = null;
 
-    if (newValue !== this._value) {
-      this._value = newValue;
-      this._notifyObservers();
+    if (newValue !== this.__value) {
+      this.__value = newValue;
+      this.__notifyObservers();
     }
   }
 

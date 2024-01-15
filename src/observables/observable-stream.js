@@ -664,40 +664,40 @@ class ObservableStream extends Observable {
   push(value) {
     if (value instanceof Observable) {
       const subscription = value.subscribe({
-        next: v => this._observers.forEach(observer => observer.next(v)),
-        error: err => this._observers.forEach(observer => observer.error(err)),
-        complete: () => this._observers.forEach(observer => observer.complete()),
+        next: v => this.__observers.forEach(observer => observer.next(v)),
+        error: err => this.__observers.forEach(observer => observer.error(err)),
+        complete: () => this.__observers.forEach(observer => observer.complete()),
       });
     } else if (value[Symbol.asyncIterator]) {
       (async () => {
         try {
           for await (const v of value) {
-            this._observers.forEach(observer => observer.next(v));
+            this.__observers.forEach(observer => observer.next(v));
           }
-          this._observers.forEach(observer => observer.complete());
+          this.__observers.forEach(observer => observer.complete());
         } catch (err) {
-          this._observers.forEach(observer => observer.error(err));
+          this.__observers.forEach(observer => observer.error(err));
         }
       })();
     } else if (value[Symbol.iterator]) {
       try {
         for (const v of value) {
-          this._observers.forEach(observer => observer.next(v));
+          this.__observers.forEach(observer => observer.next(v));
         }
-        this._observers.forEach(observer => observer.complete());
+        this.__observers.forEach(observer => observer.complete());
       } catch (err) {
-        this._observers.forEach(observer => observer.error(err));
+        this.__observers.forEach(observer => observer.error(err));
       }
     } else if (value instanceof Promise) {
       value.then(
         v => {
-          this._observers.forEach(observer => observer.next(v));
-          this._observers.forEach(observer => observer.complete());
+          this.__observers.forEach(observer => observer.next(v));
+          this.__observers.forEach(observer => observer.complete());
         },
-        err => this._observers.forEach(observer => observer.error(err))
+        err => this.__observers.forEach(observer => observer.error(err))
       );
     } else {
-      this._observers.forEach(observer => observer.next(value));
+      this.__observers.forEach(observer => observer.next(value));
     }
   }
 
@@ -722,8 +722,8 @@ class ObservableStream extends Observable {
   plug(stream) {
     stream.subscribe({
       next: value => this.push(value),
-      error: err => this._observers.forEach(observer => observer.error(err)),
-      complete: () => this._observers.forEach(observer => observer.complete()),
+      error: err => this.__observers.forEach(observer => observer.error(err)),
+      complete: () => this.__observers.forEach(observer => observer.complete()),
     });
   }
 
@@ -744,7 +744,7 @@ class ObservableStream extends Observable {
    * }); // Logs each number from 0 to 9, then logs 'Stream completed'
    */
   end() {
-    this._observers.forEach(observer => {
+    this.__observers.forEach(observer => {
       if (observer && typeof observer.complete === 'function') {
         observer.complete();
       }

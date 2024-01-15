@@ -118,7 +118,7 @@ class Observable {
    * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes.
    */
   constructor(subscribeCallback = () => () => {}) {
-    this._observers = [];
+    this.__observers = [];
     this.subscribeCallback = subscribeCallback;
   }
 
@@ -167,7 +167,7 @@ class Observable {
     }
 
     subscriber.addTeardown(teardown);
-    this._observers.push(subscriber);
+    this.__observers.push(subscriber);
 
     return {
       unsubscribe: () => subscriber.unsubscribe(),
@@ -185,7 +185,7 @@ class Observable {
    * observable.next('Hello, world!');
    */
   next(value) {
-    this._observers.forEach(observer => {
+    this.__observers.forEach(observer => {
       observer.next(value);
     });
   }
@@ -199,7 +199,7 @@ class Observable {
    * observable.error(new Error('Something went wrong'));
    */
   error(error) {
-    this._observers.forEach(observer => {
+    this.__observers.forEach(observer => {
       observer.error(error);
     });
   }
@@ -212,7 +212,7 @@ class Observable {
    * observable.complete();
    */
   complete() {
-    this._observers.forEach(observer => {
+    this.__observers.forEach(observer => {
       observer.complete();
     });
   }

@@ -16,11 +16,11 @@ import { Observable } from './observables/observable.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
 import { ObservableElement } from './observables/observable-element.js';
-import { _config } from './config.js';
-import { _trace } from './trace.js';
+import { __config } from './config.js';
+import { __trace } from './trace.js';
 import { http } from './http.js';
 
-const { debug, events } = _config;
+const { debug, events } = __config;
 
 /**
  * @exports store - The store object from observable-store.js. This uses local storage by default.
@@ -33,7 +33,7 @@ const { debug, events } = _config;
  * @exports ObservableState - The ObservableState class from observable-state.js
  * @exports ObservableStore - The ObservableStore class from observable-store.js
  * @exports http - The http function from http.js
- * @exports debug - The debug property from _config
- * @exports events - The events property from _config
+ * @exports debug - The debug property from __config
+ * @exports events - The events property from __config
  */
 export { store, html, svg, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events, computed, effect };

@@ -13,7 +13,7 @@ import { ObservableStream } from './observables/observable-stream.js';
  * @description A class that extends ObservableStream and provides additional methods for handling HTTP requests.
  */
 class HTTPStream extends ObservableStream {
-  _handlers = {};
+  __handlers = {};
 
   /**
    * @method toJson
@@ -54,10 +54,10 @@ class HTTPStream extends ObservableStream {
    * @returns {HTTPStream} The HTTPStream instance.
    */
   on(event, handler) {
-    if (!this._handlers[event]) {
-      this._handlers[event] = [];
+    if (!this.__handlers[event]) {
+      this.__handlers[event] = [];
     }
-    this._handlers[event].push(handler);
+    this.__handlers[event].push(handler);
     return this;
   }
 }
@@ -217,8 +217,8 @@ http.sse = (url, config = {}) => {
     const source = new EventSource(url, config);
 
     source.onmessage = (event) => {
-      if (stream._handlers[event.type]) {
-        stream._handlers[event.type].forEach(handler => handler(event));
+      if (stream.__handlers[event.type]) {
+        stream.__handlers[event.type].forEach(handler => handler(event));
       }
       observer.next(event);
     };

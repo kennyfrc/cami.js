@@ -1,10 +1,10 @@
-import { html, render as _litRender } from './html.js';
+import { html, render as __litRender } from './html.js';
 import { produce } from "./produce.js"
 import { Observable } from './observables/observable.js';
 import { ObservableStore } from './observables/observable-store.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
-import { _trace } from './trace.js';
+import { __trace } from './trace.js';
 
 /**
  * @typedef ObservableProperty
@@ -111,10 +111,10 @@ class ReactiveElement extends HTMLElement {
   constructor() {
     super();
     this.onCreate();
-    this._unsubscribers = new Map();
-    this._computed = computed.bind(this);
+    this.__unsubscribers = new Map();
+    this.__computed = computed.bind(this);
     this.effect = effect.bind(this);
-    this._queryFunctions = new Map();
+    this.__queryFunctions = new Map();
   }
 
   /**
@@ -136,11 +136,11 @@ class ReactiveElement extends HTMLElement {
       attrValue = produce(attrValue, transformFn);
 
       // Create an ObservableProperty or ObservableProxy for the attribute
-      const observable = this._observable(attrValue, attrName);
-      if (this._isObjectOrArray(observable.value)) {
-        this._createObservablePropertyForObjOrArr(this, attrName, observable, true);
+      const observable = this.__observable(attrValue, attrName);
+      if (this.__isObjectOrArray(observable.value)) {
+        this.__createObservablePropertyForObjOrArr(this, attrName, observable, true);
       } else {
-        this._createObservablePropertyForPrimitive(this, attrName, observable, true);
+        this.__createObservablePropertyForPrimitive(this, attrName, observable, true);
       }
     });
   }
@@ -153,16 +153,16 @@ class ReactiveElement extends HTMLElement {
    *
    * @example
    * // Assuming `this.count` is an observable
-   * const countSquared = this._computed(() => this.count * this.count);
+   * const countSquared = this.__computed(() => this.count * this.count);
    * // `countSquared` will automatically update when `this.count` changes
    *
    * @param {Function} computeFn - The function to compute the state
    * @returns {ObservableState} The computed observable state
    */
-  _computed(computeFn) {
+  __computed(computeFn) {
     const observableState = super._computed(computeFn);
     console.log(observableState);
-    this._registerObservables(observableState);
+    this.__registerObservables(observableState);
     return observableState;
   }
 
@@ -182,7 +182,7 @@ class ReactiveElement extends HTMLElement {
    */
   effect(effectFn) {
     const dispose = super.effect(effectFn);
-    this._unsubscribers.set(effectFn, dispose);
+    this.__unsubscribers.set(effectFn, dispose);
   }
 
   /**
@@ -204,17 +204,17 @@ class ReactiveElement extends HTMLElement {
         throw new TypeError('Expected store to be an instance of ObservableStore');
       }
 
-      const observable = this._observable(store.state[key], key);
+      const observable = this.__observable(store.state[key], key);
       const unsubscribe = store.subscribe(newState => {
         observable.update(() => newState[key]);
       });
-      this._unsubscribers.set(key, unsubscribe);
+      this.__unsubscribers.set(key, unsubscribe);
 
-      if (this._isObjectOrArray(observable.value)) {
-        this._createObservablePropertyForObjOrArr(this, key, observable);
+      if (this.__isObjectOrArray(observable.value)) {
+        this.__createObservablePropertyForObjOrArr(this, key, observable);
         return this[key];
       } else {
-        this._createObservablePropertyForPrimitive(this, key, observable);
+        this.__createObservablePropertyForPrimitive(this, key, observable);
         return this[key];
       }
     }
@@ -282,11 +282,11 @@ class ReactiveElement extends HTMLElement {
     const key = Array.isArray(queryKey)
     ? queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k).join(':')
     : queryKey;
-    this._queryFunctions.set(key, queryFn);
+    this.__queryFunctions.set(key, queryFn);
 
-    _trace('query', 'Starting query with key:', key);
+    __trace('query', 'Starting query with key:', key);
 
-    const queryState = this._observable({
+    const queryState = this.__observable({
       data: null,
       status: 'pending',
       fetchStatus: 'idle',
@@ -294,21 +294,21 @@ class ReactiveElement extends HTMLElement {
       lastUpdated: QueryCache.has(key) ? QueryCache.get(key).lastUpdated : null
     }, key);
 
-    const queryProxy = this._observableProxy(queryState);
+    const queryProxy = this.__observableProxy(queryState);
 
     const fetchData = async (attempt = 0) => {
       const now = Date.now();
       const cacheEntry = QueryCache.get(key);
 
       if (cacheEntry && (now - cacheEntry.lastUpdated) < staleTime) {
-        _trace('fetchData (if)', 'Using cached data for key:', key);
+        __trace('fetchData (if)', 'Using cached data for key:', key);
         queryState.update(state => {
           state.data = cacheEntry.data;
           state.status = 'success';
           state.fetchStatus = 'idle';
         });
       } else {
-        _trace('fetchData (else)', 'Fetching data for key:', key);
+        __trace('fetchData (else)', 'Fetching data for key:', key);
         try {
           queryState.update(state => {
             state.status = 'pending';
@@ -322,7 +322,7 @@ class ReactiveElement extends HTMLElement {
             state.fetchStatus = 'idle';
           });
         } catch (error) {
-          _trace('fetchData (catch)', 'Fetch error for key:', key, error);
+          __trace('fetchData (catch)', 'Fetch error for key:', key, error);
           if (attempt < retry) {
             setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
           } else {
@@ -338,37 +338,37 @@ class ReactiveElement extends HTMLElement {
 
     // Refetch data when new instances of the query mount
     if (refetchOnMount) {
-      _trace('query', 'Setting up refetch on mount for key:', key);
+      __trace('query', 'Setting up refetch on mount for key:', key);
       fetchData();
     }
 
     // Refetch data when window is refocused
     if (refetchOnWindowFocus) {
-      _trace('query', 'Setting up refetch on window focus for key:', key);
+      __trace('query', 'Setting up refetch on window focus for key:', key);
       const refetchOnFocus = () => fetchData();
       window.addEventListener('focus', refetchOnFocus);
-      this._unsubscribers.set(`focus:${key}`, () => window.removeEventListener('focus', refetchOnFocus));
+      this.__unsubscribers.set(`focus:${key}`, () => window.removeEventListener('focus', refetchOnFocus));
     }
 
     // Refetch data when network is reconnected
     if (refetchOnReconnect) {
-      _trace('query', 'Setting up refetch on reconnect for key:', key);
+      __trace('query', 'Setting up refetch on reconnect for key:', key);
       window.addEventListener('online', fetchData);
-      this._unsubscribers.set(`online:${key}`, () => window.removeEventListener('online', fetchData));
+      this.__unsubscribers.set(`online:${key}`, () => window.removeEventListener('online', fetchData));
     }
 
     // Refetch data at a specific interval
     if (refetchInterval) {
-      _trace('query', 'Setting up refetch interval for key:', key);
+      __trace('query', 'Setting up refetch interval for key:', key);
       const intervalId = setInterval(fetchData, refetchInterval);
-      this._unsubscribers.set(`interval:${key}`, () => clearInterval(intervalId));
+      this.__unsubscribers.set(`interval:${key}`, () => clearInterval(intervalId));
     }
 
     // Garbage collect data after gcTime
     const gcTimeout = setTimeout(() => {
       QueryCache.delete(key);
     }, gcTime);
-    this._unsubscribers.set(`gc:${key}`, () => clearTimeout(gcTimeout));
+    this.__unsubscribers.set(`gc:${key}`, () => clearTimeout(gcTimeout));
 
     return queryProxy;
   }
@@ -413,22 +413,22 @@ class ReactiveElement extends HTMLElement {
    * @returns {ObservableProxy} A proxy that contains the state of the mutation.
    */
   mutation({ mutationFn, onMutate, onError, onSuccess, onSettled }) {
-    const mutationState = this._observable({
+    const mutationState = this.__observable({
       data: null,
       status: 'idle',
       error: null,
       isSettled: false
     }, 'mutation');
 
-    const mutationProxy = this._observableProxy(mutationState);
+    const mutationProxy = this.__observableProxy(mutationState);
 
     const performMutation = async (variables) => {
-      _trace('mutation', 'Starting mutation for variables:', variables);
+      __trace('mutation', 'Starting mutation for variables:', variables);
       let context;
       const previousState = mutationState.value;
 
       if (onMutate) {
-        _trace('mutation', 'Performing optimistic update for variables:', variables);
+        __trace('mutation', 'Performing optimistic update for variables:', variables);
         context = onMutate(variables, previousState);
         mutationState.update(state => {
           state.data = context.optimisticData;
@@ -436,7 +436,7 @@ class ReactiveElement extends HTMLElement {
           state.error = null;
         });
       } else {
-        _trace('mutation', 'Performing mutation without optimistic update for variables:', variables);
+        __trace('mutation', 'Performing mutation without optimistic update for variables:', variables);
         mutationState.update(state => {
           state.status = 'pending';
           state.error = null;
@@ -452,14 +452,14 @@ class ReactiveElement extends HTMLElement {
         if (onSuccess) {
           onSuccess(data, variables, context);
         }
-        _trace('mutation', 'Mutation successful for variables:', variables, data);
+        __trace('mutation', 'Mutation successful for variables:', variables, data);
       } catch (error) {
-        _trace('mutation', 'Mutation error for variables:', variables, error);
+        __trace('mutation', 'Mutation error for variables:', variables, error);
         mutationState.update(state => {
           state.error = { message: error.message };
           state.status = 'error';
           if (!onError && context && context.rollback) {
-            _trace('mutation', 'Rolling back mutation for variables:', variables);
+            __trace('mutation', 'Rolling back mutation for variables:', variables);
             context.rollback();
           }
         });
@@ -472,7 +472,7 @@ class ReactiveElement extends HTMLElement {
             state.isSettled = true
           });
           if (onSettled) {
-            _trace('mutation', 'Calling onSettled for variables:', variables);
+            __trace('mutation', 'Calling onSettled for variables:', variables);
             onSettled(mutationState.value.data, mutationState.value.error, variables, context);
           }
         }
@@ -513,11 +513,11 @@ class ReactiveElement extends HTMLElement {
   invalidateQueries(queryKey) {
     // Convert the queryKey to a string if it's an array for consistency with the cache keys
     const key = Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
-    _trace('invalidateQueries', 'Invalidating query with key:', key);
+    __trace('invalidateQueries', 'Invalidating query with key:', key);
 
     QueryCache.delete(key);
 
-    this._refetchQuery(key);
+    this.__refetchQuery(key);
   }
 
   /**
@@ -558,7 +558,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   connectedCallback() {
-    this._setup({ infer: true });
+    this.__setup({ infer: true });
     this.effect(() => this.render());
     this.render();
     this.onConnect();
@@ -595,7 +595,7 @@ class ReactiveElement extends HTMLElement {
    */
   disconnectedCallback() {
     this.onDisconnect();
-    this._unsubscribers.forEach(unsubscribe => unsubscribe());
+    this.__unsubscribers.forEach(unsubscribe => unsubscribe());
   }
 
   /**
@@ -693,7 +693,7 @@ class ReactiveElement extends HTMLElement {
    * @param {any} value - The value to check.
    * @returns {boolean} True if the value is an object or an array, false otherwise.
    */
-  _isObjectOrArray(value) {
+  __isObjectOrArray(value) {
     return value !== null && (typeof value === 'object' || Array.isArray(value));
   }
 
@@ -708,12 +708,12 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  _createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
+  __createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError('Expected observable to be an instance of ObservableState');
     }
 
-    const proxy = this._observableProxy(observable);
+    const proxy = this.__observableProxy(observable);
     Object.defineProperty(context, key, {
       get: () => proxy,
       set: newValue => {
@@ -741,7 +741,7 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  _createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
+  __createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError('Expected observable to be an instance of ObservableState');
     }
@@ -765,7 +765,7 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {ObservableProxy} The created proxy.
    */
-  _observableProxy(observable) {
+  __observableProxy(observable) {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError('Expected observable to be an instance of ObservableState');
     }
@@ -810,18 +810,18 @@ class ReactiveElement extends HTMLElement {
    * @param {Object} config - The configuration object.
    * @returns {void}
    */
-  _setup(config) {
+  __setup(config) {
     if (config.infer === true) {
       Object.keys(this).forEach(key => {
-        if (typeof this[key] !== 'function' && !key.startsWith('_')) {
+        if (typeof this[key] !== 'function' && !key.startsWith('__')) {
           if (this[key] instanceof Observable) {
             return;
           } else {
-            const observable = this._observable(this[key], key);
-            if (this._isObjectOrArray(observable.value)) {
-              this._createObservablePropertyForObjOrArr(this, key, observable);
+            const observable = this.__observable(this[key], key);
+            if (this.__isObjectOrArray(observable.value)) {
+              this.__createObservablePropertyForObjOrArr(this, key, observable);
             } else {
-              this._createObservablePropertyForPrimitive(this, key, observable);
+              this.__createObservablePropertyForPrimitive(this, key, observable);
             }
           }
         }
@@ -838,15 +838,15 @@ class ReactiveElement extends HTMLElement {
    * @throws {Error} If the type of initialValue is not allowed in observables.
    * @returns {ObservableState} The created observable state.
    */
-  _observable(initialValue, name = null) {
-    if (!this._isAllowedType(initialValue)) {
+  __observable(initialValue, name = null) {
+    if (!this.__isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
       throw new Error(`[Cami.js] The type ${type} of initialValue is not allowed in observables.`);
     }
 
     const observable = new ObservableState(initialValue);
 
-    this._registerObservables(observable);
+    this.__registerObservables(observable);
     return observable;
   }
 
@@ -857,12 +857,12 @@ class ReactiveElement extends HTMLElement {
    * @param {string} key - The key for the query to refetch.
    * @returns {void}
    */
-  _refetchQuery(key) {
-    _trace('_refetchQuery', 'Refetching query with key:', key);
-    const queryFn = this._queryFunctions.get(key);
+  __refetchQuery(key) {
+    __trace('_refetchQuery', 'Refetching query with key:', key);
+    const queryFn = this.__queryFunctions.get(key);
 
     if (queryFn) {
-      _trace('_refetchQuery', 'Found query function for key:', key);
+      __trace('_refetchQuery', 'Found query function for key:', key);
       // Snapshot the previous state before the optimistic update
       const previousState = QueryCache.get(key) || { data: undefined, status: 'idle', error: null };
 
@@ -881,10 +881,10 @@ class ReactiveElement extends HTMLElement {
           error: null,
           lastUpdated: Date.now(),
         });
-        _trace('_refetchQuery', 'Refetch successful for key:', key, data);
+        __trace('_refetchQuery', 'Refetch successful for key:', key, data);
       }).catch(error => {
         if (previousState.data !== undefined) {
-          _trace('_refetchQuery', 'Rolling back refetch for key:', key);
+          __trace('_refetchQuery', 'Rolling back refetch for key:', key);
           QueryCache.set(key, previousState);
         }
 
@@ -895,7 +895,7 @@ class ReactiveElement extends HTMLElement {
         });
       }).finally(() => {
         this.query({ queryKey: key, queryFn: queryFn });
-        _trace('_refetchQuery', 'Refetch complete for key:', key);
+        __trace('_refetchQuery', 'Refetch complete for key:', key);
       });
     }
   }
@@ -907,12 +907,12 @@ class ReactiveElement extends HTMLElement {
    * @param {any} value - The value to check
    * @returns {boolean} True if the value is of an allowed type, false otherwise
    */
-  _isAllowedType(value) {
+  __isAllowedType(value) {
     const allowedTypes = ['number', 'string', 'boolean', 'object', 'undefined'];
     const valueType = typeof value;
 
     if (valueType === 'object') {
-      return value === null || Array.isArray(value) || this._isPlainObject(value);
+      return value === null || Array.isArray(value) || this.__isPlainObject(value);
     }
 
     return allowedTypes.includes(valueType);
@@ -925,7 +925,7 @@ class ReactiveElement extends HTMLElement {
    * @param {any} value - The value to check
    * @returns {boolean} True if the value is a plain object, false otherwise
    */
-  _isPlainObject(value) {
+  __isPlainObject(value) {
     if (Object.prototype.toString.call(value) !== '[object Object]') {
       return false;
     }
@@ -942,13 +942,13 @@ class ReactiveElement extends HTMLElement {
    * @param {ObservableState} observableState - The observable state to register
    * @returns {void}
    */
-  _registerObservables(observableState) {
+  __registerObservables(observableState) {
     if (!(observableState instanceof ObservableState)) {
       throw new TypeError('Expected observableState to be an instance of ObservableState');
     }
 
     // Only computeds and effects have a dispose method
-    this._unsubscribers.set(observableState, () => {
+    this.__unsubscribers.set(observableState, () => {
      if (typeof observableState.dispose === 'function') {
        observableState.dispose();
      }
@@ -962,7 +962,7 @@ class ReactiveElement extends HTMLElement {
    */
   render() {
     const template = this.template();
-    _litRender(template, this);
+    __litRender(template, this);
   }
 }
 

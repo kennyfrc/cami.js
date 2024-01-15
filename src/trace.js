@@ -1,4 +1,4 @@
-import { _config } from './config.js';
+import { __config } from './config.js';
 
 /**
  * @private
@@ -9,10 +9,10 @@ import { _config } from './config.js';
  * @param {...any} messages - Additional messages to log in the console.
  *
  * @example
- * _trace('myFunction', 'This is a test message');
+ * __trace('myFunction', 'This is a test message');
  */
-function _trace(functionName, ...messages) {
-  if (_config.debug.isEnabled) {
+function __trace(functionName, ...messages) {
+  if (__config.debug.isEnabled) {
     if (functionName === 'cami:state:change') {
       console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', `${messages[0]} changed`);
       console.log(`oldValue:`, messages[1]);
@@ -26,4 +26,4 @@ function _trace(functionName, ...messages) {
   }
 }
 
-export { _trace };
+export { __trace };
