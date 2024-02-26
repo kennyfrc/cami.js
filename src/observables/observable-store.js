@@ -196,6 +196,38 @@ class ObservableStore extends Observable {
  * storeWithLocalStorage.reset();
  * ```
  */
+
+  const _deepMerge = function(target, source) {
+    if (typeof target !== 'object' || target === null) {
+      return source;
+    }
+
+    Object.keys(source).forEach(key => {
+      const targetValue = target[key];
+      const sourceValue = source[key];
+
+      if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+        // For arrays, you might want to replace the target array with the source array
+        // to prioritize the loadedState. Alternatively, you could concatenate them as shown here.
+        target[key] = [...targetValue, ...sourceValue];
+      } else if (typeof targetValue === 'object' && targetValue !== null && typeof sourceValue === 'object' && sourceValue !== null) {
+        // When both values are objects, merge them recursively
+        target[key] = _deepMerge({ ...targetValue }, sourceValue);
+      } else {
+        // If there's a conflict (or the key exists only in source), prioritize the source value
+        target[key] = sourceValue;
+      }
+    });
+
+    Object.keys(target).forEach(key => {
+      if (!source.hasOwnProperty(key)) {
+        target[key] = target[key];
+      }
+    });
+
+    return target;
+  };
+
   const _localStorageEnhancer = (StoreClass) => {
     return (initialState, options) => {
       const storeName = options?.name || 'default-store';
@@ -213,7 +245,8 @@ class ObservableStore extends Observable {
           if (storedState && storedExpiry) {
             const isExpired = currentTime >= parseInt(storedExpiry, 10);
             if (!isExpired) {
-              store.state = JSON.parse(storedState);
+              const loadedState = JSON.parse(storedState);
+              store.state = _deepMerge(initialState, loadedState);
             } else {
               localStorage.removeItem(storeName);
               localStorage.removeItem(`${storeName}-expiry`);
