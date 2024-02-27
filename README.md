@@ -2,7 +2,7 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.3.10.
+Current version: 0.3.11.
 
 Bundle Size: 14kb minified & gzipped.
 
