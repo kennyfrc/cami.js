@@ -246,7 +246,7 @@ const addPost = this.mutation({
 <a name="ReactiveElement+invalidateQueries"></a>
 
 ### reactiveElement.invalidateQueries(queryKey) ⇒ <code>void</code>
-Invalidates the queries with the given key, causing them to refetch if needed. This method is particularly useful when used in conjunction with mutations, such as in the `onSettled` callback, to ensure that the UI reflects the latest state.
+Invalidates the queries with the given key by clearing the cache. To reflect the latest state in the UI, one will still need to manually refetch the data after invalidation. This method is particularly useful when used in conjunction with mutations, such as in the `onSettled` callback, to ensure that the UI reflects the latest state.
 
 **Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
 
@@ -260,8 +260,10 @@ Invalidates the queries with the given key, causing them to refetch if needed. T
 this.addPost = this.mutation({
   // ...mutation config...
   onSettled: () => {
-    // Invalidate the posts query to refetch the true state
+    // Invalidate the posts query to clear the cache
     this.invalidateQueries(['posts']);
+    // Manually refetch the posts to update the UI with the true state
+    this.fetchPosts(); // this assumes something like this.posts = this.query({ ... })
   }
 });
 ```
