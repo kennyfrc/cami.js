@@ -2092,7 +2092,7 @@ synchronizing the component's state with a global store.</p>
 </span></code></pre></div>
 <a name="ReactiveElement+invalidateQueries"></a></p>
 <h3 id="reactiveelementinvalidatequeriesquerykey-void">reactiveElement.invalidateQueries(queryKey) ⇒ <code>void</code></h3>
-<p>Invalidates the queries with the given key, causing them to refetch if needed. This method is particularly useful when used in conjunction with mutations, such as in the <code>onSettled</code> callback, to ensure that the UI reflects the latest state.</p>
+<p>Invalidates the queries with the given key by clearing the cache. To reflect the latest state in the UI, one will still need to manually refetch the data after invalidation. This method is particularly useful when used in conjunction with mutations, such as in the <code>onSettled</code> callback, to ensure that the UI reflects the latest state.</p>
 <p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a>  </p>
 <table>
 <thead>
@@ -2115,10 +2115,12 @@ synchronizing the component's state with a global store.</p>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">this</span><span class="p">.</span><span class="nx">addPost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">mutation</span><span class="p">({</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="c1">// ...mutation config...</span>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nx">onSettled</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="c1">// Invalidate the posts query to refetch the true state</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="c1">// Invalidate the posts query to clear the cache</span>
 </span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">invalidateQueries</span><span class="p">([</span><span class="s1">&#39;posts&#39;</span><span class="p">]);</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">});</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="c1">// Manually refetch the posts to update the UI with the true state</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">fetchPosts</span><span class="p">();</span><span class="w"> </span><span class="c1">// this assumes something like this.posts = this.query({ ... })</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="p">});</span>
 </span></code></pre></div>
 <a name="ReactiveElement+onCreate"></a></p>
 <h3 id="reactiveelementoncreate-void">reactiveElement.onCreate() ⇒ <code>void</code></h3>

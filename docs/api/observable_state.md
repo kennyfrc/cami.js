@@ -254,7 +254,7 @@ Changes all elements in the observable's value to a static value
 | --- | --- | --- | --- |
 | value | <code>any</code> |  | The value to fill the array with |
 | [start] | <code>number</code> | <code>0</code> | The index to start filling at |
-| [end] | <code>number</code> | <code>this._value.length</code> | The index to stop filling at |
+| [end] | <code>number</code> | <code>this.__value.length</code> | The index to stop filling at |
 
 **Example**  
 ```js
@@ -271,7 +271,7 @@ Shallow copies part of the observable's value to another location in the same ar
 | --- | --- | --- | --- |
 | target | <code>number</code> |  | The index to copy the elements to |
 | start | <code>number</code> |  | The start index to begin copying elements from |
-| [end] | <code>number</code> | <code>this._value.length</code> | The end index to stop copying elements from |
+| [end] | <code>number</code> | <code>this.__value.length</code> | The end index to stop copying elements from |
 
 **Example**  
 ```js
@@ -556,7 +556,7 @@ Changes all elements in the observable's value to a static value
 | --- | --- | --- | --- |
 | value | <code>any</code> |  | The value to fill the array with |
 | [start] | <code>number</code> | <code>0</code> | The index to start filling at |
-| [end] | <code>number</code> | <code>this._value.length</code> | The index to stop filling at |
+| [end] | <code>number</code> | <code>this.__value.length</code> | The index to stop filling at |
 
 **Example**  
 ```js
@@ -574,7 +574,7 @@ Shallow copies part of the observable's value to another location in the same ar
 | --- | --- | --- | --- |
 | target | <code>number</code> |  | The index to copy the elements to |
 | start | <code>number</code> |  | The start index to begin copying elements from |
-| [end] | <code>number</code> | <code>this._value.length</code> | The end index to stop copying elements from |
+| [end] | <code>number</code> | <code>this.__value.length</code> | The end index to stop copying elements from |
 
 **Example**  
 ```js
