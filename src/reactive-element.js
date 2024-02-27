@@ -495,15 +495,17 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @description Invalidates the queries with the given key, causing them to refetch if needed. This method is particularly useful when used in conjunction with mutations, such as in the `onSettled` callback, to ensure that the UI reflects the latest state.
+   * @description Invalidates the queries with the given key by clearing the cache. To reflect the latest state in the UI, one will still need to manually refetch the data after invalidation. This method is particularly useful when used in conjunction with mutations, such as in the `onSettled` callback, to ensure that the UI reflects the latest state.
    *
    * @example
    * // In a mutation's `onSettled` callback within a `BlogComponent`:
    * this.addPost = this.mutation({
    *   // ...mutation config...
    *   onSettled: () => {
-   *     // Invalidate the posts query to refetch the true state
+   *     // Invalidate the posts query to clear the cache
    *     this.invalidateQueries(['posts']);
+   *     // Manually refetch the posts to update the UI with the true state
+   *     this.fetchPosts(); // this assumes something like this.posts = this.query({ ... })
    *   }
    * });
    *
@@ -517,7 +519,7 @@ class ReactiveElement extends HTMLElement {
 
     QueryCache.delete(key);
 
-    this.__refetchQuery(key);
+    this.__updateCache(key);
   }
 
   /**
@@ -853,16 +855,16 @@ class ReactiveElement extends HTMLElement {
   /**
    * @private
    * @method
-   * Refetches the data for the given query key.
+   * Updates the cache for the given key by refetching the data.
    * @param {string} key - The key for the query to refetch.
    * @returns {void}
    */
-  __refetchQuery(key) {
-    __trace('_refetchQuery', 'Refetching query with key:', key);
+  __updateCache(key) {
+    __trace('__updateCache', 'Invalidating cache with key:', key);
     const queryFn = this.__queryFunctions.get(key);
 
     if (queryFn) {
-      __trace('_refetchQuery', 'Found query function for key:', key);
+      __trace('__updateCache', 'Found query function for key:', key);
       // Snapshot the previous state before the optimistic update
       const previousState = QueryCache.get(key) || { data: undefined, status: 'idle', error: null };
 
@@ -881,10 +883,10 @@ class ReactiveElement extends HTMLElement {
           error: null,
           lastUpdated: Date.now(),
         });
-        __trace('_refetchQuery', 'Refetch successful for key:', key, data);
+        __trace('__updateCache', 'Refetch successful for key:', key, data);
       }).catch(error => {
         if (previousState.data !== undefined) {
-          __trace('_refetchQuery', 'Rolling back refetch for key:', key);
+          __trace('__updateCache', 'Rolling back refetch for key:', key);
           QueryCache.set(key, previousState);
         }
 
@@ -893,9 +895,6 @@ class ReactiveElement extends HTMLElement {
           status: 'error',
           error: error,
         });
-      }).finally(() => {
-        this.query({ queryKey: key, queryFn: queryFn });
-        __trace('_refetchQuery', 'Refetch complete for key:', key);
       });
     }
   }
