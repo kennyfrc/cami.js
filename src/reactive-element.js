@@ -840,13 +840,13 @@ class ReactiveElement extends HTMLElement {
    * @throws {Error} If the type of initialValue is not allowed in observables.
    * @returns {ObservableState} The created observable state.
    */
-  __observable(initialValue, name = null) {
+  __observable(initialValue, _name) {
     if (!this.__isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
       throw new Error(`[Cami.js] The type ${type} of initialValue is not allowed in observables.`);
     }
 
-    const observable = new ObservableState(initialValue);
+    const observable = new ObservableState(initialValue, null, { name: _name });
 
     this.__registerObservables(observable);
     return observable;
