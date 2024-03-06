@@ -47,6 +47,8 @@ class ObservableStore extends Observable {
     this.reducers = {};
     this.middlewares = [];
     this.devTools = this.__connectToDevTools();
+    this.dispatchQueue = [];
+    this.isDispatching = false;
 
     Object.keys(initialState).forEach(key => {
       if (typeof initialState[key] === 'function') {
@@ -136,20 +138,55 @@ class ObservableStore extends Observable {
   }
 
   /**
+   * Dispatches an action or a function to the store, updating its state accordingly.
+   * This method is central to the store's operation, allowing for state changes in response to actions.
+   *
    * @method dispatch
    * @memberof ObservableStore
-   * @param {string|Function} action - The action type or a function
-   * @param {Object} payload - The payload for the action
-   * @throws {Error} - Throws an error if the action type is not a string
-   * @description This method dispatches an action to the store. Useful if you like redux-style actions / flux.
+   * @param {string|Function} action - The action type as a string or a function that performs custom dispatch logic.
+   * @param {Object} payload - The data to be passed along with the action.
+   * @throws {Error} If the action type is not a string when expected.
+   * @description Use this method to dispatch redux-style actions or flux actions, triggering state updates.
    * @example
    * ```javascript
-   * CartStore.dispatch('add', product);
+   * // Dispatching an action with a payload
+   * CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
    * ```
    */
   dispatch(action, payload) {
+    this.dispatchQueue.push({ action, payload });
+    if (!this.isDispatching) {
+      this._processDispatchQueue();
+    }
+  }
+
+  /**
+   * Processes the dispatch queue, executing each action in sequence.
+   * This method ensures that actions are dispatched one at a time, in the order they were called.
+   *
+   * @private
+   */
+  _processDispatchQueue() {
+    while (this.dispatchQueue.length > 0) {
+      const { action, payload } = this.dispatchQueue.shift();
+      this.isDispatching = true;
+      this._dispatch(action, payload);
+      this.isDispatching = false;
+    }
+  }
+
+  /**
+   * Performs the actual dispatch of an action, invoking the corresponding reducer and updating the state.
+   * This method supports both string actions and function actions, allowing for flexible dispatch mechanisms.
+   *
+   * @private
+   * @param {string|Function} action - The action to dispatch.
+   * @param {Object} payload - The payload associated with the action.
+   * @throws {Error} If the action type is not a string or a function.
+   */
+  _dispatch(action, payload) {
     if (typeof action === 'function') {
-      return action(this.dispatch.bind(this), () => this.state);
+      return action(this._dispatch.bind(this), () => this.state);
     }
 
     if (typeof action !== 'string') {
@@ -164,10 +201,11 @@ class ObservableStore extends Observable {
 
     this.__applyMiddleware(action, payload);
 
-    this.state = produce(this.state, draft => {
+    const newState = produce(this.state, draft => {
       reducer(draft, payload);
     });
 
+    this.state = newState;
     this.__observers.forEach(observer => observer.next(this.state));
 
     if (this.devTools) {
