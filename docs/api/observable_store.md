@@ -28,20 +28,29 @@
 <a name="new_ObservableStore_new"></a>
 
 ### new ObservableStore()
-This class is used to create a store that can be observed for changes. Adding the actions on the store is recommended.
+This class is used to create a store that can be observed for changes. It supports registering actions and middleware, making it flexible for various use cases.
 
 **Example**  
 ```javascript
+// Creating a store with initial state and registering actions
 const CartStore = cami.store({
   cartItems: [],
-  add: (store, product) => {
-    const cartItem = { ...product, cartItemId: Date.now() };
-    store.cartItems.push(cartItem);
-  },
-  remove: (store, product) => {
-    store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-  }
 });
+
+CartStore.register('add', (state, product) => {
+  const cartItem = { ...product, cartItemId: Date.now() };
+  state.cartItems.push(cartItem);
+});
+
+CartStore.register('remove', (state, product) => {
+  state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+});
+
+// Using middleware for logging
+const loggerMiddleware = (context) => {
+  console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+};
+CartStore.use(loggerMiddleware);
 ```
 <a name="ObservableStore.use"></a>
 
@@ -79,30 +88,41 @@ This method registers a reducer function for a given action type. Useful if you 
 
 **Example**  
 ```javascript
-CartStore.register('add', (store, product) => {
-  const cartItem = { ...product, cartItemId: Date.now() };
-  store.cartItems.push(cartItem);
+// Creating a store with initial state and registering actions
+const CartStore = cami.store({
+  cartItems: [],
 });
+
+CartStore.register('add', (state, product) => {
+  const cartItem = { ...product, cartItemId: Date.now() };
+  state.cartItems.push(cartItem);
+});
+
+CartStore.register('remove', (state, product) => {
+  state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+});
+
 ```
 <a name="ObservableStore.dispatch"></a>
 
 ### ObservableStore.dispatch(action, payload)
-This method dispatches an action to the store. Useful if you like redux-style actions / flux.
+Use this method to dispatch redux-style actions or flux actions, triggering state updates.
 
 **Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
 **Throws**:
 
-- <code>Error</code> - Throws an error if the action type is not a string
+- <code>Error</code> If the action type is not a string when expected.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>string</code> \| <code>function</code> | The action type or a function |
-| payload | <code>Object</code> | The payload for the action |
+| action | <code>string</code> \| <code>function</code> | The action type as a string or a function that performs custom dispatch logic. |
+| payload | <code>Object</code> | The data to be passed along with the action. |
 
 **Example**  
 ```javascript
-CartStore.dispatch('add', product);
+// Dispatching an action with a payload
+CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
 ```
 <a name="store"></a>
 

@@ -4,19 +4,28 @@ import { produce } from "../produce.js";
 /**
  * @class ObservableStore
  * @extends {Observable}
- * @description This class is used to create a store that can be observed for changes. Adding the actions on the store is recommended.
+ * @description This class is used to create a store that can be observed for changes. It supports registering actions and middleware, making it flexible for various use cases.
  * @example
  * ```javascript
+ * // Creating a store with initial state and registering actions
  * const CartStore = cami.store({
  *   cartItems: [],
- *   add: (store, product) => {
- *     const cartItem = { ...product, cartItemId: Date.now() };
- *     store.cartItems.push(cartItem);
- *   },
- *   remove: (store, product) => {
- *     store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
- *   }
  * });
+ *
+ * CartStore.register('add', (state, product) => {
+ *   const cartItem = { ...product, cartItemId: Date.now() };
+ *   state.cartItems.push(cartItem);
+ * });
+ *
+ * CartStore.register('remove', (state, product) => {
+ *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+ * });
+ *
+ * // Using middleware for logging
+ * const loggerMiddleware = (context) => {
+ *   console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+ * };
+ * CartStore.use(loggerMiddleware);
  * ```
  */
 class ObservableStore extends Observable {
@@ -120,10 +129,20 @@ class ObservableStore extends Observable {
    * @description This method registers a reducer function for a given action type. Useful if you like redux-style reducers.
    * @example
    * ```javascript
-   * CartStore.register('add', (store, product) => {
-   *   const cartItem = { ...product, cartItemId: Date.now() };
-   *   store.cartItems.push(cartItem);
+   * // Creating a store with initial state and registering actions
+   * const CartStore = cami.store({
+   *   cartItems: [],
    * });
+   *
+   * CartStore.register('add', (state, product) => {
+   *   const cartItem = { ...product, cartItemId: Date.now() };
+   *   state.cartItems.push(cartItem);
+   * });
+   *
+   * CartStore.register('remove', (state, product) => {
+   *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+   * });
+   *
    * ```
    */
   register(action, reducer) {
