@@ -6,7 +6,7 @@ The `cartItems` array is then connected to the `CartElement` using `connect`, wh
 
 Lastly, the `CartStore`, by default, is persisted to localStorage. This means that if you refresh the page, the cart will still be there. You can also set the `expiry` option to set an expiry time for the store. For example, if you set `expiry` to 1000 * 60 * 60 * 24 * 3, then the store will expire after 3 days.
 
-<iframe width="100%" height="1000" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/15/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<iframe width="100%" height="1000" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27/embed/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
 ## HTML:
 
@@ -28,15 +28,23 @@ Lastly, the `CartStore`, by default, is persisted to localStorage. This means th
 
   const CartStore = cami.store({
     cartItems: [],
-    add: (store, product) => {
-      const cartItem = { ...product, cartItemId: Date.now() };
-      store.cartItems.push(cartItem);
-    },
-    remove: (store, product) => {
-      store.cartItems = store.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-    }
-  }, {name: 'CartStore', expiry: 1000 * 60 * 60 * 24 * 3}); // 3 days
+  },
+  {
+    name: 'CartStore',
+    expiry: 1000 * 60 * 60 * 24 * 3
+  }); // 3 days
   // CartStore.reset() // if for some reason, you want to reset the store
+
+  CartStore.register('add', (state, payload) => {
+    const newItem = {...payload, id: Date.now()}; // lame way to generate a unique id
+    state.cartItems.push(newItem);
+  });
+
+  CartStore.register('remove', (state, payload) => {
+    state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
+  });
+
+  cami.debug.enable();
 
   // Define a middleware function
   const loggerMiddleware = (context) => {
@@ -47,17 +55,20 @@ Lastly, the `CartStore`, by default, is persisted to localStorage. This means th
   CartStore.use(loggerMiddleware);
 
   class ProductListElement extends ReactiveElement {
-    cartItems = this.connect(CartStore, 'cartItems');
-    products = this.query({
-      queryKey: ['products'],
-      queryFn: () => {
-        return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
-      },
-      staleTime: 1000 * 60 * 5 // 5 minutes
-    });
+    cartItems = [];
+    products = [];
 
-    addToCart(product) {
-      CartStore.add(product);
+    onConnect() {
+      CartStore.subscribe(state => {
+        this.cartItems = state.cartItems;
+      });
+      this.products = this.query({
+        queryKey: ['products'],
+        queryFn: () => {
+          return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
+        },
+        staleTime: 1000 * 60 * 5 // 5 minutes
+      });
     }
 
     isProductInCart(product) {
@@ -77,48 +88,47 @@ Lastly, the `CartStore`, by default, is persisted to localStorage. This means th
         return html`<div>Error: ${this.products.error.message}</div>`;
       }
 
-      if (this.products.data) {
+      if (this.products && this.products.data) {
         return html`
           <ul>
-            ${this.products.data.map(product => html`
-              <li>
-                ${product.name} - $${(product.price / 100).toFixed(2)}
-                <button @click=${() => this.addToCart(product)} ?disabled=${this.isOutOfStock(product)}>
-                  Add to cart
-                </button>
-              </li>
-            `)}
+            ${this.products.data.map(product => html`<li>
+              ${product.name} - ${(product.price / 100).toFixed(2)}
+              <button @click=${() => CartStore.dispatch('add', product)} ?disabled=${this.isOutOfStock(product)}>
+                Add to cart
+              </button>
+            </li>`)}
           </ul>
         `;
       }
     }
   }
 
-  customElements.define('cami-product-list', ProductListElement);
+  customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
-    cartItems = this.connect(CartStore, 'cartItems');
-
-    get cartValue() {
-      return this.cartItems.reduce((acc, item) => acc + item.price, 0);
-    }
-
-    removeFromCart(product) {
-      CartStore.remove(product);
+    cartItems = [];
+    onConnect() {
+      CartStore.subscribe(state => {
+        this.cartItems = state.cartItems;
+      });
     }
 
     template() {
       return html`
-        <p>Cart value: $${(this.cartValue / 100).toFixed(2)}</p>
-        <ul>
-          ${this.cartItems.map(item => html`
-            <li>${item.name} - $${(item.price / 100).toFixed(2)} <button @click=${() => this.removeFromCart(item)}>Remove</button></li>
-          `)}
-        </ul>
-      `;
+        ${this.cartItems.length > 0 ? html`
+          <p>Cart value: ${(this.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
+          <ul>
+            ${this.cartItems.map(item => html`
+              <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => CartStore.dispatch('remove', item)}>Remove</button></li>
+            `)}
+          </ul>
+        ` : html`
+          <p>Cart is empty</p>
+        `}
+      `
     }
   }
 
-  customElements.define('cami-cart', CartElement);
+  customElements.define('cart-component', CartElement);
 </script>
 ```
