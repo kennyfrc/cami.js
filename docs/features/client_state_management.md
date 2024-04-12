@@ -163,4 +163,4 @@ Below is the live demo.
   <h4>Products</h4>
   <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
 
-<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>

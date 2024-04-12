@@ -6,7 +6,7 @@ The `cartItems` array is then connected to the `CartElement` using `connect`, wh
 
 Lastly, the `CartStore`, by default, is persisted to localStorage. This means that if you refresh the page, the cart will still be there. You can also set the `expiry` option to set an expiry time for the store. For example, if you set `expiry` to 1000 * 60 * 60 * 24 * 3, then the store will expire after 3 days.
 
-<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
 ## HTML:
 

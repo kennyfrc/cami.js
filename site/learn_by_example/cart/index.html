@@ -1309,7 +1309,7 @@
 <p>This example fetches product data from an API using <code>query</code>. This also defines a <code>CartStore</code>, which has a <code>cartItems</code> array and two functions: <code>add</code> and <code>remove</code> (for adding and removing items from the cart). When you add or remove items from the cart, <code>CartStore.add</code> or <code>CartStore.remove</code> is called, which updates the <code>cartItems</code> array.</p>
 <p>The <code>cartItems</code> array is then connected to the <code>CartElement</code> using <code>connect</code>, which updates the <code>cartItems</code> property on the <code>CartElement</code> whenever <code>CartStore.cartItems</code> is updated. This allows you to keep the cart in sync.</p>
 <p>Lastly, the <code>CartStore</code>, by default, is persisted to localStorage. This means that if you refresh the page, the cart will still be there. You can also set the <code>expiry</code> option to set an expiry time for the store. For example, if you set <code>expiry</code> to 1000 * 60 * 60 * 24 * 3, then the store will expire after 3 days.</p>
-<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
 
 <h2 id="html">HTML:</h2>
 <div class="language-html highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> <span class="p">&lt;</span><span class="nt">article</span><span class="p">&gt;</span>
