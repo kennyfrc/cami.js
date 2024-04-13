@@ -1,5 +1,7 @@
 import { Observable } from './observable.js';
 import { produce } from "../produce.js";
+import { __config } from '../config.js';
+import { __trace } from '../trace.js';
 
 /**
  * @class ObservableStore
@@ -220,6 +222,7 @@ class ObservableStore extends Observable {
 
     this.__applyMiddleware(action, payload);
 
+    const oldState = this.state;
     const newState = produce(this.state, draft => {
       reducer(draft, payload);
     });
@@ -229,6 +232,21 @@ class ObservableStore extends Observable {
 
     if (this.devTools) {
       this.devTools.send(action, this.state);
+    }
+
+    if (oldState !== newState) {
+      if (__config.events.isEnabled && typeof window !== 'undefined') {
+        const event = new CustomEvent('cami:store:change', {
+          detail: {
+            action: action,
+            oldValue: oldState,
+            newValue: newState
+          }
+        });
+        window.dispatchEvent(event);
+      }
+
+      __trace('cami:store:change', action, oldState, newState);
     }
   }
 }
