@@ -436,7 +436,7 @@ class ObservableStore extends Observable {
     // Custom event dispatching and tracing
     if (oldState !== newState) {
       if (__config.events.isEnabled && typeof window !== 'undefined') {
-        const event = new CustomEvent('cami:store:change', {
+        const event = new CustomEvent('cami:store:state:change', {
           detail: {
             action: action,
             oldValue: oldState,
@@ -446,7 +446,7 @@ class ObservableStore extends Observable {
         window.dispatchEvent(event);
       }
 
-      __trace('cami:store:change', action, oldState, newState);
+      __trace('cami:store:state:change', action, oldState, newState);
     }
   }
 }
