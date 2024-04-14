@@ -166,9 +166,8 @@ class ObservableStore extends Observable {
   }
 
   /**
-   * Registers an asynchronous query with the specified configuration.
-   *
    * @method query
+   * @memberof ObservableStore
    * @param {string} queryName - The name of the query.
    * @param {Object} config - The configuration object for the query, containing the following properties:
    * @param {string} config.queryKey - The unique key for the query.
@@ -180,6 +179,7 @@ class ObservableStore extends Observable {
    * @param {number} [config.gcTime=300000] - Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes).
    * @param {number} [config.retry=3] - Optional. The number of times to retry the query on error. Defaults to 3.
    * @param {Function} [config.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number.
+   * @description Registers an asynchronous query with the specified configuration.
    */
   query(queryName, config) {
     const {
@@ -250,12 +250,13 @@ class ObservableStore extends Observable {
   }
 
   /**
-   * Fetches data for a given query name, utilizing cache if available and not stale.
-   * If data is stale or not in cache, it fetches new data using the query function.
-   *
+   * @method fetch
+   * @memberof ObservableStore
    * @param {string} queryName - The name of the query to fetch data for.
    * @param {...any} args - Arguments to pass to the query function.
    * @returns {Promise<any>} A promise that resolves with the fetched data.
+   * @description Fetches data for a given query name, utilizing cache if available and not stale.
+   * If data is stale or not in cache, it fetches new data using the query function.
    */
   fetch(queryName, ...args) {
     const query = this.queries[queryName];
@@ -287,9 +288,10 @@ class ObservableStore extends Observable {
   }
 
   /**
-   * Invalidates the cache and any associated intervals or event listeners for a given query name.
-   *
+   * @method invalidateQueries
+   * @memberof ObservableStore
    * @param {string} queryName - The name of the query to invalidate.
+   * @description Invalidates the cache and any associated intervals or event listeners for a given query name.
    */
   invalidateQueries(queryName) {
     const query = this.queries[queryName];
@@ -322,23 +324,6 @@ class ObservableStore extends Observable {
     this.queryCache.delete(cacheKey);
   }
 
-  /**
-   * Refetches the data for a given query name, invalidating any cache or associated resources.
-   *
-   * @param {string} queryName - The name of the query to refetch.
-   * @param {...any} args - Arguments to pass to the query function.
-   * @returns {Promise<any>} A promise that resolves with the refetched data.
-   */
-  refetchQuery(queryName, ...args) {
-    const query = this.queries[queryName];
-    if (!query) {
-      console.error(`[Cami.js] No query found for name: ${queryName}`);
-      return Promise.reject(new Error(`No query found for name: ${queryName}`));
-    }
-    __trace(`refetchQuery`, `Refetching query with key: ${queryName}`);
-    this.invalidateQueries(queryName);
-    return this.fetch(queryName, ...args);
-  }
   /**
    * @private
    * @method fetchWithRetry
