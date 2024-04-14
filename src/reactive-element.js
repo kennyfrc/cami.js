@@ -4,6 +4,7 @@ import { Observable } from './observables/observable.js';
 import { ObservableStore } from './observables/observable-store.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
+import { ObservableProxy } from './observables/observable-proxy.js';
 import { __trace } from './trace.js';
 
 /**
@@ -64,12 +65,6 @@ import { __trace } from './trace.js';
  * @property {any} value - The current value of the observable state. This is the value that is returned when accessing a primitive property on a ReactiveElement instance. It can also be used to set a new value for the observable state.
  * @property {function(function(any): any): void} update - A function that updates the value of the observable state. It takes an updater function that receives the current value and returns the new value. This is used when assigning a new value to a primitive property on a ReactiveElement instance. It allows deeply nested updates.
  * @property {function(): void} [dispose] - An optional function that cleans up the observable state when it is no longer needed. This is used internally by ReactiveElement to manage memory.
- */
-
-/**
- * @typedef ObservableProxy
- * @property {function(): any} get - A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing a non-primitive property on a ReactiveElement instance. We use Proxy instead of Object.defineProperty because it allows us to handle nested properties.
- * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to a non-primitive property on a ReactiveElement instance.
  */
 
 /**
@@ -768,41 +763,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {ObservableProxy} The created proxy.
    */
   __observableProxy(observable) {
-    if (!(observable instanceof ObservableState)) {
-      throw new TypeError('Expected observable to be an instance of ObservableState');
-    }
-
-    return new Proxy(observable, {
-      get: (target, property) => {
-        // If the property is a function, bind it to the target
-        // Example: this.playlist.push(song) in _012_playlist.html
-        if (typeof target[property] === 'function') {
-          return target[property].bind(target);
-        }
-        // If the property exists in the target, return it
-        // Example: this.user.name in _005_nested1.html
-        else if (property in target) {
-          return target[property];
-        }
-        // If the property is a function of the target's value, return it
-        // Example: this.playlist.sort() in _012_playlist.html
-        else if (typeof target.value[property] === 'function') {
-          return (...args) => target.value[property](...args);
-        }
-        // Otherwise, return the property of the target's value
-        // Example: this.user.age in _005_nested1.html
-        else {
-          return target.value[property];
-        }
-      },
-      set: (target, property, value) => {
-        // Set the property value and update the target
-        // Example: this.user.assign({ [key]: event.target.value }) in _005_nested1.html
-        target[property] = value;
-        target.update(() => target.value);
-        return true;
-      }
-    });
+    return new ObservableProxy(observable);
   }
 
   /**
