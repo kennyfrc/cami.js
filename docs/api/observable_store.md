@@ -8,9 +8,6 @@
 ## Functions
 
 <dl>
-<dt><a href="#query">query(queryName, config)</a></dt>
-<dd><p>Registers an asynchronous query with the specified configuration.</p>
-</dd>
 <dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
 <dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
@@ -24,14 +21,12 @@
 
 * [ObservableStore](#ObservableStore) ⇐ <code>Observable</code>
     * [new ObservableStore()](#new_ObservableStore_new)
-    * _instance_
-        * [.fetch(queryName, ...args)](#ObservableStore+fetch) ⇒ <code>Promise.&lt;any&gt;</code>
-        * [.invalidateQueries(queryName)](#ObservableStore+invalidateQueries)
-        * [.refetchQuery(queryName, ...args)](#ObservableStore+refetchQuery) ⇒ <code>Promise.&lt;any&gt;</code>
-    * _static_
-        * [.use(middleware)](#ObservableStore.use)
-        * [.register(action, reducer)](#ObservableStore.register)
-        * [.dispatch(action, payload)](#ObservableStore.dispatch)
+    * [.use(middleware)](#ObservableStore.use)
+    * [.register(action, reducer)](#ObservableStore.register)
+    * [.query(queryName, config)](#ObservableStore.query)
+    * [.fetch(queryName, ...args)](#ObservableStore.fetch) ⇒ <code>Promise.&lt;any&gt;</code>
+    * [.invalidateQueries(queryName)](#ObservableStore.invalidateQueries)
+    * [.dispatch(action, payload)](#ObservableStore.dispatch)
 
 <a name="new_ObservableStore_new"></a>
 
@@ -60,44 +55,6 @@ const loggerMiddleware = (context) => {
 };
 CartStore.use(loggerMiddleware);
 ```
-<a name="ObservableStore+fetch"></a>
-
-### observableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code>
-Fetches data for a given query name, utilizing cache if available and not stale.
-If data is stale or not in cache, it fetches new data using the query function.
-
-**Kind**: instance method of [<code>ObservableStore</code>](#ObservableStore)  
-**Returns**: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryName | <code>string</code> | The name of the query to fetch data for. |
-| ...args | <code>any</code> | Arguments to pass to the query function. |
-
-<a name="ObservableStore+invalidateQueries"></a>
-
-### observableStore.invalidateQueries(queryName)
-Invalidates the cache and any associated intervals or event listeners for a given query name.
-
-**Kind**: instance method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryName | <code>string</code> | The name of the query to invalidate. |
-
-<a name="ObservableStore+refetchQuery"></a>
-
-### observableStore.refetchQuery(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code>
-Refetches the data for a given query name, invalidating any cache or associated resources.
-
-**Kind**: instance method of [<code>ObservableStore</code>](#ObservableStore)  
-**Returns**: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the refetched data.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryName | <code>string</code> | The name of the query to refetch. |
-| ...args | <code>any</code> | Arguments to pass to the query function. |
-
 <a name="ObservableStore.use"></a>
 
 ### ObservableStore.use(middleware)
@@ -149,6 +106,52 @@ CartStore.register('remove', (state, product) => {
 });
 
 ```
+<a name="ObservableStore.query"></a>
+
+### ObservableStore.query(queryName, config)
+Registers an asynchronous query with the specified configuration.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| queryName | <code>string</code> |  | The name of the query. |
+| config | <code>Object</code> |  | The configuration object for the query, containing the following properties: |
+| config.queryKey | <code>string</code> |  | The unique key for the query. |
+| config.queryFn | <code>function</code> |  | The asynchronous query function that returns a promise. |
+| [config.staleTime] | <code>number</code> | <code>0</code> | Optional. The time in milliseconds after which the query is considered stale. Defaults to 0. |
+| [config.refetchOnWindowFocus] | <code>boolean</code> | <code>true</code> | Optional. Whether to refetch the query when the window regains focus. Defaults to true. |
+| [config.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Optional. Whether to refetch the query when the network reconnects. Defaults to true. |
+| [config.refetchInterval] | <code>number</code> \| <code>null</code> | <code></code> | Optional. The interval in milliseconds at which to refetch the query. Defaults to null. |
+| [config.gcTime] | <code>number</code> | <code>300000</code> | Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes). |
+| [config.retry] | <code>number</code> | <code>3</code> | Optional. The number of times to retry the query on error. Defaults to 3. |
+| [config.retryDelay] | <code>function</code> | <code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code> | Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number. |
+
+<a name="ObservableStore.fetch"></a>
+
+### ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code>
+Fetches data for a given query name, utilizing cache if available and not stale.
+If data is stale or not in cache, it fetches new data using the query function.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+**Returns**: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| queryName | <code>string</code> | The name of the query to fetch data for. |
+| ...args | <code>any</code> | Arguments to pass to the query function. |
+
+<a name="ObservableStore.invalidateQueries"></a>
+
+### ObservableStore.invalidateQueries(queryName)
+Invalidates the cache and any associated intervals or event listeners for a given query name.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| queryName | <code>string</code> | The name of the query to invalidate. |
+
 <a name="ObservableStore.dispatch"></a>
 
 ### ObservableStore.dispatch(action, payload)
@@ -170,27 +173,6 @@ Use this method to dispatch redux-style actions or flux actions, triggering stat
 // Dispatching an action with a payload
 CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
 ```
-<a name="query"></a>
-
-## query(queryName, config)
-Registers an asynchronous query with the specified configuration.
-
-**Kind**: global function  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| queryName | <code>string</code> |  | The name of the query. |
-| config | <code>Object</code> |  | The configuration object for the query, containing the following properties: |
-| config.queryKey | <code>string</code> |  | The unique key for the query. |
-| config.queryFn | <code>function</code> |  | The asynchronous query function that returns a promise. |
-| [config.staleTime] | <code>number</code> | <code>0</code> | Optional. The time in milliseconds after which the query is considered stale. Defaults to 0. |
-| [config.refetchOnWindowFocus] | <code>boolean</code> | <code>true</code> | Optional. Whether to refetch the query when the window regains focus. Defaults to true. |
-| [config.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Optional. Whether to refetch the query when the network reconnects. Defaults to true. |
-| [config.refetchInterval] | <code>number</code> \| <code>null</code> | <code></code> | Optional. The interval in milliseconds at which to refetch the query. Defaults to null. |
-| [config.gcTime] | <code>number</code> | <code>300000</code> | Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes). |
-| [config.retry] | <code>number</code> | <code>3</code> | Optional. The number of times to retry the query on error. Defaults to 3. |
-| [config.retryDelay] | <code>function</code> | <code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code> | Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number. |
-
 <a name="store"></a>
 
 ## store(initialState, [options]) ⇒ [<code>ObservableStore</code>](#ObservableStore)

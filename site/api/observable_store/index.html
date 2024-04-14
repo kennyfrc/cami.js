@@ -777,33 +777,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
-    <span class="md-ellipsis">
-      observableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#observablestoreinvalidatequeriesqueryname" class="md-nav__link">
-    <span class="md-ellipsis">
-      observableStore.invalidateQueries(queryName)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#observablestorerefetchqueryqueryname-args-promiseany" class="md-nav__link">
-    <span class="md-ellipsis">
-      observableStore.refetchQuery(queryName, ...args) ⇒ Promise.&lt;any&gt;
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#observablestoreusemiddleware" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.use(middleware)
@@ -822,6 +795,33 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestorequeryqueryname-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.query(queryName, config)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoreinvalidatequeriesqueryname" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.invalidateQueries(queryName)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoredispatchaction-payload" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.dispatch(action, payload)
@@ -832,15 +832,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#queryqueryname-config" class="md-nav__link">
-    <span class="md-ellipsis">
-      query(queryName, config)
-    </span>
-  </a>
   
 </li>
       
@@ -1415,33 +1406,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
-    <span class="md-ellipsis">
-      observableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#observablestoreinvalidatequeriesqueryname" class="md-nav__link">
-    <span class="md-ellipsis">
-      observableStore.invalidateQueries(queryName)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#observablestorerefetchqueryqueryname-args-promiseany" class="md-nav__link">
-    <span class="md-ellipsis">
-      observableStore.refetchQuery(queryName, ...args) ⇒ Promise.&lt;any&gt;
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#observablestoreusemiddleware" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.use(middleware)
@@ -1460,6 +1424,33 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestorequeryqueryname-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.query(queryName, config)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoreinvalidatequeriesqueryname" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.invalidateQueries(queryName)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoredispatchaction-payload" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.dispatch(action, payload)
@@ -1470,15 +1461,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#queryqueryname-config" class="md-nav__link">
-    <span class="md-ellipsis">
-      query(queryName, config)
-    </span>
-  </a>
   
 </li>
       
@@ -1519,9 +1501,6 @@
 
 <h2 id="functions">Functions</h2>
 <dl>
-<dt><a href="#query">query(queryName, config)</a></dt>
-<dd><p>Registers an asynchronous query with the specified configuration.</p>
-</dd>
 <dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
 <dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
@@ -1534,18 +1513,12 @@
 <ul>
 <li><a href="#ObservableStore">ObservableStore</a> ⇐ <code>Observable</code><ul>
 <li><a href="#new_ObservableStore_new">new ObservableStore()</a></li>
-<li><em>instance</em><ul>
-<li><a href="#ObservableStore+fetch">.fetch(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
-<li><a href="#ObservableStore+invalidateQueries">.invalidateQueries(queryName)</a></li>
-<li><a href="#ObservableStore+refetchQuery">.refetchQuery(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
-</ul>
-</li>
-<li><em>static</em><ul>
 <li><a href="#ObservableStore.use">.use(middleware)</a></li>
 <li><a href="#ObservableStore.register">.register(action, reducer)</a></li>
+<li><a href="#ObservableStore.query">.query(queryName, config)</a></li>
+<li><a href="#ObservableStore.fetch">.fetch(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
+<li><a href="#ObservableStore.invalidateQueries">.invalidateQueries(queryName)</a></li>
 <li><a href="#ObservableStore.dispatch">.dispatch(action, payload)</a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -1573,80 +1546,7 @@
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">};</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">loggerMiddleware</span><span class="p">);</span>
 </span></code></pre></div>
-<a name="ObservableStore+fetch"></a></p>
-<h3 id="observablestorefetchqueryname-args-promiseany">observableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
-<p>Fetches data for a given query name, utilizing cache if available and not stale.
-If data is stale or not in cache, it fetches new data using the query function.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
-<strong>Returns</strong>: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  </p>
-<table>
-<thead>
-<tr>
-<th>Param</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>queryName</td>
-<td><code>string</code></td>
-<td>The name of the query to fetch data for.</td>
-</tr>
-<tr>
-<td>...args</td>
-<td><code>any</code></td>
-<td>Arguments to pass to the query function.</td>
-</tr>
-</tbody>
-</table>
-<p><a name="ObservableStore+invalidateQueries"></a></p>
-<h3 id="observablestoreinvalidatequeriesqueryname">observableStore.invalidateQueries(queryName)</h3>
-<p>Invalidates the cache and any associated intervals or event listeners for a given query name.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
-<table>
-<thead>
-<tr>
-<th>Param</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>queryName</td>
-<td><code>string</code></td>
-<td>The name of the query to invalidate.</td>
-</tr>
-</tbody>
-</table>
-<p><a name="ObservableStore+refetchQuery"></a></p>
-<h3 id="observablestorerefetchqueryqueryname-args-promiseany">observableStore.refetchQuery(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
-<p>Refetches the data for a given query name, invalidating any cache or associated resources.</p>
-<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
-<strong>Returns</strong>: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the refetched data.  </p>
-<table>
-<thead>
-<tr>
-<th>Param</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>queryName</td>
-<td><code>string</code></td>
-<td>The name of the query to refetch.</td>
-</tr>
-<tr>
-<td>...args</td>
-<td><code>any</code></td>
-<td>Arguments to pass to the query function.</td>
-</tr>
-</tbody>
-</table>
-<p><a name="ObservableStore.use"></a></p>
+<a name="ObservableStore.use"></a></p>
 <h3 id="observablestoreusemiddleware">ObservableStore.use(middleware)</h3>
 <p>This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.</p>
 <p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
@@ -1716,43 +1616,10 @@ If data is stale or not in cache, it fetches new data using the query function.<
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">cartItemId</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">cartItemId</span><span class="p">);</span>
 </span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">});</span>
 </span></code></pre></div>
-<a name="ObservableStore.dispatch"></a></p>
-<h3 id="observablestoredispatchaction-payload">ObservableStore.dispatch(action, payload)</h3>
-<p>Use this method to dispatch redux-style actions or flux actions, triggering state updates.</p>
-<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
-<strong>Throws</strong>:</p>
-<ul>
-<li><code>Error</code> If the action type is not a string when expected.</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th>Param</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>action</td>
-<td><code>string</code> | <code>function</code></td>
-<td>The action type as a string or a function that performs custom dispatch logic.</td>
-</tr>
-<tr>
-<td>payload</td>
-<td><code>Object</code></td>
-<td>The data to be passed along with the action.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Dispatching an action with a payload</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Product 1&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">});</span>
-</span></code></pre></div>
-<a name="query"></a></p>
-<h2 id="queryqueryname-config">query(queryName, config)</h2>
+<a name="ObservableStore.query"></a></p>
+<h3 id="observablestorequeryqueryname-config">ObservableStore.query(queryName, config)</h3>
 <p>Registers an asynchronous query with the specified configuration.</p>
-<p><strong>Kind</strong>: global function  </p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
 <table>
 <thead>
 <tr>
@@ -1831,7 +1698,87 @@ If data is stale or not in cache, it fetches new data using the query function.<
 </tr>
 </tbody>
 </table>
-<p><a name="store"></a></p>
+<p><a name="ObservableStore.fetch"></a></p>
+<h3 id="observablestorefetchqueryname-args-promiseany">ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
+<p>Fetches data for a given query name, utilizing cache if available and not stale.
+If data is stale or not in cache, it fetches new data using the query function.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
+<strong>Returns</strong>: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>queryName</td>
+<td><code>string</code></td>
+<td>The name of the query to fetch data for.</td>
+</tr>
+<tr>
+<td>...args</td>
+<td><code>any</code></td>
+<td>Arguments to pass to the query function.</td>
+</tr>
+</tbody>
+</table>
+<p><a name="ObservableStore.invalidateQueries"></a></p>
+<h3 id="observablestoreinvalidatequeriesqueryname">ObservableStore.invalidateQueries(queryName)</h3>
+<p>Invalidates the cache and any associated intervals or event listeners for a given query name.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>queryName</td>
+<td><code>string</code></td>
+<td>The name of the query to invalidate.</td>
+</tr>
+</tbody>
+</table>
+<p><a name="ObservableStore.dispatch"></a></p>
+<h3 id="observablestoredispatchaction-payload">ObservableStore.dispatch(action, payload)</h3>
+<p>Use this method to dispatch redux-style actions or flux actions, triggering state updates.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
+<strong>Throws</strong>:</p>
+<ul>
+<li><code>Error</code> If the action type is not a string when expected.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>action</td>
+<td><code>string</code> | <code>function</code></td>
+<td>The action type as a string or a function that performs custom dispatch logic.</td>
+</tr>
+<tr>
+<td>payload</td>
+<td><code>Object</code></td>
+<td>The data to be passed along with the action.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Dispatching an action with a payload</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Product 1&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">});</span>
+</span></code></pre></div>
+<a name="store"></a></p>
 <h2 id="storeinitialstate-options-observablestore">store(initialState, [options]) ⇒ <a href="#ObservableStore"><code>ObservableStore</code></a></h2>
 <p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 <p><strong>Kind</strong>: global function<br />
