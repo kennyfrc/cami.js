@@ -166,19 +166,20 @@ class ObservableStore extends Observable {
   }
 
   /**
+   * Registers an asynchronous query with the specified configuration.
+   *
    * @method query
    * @param {string} queryName - The name of the query.
-   * @param {Object} config - The configuration object for the query.
+   * @param {Object} config - The configuration object for the query, containing the following properties:
    * @param {string} config.queryKey - The unique key for the query.
-   * @param {Function} config.queryFn - The async query function that returns a promise.
-   * @param {number} [config.staleTime=0] - The time in milliseconds after which the query is considered stale.
-   * @param {boolean} [config.refetchOnWindowFocus=true] - Whether to refetch the query when the window regains focus.
-   * @param {boolean} [config.refetchOnReconnect=true] - Whether to refetch the query when the network reconnects.
-   * @param {number|null} [config.refetchInterval=null] - The interval in milliseconds at which to refetch the query.
-   * @param {number} [config.gcTime=300000] - The time in milliseconds after which the query is garbage collected.
-   * @param {number} [config.retry=3] - The number of times to retry the query on error.
-   * @param {Function} [config.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - A function that returns the delay in milliseconds for each retry attempt.
-   * @description Registers an async query with the specified configuration.
+   * @param {Function} config.queryFn - The asynchronous query function that returns a promise.
+   * @param {number} [config.staleTime=0] - Optional. The time in milliseconds after which the query is considered stale. Defaults to 0.
+   * @param {boolean} [config.refetchOnWindowFocus=true] - Optional. Whether to refetch the query when the window regains focus. Defaults to true.
+   * @param {boolean} [config.refetchOnReconnect=true] - Optional. Whether to refetch the query when the network reconnects. Defaults to true.
+   * @param {number|null} [config.refetchInterval=null] - Optional. The interval in milliseconds at which to refetch the query. Defaults to null.
+   * @param {number} [config.gcTime=300000] - Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes).
+   * @param {number} [config.retry=3] - Optional. The number of times to retry the query on error. Defaults to 3.
+   * @param {Function} [config.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number.
    */
   query(queryName, config) {
     const {
@@ -248,6 +249,14 @@ class ObservableStore extends Observable {
     };
   }
 
+  /**
+   * Fetches data for a given query name, utilizing cache if available and not stale.
+   * If data is stale or not in cache, it fetches new data using the query function.
+   *
+   * @param {string} queryName - The name of the query to fetch data for.
+   * @param {...any} args - Arguments to pass to the query function.
+   * @returns {Promise<any>} A promise that resolves with the fetched data.
+   */
   fetch(queryName, ...args) {
     const query = this.queries[queryName];
     if (!query) {
@@ -277,13 +286,18 @@ class ObservableStore extends Observable {
       });
   }
 
-  invalidateQuery(queryName) {
+  /**
+   * Invalidates the cache and any associated intervals or event listeners for a given query name.
+   *
+   * @param {string} queryName - The name of the query to invalidate.
+   */
+  invalidateQueries(queryName) {
     const query = this.queries[queryName];
     if (!query) return;
 
     const cacheKey = Array.isArray(query.queryKey) ? query.queryKey.join(':') : query.queryKey;
 
-    __trace(`invalidateQuery`, `Invalidating query with key: ${queryName}`);
+    __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
 
     if (this.intervals[queryName]) {
       clearInterval(this.intervals[queryName]);
@@ -308,6 +322,13 @@ class ObservableStore extends Observable {
     this.queryCache.delete(cacheKey);
   }
 
+  /**
+   * Refetches the data for a given query name, invalidating any cache or associated resources.
+   *
+   * @param {string} queryName - The name of the query to refetch.
+   * @param {...any} args - Arguments to pass to the query function.
+   * @returns {Promise<any>} A promise that resolves with the refetched data.
+   */
   refetchQuery(queryName, ...args) {
     const query = this.queries[queryName];
     if (!query) {
@@ -315,10 +336,9 @@ class ObservableStore extends Observable {
       return Promise.reject(new Error(`No query found for name: ${queryName}`));
     }
     __trace(`refetchQuery`, `Refetching query with key: ${queryName}`);
-    this.invalidateQuery(queryName);
+    this.invalidateQueries(queryName);
     return this.fetch(queryName, ...args);
   }
-
   /**
    * @private
    * @method fetchWithRetry

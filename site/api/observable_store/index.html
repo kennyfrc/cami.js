@@ -777,6 +777,33 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoreinvalidatequeriesqueryname" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.invalidateQueries(queryName)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestorerefetchqueryqueryname-args-promiseany" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.refetchQuery(queryName, ...args) ⇒ Promise.&lt;any&gt;
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoreusemiddleware" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.use(middleware)
@@ -1388,6 +1415,33 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoreinvalidatequeriesqueryname" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.invalidateQueries(queryName)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestorerefetchqueryqueryname-args-promiseany" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.refetchQuery(queryName, ...args) ⇒ Promise.&lt;any&gt;
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoreusemiddleware" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.use(middleware)
@@ -1466,7 +1520,7 @@
 <h2 id="functions">Functions</h2>
 <dl>
 <dt><a href="#query">query(queryName, config)</a></dt>
-<dd><p>Registers an async query with the specified configuration.</p>
+<dd><p>Registers an asynchronous query with the specified configuration.</p>
 </dd>
 <dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
 <dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
@@ -1480,9 +1534,18 @@
 <ul>
 <li><a href="#ObservableStore">ObservableStore</a> ⇐ <code>Observable</code><ul>
 <li><a href="#new_ObservableStore_new">new ObservableStore()</a></li>
+<li><em>instance</em><ul>
+<li><a href="#ObservableStore+fetch">.fetch(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
+<li><a href="#ObservableStore+invalidateQueries">.invalidateQueries(queryName)</a></li>
+<li><a href="#ObservableStore+refetchQuery">.refetchQuery(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
+</ul>
+</li>
+<li><em>static</em><ul>
 <li><a href="#ObservableStore.use">.use(middleware)</a></li>
 <li><a href="#ObservableStore.register">.register(action, reducer)</a></li>
 <li><a href="#ObservableStore.dispatch">.dispatch(action, payload)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1510,7 +1573,80 @@
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">};</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">loggerMiddleware</span><span class="p">);</span>
 </span></code></pre></div>
-<a name="ObservableStore.use"></a></p>
+<a name="ObservableStore+fetch"></a></p>
+<h3 id="observablestorefetchqueryname-args-promiseany">observableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
+<p>Fetches data for a given query name, utilizing cache if available and not stale.
+If data is stale or not in cache, it fetches new data using the query function.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
+<strong>Returns</strong>: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>queryName</td>
+<td><code>string</code></td>
+<td>The name of the query to fetch data for.</td>
+</tr>
+<tr>
+<td>...args</td>
+<td><code>any</code></td>
+<td>Arguments to pass to the query function.</td>
+</tr>
+</tbody>
+</table>
+<p><a name="ObservableStore+invalidateQueries"></a></p>
+<h3 id="observablestoreinvalidatequeriesqueryname">observableStore.invalidateQueries(queryName)</h3>
+<p>Invalidates the cache and any associated intervals or event listeners for a given query name.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>queryName</td>
+<td><code>string</code></td>
+<td>The name of the query to invalidate.</td>
+</tr>
+</tbody>
+</table>
+<p><a name="ObservableStore+refetchQuery"></a></p>
+<h3 id="observablestorerefetchqueryqueryname-args-promiseany">observableStore.refetchQuery(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
+<p>Refetches the data for a given query name, invalidating any cache or associated resources.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
+<strong>Returns</strong>: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the refetched data.  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>queryName</td>
+<td><code>string</code></td>
+<td>The name of the query to refetch.</td>
+</tr>
+<tr>
+<td>...args</td>
+<td><code>any</code></td>
+<td>Arguments to pass to the query function.</td>
+</tr>
+</tbody>
+</table>
+<p><a name="ObservableStore.use"></a></p>
 <h3 id="observablestoreusemiddleware">ObservableStore.use(middleware)</h3>
 <p>This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.</p>
 <p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
@@ -1615,7 +1751,7 @@
 </span></code></pre></div>
 <a name="query"></a></p>
 <h2 id="queryqueryname-config">query(queryName, config)</h2>
-<p>Registers an async query with the specified configuration.</p>
+<p>Registers an asynchronous query with the specified configuration.</p>
 <p><strong>Kind</strong>: global function  </p>
 <table>
 <thead>
@@ -1637,7 +1773,7 @@
 <td>config</td>
 <td><code>Object</code></td>
 <td></td>
-<td>The configuration object for the query.</td>
+<td>The configuration object for the query, containing the following properties:</td>
 </tr>
 <tr>
 <td>config.queryKey</td>
@@ -1649,49 +1785,49 @@
 <td>config.queryFn</td>
 <td><code>function</code></td>
 <td></td>
-<td>The async query function that returns a promise.</td>
+<td>The asynchronous query function that returns a promise.</td>
 </tr>
 <tr>
 <td>[config.staleTime]</td>
 <td><code>number</code></td>
 <td><code>0</code></td>
-<td>The time in milliseconds after which the query is considered stale.</td>
+<td>Optional. The time in milliseconds after which the query is considered stale. Defaults to 0.</td>
 </tr>
 <tr>
 <td>[config.refetchOnWindowFocus]</td>
 <td><code>boolean</code></td>
 <td><code>true</code></td>
-<td>Whether to refetch the query when the window regains focus.</td>
+<td>Optional. Whether to refetch the query when the window regains focus. Defaults to true.</td>
 </tr>
 <tr>
 <td>[config.refetchOnReconnect]</td>
 <td><code>boolean</code></td>
 <td><code>true</code></td>
-<td>Whether to refetch the query when the network reconnects.</td>
+<td>Optional. Whether to refetch the query when the network reconnects. Defaults to true.</td>
 </tr>
 <tr>
 <td>[config.refetchInterval]</td>
 <td><code>number</code> | <code>null</code></td>
 <td><code></code></td>
-<td>The interval in milliseconds at which to refetch the query.</td>
+<td>Optional. The interval in milliseconds at which to refetch the query. Defaults to null.</td>
 </tr>
 <tr>
 <td>[config.gcTime]</td>
 <td><code>number</code></td>
 <td><code>300000</code></td>
-<td>The time in milliseconds after which the query is garbage collected.</td>
+<td>Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes).</td>
 </tr>
 <tr>
 <td>[config.retry]</td>
 <td><code>number</code></td>
 <td><code>3</code></td>
-<td>The number of times to retry the query on error.</td>
+<td>Optional. The number of times to retry the query on error. Defaults to 3.</td>
 </tr>
 <tr>
 <td>[config.retryDelay]</td>
 <td><code>function</code></td>
 <td><code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code></td>
-<td>A function that returns the delay in milliseconds for each retry attempt.</td>
+<td>Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number.</td>
 </tr>
 </tbody>
 </table>
