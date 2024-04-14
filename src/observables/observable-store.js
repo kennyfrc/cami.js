@@ -210,6 +210,11 @@ class ObservableStore extends Observable {
    *
    * // Fetch all posts
    * appStore.fetch('posts/fetchAll');
+   *
+   * // Subscribe to updates
+   * appStore.subscribe(newState => {
+   *   console.log('New state:', newState);
+   * });
    * ```
    */
   query(queryName, config) {
@@ -318,6 +323,11 @@ class ObservableStore extends Observable {
    *
    * // Fetch all posts
    * appStore.fetch('posts/fetchAll');
+   *
+   * // Subscribe to updates
+   * appStore.subscribe(newState => {
+   *   console.log('New state:', newState);
+   * });
    * ```
    */
   fetch(queryName, ...args) {

@@ -1727,6 +1727,11 @@
 </span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>
 </span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="c1">// Fetch all posts</span>
 </span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">);</span>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="c1">// Subscribe to updates</span>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">newState</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;New state:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newState</span><span class="p">);</span>
+</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="p">});</span>
 </span></code></pre></div>
 <a name="ObservableStore.fetch"></a></p>
 <h3 id="observablestorefetchqueryname-args-promiseany">ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
@@ -1784,6 +1789,11 @@ If data is stale or not in cache, it fetches new data using the query function.<
 </span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>
 </span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="c1">// Fetch all posts</span>
 </span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">);</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="c1">// Subscribe to updates</span>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">newState</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;New state:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newState</span><span class="p">);</span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="p">});</span>
 </span></code></pre></div>
 <a name="ObservableStore.invalidateQueries"></a></p>
 <h3 id="observablestoreinvalidatequeriesqueryname">ObservableStore.invalidateQueries(queryName)</h3>

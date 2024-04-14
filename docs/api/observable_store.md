@@ -157,6 +157,11 @@ appStore.register('posts/fetchAll/error', (state, payload) => {
 
 // Fetch all posts
 appStore.fetch('posts/fetchAll');
+
+// Subscribe to updates
+appStore.subscribe(newState => {
+  console.log('New state:', newState);
+});
 ```
 <a name="ObservableStore.fetch"></a>
 
@@ -202,6 +207,11 @@ appStore.register('posts/fetchAll/error', (state, payload) => {
 
 // Fetch all posts
 appStore.fetch('posts/fetchAll');
+
+// Subscribe to updates
+appStore.subscribe(newState => {
+  console.log('New state:', newState);
+});
 ```
 <a name="ObservableStore.invalidateQueries"></a>
 
