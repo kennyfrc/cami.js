@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <user-manager></user-manager>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+    const { html, ReactiveElement } = cami;
+
+    const createUser = (name) => ({ name });
+
+    class UserCardElement extends ReactiveElement {
+        onAttributeChange(name, oldValue, newValue) {
+          this.user = newValue;
+        }
+
+        template() {
+            return html`
+                <div>User: ${this.user ? this.user.name : 'No user provided'}</div>
+            `;
+        }
+    }
+
+    class UserManagerElement extends ReactiveElement {
+        onCreate() {
+            this.user = createUser('Jane Doe');
+        }
+
+        template() {
+            return html`
+                <user-card .user=${this.user}></user-card>
+                <button @click=${() => this.toggleUser()}>Toggle User</button>
+            `;
+        }
+
+        toggleUser() {
+            this.user = this.user.name === 'Jane Doe' ? createUser('John Doe') : createUser('Jane Doe');
+        }
+    }
+
+    customElements.define('user-card', UserCardElement);
+    customElements.define('user-manager', UserManagerElement);
+</script>
+
+</body>
+</html>
