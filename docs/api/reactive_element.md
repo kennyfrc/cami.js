@@ -12,8 +12,6 @@
 <dd></dd>
 <dt><a href="#ObservableState">ObservableState</a></dt>
 <dd></dd>
-<dt><a href="#ObservableProxy">ObservableProxy</a></dt>
-<dd></dd>
 </dl>
 
 <a name="ReactiveElement"></a>
@@ -25,11 +23,11 @@
     * [new ReactiveElement()](#new_ReactiveElement_new)
     * [.observableAttributes(attributes)](#ReactiveElement+observableAttributes) ⇒ <code>void</code>
     * [.effect(effectFn)](#ReactiveElement+effect) ⇒ <code>void</code>
-    * [.connect(store, key)](#ReactiveElement+connect) ⇒ [<code>ObservableProxy</code>](#ObservableProxy)
+    * [.connect(store, key)](#ReactiveElement+connect) ⇒ <code>ObservableProxy</code>
     * [.stream(subscribeFn)](#ReactiveElement+stream) ⇒ <code>ObservableStream</code>
     * [.template()](#ReactiveElement+template) ⇒ <code>void</code>
-    * [.query(options)](#ReactiveElement+query) ⇒ [<code>ObservableProxy</code>](#ObservableProxy)
-    * [.mutation(options)](#ReactiveElement+mutation) ⇒ [<code>ObservableProxy</code>](#ObservableProxy)
+    * [.query(options)](#ReactiveElement+query) ⇒ <code>ObservableProxy</code>
+    * [.mutation(options)](#ReactiveElement+mutation) ⇒ <code>ObservableProxy</code>
     * [.invalidateQueries(queryKey)](#ReactiveElement+invalidateQueries) ⇒ <code>void</code>
     * [.onCreate()](#ReactiveElement+onCreate) ⇒ <code>void</code>
     * [.connectedCallback()](#ReactiveElement+connectedCallback) ⇒ <code>void</code>
@@ -106,12 +104,12 @@ this.effect(() => {
 ```
 <a name="ReactiveElement+connect"></a>
 
-### reactiveElement.connect(store, key) ⇒ [<code>ObservableProxy</code>](#ObservableProxy)
+### reactiveElement.connect(store, key) ⇒ <code>ObservableProxy</code>
 Subscribes to a store and creates an observable for a specific key in the store. This is useful for
 synchronizing the component's state with a global store.
 
 **Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
-**Returns**: [<code>ObservableProxy</code>](#ObservableProxy) - An observable property or proxy for the store key  
+**Returns**: <code>ObservableProxy</code> - An observable property or proxy for the store key  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -167,11 +165,11 @@ template() {
 ```
 <a name="ReactiveElement+query"></a>
 
-### reactiveElement.query(options) ⇒ [<code>ObservableProxy</code>](#ObservableProxy)
+### reactiveElement.query(options) ⇒ <code>ObservableProxy</code>
 Fetches data from an API and caches it. This method is based on the TanStack Query defaults: https://tanstack.com/query/latest/docs/react/guides/important-defaults.
 
 **Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
-**Returns**: [<code>ObservableProxy</code>](#ObservableProxy) - A proxy that contains the state of the query.  
+**Returns**: <code>ObservableProxy</code> - A proxy that contains the state of the query.  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -198,11 +196,11 @@ const posts = this.query({
 ```
 <a name="ReactiveElement+mutation"></a>
 
-### reactiveElement.mutation(options) ⇒ [<code>ObservableProxy</code>](#ObservableProxy)
+### reactiveElement.mutation(options) ⇒ <code>ObservableProxy</code>
 Performs a mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations.
 
 **Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
-**Returns**: [<code>ObservableProxy</code>](#ObservableProxy) - A proxy that contains the state of the mutation.  
+**Returns**: <code>ObservableProxy</code> - A proxy that contains the state of the mutation.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -486,15 +484,4 @@ class TaskManagerElement extends ReactiveElement {
 | value | <code>any</code> | The current value of the observable state. This is the value that is returned when accessing a primitive property on a ReactiveElement instance. It can also be used to set a new value for the observable state. |
 | update | <code>function</code> | A function that updates the value of the observable state. It takes an updater function that receives the current value and returns the new value. This is used when assigning a new value to a primitive property on a ReactiveElement instance. It allows deeply nested updates. |
 | [dispose] | <code>function</code> | An optional function that cleans up the observable state when it is no longer needed. This is used internally by ReactiveElement to manage memory. |
-
-<a name="ObservableProxy"></a>
-
-## ObservableProxy
-**Kind**: global typedef  
-**Properties**
-
-| Name | Type | Description |
-| --- | --- | --- |
-| get | <code>function</code> | A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing a non-primitive property on a ReactiveElement instance. We use Proxy instead of Object.defineProperty because it allows us to handle nested properties. |
-| set | <code>function</code> | A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to a non-primitive property on a ReactiveElement instance. |
 

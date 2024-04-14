@@ -8,6 +8,9 @@
 ## Functions
 
 <dl>
+<dt><a href="#query">query(queryName, config)</a></dt>
+<dd><p>Registers an async query with the specified configuration.</p>
+</dd>
 <dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
 <dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
@@ -124,6 +127,27 @@ Use this method to dispatch redux-style actions or flux actions, triggering stat
 // Dispatching an action with a payload
 CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
 ```
+<a name="query"></a>
+
+## query(queryName, config)
+Registers an async query with the specified configuration.
+
+**Kind**: global function  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| queryName | <code>string</code> |  | The name of the query. |
+| config | <code>Object</code> |  | The configuration object for the query. |
+| config.queryKey | <code>string</code> |  | The unique key for the query. |
+| config.queryFn | <code>function</code> |  | The async query function that returns a promise. |
+| [config.staleTime] | <code>number</code> | <code>0</code> | The time in milliseconds after which the query is considered stale. |
+| [config.refetchOnWindowFocus] | <code>boolean</code> | <code>true</code> | Whether to refetch the query when the window regains focus. |
+| [config.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Whether to refetch the query when the network reconnects. |
+| [config.refetchInterval] | <code>number</code> \| <code>null</code> | <code></code> | The interval in milliseconds at which to refetch the query. |
+| [config.gcTime] | <code>number</code> | <code>300000</code> | The time in milliseconds after which the query is garbage collected. |
+| [config.retry] | <code>number</code> | <code>3</code> | The number of times to retry the query on error. |
+| [config.retryDelay] | <code>function</code> | <code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code> | A function that returns the delay in milliseconds for each retry attempt. |
+
 <a name="store"></a>
 
 ## store(initialState, [options]) ⇒ [<code>ObservableStore</code>](#ObservableStore)

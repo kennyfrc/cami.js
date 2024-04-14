@@ -809,6 +809,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#queryqueryname-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      query(queryName, config)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#storeinitialstate-options-observablestore" class="md-nav__link">
     <span class="md-ellipsis">
       store(initialState, [options]) ⇒ ObservableStore
@@ -1411,6 +1420,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#queryqueryname-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      query(queryName, config)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#storeinitialstate-options-observablestore" class="md-nav__link">
     <span class="md-ellipsis">
       store(initialState, [options]) ⇒ ObservableStore
@@ -1447,6 +1465,9 @@
 
 <h2 id="functions">Functions</h2>
 <dl>
+<dt><a href="#query">query(queryName, config)</a></dt>
+<dd><p>Registers an async query with the specified configuration.</p>
+</dd>
 <dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
 <dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
@@ -1592,7 +1613,89 @@
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Dispatching an action with a payload</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Product 1&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">});</span>
 </span></code></pre></div>
-<a name="store"></a></p>
+<a name="query"></a></p>
+<h2 id="queryqueryname-config">query(queryName, config)</h2>
+<p>Registers an async query with the specified configuration.</p>
+<p><strong>Kind</strong>: global function  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>queryName</td>
+<td><code>string</code></td>
+<td></td>
+<td>The name of the query.</td>
+</tr>
+<tr>
+<td>config</td>
+<td><code>Object</code></td>
+<td></td>
+<td>The configuration object for the query.</td>
+</tr>
+<tr>
+<td>config.queryKey</td>
+<td><code>string</code></td>
+<td></td>
+<td>The unique key for the query.</td>
+</tr>
+<tr>
+<td>config.queryFn</td>
+<td><code>function</code></td>
+<td></td>
+<td>The async query function that returns a promise.</td>
+</tr>
+<tr>
+<td>[config.staleTime]</td>
+<td><code>number</code></td>
+<td><code>0</code></td>
+<td>The time in milliseconds after which the query is considered stale.</td>
+</tr>
+<tr>
+<td>[config.refetchOnWindowFocus]</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Whether to refetch the query when the window regains focus.</td>
+</tr>
+<tr>
+<td>[config.refetchOnReconnect]</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Whether to refetch the query when the network reconnects.</td>
+</tr>
+<tr>
+<td>[config.refetchInterval]</td>
+<td><code>number</code> | <code>null</code></td>
+<td><code></code></td>
+<td>The interval in milliseconds at which to refetch the query.</td>
+</tr>
+<tr>
+<td>[config.gcTime]</td>
+<td><code>number</code></td>
+<td><code>300000</code></td>
+<td>The time in milliseconds after which the query is garbage collected.</td>
+</tr>
+<tr>
+<td>[config.retry]</td>
+<td><code>number</code></td>
+<td><code>3</code></td>
+<td>The number of times to retry the query on error.</td>
+</tr>
+<tr>
+<td>[config.retryDelay]</td>
+<td><code>function</code></td>
+<td><code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code></td>
+<td>A function that returns the delay in milliseconds for each retry attempt.</td>
+</tr>
+</tbody>
+</table>
+<p><a name="store"></a></p>
 <h2 id="storeinitialstate-options-observablestore">store(initialState, [options]) ⇒ <a href="#ObservableStore"><code>ObservableStore</code></a></h2>
 <p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 <p><strong>Kind</strong>: global function<br />

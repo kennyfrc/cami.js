@@ -868,15 +868,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#observableproxy" class="md-nav__link">
-    <span class="md-ellipsis">
-      ObservableProxy
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1698,15 +1689,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#observableproxy" class="md-nav__link">
-    <span class="md-ellipsis">
-      ObservableProxy
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1739,8 +1721,6 @@
 <dd></dd>
 <dt><a href="#ObservableState">ObservableState</a></dt>
 <dd></dd>
-<dt><a href="#ObservableProxy">ObservableProxy</a></dt>
-<dd></dd>
 </dl>
 
 <p><a name="ReactiveElement"></a></p>
@@ -1751,11 +1731,11 @@
 <li><a href="#new_ReactiveElement_new">new ReactiveElement()</a></li>
 <li><a href="#ReactiveElement+observableAttributes">.observableAttributes(attributes)</a> ⇒ <code>void</code></li>
 <li><a href="#ReactiveElement+effect">.effect(effectFn)</a> ⇒ <code>void</code></li>
-<li><a href="#ReactiveElement+connect">.connect(store, key)</a> ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></li>
+<li><a href="#ReactiveElement+connect">.connect(store, key)</a> ⇒ <code>ObservableProxy</code></li>
 <li><a href="#ReactiveElement+stream">.stream(subscribeFn)</a> ⇒ <code>ObservableStream</code></li>
 <li><a href="#ReactiveElement+template">.template()</a> ⇒ <code>void</code></li>
-<li><a href="#ReactiveElement+query">.query(options)</a> ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></li>
-<li><a href="#ReactiveElement+mutation">.mutation(options)</a> ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></li>
+<li><a href="#ReactiveElement+query">.query(options)</a> ⇒ <code>ObservableProxy</code></li>
+<li><a href="#ReactiveElement+mutation">.mutation(options)</a> ⇒ <code>ObservableProxy</code></li>
 <li><a href="#ReactiveElement+invalidateQueries">.invalidateQueries(queryKey)</a> ⇒ <code>void</code></li>
 <li><a href="#ReactiveElement+onCreate">.onCreate()</a> ⇒ <code>void</code></li>
 <li><a href="#ReactiveElement+connectedCallback">.connectedCallback()</a> ⇒ <code>void</code></li>
@@ -1846,11 +1826,11 @@ This method is useful when working with ObservableProperties or ObservableProxie
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1">// The console will log the current count whenever `this.count` changes</span>
 </span></code></pre></div>
 <a name="ReactiveElement+connect"></a></p>
-<h3 id="reactiveelementconnectstore-key-observableproxy">reactiveElement.connect(store, key) ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></h3>
+<h3 id="reactiveelementconnectstore-key-observableproxy">reactiveElement.connect(store, key) ⇒ <code>ObservableProxy</code></h3>
 <p>Subscribes to a store and creates an observable for a specific key in the store. This is useful for
 synchronizing the component's state with a global store.</p>
 <p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - An observable property or proxy for the store key  </p>
+<strong>Returns</strong>: <code>ObservableProxy</code> - An observable property or proxy for the store key  </p>
 <table>
 <thead>
 <tr>
@@ -1925,10 +1905,10 @@ synchronizing the component's state with a global store.</p>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
 </span></code></pre></div>
 <a name="ReactiveElement+query"></a></p>
-<h3 id="reactiveelementqueryoptions-observableproxy">reactiveElement.query(options) ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></h3>
+<h3 id="reactiveelementqueryoptions-observableproxy">reactiveElement.query(options) ⇒ <code>ObservableProxy</code></h3>
 <p>Fetches data from an API and caches it. This method is based on the TanStack Query defaults: https://tanstack.com/query/latest/docs/react/guides/important-defaults.</p>
 <p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - A proxy that contains the state of the query.  </p>
+<strong>Returns</strong>: <code>ObservableProxy</code> - A proxy that contains the state of the query.  </p>
 <table>
 <thead>
 <tr>
@@ -2016,10 +1996,10 @@ synchronizing the component's state with a global store.</p>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">});</span>
 </span></code></pre></div>
 <a name="ReactiveElement+mutation"></a></p>
-<h3 id="reactiveelementmutationoptions-observableproxy">reactiveElement.mutation(options) ⇒ <a href="#ObservableProxy"><code>ObservableProxy</code></a></h3>
+<h3 id="reactiveelementmutationoptions-observableproxy">reactiveElement.mutation(options) ⇒ <code>ObservableProxy</code></h3>
 <p>Performs a mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations.</p>
 <p><strong>Kind</strong>: instance method of <a href="#ReactiveElement"><code>ReactiveElement</code></a><br />
-<strong>Returns</strong>: <a href="#ObservableProxy"><code>ObservableProxy</code></a> - A proxy that contains the state of the mutation.  </p>
+<strong>Returns</strong>: <code>ObservableProxy</code> - A proxy that contains the state of the mutation.  </p>
 <table>
 <thead>
 <tr>
@@ -2362,31 +2342,6 @@ Subclasses can override this to add logic that should run when the component is 
 <td>[dispose]</td>
 <td><code>function</code></td>
 <td>An optional function that cleans up the observable state when it is no longer needed. This is used internally by ReactiveElement to manage memory.</td>
-</tr>
-</tbody>
-</table>
-<p><a name="ObservableProxy"></a></p>
-<h2 id="observableproxy">ObservableProxy</h2>
-<p><strong>Kind</strong>: global typedef<br />
-<strong>Properties</strong></p>
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>get</td>
-<td><code>function</code></td>
-<td>A getter function that returns the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return an ObservableProxy that wraps the ObservableState instance. This getter is used when accessing a non-primitive property on a ReactiveElement instance. We use Proxy instead of Object.defineProperty because it allows us to handle nested properties.</td>
-</tr>
-<tr>
-<td>set</td>
-<td><code>function</code></td>
-<td>A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to a non-primitive property on a ReactiveElement instance.</td>
 </tr>
 </tbody>
 </table>
