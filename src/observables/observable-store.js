@@ -60,6 +60,13 @@ class ObservableStore extends Observable {
     this.devTools = this.__connectToDevTools();
     this.dispatchQueue = [];
     this.isDispatching = false;
+    this.queryCache = new Map();
+    this.queryFunctions = new Map();
+    this.queries = {};
+    this.intervals = new Map();
+    this.focusHandlers = new Map();
+    this.reconnectHandlers = new Map();
+    this.gcTimeouts = new Map();
 
     Object.keys(initialState).forEach(key => {
       if (typeof initialState[key] === 'function') {
@@ -159,6 +166,198 @@ class ObservableStore extends Observable {
   }
 
   /**
+   * @method query
+   * @param {string} queryName - The name of the query.
+   * @param {Object} config - The configuration object for the query.
+   * @param {string} config.queryKey - The unique key for the query.
+   * @param {Function} config.queryFn - The async query function that returns a promise.
+   * @param {number} [config.staleTime=0] - The time in milliseconds after which the query is considered stale.
+   * @param {boolean} [config.refetchOnWindowFocus=true] - Whether to refetch the query when the window regains focus.
+   * @param {boolean} [config.refetchOnReconnect=true] - Whether to refetch the query when the network reconnects.
+   * @param {number|null} [config.refetchInterval=null] - The interval in milliseconds at which to refetch the query.
+   * @param {number} [config.gcTime=300000] - The time in milliseconds after which the query is garbage collected.
+   * @param {number} [config.retry=3] - The number of times to retry the query on error.
+   * @param {Function} [config.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - A function that returns the delay in milliseconds for each retry attempt.
+   * @description Registers an async query with the specified configuration.
+   */
+  query(queryName, config) {
+    const {
+      queryKey,
+      queryFn,
+      staleTime = 0,
+      refetchOnWindowFocus = true,
+      refetchInterval = null,
+      refetchOnReconnect = true,
+      gcTime = 1000 * 60 * 5,
+      retry = 3,
+      retryDelay = (attempt) => Math.pow(2, attempt) * 1000,
+    } = config;
+
+    // Register the query with minimal configuration
+    this.queries[queryName] = {
+      queryKey,
+      queryFn,
+      staleTime,
+      refetchOnWindowFocus,
+      refetchInterval,
+      refetchOnReconnect,
+      gcTime,
+      retry,
+      retryDelay,
+    };
+
+    this.queryFunctions.set(queryKey, queryFn);
+
+    __trace(`query`, `Starting query with key: ${queryName}`);
+
+    if (refetchInterval !== null) {
+      const intervalId = setInterval(() => {
+        __trace(`query`, `Interval expired, refetching query: ${queryName}`);
+        this.fetch(queryName).catch(error => console.error(`Error refetching query ${queryName}:`, error));
+      }, refetchInterval);
+      this.intervals[queryName] = intervalId;
+    }
+
+    if (refetchOnWindowFocus) {
+      const focusHandler = () => {
+        __trace(`query`, `Window focus detected, refetching query: ${queryName}`);
+        this.fetch(queryName).catch(error => console.error(`Error refetching query ${queryName} on window focus:`, error));
+      };
+      window.addEventListener('focus', focusHandler);
+      this.focusHandlers[queryName] = focusHandler;
+    }
+
+    if (refetchOnReconnect) {
+      const reconnectHandler = () => {
+        __trace(`query`, `Reconnect detected, refetching query: ${queryName}`);
+        this.fetch(queryName).catch(error => console.error(`Error refetching query ${queryName} on reconnect:`, error));
+      };
+      window.addEventListener('online', reconnectHandler);
+      this.reconnectHandlers[queryName] = reconnectHandler;
+    }
+
+    const gcTimeout = setTimeout(() => {
+      __trace(`query`, `Garbage collection timeout expired, refetching query: ${queryName}`);
+      this.fetch(queryName).catch(error => console.error(`Error refetching query ${queryName} on gc timeout:`, error));
+    }, gcTime);
+
+    this.gcTimeouts[queryName] = gcTimeout;
+
+    this[queryName] = (...args) => {
+        return this.fetch(queryName, ...args);
+    };
+  }
+
+  fetch(queryName, ...args) {
+    const query = this.queries[queryName];
+    if (!query) {
+        throw new Error(`[Cami.js] No query found for name: ${queryName}`);
+    }
+
+    const { queryKey, queryFn, staleTime, retry, retryDelay } = query;
+    const cacheKey = Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
+    const cachedData = this.queryCache.get(cacheKey);
+
+    if (cachedData && !this._isStale(cachedData, staleTime)) {
+      __trace(`fetch`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
+      return Promise.resolve(cachedData.data);
+    }
+
+    __trace(`fetch`, `Data is stale or not cached, fetching new data for: ${queryName}`);
+    this.dispatch(`${queryName}/pending`);
+    return this._fetchWithRetry(queryFn, args, retry, retryDelay)
+      .then((data) => {
+        this.queryCache.set(cacheKey, { data, timestamp: Date.now() });
+        this.dispatch(`${queryName}/success`, data);
+        return data;
+      })
+      .catch((error) => {
+        this.dispatch(`${queryName}/error`, error);
+        throw error;
+      });
+  }
+
+  invalidateQuery(queryName) {
+    const query = this.queries[queryName];
+    if (!query) return;
+
+    const cacheKey = Array.isArray(query.queryKey) ? query.queryKey.join(':') : query.queryKey;
+
+    __trace(`invalidateQuery`, `Invalidating query with key: ${queryName}`);
+
+    if (this.intervals[queryName]) {
+      clearInterval(this.intervals[queryName]);
+      delete this.intervals[queryName];
+    }
+
+    if (this.focusHandlers[queryName]) {
+      window.removeEventListener('focus', this.focusHandlers[queryName]);
+      delete this.focusHandlers[queryName];
+    }
+
+    if (this.reconnectHandlers[queryName]) {
+      window.removeEventListener('online', this.reconnectHandlers[queryName]);
+      delete this.reconnectHandlers[queryName];
+    }
+
+    if (this.gcTimeouts[queryName]) {
+      clearTimeout(this.gcTimeouts[queryName]);
+      delete this.gcTimeouts[queryName];
+    }
+
+    this.queryCache.delete(cacheKey);
+  }
+
+  refetchQuery(queryName, ...args) {
+    const query = this.queries[queryName];
+    if (!query) {
+      console.error(`[Cami.js] No query found for name: ${queryName}`);
+      return Promise.reject(new Error(`No query found for name: ${queryName}`));
+    }
+    __trace(`refetchQuery`, `Refetching query with key: ${queryName}`);
+    this.invalidateQuery(queryName);
+    return this.fetch(queryName, ...args);
+  }
+
+  /**
+   * @private
+   * @method fetchWithRetry
+   * @param {Function} queryFn - The query function to execute.
+   * @param {Array} args - The arguments to pass to the query function.
+   * @param {number} retries - The number of retries remaining.
+   * @param {Function} retryDelay - A function that returns the delay in milliseconds for each retry attempt.
+   * @returns {Promise} A promise that resolves to the query result.
+   * @description Executes the query function with retries and exponential backoff.
+   */
+  _fetchWithRetry(queryFn, args, retries, retryDelay) {
+    return queryFn(...args).catch((error) => {
+      if (retries === 0) {
+        throw error;
+      }
+      const delay = retryDelay(retries);
+      return new Promise((resolve) => setTimeout(resolve, delay)).then(() =>
+        __trace(`fetchWithRetry`, `Retrying query with key: ${queryName}`),
+        this._fetchWithRetry(queryFn, args, retries - 1, retryDelay)
+      );
+    });
+  }
+
+  /**
+   * @private
+   * @method isStale
+   * @param {Object} cachedData - The cached data object.
+   * @param {number} staleTime - The stale time in milliseconds.
+   * @returns {boolean} True if the cached data is stale, false otherwise.
+   * @description Checks if the cached data is stale based on the stale time.
+   */
+  _isStale(cachedData, staleTime) {
+    const isDataStale = Date.now() - cachedData.timestamp > staleTime;
+    __trace(`isStale`, `isDataStale: ${isDataStale} (Current Time: ${Date.now()}, Data Timestamp: ${cachedData.timestamp}, Stale Time: ${staleTime})`);
+    return isDataStale;
+  }
+
+
+  /**
    * Dispatches an action or a function to the store, updating its state accordingly.
    * This method is central to the store's operation, allowing for state changes in response to actions.
    *
@@ -234,6 +433,7 @@ class ObservableStore extends Observable {
       this.devTools.send(action, this.state);
     }
 
+    // Custom event dispatching and tracing
     if (oldState !== newState) {
       if (__config.events.isEnabled && typeof window !== 'undefined') {
         const event = new CustomEvent('cami:store:change', {

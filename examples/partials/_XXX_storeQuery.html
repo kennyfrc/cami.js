@@ -1,0 +1,47 @@
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+
+  // Singleton pattern to ensure the store is only initialized once
+  const appStore = store({
+    posts: [],
+    isLoading: false,
+    error: null
+  });
+
+    // Register a query to fetch posts
+    appStore.query('posts/fetchAll', {
+      queryKey: 'posts/fetchAll',
+      queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
+      refetchOnWindowFocus: true,
+    });
+
+    appStore.register('posts/fetchAll/pending', (state, payload) => {
+      state.isLoading = true;
+      state.posts = [];
+      state.error = null;
+    });
+
+    appStore.register('posts/fetchAll/success', (state, payload) => {
+      state.posts = payload;
+      state.isLoading = false;
+      state.error = null;
+    });
+
+    appStore.register('posts/fetchAll/error', (state, payload) => {
+      state.error = payload;
+      state.isLoading = false;
+      state.posts = [];
+    });
+
+    // Fetch all posts
+    appStore.fetch('posts/fetchAll');
+
+    appStore.subscribe((state) => {
+      console.log('State:', state.posts);
+    });
+
+    cami.debug.enable();
+
+    console.log('App store initialized');
+</script>
