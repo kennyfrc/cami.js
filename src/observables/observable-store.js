@@ -180,6 +180,37 @@ class ObservableStore extends Observable {
    * @param {number} [config.retry=3] - Optional. The number of times to retry the query on error. Defaults to 3.
    * @param {Function} [config.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number.
    * @description Registers an asynchronous query with the specified configuration.
+   * @example
+   * ```javascript
+   * // Register a query to fetch posts
+   * appStore.query('posts/fetchAll', {
+   *   queryKey: 'posts/fetchAll',
+   *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
+   *   refetchOnWindowFocus: true,
+   * });
+   *
+   * // Register actions for pending, success, and error states of the query
+   * appStore.register('posts/fetchAll/pending', (state, payload) => {
+   *   state.isLoading = true;
+   *   state.posts = [];
+   *   state.error = null;
+   * });
+   *
+   * appStore.register('posts/fetchAll/success', (state, payload) => {
+   *   state.posts = payload;
+   *   state.isLoading = false;
+   *   state.error = null;
+   * });
+   *
+   * appStore.register('posts/fetchAll/error', (state, payload) => {
+   *   state.error = payload;
+   *   state.isLoading = false;
+   *   state.posts = [];
+   * });
+   *
+   * // Fetch all posts
+   * appStore.fetch('posts/fetchAll');
+   * ```
    */
   query(queryName, config) {
     const {
@@ -257,6 +288,37 @@ class ObservableStore extends Observable {
    * @returns {Promise<any>} A promise that resolves with the fetched data.
    * @description Fetches data for a given query name, utilizing cache if available and not stale.
    * If data is stale or not in cache, it fetches new data using the query function.
+   * @example
+   * ```javascript
+   * // Register a query to fetch posts
+   * appStore.query('posts/fetchAll', {
+   *   queryKey: 'posts/fetchAll',
+   *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
+   *   refetchOnWindowFocus: true,
+   * });
+   *
+   * // Register actions for pending, success, and error states of the query
+   * appStore.register('posts/fetchAll/pending', (state, payload) => {
+   *   state.isLoading = true;
+   *   state.posts = [];
+   *   state.error = null;
+   * });
+   *
+   * appStore.register('posts/fetchAll/success', (state, payload) => {
+   *   state.posts = payload;
+   *   state.isLoading = false;
+   *   state.error = null;
+   * });
+   *
+   * appStore.register('posts/fetchAll/error', (state, payload) => {
+   *   state.error = payload;
+   *   state.isLoading = false;
+   *   state.posts = [];
+   * });
+   *
+   * // Fetch all posts
+   * appStore.fetch('posts/fetchAll');
+   * ```
    */
   fetch(queryName, ...args) {
     const query = this.queries[queryName];

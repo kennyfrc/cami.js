@@ -127,6 +127,37 @@ Registers an asynchronous query with the specified configuration.
 | [config.retry] | <code>number</code> | <code>3</code> | Optional. The number of times to retry the query on error. Defaults to 3. |
 | [config.retryDelay] | <code>function</code> | <code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code> | Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number. |
 
+**Example**  
+```javascript
+// Register a query to fetch posts
+appStore.query('posts/fetchAll', {
+  queryKey: 'posts/fetchAll',
+  queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
+  refetchOnWindowFocus: true,
+});
+
+// Register actions for pending, success, and error states of the query
+appStore.register('posts/fetchAll/pending', (state, payload) => {
+  state.isLoading = true;
+  state.posts = [];
+  state.error = null;
+});
+
+appStore.register('posts/fetchAll/success', (state, payload) => {
+  state.posts = payload;
+  state.isLoading = false;
+  state.error = null;
+});
+
+appStore.register('posts/fetchAll/error', (state, payload) => {
+  state.error = payload;
+  state.isLoading = false;
+  state.posts = [];
+});
+
+// Fetch all posts
+appStore.fetch('posts/fetchAll');
+```
 <a name="ObservableStore.fetch"></a>
 
 ### ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code>
@@ -141,6 +172,37 @@ If data is stale or not in cache, it fetches new data using the query function.
 | queryName | <code>string</code> | The name of the query to fetch data for. |
 | ...args | <code>any</code> | Arguments to pass to the query function. |
 
+**Example**  
+```javascript
+// Register a query to fetch posts
+appStore.query('posts/fetchAll', {
+  queryKey: 'posts/fetchAll',
+  queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
+  refetchOnWindowFocus: true,
+});
+
+// Register actions for pending, success, and error states of the query
+appStore.register('posts/fetchAll/pending', (state, payload) => {
+  state.isLoading = true;
+  state.posts = [];
+  state.error = null;
+});
+
+appStore.register('posts/fetchAll/success', (state, payload) => {
+  state.posts = payload;
+  state.isLoading = false;
+  state.error = null;
+});
+
+appStore.register('posts/fetchAll/error', (state, payload) => {
+  state.error = payload;
+  state.isLoading = false;
+  state.posts = [];
+});
+
+// Fetch all posts
+appStore.fetch('posts/fetchAll');
+```
 <a name="ObservableStore.invalidateQueries"></a>
 
 ### ObservableStore.invalidateQueries(queryName)
