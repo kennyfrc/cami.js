@@ -22,6 +22,7 @@
 * [ObservableStore](#ObservableStore) ⇐ <code>Observable</code>
     * [new ObservableStore()](#new_ObservableStore_new)
     * [.use(middleware)](#ObservableStore.use)
+    * [.getState()](#ObservableStore.getState) ⇒ <code>Object</code>
     * [.register(action, reducer)](#ObservableStore.register)
     * [.query(queryName, config)](#ObservableStore.query)
     * [.fetch(queryName, ...args)](#ObservableStore.fetch) ⇒ <code>Promise.&lt;any&gt;</code>
@@ -73,6 +74,13 @@ const loggerMiddleware = (context) => {
 };
 CartStore.use(loggerMiddleware);
 ```
+<a name="ObservableStore.getState"></a>
+
+### ObservableStore.getState() ⇒ <code>Object</code>
+Retrieves the current state of the store. This method is crucial in asynchronous operations or event-driven environments to ensure the most current state is accessed, as the state might change frequently due to user interactions or other asynchronous updates.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+**Returns**: <code>Object</code> - - The current state of the store.  
 <a name="ObservableStore.register"></a>
 
 ### ObservableStore.register(action, reducer)

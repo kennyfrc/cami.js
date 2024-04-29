@@ -786,6 +786,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestoregetstate-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.getState() ⇒ Object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoreregisteraction-reducer" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.register(action, reducer)
@@ -1415,6 +1424,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestoregetstate-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.getState() ⇒ Object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoreregisteraction-reducer" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.register(action, reducer)
@@ -1514,6 +1532,7 @@
 <li><a href="#ObservableStore">ObservableStore</a> ⇐ <code>Observable</code><ul>
 <li><a href="#new_ObservableStore_new">new ObservableStore()</a></li>
 <li><a href="#ObservableStore.use">.use(middleware)</a></li>
+<li><a href="#ObservableStore.getState">.getState()</a> ⇒ <code>Object</code></li>
 <li><a href="#ObservableStore.register">.register(action, reducer)</a></li>
 <li><a href="#ObservableStore.query">.query(queryName, config)</a></li>
 <li><a href="#ObservableStore.fetch">.fetch(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
@@ -1572,6 +1591,11 @@
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">};</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">loggerMiddleware</span><span class="p">);</span>
 </span></code></pre></div>
+<a name="ObservableStore.getState"></a></p>
+<h3 id="observablestoregetstate-object">ObservableStore.getState() ⇒ <code>Object</code></h3>
+<p>Retrieves the current state of the store. This method is crucial in asynchronous operations or event-driven environments to ensure the most current state is accessed, as the state might change frequently due to user interactions or other asynchronous updates.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
+<strong>Returns</strong>: <code>Object</code> - - The current state of the store.<br />
 <a name="ObservableStore.register"></a></p>
 <h3 id="observablestoreregisteraction-reducer">ObservableStore.register(action, reducer)</h3>
 <p>This method registers a reducer function for a given action type. Useful if you like redux-style reducers.</p>
