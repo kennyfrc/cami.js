@@ -129,6 +129,16 @@ class ObservableStore extends Observable {
     this.middlewares.push(middleware);
   }
 
+
+  /**
+   * @method getState
+   * @memberof ObservableStore
+   * @returns {Object} - The current state of the store.
+   * @description Retrieves the current state of the store. This method is crucial in asynchronous operations or event-driven environments to ensure the most current state is accessed, as the state might change frequently due to user interactions or other asynchronous updates.
+   */
+  getState() {
+    return this.state;
+  }
   /**
    * @method register
    * @memberof ObservableStore
