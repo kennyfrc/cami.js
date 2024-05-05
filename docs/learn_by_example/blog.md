@@ -78,7 +78,7 @@ If the server responds with an error, then you invoke the rollback function to r
       }
 
       if (this.addPost.status === "error") {
-        return html`<div>Error: ${this.addPost.errorDetails}</div>`;
+        return html`<div>Error: ${this.addPost.errorDetails.message}</div>`;
       }
 
       if (this.posts.data) {
@@ -104,7 +104,7 @@ If the server responds with an error, then you invoke the rollback function to r
       }
 
       if (this.posts.status === "error") {
-        return html`<div>Error: ${this.posts.errorDetails}</div>`;
+        return html`<div>Error: ${this.posts.errorDetails.message}</div>`;
       }
     }
   }

@@ -97,11 +97,11 @@
       }
 
       if (this.todos.status === "error") {
-        return html`<div>Error: ${this.todos.errorDetails}</div>`;
+        return html`<div>Error: ${this.todos.errorDetails.message}</div>`;
       }
 
       if (this.addTodo.status === "error") {
-        return html`<div>Error: ${this.addTodo.errorDetails}</div>`;
+        return html`<div>Error: ${this.addTodo.errorDetails.message}</div>`;
       }
     }
   }

@@ -96,11 +96,11 @@ This demonstrates how you can retrieve data from the server asynchronously and t
       }
 
       if (this.todos.status === "error") {
-        return html`<div class="md-error">Error: ${this.todos.errorDetails}</div>`;
+        return html`<div class="md-error">Error: ${this.todos.errorDetails.message}</div>`;
       }
 
       if (this.addTodo.status === "error") {
-        return html`<div class="md-error">Error: ${this.addTodo.errorDetails}</div>`;
+        return html`<div class="md-error">Error: ${this.addTodo.errorDetails.message}</div>`;
       }
     }
   }

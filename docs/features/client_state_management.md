@@ -96,7 +96,7 @@ class ProductListElement extends ReactiveElement {
     }
 
     if (this.products.status === "error") {
-      return html`<div>Error: ${this.products.errorDetails}</div>`;
+      return html`<div>Error: ${this.products.errorDetails.message}</div>`;
     }
 
     if (this.products && this.products.data) {
