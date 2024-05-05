@@ -322,7 +322,7 @@ class ReactiveElement extends HTMLElement {
             setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
           } else {
             queryProxy.update(state => {
-              state.errorDetails.message = { message: error.message, stack: error.stack };
+              state.errorDetails = { message: error.message, stack: error.stack };
               state.status = 'error';
               state.fetchStatus = 'idle';
             });
@@ -428,13 +428,13 @@ class ReactiveElement extends HTMLElement {
         mutationProxy.update(state => {
           state.data = context.optimisticData;
           state.status = 'pending';
-          state.errorDetails.message = null;
+          state.errorDetails = null;
         });
       } else {
         __trace('mutation', 'Performing mutation without optimistic update for variables:', variables);
         mutationProxy.update(state => {
           state.status = 'pending';
-          state.errorDetails.message = null;
+          state.errorDetails = null;
         });
       }
 
@@ -451,7 +451,7 @@ class ReactiveElement extends HTMLElement {
       } catch (error) {
         __trace('mutation', 'Mutation error for variables:', variables, error);
         mutationProxy.update(state => {
-          state.errorDetails.message = { message: error.message };
+          state.errorDetails = { message: error.message };
           state.status = 'error';
           if (!onError && context && context.rollback) {
             __trace('mutation', 'Rolling back mutation for variables:', variables);
@@ -480,7 +480,7 @@ class ReactiveElement extends HTMLElement {
       mutationProxy.update(state => {
         state.data = null;
         state.status = 'idle';
-        state.errorDetails.message = null;
+        state.errorDetails = null;
         state.isSettled = false;
       });
     };
