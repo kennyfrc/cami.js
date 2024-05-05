@@ -85,7 +85,7 @@ Lastly, the `CartStore`, by default, is persisted to localStorage. This means th
       }
 
       if (this.products.status === "error") {
-        return html`<div>Error: ${this.products.error.message}</div>`;
+        return html`<div>Error: ${this.products.errorDetails}</div>`;
       }
 
       if (this.products && this.products.data) {

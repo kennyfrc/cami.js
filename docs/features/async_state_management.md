@@ -21,7 +21,7 @@ template() {
   }
 
   if (this.posts.status === "error") {
-    return html`<div>Error: ${this.posts.error.message}</div>`;
+    return html`<div>Error: ${this.posts.errorDetails}</div>`;
   }
 
   if (this.posts.data) {
@@ -75,7 +75,7 @@ class BlogPostsElement extends ReactiveElement {
     }
 
     if (this.posts.status === "error") {
-      return html`<div class="md-error">Error: ${this.posts.error.message}</div>`;
+      return html`<div class="md-error">Error: ${this.posts.errorDetails}</div>`;
     }
 
     if (this.posts.data) {
@@ -142,7 +142,7 @@ Below is a live demo of the component in action. The only change is that we're f
       }
 
       if (this.posts.status === "error") {
-        return html`<div class="md-error">Error: ${this.posts.error.message}</div>`;
+        return html`<div class="md-error">Error: ${this.posts.errorDetails}</div>`;
       }
 
       if (this.posts.data) {
@@ -194,7 +194,7 @@ if (this.addPost.status === "pending") {
 }
 
 if (this.addPost.status === "error") {
-  return html`<div>Error: ${this.addPost.error.message}</div>`;
+  return html`<div>Error: ${this.addPost.errorDetails}</div>`;
 }
 ```
 
@@ -250,7 +250,7 @@ This live demo includes a form to submit a new post, which uses a mutation to up
       }
 
       if (this.addPost.status === "error") {
-        return html`<div>Error: ${this.addPost.error.message}</div>`;
+        return html`<div>Error: ${this.addPost.errorDetails}</div>`;
       }
 
       if (this.addPost.status === "success") {
@@ -275,7 +275,7 @@ This live demo includes a form to submit a new post, which uses a mutation to up
       }
 
       if (this.posts.status === "error") {
-        return html`<div class="md-error">Error: ${this.posts.error.message}</div>`;
+        return html`<div class="md-error">Error: ${this.posts.errorDetails}</div>`;
       }
 
       if (this.posts.data) {

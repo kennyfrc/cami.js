@@ -89,11 +89,11 @@
       }
 
       if (this.todos.status === "error") {
-        return html`<div>Error: ${this.todos.error.message}</div>`;
+        return html`<div>Error: ${this.todos.errorDetails}</div>`;
       }
 
       if (this.addTodo.status === "error") {
-        return html`<div>Error: ${this.addTodo.error.message}</div>`;
+        return html`<div>Error: ${this.addTodo.errorDetails}</div>`;
       }
     }
   }

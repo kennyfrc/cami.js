@@ -297,7 +297,7 @@ class ReactiveElement extends HTMLElement {
 
       if (cacheEntry && (now - cacheEntry.lastUpdated) < staleTime) {
         __trace('fetchData (if)', 'Using cached data for key:', key);
-        queryState.update(state => {
+        queryProxy.update(state => {
           state.data = cacheEntry.data;
           state.status = 'success';
           state.fetchStatus = 'idle';
@@ -305,13 +305,13 @@ class ReactiveElement extends HTMLElement {
       } else {
         __trace('fetchData (else)', 'Fetching data for key:', key);
         try {
-          queryState.update(state => {
+          queryProxy.update(state => {
             state.status = 'pending';
             state.fetchStatus = 'fetching';
           });
           const data = await queryFn();
           QueryCache.set(key, { data, lastUpdated: now });
-          queryState.update(state => {
+          queryProxy.update(state => {
             state.data = data;
             state.status = 'success';
             state.fetchStatus = 'idle';
@@ -321,8 +321,8 @@ class ReactiveElement extends HTMLElement {
           if (attempt < retry) {
             setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
           } else {
-            queryState.update(state => {
-              state.error = { message: error.message };
+            queryProxy.update(state => {
+              state.errorDetails = { message: error.message, stack: error.stack };
               state.status = 'error';
               state.fetchStatus = 'idle';
             });
@@ -420,27 +420,27 @@ class ReactiveElement extends HTMLElement {
     const performMutation = async (variables) => {
       __trace('mutation', 'Starting mutation for variables:', variables);
       let context;
-      const previousState = mutationState.value;
+      const previousState = mutationProxy.value;
 
       if (onMutate) {
         __trace('mutation', 'Performing optimistic update for variables:', variables);
         context = onMutate(variables, previousState);
-        mutationState.update(state => {
+        mutationProxy.update(state => {
           state.data = context.optimisticData;
           state.status = 'pending';
-          state.error = null;
+          state.errorDetails = null;
         });
       } else {
         __trace('mutation', 'Performing mutation without optimistic update for variables:', variables);
-        mutationState.update(state => {
+        mutationProxy.update(state => {
           state.status = 'pending';
-          state.error = null;
+          state.errorDetails = null;
         });
       }
 
       try {
         const data = await mutationFn(variables);
-        mutationState.update(state => {
+        mutationProxy.update(state => {
           state.data = data;
           state.status = 'success';
         });
@@ -450,8 +450,8 @@ class ReactiveElement extends HTMLElement {
         __trace('mutation', 'Mutation successful for variables:', variables, data);
       } catch (error) {
         __trace('mutation', 'Mutation error for variables:', variables, error);
-        mutationState.update(state => {
-          state.error = { message: error.message };
+        mutationProxy.update(state => {
+          state.errorDetails = { message: error.message };
           state.status = 'error';
           if (!onError && context && context.rollback) {
             __trace('mutation', 'Rolling back mutation for variables:', variables);
@@ -462,13 +462,13 @@ class ReactiveElement extends HTMLElement {
           onError(error, variables, context);
         }
       } finally {
-        if (!mutationState.value.isSettled) {
-          mutationState.update(state => {
+        if (!mutationProxy.value.isSettled) {
+          mutationProxy.update(state => {
             state.isSettled = true
           });
           if (onSettled) {
             __trace('mutation', 'Calling onSettled for variables:', variables);
-            onSettled(mutationState.value.data, mutationState.value.error, variables, context);
+            onSettled(mutationProxy.value.data, mutationProxy.value.error, variables, context);
           }
         }
       }
@@ -477,10 +477,10 @@ class ReactiveElement extends HTMLElement {
     mutationProxy.mutate = performMutation;
 
     mutationProxy.reset = () => {
-      mutationState.update(state => {
+      mutationProxy.update(state => {
         state.data = null;
         state.status = 'idle';
-        state.error = null;
+        state.errorDetails = null;
         state.isSettled = false;
       });
     };
