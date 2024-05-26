@@ -7,7 +7,7 @@ import { ObservableStream } from './observable-stream.js';
  * ```javascript
  * const { ObservableElement } = cami;
  * const draggableElement = new ObservableElement(".draggable");
- * draggableElement.on('mousedown').subscribe({
+ * draggableElement.on('click').subscribe({
  *   next: event => console.log('drag event', event),
  *   error: err => console.error(err),
  * });
@@ -48,7 +48,7 @@ class ObservableElement extends ObservableStream {
    * ```javascript
    * const { ObservableElement } = cami;
    * const draggableElement = new ObservableElement(".draggable");
-   * draggableElement.on('mousedown').subscribe({
+   * draggableElement.on('click').subscribe({
    *   next: event => console.log('drag event', event),
    *   error: err => console.error(err),
    * });

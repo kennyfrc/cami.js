@@ -539,6 +539,65 @@ class ObservableStore extends Observable {
 }
 
 /**
+ * @function slice
+ * @param {Object} store - The main store instance.
+ * @param {Object} options - The options for creating the slice.
+ * @param {string} options.name - The name of the slice.
+ * @param {Object} options.state - The initial state of the slice.
+ * @param {Object} options.actions - The actions for the slice.
+ * @returns {Object} - An object containing the action methods for the slice.
+ * @description Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
+ * @example
+ * ```javascript
+ * const userSlice = slice(appStore, {
+ *   name: 'user',
+ *   state: {
+ *     userInfo: null,
+ *     isLoggedIn: false,
+ *   },
+ *   actions: {
+ *     login(state, userInfo) {
+ *       state.userInfo = userInfo;
+ *       state.isLoggedIn = true;
+ *     },
+ *     logout(state) {
+ *       state.userInfo = null;
+ *       state.isLoggedIn = false;
+ *     },
+ *   }
+ * });
+ * ```
+ */
+const slice = (store, { name, state, actions }) => {
+  if (store.slices && store.slices[name]) {
+    throw new Error(`[Cami.js] Slice name ${name} is already in use.`);
+  }
+
+  // Initialize slices if not already done
+  if (!store.slices) {
+    store.slices = {};
+  }
+
+  store.slices[name] = true; // Mark the slice as registered
+  store.state[name] = state;
+
+  const sliceActions = {};
+
+  Object.keys(actions).forEach(actionKey => {
+    const namespacedAction = `${name}/${actionKey}`;
+    store.register(namespacedAction, (state, payload) => {
+      actions[actionKey](state[name], payload);
+    });
+
+    sliceActions[actionKey] = (...args) => {
+      store.dispatch(namespacedAction, ...args);
+    };
+  });
+
+  return sliceActions;
+};
+
+/**
  * @private
  * @function _localStorageEnhancer
  * @param {Function} StoreClass - The class of the store to enhance.
@@ -675,4 +734,4 @@ const store = (initialState, options = {}) => {
   }
 }
 
-export { ObservableStore, store };
+export { ObservableStore, store, slice };

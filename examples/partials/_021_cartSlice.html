@@ -1,0 +1,153 @@
+<article>
+  <h2>Products</h2>
+  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
+  <product-list-component></product-list-component>
+</article>
+<article>
+    <h2>Cart</h2>
+    <cart-component></cart-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  const appStore = cami.store({}, {
+    name: 'AppStore',
+    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
+  });
+
+  const cartSlice = cami.slice(appStore, {
+    name: 'cart',
+    state: {
+      cartItems: [],
+    },
+    actions: {
+      add(state, product) {
+        const newItem = { ...product, id: Date.now() }; // lame way to generate a unique id
+        state.cartItems.push(newItem);
+      },
+      remove(state, product) {
+        state.cartItems = state.cartItems.filter(item => item.id !== product.id);
+      }
+    }
+  });
+
+  const productSlice = cami.slice(appStore, {
+    name: 'products',
+    state: {
+      items: [],
+      status: 'idle',
+      error: null
+    },
+    actions: {
+      setProducts(state, products) {
+        state.items = products;
+      },
+      setStatus(state, status) {
+        state.status = status;
+      },
+      setError(state, error) {
+        state.error = error;
+      }
+    }
+  });
+
+  cami.debug.enable();
+
+  // Define a middleware function
+  const loggerMiddleware = (context) => {
+    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+  };
+
+  // Use the middleware function with the initialState
+  appStore.use(loggerMiddleware);
+
+  class ProductListElement extends ReactiveElement {
+    cartItems = [];
+    products = [];
+
+    onConnect() {
+      appStore.subscribe(state => {
+        this.cartItems = state.cart.cartItems;
+        this.products = state.products;
+      });
+
+      productSlice.setStatus('pending');
+      fetch("https://api.camijs.com/products?_limit=3")
+        .then(res => res.json())
+        .then(data => {
+          productSlice.setProducts(data);
+          productSlice.setStatus('success');
+        })
+        .catch(error => {
+          productSlice.setError(error);
+          productSlice.setStatus('error');
+        });
+    }
+
+    isProductInCart(product) {
+      return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+    }
+
+    isOutOfStock(product) {
+      return product.stock === 0;
+    }
+
+    template() {
+      if (this.products.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (this.products.status === "error") {
+        return html`<div>Error: ${this.products.error.message}</div>`;
+      }
+
+      if (this.products && this.products.items) {
+        return html`
+          <ul>
+            ${this.products.items.map(product => html`<li>
+              ${product.name} - ${(product.price / 100).toFixed(2)}
+              <button @click=${() => cartSlice.add(product)} ?disabled=${this.isOutOfStock(product)}>
+                Add to cart
+              </button>
+            </li>`)}
+          </ul>
+        `;
+      }
+    }
+  }
+
+  customElements.define('product-list-component', ProductListElement);
+
+  class CartElement extends ReactiveElement {
+    cartItems = [];
+    onConnect() {
+      appStore.subscribe(state => {
+        this.cartItems = state.cart.cartItems;
+      });
+    }
+
+    template() {
+      return html`
+        ${this.cartItems.length > 0 ? html`
+          <p>Cart value: ${(this.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
+          <ul>
+            ${this.cartItems.map(item => html`
+              <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => cartSlice.remove(item)}>Remove</button></li>
+            `)}
+          </ul>
+        ` : html`
+          <p>Cart is empty</p>
+        `}
+      `
+    }
+  }
+
+  customElements.define('cart-component', CartElement);
+</script>
+
+</body>
+</html>

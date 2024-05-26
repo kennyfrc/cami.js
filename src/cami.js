@@ -11,7 +11,7 @@
 import { html, render, svg } from './html.js';
 import { produce } from "./produce.js"
 import { ReactiveElement } from './reactive-element.js';
-import { ObservableStore, store } from './observables/observable-store.js';
+import { ObservableStore, store, slice } from './observables/observable-store.js';
 import { Observable } from './observables/observable.js';
 import { ObservableState, computed, effect } from './observables/observable-state.js';
 import { ObservableStream } from './observables/observable-stream.js';
@@ -24,6 +24,7 @@ const { debug, events } = __config;
 
 /**
  * @exports store - The store object from observable-store.js. This uses local storage by default.
+ * @exports slice - The slice function from observable-store.js. This allows creating slices of the store.
  * @exports html - The html function from html.js
  * @exports svg - The svg function from html.js
  * @exports ReactiveElement - The ReactiveElement class from reactive_element.js
@@ -36,4 +37,4 @@ const { debug, events } = __config;
  * @exports debug - The debug property from __config
  * @exports events - The events property from __config
  */
-export { store, html, svg, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events, computed, effect };
+export { store, slice, html, svg, ReactiveElement, ObservableStream, ObservableElement, Observable, ObservableState, ObservableStore, http, debug, events, computed, effect };
