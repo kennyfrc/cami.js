@@ -8,6 +8,9 @@
 ## Functions
 
 <dl>
+<dt><a href="#slice">slice(store, options)</a> ⇒ <code>Object</code></dt>
+<dd><p>Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.</p>
+</dd>
 <dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
 <dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
 </dd>
@@ -252,6 +255,42 @@ Use this method to dispatch redux-style actions or flux actions, triggering stat
 ```javascript
 // Dispatching an action with a payload
 CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
+```
+<a name="slice"></a>
+
+## slice(store, options) ⇒ <code>Object</code>
+Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
+
+**Kind**: global function  
+**Returns**: <code>Object</code> - - An object containing the action methods for the slice.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| store | <code>Object</code> | The main store instance. |
+| options | <code>Object</code> | The options for creating the slice. |
+| options.name | <code>string</code> | The name of the slice. |
+| options.state | <code>Object</code> | The initial state of the slice. |
+| options.actions | <code>Object</code> | The actions for the slice. |
+
+**Example**  
+```javascript
+const userSlice = slice(appStore, {
+  name: 'user',
+  state: {
+    userInfo: null,
+    isLoggedIn: false,
+  },
+  actions: {
+    login(state, userInfo) {
+      state.userInfo = userInfo;
+      state.isLoggedIn = true;
+    },
+    logout(state) {
+      state.userInfo = null;
+      state.isLoggedIn = false;
+    },
+  }
+});
 ```
 <a name="store"></a>
 
