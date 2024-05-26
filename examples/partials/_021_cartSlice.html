@@ -70,9 +70,12 @@
     products = [];
 
     onConnect() {
-      appStore.subscribe(state => {
-        this.cartItems = state.cart.cartItems;
-        this.products = state.products;
+      productSlice.subscribe(state => {
+        this.products = state;
+      });
+
+      cartSlice.subscribe(state => {
+        this.cartItems = state.cartItems;
       });
 
       productSlice.setStatus('pending');
@@ -125,8 +128,8 @@
   class CartElement extends ReactiveElement {
     cartItems = [];
     onConnect() {
-      appStore.subscribe(state => {
-        this.cartItems = state.cart.cartItems;
+      cartSlice.subscribe(state => {
+        this.cartItems = state.cartItems;
       });
     }
 

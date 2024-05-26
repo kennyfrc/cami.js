@@ -539,6 +539,8 @@ class ObservableStore extends Observable {
 }
 
 /**
+ * Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
+ *
  * @function slice
  * @param {Object} store - The main store instance.
  * @param {Object} options - The options for creating the slice.
@@ -546,42 +548,41 @@ class ObservableStore extends Observable {
  * @param {Object} options.state - The initial state of the slice.
  * @param {Object} options.actions - The actions for the slice.
  * @returns {Object} - An object containing the action methods for the slice.
- * @description Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
+ *
  * @example
- * ```javascript
- * const userSlice = slice(appStore, {
- *   name: 'user',
+ * const cartSlice = slice(appStore, {
+ *   name: 'cart',
  *   state: {
- *     userInfo: null,
- *     isLoggedIn: false,
+ *     cartItems: [],
  *   },
  *   actions: {
- *     login(state, userInfo) {
- *       state.userInfo = userInfo;
- *       state.isLoggedIn = true;
+ *     add(state, product) {
+ *       const newItem = { ...product, id: Date.now() };
+ *       state.cartItems.push(newItem);
  *     },
- *     logout(state) {
- *       state.userInfo = null;
- *       state.isLoggedIn = false;
+ *     remove(state, product) {
+ *       state.cartItems = state.cartItems.filter(item => item.id !== product.id);
  *     },
  *   }
  * });
- * ```
+ *
+ * cartSlice.add({ name: 'Product 1', price: 100 });
+ * cartSlice.remove({ id: 123456789 });
  */
 const slice = (store, { name, state, actions }) => {
   if (store.slices && store.slices[name]) {
     throw new Error(`[Cami.js] Slice name ${name} is already in use.`);
   }
 
-  // Initialize slices if not already done
   if (!store.slices) {
     store.slices = {};
   }
 
-  store.slices[name] = true; // Mark the slice as registered
+  store.slices[name] = true;
   store.state[name] = state;
 
   const sliceActions = {};
+  const sliceSubscribers = [];
 
   Object.keys(actions).forEach(actionKey => {
     const namespacedAction = `${name}/${actionKey}`;
@@ -594,7 +595,22 @@ const slice = (store, { name, state, actions }) => {
     };
   });
 
-  return sliceActions;
+  const subscribe = (callback) => {
+    sliceSubscribers.push(callback);
+    return () => {
+      const index = sliceSubscribers.indexOf(callback);
+      if (index > -1) {
+        sliceSubscribers.splice(index, 1);
+      }
+    };
+  };
+
+  store.subscribe((newState) => {
+    const sliceState = newState[name];
+    sliceSubscribers.forEach(callback => callback(sliceState));
+  });
+
+  return { ...sliceActions, subscribe };
 };
 
 /**
