@@ -273,24 +273,25 @@ Creates a slice of the store with its own state and actions, namespaced to avoid
 | options.actions | <code>Object</code> | The actions for the slice. |
 
 **Example**  
-```javascript
-const userSlice = slice(appStore, {
-  name: 'user',
+```js
+const cartSlice = slice(appStore, {
+  name: 'cart',
   state: {
-    userInfo: null,
-    isLoggedIn: false,
+    cartItems: [],
   },
   actions: {
-    login(state, userInfo) {
-      state.userInfo = userInfo;
-      state.isLoggedIn = true;
+    add(state, product) {
+      const newItem = { ...product, id: Date.now() };
+      state.cartItems.push(newItem);
     },
-    logout(state) {
-      state.userInfo = null;
-      state.isLoggedIn = false;
+    remove(state, product) {
+      state.cartItems = state.cartItems.filter(item => item.id !== product.id);
     },
   }
 });
+
+cartSlice.add({ name: 'Product 1', price: 100 });
+cartSlice.remove({ id: 123456789 });
 ```
 <a name="store"></a>
 
