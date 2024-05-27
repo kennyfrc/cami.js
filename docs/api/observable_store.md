@@ -262,7 +262,7 @@ CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
 Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
 
 **Kind**: global function  
-**Returns**: <code>Object</code> - - An object containing the action methods for the slice.  
+**Returns**: <code>Object</code> - - An object containing the action methods for the slice, including getState, actions, and subscribe methods.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -290,8 +290,20 @@ const cartSlice = slice(appStore, {
   }
 });
 
-cartSlice.add({ name: 'Product 1', price: 100 });
-cartSlice.remove({ id: 123456789 });
+// Dispatching actions
+cartSlice.actions.add({ name: 'Product 1', price: 100 });
+cartSlice.actions.remove({ id: 123456789 });
+
+// Getting the current state
+console.log(cartSlice.getState()); // Logs the current state of the cart slice
+
+// Subscribing to state changes
+const unsubscribe = cartSlice.subscribe(newState => {
+  console.log('Cart slice state changed:', newState);
+});
+
+// Unsubscribe when no longer needed
+unsubscribe();
 ```
 <a name="store"></a>
 

@@ -547,7 +547,7 @@ class ObservableStore extends Observable {
  * @param {string} options.name - The name of the slice.
  * @param {Object} options.state - The initial state of the slice.
  * @param {Object} options.actions - The actions for the slice.
- * @returns {Object} - An object containing the action methods for the slice, including a getState method.
+ * @returns {Object} - An object containing the action methods for the slice, including getState, actions, and subscribe methods.
  *
  * @example
  * const cartSlice = slice(appStore, {
@@ -566,9 +566,20 @@ class ObservableStore extends Observable {
  *   }
  * });
  *
- * cartSlice.add({ name: 'Product 1', price: 100 });
- * cartSlice.remove({ id: 123456789 });
+ * // Dispatching actions
+ * cartSlice.actions.add({ name: 'Product 1', price: 100 });
+ * cartSlice.actions.remove({ id: 123456789 });
+ *
+ * // Getting the current state
  * console.log(cartSlice.getState()); // Logs the current state of the cart slice
+ *
+ * // Subscribing to state changes
+ * const unsubscribe = cartSlice.subscribe(newState => {
+ *   console.log('Cart slice state changed:', newState);
+ * });
+ *
+ * // Unsubscribe when no longer needed
+ * unsubscribe();
  */
 const slice = (store, { name, state, actions }) => {
   if (store.slices && store.slices[name]) {
@@ -612,10 +623,10 @@ const slice = (store, { name, state, actions }) => {
   });
 
   const getState = () => {
-    return store.state[name];
+    return store.getState()[name];
   };
 
-  return { ...sliceActions, subscribe, getState };
+  return { getState, actions: sliceActions, subscribe }
 };
 
 /**
