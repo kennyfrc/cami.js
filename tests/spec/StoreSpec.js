@@ -29,6 +29,30 @@ describe("ObservableStore", function() {
       store.dispatch('increment');
       expect(middlewareSpy).toHaveBeenCalled();
     });
+
+    it("should handle multiple actions and their interactions", function() {
+      store.register('increment', (state) => {
+        state.count += 1;
+      });
+      store.register('decrement', (state) => {
+        state.count -= 1;
+      });
+      store.dispatch('increment');
+      store.dispatch('increment');
+      store.dispatch('decrement');
+      expect(store.state.count).toBe(1);
+    });
+
+    it("should handle nested state updates", function() {
+      store.register('addNested', (state) => {
+        if (!state.nested) {
+          state.nested = { count: 0 };
+        }
+        state.nested.count += 1;
+      });
+      store.dispatch('addNested');
+      expect(store.state.nested.count).toBe(1);
+    });
   });
 
   describe("Cami Store with Local Storage", function() {
@@ -78,6 +102,32 @@ describe("ObservableStore", function() {
       expect(localStorage.removeItem).toHaveBeenCalledWith('test-store');
       expect(localStorage.removeItem).toHaveBeenCalledWith('test-store-expiry');
       expect(store.state.items).toEqual([]);
+    });
+
+    it("should handle state expiry correctly", function(done) {
+      const expiredState = {
+        'test-store': JSON.stringify({ items: ['expired item'] }),
+        'test-store-expiry': (new Date().getTime() - 1000).toString()
+      };
+      localStorage.getItem.and.callFake((key) => expiredState[key] || null);
+
+      store = cami.store(initialState, options);
+      setTimeout(() => {
+        expect(store.state.items).toEqual([]);
+        done();
+      }, 50);
+    });
+
+    it("should handle nested state updates and persist them", function() {
+      store.register('addNestedItem', (state, item) => {
+        if (!state.nested) {
+          state.nested = { items: [] };
+        }
+        state.nested.items.push(item);
+      });
+      store.dispatch('addNestedItem', 'nested item');
+      expect(store.state.nested.items).toEqual(['nested item']);
+      expect(localStorage.setItem).toHaveBeenCalledWith('test-store', jasmine.any(String));
     });
   });
 });
