@@ -516,15 +516,15 @@ class ObservableStore extends Observable {
       throw new Error(`[Cami.js] invalidateQueries expects either a queryKey or a predicate.`);
     }
 
+    const _queryKey = queryKey.filter(Boolean).join(':');
+
     const queriesToInvalidate = Object.keys(this.queryFunctions).filter(queryName => {
-      const query = this.queryFunctions[queryName];
-      if (queryKey) {
-        const key = typeof query.queryKey === 'function' ? query.queryKey() : query.queryKey;
-        return JSON.stringify(key) === JSON.stringify(queryKey);
-      }
-      if (predicate) {
+      if (_queryKey === queryName)
+        return true;
+
+      if (predicate)
         return predicate(query);
-      }
+
       return false;
     });
 
