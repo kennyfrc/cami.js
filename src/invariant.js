@@ -17,11 +17,33 @@ let isProduction = (function() {
 
 let alwaysEnabled = false;
 
+function captureStackTrace(error) {
+  if (Error.captureStackTrace) {
+    Error.captureStackTrace(error, invariant);
+  } else {
+    error.stack = (new Error()).stack;
+  }
+}
+
+class InvariantViolationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'InvariantViolationError';
+    captureStackTrace(this);
+  }
+}
+
 function invariant(message, callback) {
   if (!alwaysEnabled && isProduction) return; // No-op in production unless alwaysEnabled is true
 
   if (!callback()) {
-    var error = new Error(error);
+    var error = new InvariantViolationError('Invariant Violation: ' + message);
+
+    // In non-production environments, capture the stack trace
+    if (!isProduction) {
+      captureStackTrace(error);
+    }
+
     throw error;
   }
 }
