@@ -2752,11 +2752,11 @@ var ObservableStore = class extends Observable {
    * appStore.fetch('fetchPosts', 'someId')
    */
   fetch(queryName, ...args) {
-    const query = this.queryFunctions[queryName];
-    if (!query) {
+    const query2 = this.queryFunctions[queryName];
+    if (!query2) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
     }
-    const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, actions, mutations } = query;
+    const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, actions, mutations } = query2;
     const context = {
       state: this.state,
       actions,
@@ -2812,28 +2812,25 @@ var ObservableStore = class extends Observable {
     if (!queryKey && !predicate) {
       throw new Error(`[Cami.js] invalidateQueries expects either a queryKey or a predicate.`);
     }
+    const _queryKey = queryKey.filter(Boolean).join(":");
     const queriesToInvalidate = Object.keys(this.queryFunctions).filter((queryName) => {
-      const query = this.queryFunctions[queryName];
-      if (queryKey) {
-        const key = typeof query.queryKey === "function" ? query.queryKey() : query.queryKey;
-        return JSON.stringify(key) === JSON.stringify(queryKey);
-      }
-      if (predicate) {
+      if (_queryKey === queryName)
+        return true;
+      if (predicate)
         return predicate(query);
-      }
       return false;
     });
     queriesToInvalidate.forEach((queryName) => {
-      const query = this.queryFunctions[queryName];
-      if (!query)
+      const query2 = this.queryFunctions[queryName];
+      if (!query2)
         return;
       let cacheKey;
-      if (typeof query.queryKey === "function") {
-        cacheKey = query.queryKey().join(":");
-      } else if (Array.isArray(query.queryKey)) {
-        cacheKey = query.queryKey.join(":");
+      if (typeof query2.queryKey === "function") {
+        cacheKey = query2.queryKey().join(":");
+      } else if (Array.isArray(query2.queryKey)) {
+        cacheKey = query2.queryKey.join(":");
       } else {
-        cacheKey = query.queryKey;
+        cacheKey = query2.queryKey;
       }
       __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
       if (this.intervals[queryName]) {
