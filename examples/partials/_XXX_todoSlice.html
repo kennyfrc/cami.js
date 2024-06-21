@@ -1,0 +1,122 @@
+<article>
+  <h1>Post List</h1>
+  <p><small class="note"></small></p>
+  <post-list-component></post-list-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, store, slice } = cami;
+
+  // Create a store with initial state
+  const appStore = store({});
+
+  // Create a slice for posts
+  const postSlice = slice(appStore, {
+    name: 'posts',
+    state: {
+      posts: []
+    },
+    actions: {
+      setPosts(state, posts) {
+        state.posts = posts;
+      }
+    },
+    queries: {
+      fetchPosts: {
+        queryKey: ['posts'],
+        queryFn: () => fetch("https://api.camijs.com/posts?_limit=5").then(res => res.json()),
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        onSuccess: (ctx) => {
+          ctx.actions.setPosts(ctx.result);
+        }
+      }
+    },
+    mutations: {
+      addPost: {
+        mutationFn: (newPost) => {
+          return fetch("https://api.camijs.com/posts", {
+            method: "POST",
+            body: JSON.stringify(newPost),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          }).then(res => res.json());
+        },
+        onMutate: (ctx) => {
+          const previousPosts = ctx.state.posts.posts; // because the name is stupid... posts is the name and the state is posts.
+          ctx.actions.setPosts([...previousPosts, ctx.args[0]]);
+        },
+        onSuccess: (ctx) => {
+          ctx.invalidateQueries('fetchPosts');
+          document.querySelector('.note').innerHTML = 'Post was added successfully.';
+        },
+        onError: (ctx) => {
+          document.querySelector('.note').innerHTML = `Error: ${error.message}`;
+        }
+      },
+      deletePost: {
+        mutationFn: (post) => {
+          return fetch(`https://api.camijs.com/posts/${post.id}`, {
+            method: "DELETE"
+          }).then(res => res.json());
+        },
+        onMutate: (ctx) => {
+          const previousPosts = postSlice.getState().posts;
+          ctx.actions.setPosts(previousPosts.filter(p => p.id !== ctx.args[0].id));
+          return { previousPosts };
+        },
+        onSuccess: (ctx) => {
+          ctx.invalidateQueries('fetchPosts');
+          document.querySelector('.note').innerHTML = 'Post was deleted successfully.';
+        },
+        onError: (ctx) => {
+          // Rollback the optimistic update
+          ctx.actions.setPosts(context.previousPosts);
+          document.querySelector('.note').innerHTML = `Error: ${error.message}`;
+        }
+      }
+    }
+  });
+
+  // Define the custom element
+  class PostListElement extends ReactiveElement {
+    connectedCallback() {
+      super.connectedCallback();
+      postSlice.queries.fetchPosts();
+    }
+
+    onCreate() {
+      this.state = postSlice.getState();
+      postSlice.subscribe((state) => {
+        this.state = state;
+      });
+    }
+
+    template() {
+      return html`
+        <input class="newPost" type="text" />
+        <button @click=${() => {
+          const newPost = {
+            title: document.querySelector('.newPost').value,
+            completed: false
+          };
+          postSlice.mutations.addPost(newPost);
+          document.querySelector('.newPost').value = '';
+        }}>Add</button>
+        <ul>
+          ${this.state.posts.slice().reverse().map(post => html`
+            <li>
+              ${post.title}
+              <button @click=${() => postSlice.mutations.deletePost(post)}>Delete</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('post-list-component', PostListElement);
+</script>

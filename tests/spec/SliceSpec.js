@@ -12,20 +12,19 @@ describe("Slice functionality", function() {
         cartItems: [],
       },
       actions: {
-        add(state, payload) {
-          console.log(`state: ${JSON.stringify(state)}`);
-          const newItem = { ...payload, id: Date.now() + Math.random() }; // some bs random number for id
+        add({ state, payload }) { // Updated parameter format
+          const newItem = { ...payload, id: Date.now() + Math.random() };
           state.cartItems.push(newItem);
-          console.log('State after add:', state.cartItems);
         },
-        remove(state, payload) {
-          console.log(`state: ${state}`);
-          const filteredItems = state.cartItems.filter(item => item.id !== payload.id);
-          state.cartItems = filteredItems;
-          console.log('State after remove:', state.cartItems);
+        remove({ state, payload }) { // Updated parameter format
+          state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
+        },
+        reset({ state }) { // Updated parameter format
+          state.cartItems = [];
         }
       }
     });
+    cartSlice.actions.reset(); // Reset state before each test
   });
 
   it("should initialize with the correct initial state", function() {
@@ -34,18 +33,15 @@ describe("Slice functionality", function() {
 
   it("should handle actions correctly", function() {
     cartSlice.actions.add({ name: 'Product 1', price: 100 });
-    console.log('After add action:', cartSlice.getState().cartItems);
     expect(cartSlice.getState().cartItems.length).toBe(1);
     expect(cartSlice.getState().cartItems[0].name).toBe('Product 1');
 
     cartSlice.actions.remove({ id: cartSlice.getState().cartItems[0].id });
-    console.log('After remove action:', cartSlice.getState().cartItems);
-    expect(appStore.state.cart.cartItems.length).toBe(0);
+    expect(cartSlice.getState().cartItems.length).toBe(0);
   });
 
   it("should reflect changes in the main store", function() {
     cartSlice.actions.add({ name: 'Product 2', price: 200 });
-    console.log('Main store state:', appStore.getState().cart.cartItems);
     expect(appStore.getState().cart.cartItems[0].name).toBe('Product 2');
   });
 
@@ -69,12 +65,12 @@ describe("Slice functionality", function() {
   });
 
   it("should handle edge cases gracefully", function() {
-    cartSlice.actions.add({ name: 'Product 6' }); // Missing price
+    cartSlice.actions.add({ name: 'Product 6' });
     expect(cartSlice.getState().cartItems.length).toBe(1);
     expect(cartSlice.getState().cartItems[0].name).toBe('Product 6');
     expect(cartSlice.getState().cartItems[0].price).toBeUndefined();
 
-    cartSlice.actions.add({}); // Missing name and price
+    cartSlice.actions.add({});
     expect(cartSlice.getState().cartItems.length).toBe(2);
     expect(cartSlice.getState().cartItems[1].name).toBeUndefined();
     expect(cartSlice.getState().cartItems[1].price).toBeUndefined();

@@ -24,13 +24,19 @@
 
 * [ObservableStore](#ObservableStore) ⇐ <code>Observable</code>
     * [new ObservableStore()](#new_ObservableStore_new)
-    * [.use(middleware)](#ObservableStore.use)
-    * [.getState()](#ObservableStore.getState) ⇒ <code>Object</code>
-    * [.register(action, reducer)](#ObservableStore.register)
-    * [.query(queryName, config)](#ObservableStore.query)
-    * [.fetch(queryName, ...args)](#ObservableStore.fetch) ⇒ <code>Promise.&lt;any&gt;</code>
-    * [.invalidateQueries(queryName)](#ObservableStore.invalidateQueries)
-    * [.dispatch(action, payload)](#ObservableStore.dispatch)
+    * _instance_
+        * [.dispatch(action, [payload])](#ObservableStore+dispatch)
+    * _static_
+        * [.use(middleware)](#ObservableStore.use)
+        * [.getState()](#ObservableStore.getState) ⇒ <code>Object</code>
+        * [.register(action, reducer)](#ObservableStore.register)
+        * [.onPatch(key, callback)](#ObservableStore.onPatch)
+        * [.applyPatch(patches)](#ObservableStore.applyPatch)
+        * [.query(queryName, config)](#ObservableStore.query)
+        * [.fetch(queryName, ...args)](#ObservableStore.fetch) ⇒ <code>Promise</code>
+        * [.invalidateQueries(queryName)](#ObservableStore.invalidateQueries)
+        * [.mutation(mutationName, config)](#ObservableStore.mutation)
+        * [.mutate(mutationName, ...args)](#ObservableStore.mutate) ⇒ <code>Promise</code>
 
 <a name="new_ObservableStore_new"></a>
 
@@ -58,6 +64,26 @@ const loggerMiddleware = (context) => {
   console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
 };
 CartStore.use(loggerMiddleware);
+```
+<a name="ObservableStore+dispatch"></a>
+
+### observableStore.dispatch(action, [payload])
+Dispatches an action to update the store's state.
+
+**Kind**: instance method of [<code>ObservableStore</code>](#ObservableStore)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| action | <code>string</code> \| <code>function</code> | The action type (string) or action creator (function). |
+| [payload] | <code>any</code> | The optional payload object to pass to the reducer. |
+
+**Example**  
+```js
+// Dispatching a simple action
+store.dispatch('increment');
+
+// Dispatching an action with payload
+store.dispatch('addItem', { id: 1, name: 'New Item' });
 ```
 <a name="ObservableStore.use"></a>
 
@@ -117,112 +143,99 @@ CartStore.register('remove', (state, product) => {
 });
 
 ```
+<a name="ObservableStore.onPatch"></a>
+
+### ObservableStore.onPatch(key, callback)
+Registers a callback to be invoked whenever patches are applied to the specified state key.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>string</code> | The state key to listen for patches. |
+| callback | <code>function</code> | The callback to invoke when patches are applied. |
+
+**Example**  
+```javascript
+appStore.onPatch('posts', (patch) => {
+  console.log('Patch applied:', patch);
+});
+```
+<a name="ObservableStore.applyPatch"></a>
+
+### ObservableStore.applyPatch(patches)
+Applies the given patches to the store's state.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| patches | <code>Array</code> | The patches to apply to the state. |
+
+**Example**  
+```javascript
+const patches = [{ op: 'replace', path: ['posts', 0, 'title'], value: 'New Title' }];
+appStore.applyPatch(patches);
+```
 <a name="ObservableStore.query"></a>
 
 ### ObservableStore.query(queryName, config)
-Registers an asynchronous query with the specified configuration.
+Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
 
 **Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| queryName | <code>string</code> |  | The name of the query. |
-| config | <code>Object</code> |  | The configuration object for the query, containing the following properties: |
-| config.queryKey | <code>string</code> |  | The unique key for the query. |
-| config.queryFn | <code>function</code> |  | The asynchronous query function that returns a promise. |
-| [config.staleTime] | <code>number</code> | <code>0</code> | Optional. The time in milliseconds after which the query is considered stale. Defaults to 0. |
-| [config.refetchOnWindowFocus] | <code>boolean</code> | <code>true</code> | Optional. Whether to refetch the query when the window regains focus. Defaults to true. |
-| [config.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Optional. Whether to refetch the query when the network reconnects. Defaults to true. |
-| [config.refetchInterval] | <code>number</code> \| <code>null</code> | <code></code> | Optional. The interval in milliseconds at which to refetch the query. Defaults to null. |
-| [config.gcTime] | <code>number</code> | <code>300000</code> | Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes). |
-| [config.retry] | <code>number</code> | <code>3</code> | Optional. The number of times to retry the query on error. Defaults to 3. |
-| [config.retryDelay] | <code>function</code> | <code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code> | Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number. |
+| queryName | <code>string</code> |  | The name of the query to register. |
+| config | <code>Object</code> |  | The configuration object for the query. |
+| config.queryKey | <code>string</code> \| <code>Array</code> |  | The unique key for the query. |
+| config.queryFn | <code>function</code> |  | The function to fetch data for the query. |
+| [config.staleTime] | <code>number</code> | <code>0</code> | The time in milliseconds before the query is considered stale. |
+| [config.refetchOnWindowFocus] | <code>boolean</code> | <code>false</code> | Whether to refetch the query on window focus. |
+| [config.refetchInterval] | <code>number</code> \| <code>null</code> | <code></code> | The interval in milliseconds to refetch the query. |
+| [config.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Whether to refetch the query on reconnect. |
+| [config.gcTime] | <code>number</code> | <code>300000</code> | The time in milliseconds before garbage collecting the query. |
+| [config.retry] | <code>number</code> | <code>1</code> | The number of retry attempts for the query. |
+| [config.retryDelay] | <code>function</code> |  | The function to calculate the delay between retries. |
+| [config.onSuccess] | <code>function</code> |  | The callback function to execute when the query succeeds. Receives a context object with `result`, `state`, `actions`, `mutations`, and `invalidateQueries`. |
+| [config.onError] | <code>function</code> |  | The callback function to execute when the query fails. Receives a context object with `error`, `state`, `actions`, `mutations`, and `invalidateQueries`. |
+| [config.actions] | <code>Object</code> | <code>this.actions</code> | The actions available in the store. |
 
 **Example**  
 ```javascript
-// Register a query to fetch posts
-appStore.query('posts/fetchAll', {
-  queryKey: 'posts/fetchAll',
+appStore.register('setPosts', (state, posts) => {
+  state.posts = posts;
+});
+
+appStore.query('fetchPosts', {
+  queryKey: 'posts',
   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
-  refetchOnWindowFocus: true,
-});
-
-// Register actions for pending, success, and error states of the query
-appStore.register('posts/fetchAll/pending', (state, payload) => {
-  state.isLoading = true;
-  state.posts = [];
-  state.error = null;
-});
-
-appStore.register('posts/fetchAll/success', (state, payload) => {
-  state.posts = payload;
-  state.isLoading = false;
-  state.error = null;
-});
-
-appStore.register('posts/fetchAll/error', (state, payload) => {
-  state.error = payload;
-  state.isLoading = false;
-  state.posts = [];
-});
-
-// Fetch all posts
-appStore.fetch('posts/fetchAll');
-
-// Subscribe to updates
-appStore.subscribe(newState => {
-  console.log('New state:', newState);
+  onSuccess: (ctx) => {
+    ctx.actions.setPosts(ctx.result);
+  },
+  onError: (ctx) => {
+    // console.error('Query failed:', ctx.error);
+  }
 });
 ```
 <a name="ObservableStore.fetch"></a>
 
-### ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code>
-Fetches data for a given query name, utilizing cache if available and not stale.
-If data is stale or not in cache, it fetches new data using the query function.
+### ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise</code>
+Fetches data for the given query name. If the data is cached and not stale, it returns the cached data.
+Otherwise, it fetches new data using the query function. Supports retry logic and calls lifecycle hooks.
 
 **Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-**Returns**: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  
+**Returns**: <code>Promise</code> - A promise that resolves to the query result.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| queryName | <code>string</code> | The name of the query to fetch data for. |
-| ...args | <code>any</code> | Arguments to pass to the query function. |
+| queryName | <code>string</code> | The name of the query to fetch. |
+| ...args | <code>any</code> | The arguments to pass to the query function. |
 
 **Example**  
-```javascript
-// Register a query to fetch posts
-appStore.query('posts/fetchAll', {
-  queryKey: 'posts/fetchAll',
-  queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
-  refetchOnWindowFocus: true,
-});
-
-// Register actions for pending, success, and error states of the query
-appStore.register('posts/fetchAll/pending', (state, payload) => {
-  state.isLoading = true;
-  state.posts = [];
-  state.error = null;
-});
-
-appStore.register('posts/fetchAll/success', (state, payload) => {
-  state.posts = payload;
-  state.isLoading = false;
-  state.error = null;
-});
-
-appStore.register('posts/fetchAll/error', (state, payload) => {
-  state.error = payload;
-  state.isLoading = false;
-  state.posts = [];
-});
-
-// Fetch all posts
-appStore.fetch('posts/fetchAll');
-
-// Subscribe to updates
-appStore.subscribe(newState => {
-  console.log('New state:', newState);
-});
+```js
+// Fetching data for a query named 'fetchPosts'
+appStore.fetch('fetchPosts')
 ```
 <a name="ObservableStore.invalidateQueries"></a>
 
@@ -235,26 +248,86 @@ Invalidates the cache and any associated intervals or event listeners for a give
 | --- | --- | --- |
 | queryName | <code>string</code> | The name of the query to invalidate. |
 
-<a name="ObservableStore.dispatch"></a>
+<a name="ObservableStore.mutation"></a>
 
-### ObservableStore.dispatch(action, payload)
-Use this method to dispatch redux-style actions or flux actions, triggering state updates.
+### ObservableStore.mutation(mutationName, config)
+Registers a mutation with the given configuration. This method sets up the mutation with the provided options and handles the mutation lifecycle.
 
 **Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-**Throws**:
 
-- <code>Error</code> If the action type is not a string when expected.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| action | <code>string</code> \| <code>function</code> | The action type as a string or a function that performs custom dispatch logic. |
-| payload | <code>Object</code> | The data to be passed along with the action. |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| mutationName | <code>string</code> |  | The name of the mutation to register. |
+| config | <code>Object</code> |  | The configuration object for the mutation. |
+| config.mutationFn | <code>function</code> |  | The function to perform the mutation. |
+| [config.onMutate] | <code>function</code> |  | The function to be called before the mutation is performed. |
+| [config.onError] | <code>function</code> |  | The function to be called if the mutation encounters an error. |
+| [config.onSuccess] | <code>function</code> |  | The function to be called if the mutation is successful. |
+| [config.onSettled] | <code>function</code> |  | The function to be called after the mutation has either succeeded or failed. |
+| [config.actions] | <code>Object</code> | <code>this.actions</code> | The actions available in the store. |
+| [config.queries] | <code>Object</code> | <code>this.queries</code> | The queries available in the store. |
 
 **Example**  
 ```javascript
-// Dispatching an action with a payload
-CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
+appStore.mutation('deletePost', {
+  mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
+  onMutate: (context) => {
+    context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
+  },
+  onError: (context) => {
+    context.actions.setPosts(context.previousState.posts);
+  },
+  onSuccess: (context) => {
+    console.log('Mutation successful:', context);
+  },
+  onSettled: (context) => {
+    console.log('Mutation settled');
+    context.invalidateQueries('posts');
+  }
+});
+
+appStore.mutate('deletePost', id);
+```
+<a name="ObservableStore.mutate"></a>
+
+### ObservableStore.mutate(mutationName, ...args) ⇒ <code>Promise</code>
+Performs the mutation with the given name and arguments. This method handles the mutation lifecycle, including optimistic updates, success handling, and error handling.
+
+**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
+**Returns**: <code>Promise</code> - A promise that resolves to the mutation result.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| mutationName | <code>string</code> | The name of the mutation to perform. |
+| ...args | <code>any</code> | The arguments to pass to the mutation function. |
+
+**Example**  
+```javascript
+// Define a mutation named 'deletePost'
+appStore.mutation('deletePost', {
+  // The function that performs the actual mutation logic
+  mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
+  // Optional: Optimistically update the state before the mutation
+  onMutate: (context) => {
+    context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
+  },
+  // Optional: Handle errors during mutation
+  onError: (context) => {
+    context.actions.setPosts(context.previousState.posts);
+  },
+  // Optional: Perform actions after a successful mutation
+  onSuccess: (context) => {
+    console.log('Mutation successful:', context);
+  },
+  // Optional: Perform actions after the mutation is settled (success or error)
+  onSettled: (context) => {
+    console.log('Mutation settled');
+    context.invalidateQueries('posts');
+  }
+});
+
+// Execute the 'deletePost' mutation with a post ID
+appStore.mutate('deletePost', 1);
 ```
 <a name="slice"></a>
 
@@ -262,7 +335,7 @@ CartStore.dispatch('add', { id: 1, name: 'Product 1', quantity: 2 });
 Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
 
 **Kind**: global function  
-**Returns**: <code>Object</code> - - An object containing the action methods for the slice, including getState, actions, and subscribe methods.  
+**Returns**: <code>Object</code> - - An object containing the action methods for the slice, including getState, actions, queries, mutations, and subscribe methods.  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -271,35 +344,40 @@ Creates a slice of the store with its own state and actions, namespaced to avoid
 | options.name | <code>string</code> | The name of the slice. |
 | options.state | <code>Object</code> | The initial state of the slice. |
 | options.actions | <code>Object</code> | The actions for the slice. |
+| [options.queries] | <code>Object</code> | The queries for the slice. |
+| [options.mutations] | <code>Object</code> | The mutations for the slice. |
 
 **Example**  
 ```js
-const cartSlice = slice(appStore, {
-  name: 'cart',
-  state: {
-    cartItems: [],
-  },
+const appStore = store({
+  // Initial state for other parts of the application
+});
+
+const postsSlice = slice(appStore, {
+  name: 'posts',
+  state: [
+    { id: 1, title: 'First Post' },
+    { id: 2, title: 'Second Post' }
+  ],
   actions: {
-    add(state, product) {
-      const newItem = { ...product, id: Date.now() };
-      state.cartItems.push(newItem);
-    },
-    remove(state, product) {
-      state.cartItems = state.cartItems.filter(item => item.id !== product.id);
-    },
+    updatePost: (state, { id, title }) => {
+      const postIndex = state.findIndex(post => post.id === id);
+      if (postIndex !== -1) {
+        state[postIndex].title = title;
+      }
+    }
   }
 });
 
-// Dispatching actions
-cartSlice.actions.add({ name: 'Product 1', price: 100 });
-cartSlice.actions.remove({ id: 123456789 });
+// Accessing the slice's state
+postsSlice.getState();
 
-// Getting the current state
-console.log(cartSlice.getState()); // Logs the current state of the cart slice
+// Dispatching actions
+postsSlice.actions.updatePost({ id: 1, title: 'Updated Title' });
 
 // Subscribing to state changes
-const unsubscribe = cartSlice.subscribe(newState => {
-  console.log('Cart slice state changed:', newState);
+const unsubscribe = postsSlice.subscribe(state => {
+  console.log('Posts slice state changed:', state);
 });
 
 // Unsubscribe when no longer needed

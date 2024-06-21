@@ -54,7 +54,6 @@ nav:
     - features/reactive_web_components.md
     - features/async_state_management.md
     - features/client_state_management.md
-    - features/streams.md
   - API Reference:
     - API Index: api/index.md
     - api/reactive_element.md
@@ -62,8 +61,6 @@ nav:
     - api/observable.md
     - api/observable_state.md
     - api/observable_store.md
-    - api/observable_stream.md
-    - HTTP: api/http.md
   - Learn by Example:
     - learn_by_example/counter.md
     - learn_by_example/counter_interval.md

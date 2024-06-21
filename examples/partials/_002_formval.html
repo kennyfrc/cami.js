@@ -20,27 +20,18 @@
     emailIsValid = null;
     isEmailAvailable = null;
 
-    inputValidation$ = this.stream();
-    passwordValidation$ = this.stream();
+    processEmailInput(e) {
+      const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
+      this.emailError = emailError;
+      this.isEmailValid = isEmailValid;
+      this.email = email;
+      this.isEmailAvailable = this.queryEmail(this.email);
+    }
 
-    onConnect() {
-      this.inputValidation$
-        .map(e => this.validateEmail(e.target.value))
-        .debounce(300)
-        .subscribe(({ isEmailValid, emailError, email }) => {
-          this.emailError = emailError;
-          this.isEmailValid = isEmailValid;
-          this.email = email;
-          this.isEmailAvailable = this.queryEmail(this.email)
-        });
-
-      this.passwordValidation$
-        .map(e => this.validatePassword(e.target.value))
-        .debounce(300)
-        .subscribe(({ isValid, password }) => {
-          this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
-          this.password = password;
-        });
+    processPasswordInput(e) {
+      const { isValid, password } = this.validatePassword(e.target.value);
+      this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
+      this.password = password;
     }
 
     validateEmail(email) {
@@ -108,20 +99,22 @@
             Email:
             <input type="email"
               aria-invalid=${this.getEmailInputState()}
-              @input=${(e) => this.inputValidation$.next(e) } value=${this.email}>
-              <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
+              @input=${(e) => this.processEmailInput(e)}
+              value=${this.email}>
+            <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
             <span>${this.emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password" @input=${(e) => this.passwordValidation$.next(e) }
+            <input type="password"
+              @input=${(e) => this.processPasswordInput(e)}
               value=${this.password}
               aria-invalid=${this.getPasswordInputState()}>
             <span>${this.passwordError}</span>
           </label>
           <input type="submit" value="Submit" style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
-        </form>
-      `;
+          </form>
+        `;
     }
   }
 

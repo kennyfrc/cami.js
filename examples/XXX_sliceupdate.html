@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <main class="container">
+  <h1>Store with Effect</h1>
+  <div id="app"></div>
+</main>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { store, slice, effect } = cami;
+
+  // Create the main store
+  const appStore = store({});
+
+  // Create a slice for count
+  const countSlice = slice(appStore, {
+    name: 'count',
+    state: { value: 1 },
+    actions: {
+      double: ({ state }) => {
+        state = { value: state.value * 2 };
+      }
+    }
+  });
+
+  // Create a slice for posts
+  const postsSlice = slice(appStore, {
+    name: 'posts',
+    state: [],
+    actions: {
+      setPosts: ({ state, payload }) => {
+        state = payload;
+      },
+      addPost: ({ state, payload }) => {
+        state.push(payload);
+      }
+    },
+    mutations: {
+      createPost: {
+        mutationFn: (newPost) => fetch('https://jsonplaceholder.typicode.com/posts', {
+          method: 'POST',
+          body: JSON.stringify(newPost),
+          headers: { 'Content-type': 'application/json; charset=UTF-8' }
+        }).then(res => res.json()),
+        onSuccess: (ctx) => {
+          ctx.actions.addPost(ctx.result);
+          console.log(ctx.result);
+        },
+        onSettled: (ctx) => {
+          // console.log(ctx.state);
+        }
+      }
+    }
+  });
+
+  // Effect to log count changes
+  effect(() => {
+    console.log('Count changed:', countSlice.state.value);
+  });
+
+  // Effect to log posts changes
+  effect(() => {
+    const posts = postsSlice.state
+    console.log(`Posts changed: ${posts.length > 0
+      ? posts.map(post => post.title).join(', ')
+      : 'No posts'}`);
+  });
+
+  // Double the count every 1.5 seconds
+  setInterval(() => {
+    countSlice.double();
+  }, 1500);
+
+  // Create a post
+  postsSlice.createPost({ title: 'foo', body: 'bar', userId: 1 });
+
+  // Example mutation call
+  // postsSlice.createPost({ title: 'foo', body: 'bar', userId: 1 });
+
+</script>
+
+</body>
+</html>

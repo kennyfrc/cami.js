@@ -1,4 +1,4 @@
-import { produce } from "../produce.js";
+import { produce } from "immer";
 
 /**
  * @typedef {Object} Observer

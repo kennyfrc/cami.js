@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Fibonacci Counter</h1>
+  <fibonacci-counter></fibonacci-counter>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  function fibonacci(num) {
+    if (num <= 1) return 1;
+    return fibonacci(num - 1) + fibonacci(num - 2);
+  }
+
+  class FibonacciCounter extends ReactiveElement {
+    count = 1;
+
+    get fib() {
+      return fibonacci(this.count);
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.count++}>Count: ${this.count}</button>
+        <div>1. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>2. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>3. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>4. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>5. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>6. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>7. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>8. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>9. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <div>10. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+      `;
+    }
+  }
+  customElements.define('fibonacci-counter', FibonacciCounter);
+</script>
+
+</body>
+</html>

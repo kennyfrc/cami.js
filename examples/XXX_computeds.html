@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Product Elem</h1>
+  <product-element></product-element>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+class ProductElement extends ReactiveElement {
+  price = 10;
+  amount = 2;
+
+  get total() {
+    console.log("Computing total...");
+    return this.price * this.amount;
+  }
+
+  template() {
+    return html`
+      <div>Price: ${this.price}</div>
+      <div>Amount: ${this.amount}</div>
+      <div>Total: ${this.total}</div>
+    `;
+  }
+}
+
+customElements.define('product-element', ProductElement);
+</script>
+
+</body>
+</html>

@@ -2,9 +2,9 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.3.23.
+Current version: 0.4.0
 
-Bundle Size: 14kb minified & gzipped.
+Bundle Size: 15kb minified & gzipped.
 
 A simple yet powerful toolkit for interactive islands in web applications. No build step required.
 

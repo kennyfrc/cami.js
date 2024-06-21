@@ -13,7 +13,7 @@ describe("ObservableStore", function() {
     });
 
     it("should allow action registration and handle dispatch", function() {
-      store.register('increment', (state) => {
+      store.register('increment', ({ state }) => {
         state.count += 1;
       });
       store.dispatch('increment');
@@ -23,7 +23,7 @@ describe("ObservableStore", function() {
     it("should apply middleware to dispatched actions", function() {
       const middlewareSpy = jasmine.createSpy('middleware');
       store.use(middlewareSpy);
-      store.register('increment', (state) => {
+      store.register('increment', ({ state }) => {
         state.count += 1;
       });
       store.dispatch('increment');
@@ -31,10 +31,10 @@ describe("ObservableStore", function() {
     });
 
     it("should handle multiple actions and their interactions", function() {
-      store.register('increment', (state) => {
+      store.register('increment', ({ state }) => {
         state.count += 1;
       });
-      store.register('decrement', (state) => {
+      store.register('decrement', ({ state }) => {
         state.count -= 1;
       });
       store.dispatch('increment');
@@ -44,7 +44,7 @@ describe("ObservableStore", function() {
     });
 
     it("should handle nested state updates", function() {
-      store.register('addNested', (state) => {
+      store.register('addNested', ({ state }) => {
         if (!state.nested) {
           state.nested = { count: 0 };
         }
@@ -58,10 +58,7 @@ describe("ObservableStore", function() {
   describe("Cami Store with Local Storage", function() {
     let store;
     const initialState = {
-      items: [],
-      add: (store, item) => {
-        store.items.push(item);
-      }
+      items: []
     };
 
     const options = { name: 'test-store', expiry: 1000, localStorage: true };
@@ -78,6 +75,17 @@ describe("ObservableStore", function() {
       spyOn(localStorage, 'removeItem');
 
       store = cami.store(initialState, options);
+
+      // Register actions
+      store.register('addItem', ({state, item}) => {
+        state.items.push(item);
+      });
+
+      store.register('resetState', ({ state }) => {
+        state.items = [];
+        localStorage.removeItem('test-store');
+        localStorage.removeItem('test-store-expiry');
+      });
     });
 
     it("should rehydrate state from local storage", function() {
@@ -85,20 +93,12 @@ describe("ObservableStore", function() {
     });
 
     it("should persist state to local storage on update", function() {
-      store.register('addItem', (state, item) => {
-        state.items.push(item);
-      });
       store.dispatch('addItem', 'test item');
       expect(localStorage.setItem).toHaveBeenCalledWith('test-store', jasmine.any(String));
     });
 
-    it("should persist state to local storage on update without using register/dispatch", function() {
-      store.add({ item: 'test item' });
-      expect(localStorage.setItem).toHaveBeenCalledWith('test-store', jasmine.any(String));
-    });
-
     it("should reset state and clear local storage", function() {
-      store.reset();
+      store.dispatch('resetState');
       expect(localStorage.removeItem).toHaveBeenCalledWith('test-store');
       expect(localStorage.removeItem).toHaveBeenCalledWith('test-store-expiry');
       expect(store.state.items).toEqual([]);
@@ -119,7 +119,7 @@ describe("ObservableStore", function() {
     });
 
     it("should handle nested state updates and persist them", function() {
-      store.register('addNestedItem', (state, item) => {
+      store.register('addNestedItem', ({ state, payload: item }) => {
         if (!state.nested) {
           state.nested = { items: [] };
         }

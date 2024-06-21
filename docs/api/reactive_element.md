@@ -23,9 +23,6 @@
     * [new ReactiveElement()](#new_ReactiveElement_new)
     * [.observableAttributes(attributes)](#ReactiveElement+observableAttributes) ⇒ <code>void</code>
     * [.effect(effectFn)](#ReactiveElement+effect) ⇒ <code>void</code>
-    * [.connect(store, key)](#ReactiveElement+connect) ⇒ <code>ObservableProxy</code>
-    * [.stream(subscribeFn)](#ReactiveElement+stream) ⇒ <code>ObservableStream</code>
-    * [.template()](#ReactiveElement+template) ⇒ <code>void</code>
     * [.query(options)](#ReactiveElement+query) ⇒ <code>ObservableProxy</code>
     * [.mutation(options)](#ReactiveElement+mutation) ⇒ <code>ObservableProxy</code>
     * [.invalidateQueries(queryKey)](#ReactiveElement+invalidateQueries) ⇒ <code>void</code>
@@ -102,67 +99,6 @@ this.effect(() => {
 });
 // The console will log the current count whenever `this.count` changes
 ```
-<a name="ReactiveElement+connect"></a>
-
-### reactiveElement.connect(store, key) ⇒ <code>ObservableProxy</code>
-Subscribes to a store and creates an observable for a specific key in the store. This is useful for
-synchronizing the component's state with a global store.
-
-**Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
-**Returns**: <code>ObservableProxy</code> - An observable property or proxy for the store key  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| store | <code>ObservableStore</code> | The store to subscribe to |
-| key | <code>string</code> | The key in the store to create an observable for |
-
-**Example**  
-```js
-// Assuming there is a store for cart items
-// `cartItems` will be an observable reflecting the current state of cart items in the store
-this.cartItems = this.connect(CartStore, 'cartItems');
-```
-<a name="ReactiveElement+stream"></a>
-
-### reactiveElement.stream(subscribeFn) ⇒ <code>ObservableStream</code>
-Creates an ObservableStream from a subscription function.
-
-**Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
-**Returns**: <code>ObservableStream</code> - An ObservableStream that emits values produced by the subscription function.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| subscribeFn | <code>function</code> | The subscription function. |
-
-**Example**  
-```js
-// In a FormElement component
-const inputValidation$ = this.stream();
-inputValidation$
-  .map(e => this.validateEmail(e.target.value))
-  .debounce(300)
-  .subscribe(({ isEmailValid, emailError, email }) => {
-    this.emailError = emailError;
-    this.isEmailValid = isEmailValid;
-    this.email = email;
-    this.isEmailAvailable = this.queryEmail(this.email);
-  });
-```
-<a name="ReactiveElement+template"></a>
-
-### reactiveElement.template() ⇒ <code>void</code>
-**Kind**: instance method of [<code>ReactiveElement</code>](#ReactiveElement)  
-**Throws**:
-
-- <code>Error</code> If the method template() is not implemented
-
-**Example**  
-```js
-// Here's a simple example of a template method implementation
-template() {
-  return html`<div>Hello World</div>`;
-}
-```
 <a name="ReactiveElement+query"></a>
 
 ### reactiveElement.query(options) ⇒ <code>ObservableProxy</code>
@@ -177,12 +113,12 @@ Fetches data from an API and caches it. This method is based on the TanStack Que
 | options.queryKey | <code>Array</code> \| <code>string</code> |  | The key for the query. |
 | options.queryFn | <code>function</code> |  | The function to fetch data. |
 | [options.staleTime] | <code>number</code> | <code>0</code> | The stale time for the query. |
-| [options.refetchOnWindowFocus] | <code>boolean</code> | <code>true</code> | Whether to refetch on window focus. |
+| [options.refetchOnWindowFocus] | <code>boolean</code> | <code>false</code> | Whether to refetch on window focus. |
 | [options.refetchOnMount] | <code>boolean</code> | <code>true</code> | Whether to refetch on mount. |
 | [options.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Whether to refetch on network reconnect. |
 | [options.refetchInterval] | <code>number</code> | <code></code> | The interval to refetch data. |
 | [options.gcTime] | <code>number</code> | <code>1000 * 60 * 5</code> | The garbage collection time for the query. |
-| [options.retry] | <code>number</code> | <code>3</code> | The number of retry attempts. |
+| [options.retry] | <code>number</code> | <code>1</code> | The number of retry attempts. |
 | [options.retryDelay] | <code>function</code> | <code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code> | The delay before retrying a failed query. |
 
 **Example**  

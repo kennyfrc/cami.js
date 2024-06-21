@@ -1,6 +1,6 @@
 import { Observable } from './observable.js';
-import { ObservableStream } from './observable-stream.js';
-import { produce } from '../produce.js';
+import { produce } from 'immer';
+import { _deepEqual } from '../utils.js';
 import { __config } from '../config.js';
 import { __trace } from '../trace.js';
 
@@ -11,9 +11,26 @@ import { __trace } from '../trace.js';
  * It is used to track dependencies between observables.
  * @type {Object}
  */
-const DependencyTracker = {
-  current: null
-};
+class DependencyTracker {
+  static current = null;
+
+  static track(effectFn) {
+    const tracker = new DependencyTracker();
+    DependencyTracker.current = tracker;
+    effectFn();
+    DependencyTracker.current = null;
+    return tracker.dependencies;
+  }
+
+  constructor() {
+    this.dependencies = new Set();
+  }
+
+  addDependency(store, property) {
+    console.log(`Tracking dependency: ${property}`);
+    this.dependencies.add({ store, property });
+  }
+}
 
 /**
  * @class
@@ -34,7 +51,7 @@ class ObservableState extends Observable {
    * @example
    * const observable = new ObservableState(10);
    */
-  constructor(initialValue = null, subscriber = null, {last = false, name = null} = {}) {
+  constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
     super();
     if (last) {
       this.__lastObserver = subscriber;
@@ -68,7 +85,10 @@ class ObservableState extends Observable {
    * observable.value = 20;
    */
   set value(newValue) {
-    this.update(() => newValue);
+    if (!_deepEqual(newValue, this.__value)) {
+      this.__value = newValue;
+      this.__notifyObservers();
+    }
   }
 
   /**
@@ -344,11 +364,11 @@ class ObservableState extends Observable {
         this.__value = updater(this.__value);
       }
     }
-    if (oldValue !== this.__value) {
+    if (!_deepEqual(oldValue, this.__value)) {
       this.__notifyObservers();
 
       if (__config.events.isEnabled && typeof window !== 'undefined') {
-        const event = new CustomEvent('cami:state:change', {
+        const event = new CustomEvent('cami:elem:state:change', {
           detail: {
             name: this.__name,
             oldValue: oldValue,
@@ -358,26 +378,9 @@ class ObservableState extends Observable {
         window.dispatchEvent(event);
       }
 
-      __trace('cami:state:change', this.__name, oldValue, this.__value);
+      __trace('cami:elem:state:change', this.__name, oldValue, this.__value);
     }
     this.__updateScheduled = false;
-  }
-
-  /**
-   * @method
-   * @description Converts the ObservableState to an ObservableStream.
-   * @returns {ObservableStream} The ObservableStream that emits the same values as the ObservableState.
-   * @example
-   * const stream = observable.toStream();
-   */
-  toStream() {
-    const stream = new ObservableStream();
-    this.subscribe({
-      next: value => stream.emit(value),
-      error: err => stream.error(err),
-      complete: () => stream.end(),
-    });
-    return stream;
   }
 
   /**
@@ -394,107 +397,6 @@ class ObservableState extends Observable {
     });
   }
 }
-
-/**
- * @class
- * @extends ObservableState
- * @description ComputedState class that extends ObservableState and holds additional methods for computed observables
- */
-class ComputedState extends ObservableState {
-  /**
-   * @constructor
-   * @param {Function} computeFn - The function to compute the value of the observable
-   * @example
-   * const computedState = new ComputedState(() => observable.value * 2);
-   */
-  constructor(computeFn) {
-    super(null);
-    this.computeFn = computeFn;
-    this.dependencies = new Set();
-    this.subscriptions = new Map();
-    this.__compute();
-  }
-
-  /**
-   * @method
-   * @returns {any} The current value of the observable
-   * @example
-   * const value = computedState.value;
-   */
-  get value() {
-    if (DependencyTracker.current) {
-      DependencyTracker.current.addDependency(this);
-    }
-    return this.__value;
-  }
-
-  /**
-   * @private
-   * @method
-   * @description Computes the new value of the observable and notifies observers if it has changed
-   */
-  __compute() {
-    /**
-     * @description The tracker object is used to manage dependencies between observables.
-     * It has a method 'addDependency' which takes an observable as an argument.
-     * If the observable is not already in the dependencies set, it adds the observable to the set,
-     * and sets up a subscription to the observable.
-     * The subscription calls the 'compute' method of the ComputedState instance whenever the observable's value changes.
-     * This ensures that the ComputedState's value is always up-to-date with its dependencies.
-     */
-    const tracker = {
-      addDependency: (observable) => {
-        if (!this.dependencies.has(observable)) {
-          const subscription = observable.onValue(() => this.__compute());
-          this.dependencies.add(observable);
-          this.subscriptions.set(observable, subscription);
-        }
-      }
-    };
-
-    /**
-     * @description The DependencyTracker is a global object that is used to track dependencies of computed observables.
-     * It is set to the current tracker object before the compute function is called.
-     * This allows the compute function to add dependencies to the tracker object as it executes.
-     * After the compute function has finished executing, the DependencyTracker is set back to null.
-     * This is done to prevent further dependencies from being added after the computation is complete.
-     * This ensures that the dependencies of the computed observable are accurately tracked and updated.
-     */
-    DependencyTracker.current = tracker;
-    const newValue = this.computeFn();
-    DependencyTracker.current = null;
-
-    if (newValue !== this.__value) {
-      this.__value = newValue;
-      this.__notifyObservers();
-    }
-  }
-
-  /**
-   * @method
-   * @description Unsubscribes from all dependencies
-   * @example
-   * // Assuming `obs` is an instance of ObservableState
-   * obs.dispose(); // This will unsubscribe obs from all its dependencies
-   */
-  dispose() {
-    this.subscriptions.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-  }
-}
-
-/**
- * @function
- * @param {Function} computeFn - The function to compute the value of the observable
- * @returns {ComputedState} A new instance of ComputedState
- * @example
- * // Assuming `computeFn` is a function that computes the value of the observable
- * const computedValue = computed(computeFn);
- */
-const computed = function(computeFn) {
-  return new ComputedState(computeFn);
-};
 
 /**
  * @function
@@ -546,7 +448,7 @@ const effect = function(effectFn) {
   if (typeof window !== 'undefined') {
     requestAnimationFrame(_runEffect);
   } else {
-    setTimeout(_runEffect, 0);
+    queueMicrotask(_runEffect);
   }
 
   /**
@@ -567,4 +469,4 @@ const effect = function(effectFn) {
   return dispose;
 };
 
-export { ObservableState, computed, effect };
+export { ObservableState, effect, DependencyTracker };

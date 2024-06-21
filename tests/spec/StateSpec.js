@@ -1,4 +1,4 @@
-const { ObservableState, computed, effect } = cami;
+const { ObservableState, effect } = cami;
 
 describe("ObservableState", function() {
 
@@ -95,25 +95,15 @@ describe("ObservableState", function() {
     });
   });
 
-  describe("ObservableState - ComputedState and Effect", function() {
-    let observable, computedObservable, effectCleanup;
+  describe("ObservableState - Effect", function() {
+    let observable, effectCleanup;
 
     beforeEach(function() {
       observable = new ObservableState(1);
-      computedObservable = computed(() => observable.value * 2);
       effectCleanup = effect(() => {
-        console.log(computedObservable.value);
+        console.log(observable.value);
         return () => { console.log = jasmine.createSpy(); };
       });
-    });
-
-    it("should compute the correct value", function() {
-      expect(computedObservable.value).toEqual(2);
-    });
-
-    it("should update the computed value when the observable changes", function() {
-      observable.update(value => value + 1);
-      expect(computedObservable.value).toEqual(4);
     });
 
     it("should run the cleanup function when the effect is disposed", function() {

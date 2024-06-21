@@ -13,8 +13,8 @@ import { __config } from './config.js';
  */
 function __trace(functionName, ...messages) {
   if (__config.debug.isEnabled) {
-    if (functionName === 'cami:state:change') {
-      console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', `${messages[0]} changed`);
+    if (functionName === 'cami:elem:state:change') {
+      console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', `Changed property state: ${messages[0]}`);
       console.log(`oldValue:`, messages[1]);
       console.log(`newValue:`, messages[2]);
     } else {

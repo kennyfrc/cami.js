@@ -12,7 +12,7 @@
         <link rel="prev" href="../observable_state/">
       
       
-        <link rel="next" href="../observable_stream/">
+        <link rel="next" href="../../learn_by_example/counter/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -355,8 +355,6 @@
       
         
       
-        
-      
     
     
     
@@ -507,27 +505,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../features/streams/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -548,10 +525,6 @@
       
         
           
-        
-      
-        
-      
         
       
         
@@ -777,6 +750,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestoredispatchaction-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.dispatch(action, [payload])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoreusemiddleware" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.use(middleware)
@@ -804,6 +786,24 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestoreonpatchkey-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.onPatch(key, callback)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoreapplypatchpatches" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.applyPatch(patches)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestorequeryqueryname-config" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.query(queryName, config)
@@ -813,9 +813,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
+  <a href="#observablestorefetchqueryname-args-promise" class="md-nav__link">
     <span class="md-ellipsis">
-      ObservableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
+      ObservableStore.fetch(queryName, ...args) ⇒ Promise
     </span>
   </a>
   
@@ -831,9 +831,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#observablestoredispatchaction-payload" class="md-nav__link">
+  <a href="#observablestoremutationmutationname-config" class="md-nav__link">
     <span class="md-ellipsis">
-      ObservableStore.dispatch(action, payload)
+      ObservableStore.mutation(mutationName, config)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoremutatemutationname-args-promise" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.mutate(mutationName, ...args) ⇒ Promise
     </span>
   </a>
   
@@ -866,48 +875,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../observable_stream/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable stream
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../http/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    HTTP
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1424,6 +1391,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestoredispatchaction-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      observableStore.dispatch(action, [payload])
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestoreusemiddleware" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.use(middleware)
@@ -1451,6 +1427,24 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#observablestoreonpatchkey-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.onPatch(key, callback)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoreapplypatchpatches" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.applyPatch(patches)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#observablestorequeryqueryname-config" class="md-nav__link">
     <span class="md-ellipsis">
       ObservableStore.query(queryName, config)
@@ -1460,9 +1454,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#observablestorefetchqueryname-args-promiseany" class="md-nav__link">
+  <a href="#observablestorefetchqueryname-args-promise" class="md-nav__link">
     <span class="md-ellipsis">
-      ObservableStore.fetch(queryName, ...args) ⇒ Promise.&lt;any&gt;
+      ObservableStore.fetch(queryName, ...args) ⇒ Promise
     </span>
   </a>
   
@@ -1478,9 +1472,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#observablestoredispatchaction-payload" class="md-nav__link">
+  <a href="#observablestoremutationmutationname-config" class="md-nav__link">
     <span class="md-ellipsis">
-      ObservableStore.dispatch(action, payload)
+      ObservableStore.mutation(mutationName, config)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observablestoremutatemutationname-args-promise" class="md-nav__link">
+    <span class="md-ellipsis">
+      ObservableStore.mutate(mutationName, ...args) ⇒ Promise
     </span>
   </a>
   
@@ -1552,13 +1555,23 @@
 <ul>
 <li><a href="#ObservableStore">ObservableStore</a> ⇐ <code>Observable</code><ul>
 <li><a href="#new_ObservableStore_new">new ObservableStore()</a></li>
+<li><em>instance</em><ul>
+<li><a href="#ObservableStore+dispatch">.dispatch(action, [payload])</a></li>
+</ul>
+</li>
+<li><em>static</em><ul>
 <li><a href="#ObservableStore.use">.use(middleware)</a></li>
 <li><a href="#ObservableStore.getState">.getState()</a> ⇒ <code>Object</code></li>
 <li><a href="#ObservableStore.register">.register(action, reducer)</a></li>
+<li><a href="#ObservableStore.onPatch">.onPatch(key, callback)</a></li>
+<li><a href="#ObservableStore.applyPatch">.applyPatch(patches)</a></li>
 <li><a href="#ObservableStore.query">.query(queryName, config)</a></li>
-<li><a href="#ObservableStore.fetch">.fetch(queryName, ...args)</a> ⇒ <code>Promise.&lt;any&gt;</code></li>
+<li><a href="#ObservableStore.fetch">.fetch(queryName, ...args)</a> ⇒ <code>Promise</code></li>
 <li><a href="#ObservableStore.invalidateQueries">.invalidateQueries(queryName)</a></li>
-<li><a href="#ObservableStore.dispatch">.dispatch(action, payload)</a></li>
+<li><a href="#ObservableStore.mutation">.mutation(mutationName, config)</a></li>
+<li><a href="#ObservableStore.mutate">.mutate(mutationName, ...args)</a> ⇒ <code>Promise</code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1586,6 +1599,38 @@
 </span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="p">};</span>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">loggerMiddleware</span><span class="p">);</span>
 </span></code></pre></div>
+<a name="ObservableStore+dispatch"></a></p>
+<h3 id="observablestoredispatchaction-payload">observableStore.dispatch(action, [payload])</h3>
+<p>Dispatches an action to update the store's state.</p>
+<p><strong>Kind</strong>: instance method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>action</td>
+<td><code>string</code> | <code>function</code></td>
+<td>The action type (string) or action creator (function).</td>
+</tr>
+<tr>
+<td>[payload]</td>
+<td><code>any</code></td>
+<td>The optional payload object to pass to the reducer.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-js highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// Dispatching a simple action</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nx">store</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;increment&#39;</span><span class="p">);</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">// Dispatching an action with payload</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nx">store</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;addItem&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;New Item&#39;</span><span class="w"> </span><span class="p">});</span>
+</span></code></pre></div>
 <a name="ObservableStore.use"></a></p>
 <h3 id="observablestoreusemiddleware">ObservableStore.use(middleware)</h3>
 <p>This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.</p>
@@ -1607,10 +1652,10 @@
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">loggerMiddleware</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Action </span><span class="si">${</span><span class="nx">context</span><span class="p">.</span><span class="nx">action</span><span class="si">}</span><span class="sb"> was dispatched with payload:`</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">payload</span><span class="p">);</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">};</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">loggerMiddleware</span><span class="p">);</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">loggerMiddleware</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Action </span><span class="si">${</span><span class="nx">context</span><span class="p">.</span><span class="nx">action</span><span class="si">}</span><span class="sb"> was dispatched with payload:`</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">payload</span><span class="p">);</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">};</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">loggerMiddleware</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="ObservableStore.getState"></a></p>
 <h3 id="observablestoregetstate-object">ObservableStore.getState() ⇒ <code>Object</code></h3>
@@ -1647,23 +1692,77 @@
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// Creating a store with initial state and registering actions</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">.</span><span class="nx">store</span><span class="p">({</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">});</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">cartItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="nx">product</span><span class="p">,</span><span class="w"> </span><span class="nx">cartItemId</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">cartItem</span><span class="p">);</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">});</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;remove&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">cartItemId</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">cartItemId</span><span class="p">);</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">});</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Creating a store with initial state and registering actions</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cami</span><span class="p">.</span><span class="nx">store</span><span class="p">({</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">});</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">cartItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="nx">product</span><span class="p">,</span><span class="w"> </span><span class="nx">cartItemId</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">cartItem</span><span class="p">);</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">});</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;remove&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">cartItemId</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">cartItemId</span><span class="p">);</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">});</span>
+</span></code></pre></div>
+<a name="ObservableStore.onPatch"></a></p>
+<h3 id="observablestoreonpatchkey-callback">ObservableStore.onPatch(key, callback)</h3>
+<p>Registers a callback to be invoked whenever patches are applied to the specified state key.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>The state key to listen for patches.</td>
+</tr>
+<tr>
+<td>callback</td>
+<td><code>function</code></td>
+<td>The callback to invoke when patches are applied.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">onPatch</span><span class="p">(</span><span class="s1">&#39;posts&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">patch</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Patch applied:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">patch</span><span class="p">);</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">});</span>
+</span></code></pre></div>
+<a name="ObservableStore.applyPatch"></a></p>
+<h3 id="observablestoreapplypatchpatches">ObservableStore.applyPatch(patches)</h3>
+<p>Applies the given patches to the store's state.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>patches</td>
+<td><code>Array</code></td>
+<td>The patches to apply to the state.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">patches</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nx">op</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;replace&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;posts&#39;</span><span class="p">,</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;title&#39;</span><span class="p">],</span><span class="w"> </span><span class="nx">value</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;New Title&#39;</span><span class="w"> </span><span class="p">}];</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">applyPatch</span><span class="p">(</span><span class="nx">patches</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="ObservableStore.query"></a></p>
 <h3 id="observablestorequeryqueryname-config">ObservableStore.query(queryName, config)</h3>
-<p>Registers an asynchronous query with the specified configuration.</p>
+<p>Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.</p>
 <p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
 <table>
 <thead>
@@ -1679,17 +1778,17 @@
 <td>queryName</td>
 <td><code>string</code></td>
 <td></td>
-<td>The name of the query.</td>
+<td>The name of the query to register.</td>
 </tr>
 <tr>
 <td>config</td>
 <td><code>Object</code></td>
 <td></td>
-<td>The configuration object for the query, containing the following properties:</td>
+<td>The configuration object for the query.</td>
 </tr>
 <tr>
 <td>config.queryKey</td>
-<td><code>string</code></td>
+<td><code>string</code> | <code>Array</code></td>
 <td></td>
 <td>The unique key for the query.</td>
 </tr>
@@ -1697,93 +1796,92 @@
 <td>config.queryFn</td>
 <td><code>function</code></td>
 <td></td>
-<td>The asynchronous query function that returns a promise.</td>
+<td>The function to fetch data for the query.</td>
 </tr>
 <tr>
 <td>[config.staleTime]</td>
 <td><code>number</code></td>
 <td><code>0</code></td>
-<td>Optional. The time in milliseconds after which the query is considered stale. Defaults to 0.</td>
+<td>The time in milliseconds before the query is considered stale.</td>
 </tr>
 <tr>
 <td>[config.refetchOnWindowFocus]</td>
 <td><code>boolean</code></td>
-<td><code>true</code></td>
-<td>Optional. Whether to refetch the query when the window regains focus. Defaults to true.</td>
-</tr>
-<tr>
-<td>[config.refetchOnReconnect]</td>
-<td><code>boolean</code></td>
-<td><code>true</code></td>
-<td>Optional. Whether to refetch the query when the network reconnects. Defaults to true.</td>
+<td><code>false</code></td>
+<td>Whether to refetch the query on window focus.</td>
 </tr>
 <tr>
 <td>[config.refetchInterval]</td>
 <td><code>number</code> | <code>null</code></td>
 <td><code></code></td>
-<td>Optional. The interval in milliseconds at which to refetch the query. Defaults to null.</td>
+<td>The interval in milliseconds to refetch the query.</td>
+</tr>
+<tr>
+<td>[config.refetchOnReconnect]</td>
+<td><code>boolean</code></td>
+<td><code>true</code></td>
+<td>Whether to refetch the query on reconnect.</td>
 </tr>
 <tr>
 <td>[config.gcTime]</td>
 <td><code>number</code></td>
 <td><code>300000</code></td>
-<td>Optional. The time in milliseconds after which the query is garbage collected. Defaults to 300000 (5 minutes).</td>
+<td>The time in milliseconds before garbage collecting the query.</td>
 </tr>
 <tr>
 <td>[config.retry]</td>
 <td><code>number</code></td>
-<td><code>3</code></td>
-<td>Optional. The number of times to retry the query on error. Defaults to 3.</td>
+<td><code>1</code></td>
+<td>The number of retry attempts for the query.</td>
 </tr>
 <tr>
 <td>[config.retryDelay]</td>
 <td><code>function</code></td>
-<td><code>(attempt) &#x3D;&gt; Math.pow(2, attempt) * 1000</code></td>
-<td>Optional. A function that returns the delay in milliseconds for each retry attempt. Defaults to a function that calculates an exponential backoff based on the attempt number.</td>
+<td></td>
+<td>The function to calculate the delay between retries.</td>
+</tr>
+<tr>
+<td>[config.onSuccess]</td>
+<td><code>function</code></td>
+<td></td>
+<td>The callback function to execute when the query succeeds. Receives a context object with <code>result</code>, <code>state</code>, <code>actions</code>, <code>mutations</code>, and <code>invalidateQueries</code>.</td>
+</tr>
+<tr>
+<td>[config.onError]</td>
+<td><code>function</code></td>
+<td></td>
+<td>The callback function to execute when the query fails. Receives a context object with <code>error</code>, <code>state</code>, <code>actions</code>, <code>mutations</code>, and <code>invalidateQueries</code>.</td>
+</tr>
+<tr>
+<td>[config.actions]</td>
+<td><code>Object</code></td>
+<td><code>this.actions</code></td>
+<td>The actions available in the store.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Register a query to fetch posts</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">refetchOnWindowFocus</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">});</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1">// Register actions for pending, success, and error states of the query</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll/pending&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">});</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll/success&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">payload</span><span class="p">;</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="p">});</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll/error&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">payload</span><span class="p">;</span>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="p">});</span>
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="c1">// Fetch all posts</span>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">);</span>
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="c1">// Subscribe to updates</span>
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">newState</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;New state:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newState</span><span class="p">);</span>
-</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="p">});</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;setPosts&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">posts</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">posts</span><span class="p">;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p">});</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;fetchPosts&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;posts&#39;</span><span class="p">,</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="nx">onSuccess</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">setPosts</span><span class="p">(</span><span class="nx">ctx</span><span class="p">.</span><span class="nx">result</span><span class="p">);</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="nx">onError</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="c1">// console.error(&#39;Query failed:&#39;, ctx.error);</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="p">});</span>
 </span></code></pre></div>
 <a name="ObservableStore.fetch"></a></p>
-<h3 id="observablestorefetchqueryname-args-promiseany">ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise.&lt;any&gt;</code></h3>
-<p>Fetches data for a given query name, utilizing cache if available and not stale.
-If data is stale or not in cache, it fetches new data using the query function.</p>
+<h3 id="observablestorefetchqueryname-args-promise">ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise</code></h3>
+<p>Fetches data for the given query name. If the data is cached and not stale, it returns the cached data.
+Otherwise, it fetches new data using the query function. Supports retry logic and calls lifecycle hooks.</p>
 <p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
-<strong>Returns</strong>: <code>Promise.&lt;any&gt;</code> - A promise that resolves with the fetched data.  </p>
+<strong>Returns</strong>: <code>Promise</code> - A promise that resolves to the query result.  </p>
 <table>
 <thead>
 <tr>
@@ -1796,49 +1894,18 @@ If data is stale or not in cache, it fetches new data using the query function.<
 <tr>
 <td>queryName</td>
 <td><code>string</code></td>
-<td>The name of the query to fetch data for.</td>
+<td>The name of the query to fetch.</td>
 </tr>
 <tr>
 <td>...args</td>
 <td><code>any</code></td>
-<td>Arguments to pass to the query function.</td>
+<td>The arguments to pass to the query function.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Register a query to fetch posts</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">query</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nx">queryKey</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">,</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nx">queryFn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://api.camijs.com/posts&#39;</span><span class="p">).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nx">refetchOnWindowFocus</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">});</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1">// Register actions for pending, success, and error states of the query</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll/pending&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="p">});</span>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll/success&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">payload</span><span class="p">;</span>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="p">});</span>
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">register</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll/error&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">payload</span><span class="p">;</span>
-</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">isLoading</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span>
-</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">  </span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
-</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="p">});</span>
-</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>
-</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="c1">// Fetch all posts</span>
-</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;posts/fetchAll&#39;</span><span class="p">);</span>
-</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>
-</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="c1">// Subscribe to updates</span>
-</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">newState</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;New state:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newState</span><span class="p">);</span>
-</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="p">});</span>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// Fetching data for a query named &#39;fetchPosts&#39;</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;fetchPosts&#39;</span><span class="p">)</span>
 </span></code></pre></div>
 <a name="ObservableStore.invalidateQueries"></a></p>
 <h3 id="observablestoreinvalidatequeriesqueryname">ObservableStore.invalidateQueries(queryName)</h3>
@@ -1860,14 +1927,101 @@ If data is stale or not in cache, it fetches new data using the query function.<
 </tr>
 </tbody>
 </table>
-<p><a name="ObservableStore.dispatch"></a></p>
-<h3 id="observablestoredispatchaction-payload">ObservableStore.dispatch(action, payload)</h3>
-<p>Use this method to dispatch redux-style actions or flux actions, triggering state updates.</p>
+<p><a name="ObservableStore.mutation"></a></p>
+<h3 id="observablestoremutationmutationname-config">ObservableStore.mutation(mutationName, config)</h3>
+<p>Registers a mutation with the given configuration. This method sets up the mutation with the provided options and handles the mutation lifecycle.</p>
+<p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mutationName</td>
+<td><code>string</code></td>
+<td></td>
+<td>The name of the mutation to register.</td>
+</tr>
+<tr>
+<td>config</td>
+<td><code>Object</code></td>
+<td></td>
+<td>The configuration object for the mutation.</td>
+</tr>
+<tr>
+<td>config.mutationFn</td>
+<td><code>function</code></td>
+<td></td>
+<td>The function to perform the mutation.</td>
+</tr>
+<tr>
+<td>[config.onMutate]</td>
+<td><code>function</code></td>
+<td></td>
+<td>The function to be called before the mutation is performed.</td>
+</tr>
+<tr>
+<td>[config.onError]</td>
+<td><code>function</code></td>
+<td></td>
+<td>The function to be called if the mutation encounters an error.</td>
+</tr>
+<tr>
+<td>[config.onSuccess]</td>
+<td><code>function</code></td>
+<td></td>
+<td>The function to be called if the mutation is successful.</td>
+</tr>
+<tr>
+<td>[config.onSettled]</td>
+<td><code>function</code></td>
+<td></td>
+<td>The function to be called after the mutation has either succeeded or failed.</td>
+</tr>
+<tr>
+<td>[config.actions]</td>
+<td><code>Object</code></td>
+<td><code>this.actions</code></td>
+<td>The actions available in the store.</td>
+</tr>
+<tr>
+<td>[config.queries]</td>
+<td><code>Object</code></td>
+<td><code>this.queries</code></td>
+<td>The queries available in the store.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong><br />
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">mutation</span><span class="p">(</span><span class="s1">&#39;deletePost&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nx">mutationFn</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">id</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`https://api.camijs.com/posts/</span><span class="si">${</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;DELETE&#39;</span><span class="w"> </span><span class="p">}).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nx">onMutate</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nx">context</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">setPosts</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">post</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">post</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">args</span><span class="p">[</span><span class="mf">0</span><span class="p">]));</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="nx">onError</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nx">context</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">setPosts</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">previousState</span><span class="p">.</span><span class="nx">posts</span><span class="p">);</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="nx">onSuccess</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Mutation successful:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="p">);</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="nx">onSettled</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Mutation settled&#39;</span><span class="p">);</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="nx">context</span><span class="p">.</span><span class="nx">invalidateQueries</span><span class="p">(</span><span class="s1">&#39;posts&#39;</span><span class="p">);</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="p">});</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">mutate</span><span class="p">(</span><span class="s1">&#39;deletePost&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">);</span>
+</span></code></pre></div>
+<a name="ObservableStore.mutate"></a></p>
+<h3 id="observablestoremutatemutationname-args-promise">ObservableStore.mutate(mutationName, ...args) ⇒ <code>Promise</code></h3>
+<p>Performs the mutation with the given name and arguments. This method handles the mutation lifecycle, including optimistic updates, success handling, and error handling.</p>
 <p><strong>Kind</strong>: static method of <a href="#ObservableStore"><code>ObservableStore</code></a><br />
-<strong>Throws</strong>:</p>
-<ul>
-<li><code>Error</code> If the action type is not a string when expected.</li>
-</ul>
+<strong>Returns</strong>: <code>Promise</code> - A promise that resolves to the mutation result.  </p>
 <table>
 <thead>
 <tr>
@@ -1878,26 +2032,49 @@ If data is stale or not in cache, it fetches new data using the query function.<
 </thead>
 <tbody>
 <tr>
-<td>action</td>
-<td><code>string</code> | <code>function</code></td>
-<td>The action type as a string or a function that performs custom dispatch logic.</td>
+<td>mutationName</td>
+<td><code>string</code></td>
+<td>The name of the mutation to perform.</td>
 </tr>
 <tr>
-<td>payload</td>
-<td><code>Object</code></td>
-<td>The data to be passed along with the action.</td>
+<td>...args</td>
+<td><code>any</code></td>
+<td>The arguments to pass to the mutation function.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// Dispatching an action with a payload</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nx">CartStore</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Product 1&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">});</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// Define a mutation named &#39;deletePost&#39;</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">mutation</span><span class="p">(</span><span class="s1">&#39;deletePost&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="c1">// The function that performs the actual mutation logic</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nx">mutationFn</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">id</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`https://api.camijs.com/posts/</span><span class="si">${</span><span class="nx">id</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;DELETE&#39;</span><span class="w"> </span><span class="p">}).</span><span class="nx">then</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">()),</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="c1">// Optional: Optimistically update the state before the mutation</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nx">onMutate</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nx">context</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">setPosts</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">state</span><span class="p">.</span><span class="nx">posts</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">post</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">post</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">args</span><span class="p">[</span><span class="mf">0</span><span class="p">]));</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="c1">// Optional: Handle errors during mutation</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="nx">onError</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="nx">context</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">setPosts</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">previousState</span><span class="p">.</span><span class="nx">posts</span><span class="p">);</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">  </span><span class="c1">// Optional: Perform actions after a successful mutation</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">  </span><span class="nx">onSuccess</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Mutation successful:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="p">);</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">  </span><span class="c1">// Optional: Perform actions after the mutation is settled (success or error)</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">  </span><span class="nx">onSettled</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">context</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Mutation settled&#39;</span><span class="p">);</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">    </span><span class="nx">context</span><span class="p">.</span><span class="nx">invalidateQueries</span><span class="p">(</span><span class="s1">&#39;posts&#39;</span><span class="p">);</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="p">});</span>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="c1">// Execute the &#39;deletePost&#39; mutation with a post ID</span>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="nx">appStore</span><span class="p">.</span><span class="nx">mutate</span><span class="p">(</span><span class="s1">&#39;deletePost&#39;</span><span class="p">,</span><span class="w"> </span><span class="mf">1</span><span class="p">);</span>
 </span></code></pre></div>
 <a name="slice"></a></p>
 <h2 id="slicestore-options-object">slice(store, options) ⇒ <code>Object</code></h2>
 <p>Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.</p>
 <p><strong>Kind</strong>: global function<br />
-<strong>Returns</strong>: <code>Object</code> - - An object containing the action methods for the slice, including getState, actions, and subscribe methods.  </p>
+<strong>Returns</strong>: <code>Object</code> - - An object containing the action methods for the slice, including getState, actions, queries, mutations, and subscribe methods.  </p>
 <table>
 <thead>
 <tr>
@@ -1932,39 +2109,52 @@ If data is stale or not in cache, it fetches new data using the query function.<
 <td><code>Object</code></td>
 <td>The actions for the slice.</td>
 </tr>
+<tr>
+<td>[options.queries]</td>
+<td><code>Object</code></td>
+<td>The queries for the slice.</td>
+</tr>
+<tr>
+<td>[options.mutations]</td>
+<td><code>Object</code></td>
+<td>The mutations for the slice.</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-js highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">cartSlice</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">slice</span><span class="p">(</span><span class="nx">appStore</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;cart&#39;</span><span class="p">,</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">state</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[],</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nx">actions</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nx">add</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">newItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">...</span><span class="nx">product</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">newItem</span><span class="p">);</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nx">remove</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">product</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">      </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">cartItems</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">item</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="nx">product</span><span class="p">.</span><span class="nx">id</span><span class="p">);</span>
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="p">});</span>
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="c1">// Dispatching actions</span>
-</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="nx">cartSlice</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">add</span><span class="p">({</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Product 1&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="mf">100</span><span class="w"> </span><span class="p">});</span>
-</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="nx">cartSlice</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">remove</span><span class="p">({</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">123456789</span><span class="w"> </span><span class="p">});</span>
-</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>
-</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="c1">// Getting the current state</span>
-</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">cartSlice</span><span class="p">.</span><span class="nx">getState</span><span class="p">());</span><span class="w"> </span><span class="c1">// Logs the current state of the cart slice</span>
-</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
-</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="c1">// Subscribing to state changes</span>
-</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="kd">const</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">cartSlice</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">newState</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Cart slice state changed:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">newState</span><span class="p">);</span>
-</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="p">});</span>
-</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>
-</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="c1">// Unsubscribe when no longer needed</span>
-</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="nx">unsubscribe</span><span class="p">();</span>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">appStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="c1">// Initial state for other parts of the application</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="p">});</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">postsSlice</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">slice</span><span class="p">(</span><span class="nx">appStore</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;posts&#39;</span><span class="p">,</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="nx">state</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;First Post&#39;</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Second Post&#39;</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="nx">actions</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="nx">updatePost</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="w"> </span><span class="p">})</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">postIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">state</span><span class="p">.</span><span class="nx">findIndex</span><span class="p">(</span><span class="nx">post</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">post</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">id</span><span class="p">);</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">postIndex</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">        </span><span class="nx">state</span><span class="p">[</span><span class="nx">postIndex</span><span class="p">].</span><span class="nx">title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">title</span><span class="p">;</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="p">});</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="c1">// Accessing the slice&#39;s state</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="nx">postsSlice</span><span class="p">.</span><span class="nx">getState</span><span class="p">();</span>
+</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>
+</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="c1">// Dispatching actions</span>
+</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a><span class="nx">postsSlice</span><span class="p">.</span><span class="nx">actions</span><span class="p">.</span><span class="nx">updatePost</span><span class="p">({</span><span class="w"> </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Updated Title&#39;</span><span class="w"> </span><span class="p">});</span>
+</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>
+</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="c1">// Subscribing to state changes</span>
+</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="kd">const</span><span class="w"> </span><span class="nx">unsubscribe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">postsSlice</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="nx">state</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Posts slice state changed:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">state</span><span class="p">);</span>
+</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="p">});</span>
+</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>
+</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="c1">// Unsubscribe when no longer needed</span>
+</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="nx">unsubscribe</span><span class="p">();</span>
 </span></code></pre></div>
 <a name="store"></a></p>
 <h2 id="storeinitialstate-options-observablestore">store(initialState, [options]) ⇒ <a href="#ObservableStore"><code>ObservableStore</code></a></h2>
@@ -2014,11 +2204,11 @@ If data is stale or not in cache, it fetches new data using the query function.<
 </tbody>
 </table>
 <p><strong>Example</strong><br />
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// Create a store with default localStorage support</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">});</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">// Create a store without localStorage support</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">NonPersistentStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">localStorage</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">});</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// Create a store with default localStorage support</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">CartStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">cartItems</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">});</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">// Create a store without localStorage support</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="kd">const</span><span class="w"> </span><span class="nx">NonPersistentStore</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">store</span><span class="p">({</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[]</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">localStorage</span><span class="o">:</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">});</span>
 </span></code></pre></div></p>
 
 
@@ -2058,13 +2248,13 @@ If data is stale or not in cache, it fetches new data using the query function.<
         
         
           
-          <a href="../observable_stream/" class="md-footer__link md-footer__link--next" aria-label="Next: Observable stream">
+          <a href="../../learn_by_example/counter/" class="md-footer__link md-footer__link--next" aria-label="Next: Counter (Simple)">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Observable stream
+                Counter (Simple)
               </div>
             </div>
             <div class="md-footer__button md-icon">

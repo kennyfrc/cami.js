@@ -8,27 +8,18 @@ class RegistrationFormElement extends ReactiveElement {
   emailIsValid = null;
   isEmailAvailable = null;
 
-  inputValidation$ = this.stream();
-  passwordValidation$ = this.stream();
+  handleEmailInput(e) {
+    const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
+    this.emailError = emailError;
+    this.isEmailValid = isEmailValid;
+    this.email = email;
+    this.isEmailAvailable = this.queryEmail(this.email);
+  }
 
-  onConnect() {
-    this.inputValidation$
-      .map(e => this.validateEmail(e.target.value))
-      .debounce(300)
-      .subscribe(({ isEmailValid, emailError, email }) => {
-        this.emailError = emailError;
-        this.isEmailValid = isEmailValid;
-        this.email = email;
-        this.isEmailAvailable = this.queryEmail(this.email)
-      });
-
-    this.passwordValidation$
-      .map(e => this.validatePassword(e.target.value))
-      .debounce(300)
-      .subscribe(({ isValid, password }) => {
-        this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
-        this.password = password;
-      });
+  handlePasswordInput(e) {
+    const { isValid, password } = this.validatePassword(e.target.value);
+    this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
+    this.password = password;
   }
 
   validateEmail(email) {
@@ -96,14 +87,14 @@ class RegistrationFormElement extends ReactiveElement {
           Email:
           <input type="email"
             aria-invalid=${this.getEmailInputState()}
-            @input=${(e) => this.inputValidation$.next(e) } value=${this.email}>
+            @input=${(e) => this.handleEmailInput(e)} value=${this.email}>
             <span id="email-available"
             >${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
           <span id="email-error">${this.emailError}</span>
         </label>
         <label>
           Password:
-          <input type="password" @input=${(e) => this.passwordValidation$.next(e) }
+          <input type="password" @input=${(e) => this.handlePasswordInput(e)}
             value=${this.password}
             aria-invalid=${this.getPasswordInputState()}>
           <span id="password-error"
