@@ -1921,8 +1921,29 @@ var cami = (() => {
     });
     return target;
   };
-  var _deepClone = (obj) => {
-    return JSON.parse(JSON.stringify(obj));
+  var _deepClone = (value) => {
+    if (value === null || typeof value !== "object") {
+      return value;
+    }
+    if (value instanceof Date) {
+      return new Date(value.getTime());
+    }
+    if (Array.isArray(value)) {
+      return value.map(_deepClone);
+    }
+    if (value instanceof Set) {
+      return new Set([...value].map(_deepClone));
+    }
+    if (value instanceof Map) {
+      return new Map([...value].map(([k, v]) => [_deepClone(k), _deepClone(v)]));
+    }
+    const clonedObj = Object.create(Object.getPrototypeOf(value));
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        clonedObj[key] = _deepClone(value[key]);
+      }
+    }
+    return clonedObj;
   };
 
   // src/config.js
@@ -1961,6 +1982,10 @@ var cami = (() => {
         console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", `Changed property state: ${messages[0]}`);
         console.log(`oldValue:`, messages[1]);
         console.log(`newValue:`, messages[2]);
+      } else if (functionName === "cami:store:state:change") {
+        console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", `Changed store state: ${messages[0]}`);
+        console.log(`oldValue of ${messages[1][0].path.join(".")}:`, messages[1][0].value);
+        console.log(`newValue of ${messages[2][0].path.join(".")}:`, messages[2][0].value);
       } else {
         console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", ...messages);
       }
@@ -2399,13 +2424,14 @@ var cami = (() => {
           this.__subscriber = null;
         };
       });
-      this.state = this._createProxy(initialState);
+      this.state = this._createProxy(createDraft(initialState));
       this.reducers = {};
       this.actions = {};
       this.middlewares = [];
       this.devTools = this.__connectToDevTools();
       this.dispatchQueue = [];
       this.isDispatching = false;
+      this.currentDispatchPromise = null;
       this.queryCache = /* @__PURE__ */ new Map();
       this.queryFunctions = /* @__PURE__ */ new Map();
       this.queries = {};
@@ -2424,31 +2450,27 @@ var cami = (() => {
         }
       });
     }
-    _createProxy(state) {
-      const store2 = this;
-      return new Proxy(state, {
-        get(target, property) {
-          const value = target[property];
-          if (typeof value === "object" && value !== null) {
-            return store2._createProxy(value);
-          }
+    _createProxy(target) {
+      return new Proxy(target, {
+        get: (target2, prop) => {
           if (DependencyTracker.current) {
-            DependencyTracker.current.addDependency(store2, property);
+            const propertyKey = typeof prop === "symbol" ? Symbol.keyFor(prop) || prop.toString() : prop;
+            DependencyTracker.current.addDependency(this, propertyKey);
           }
-          return Reflect.get(target, property);
+          return target2[prop];
         },
-        set(target, property, value) {
-          target[property] = value;
-          store2._notifyObservers();
-          if (store2.devTools) {
-            store2.devTools.send(property, store2.state);
-          }
+        set: (target2, prop, value) => {
+          target2[prop] = value;
+          this._notifyObservers();
           return true;
         }
       });
     }
     _notifyObservers() {
       this.__observers.forEach((observer) => observer.next(this.state));
+      if (this.__subscriber && typeof this.__subscriber.next === "function") {
+        this.__subscriber.next(this.state);
+      }
     }
     /**
      * Dispatches an action to update the store's state.
@@ -2467,14 +2489,15 @@ var cami = (() => {
       if (!this.isDispatching) {
         this._processDispatchQueue();
       }
+      return this.currentDispatchPromise;
     }
     _processDispatchQueue() {
+      this.isDispatching = true;
       while (this.dispatchQueue.length > 0) {
         const { action, payload } = this.dispatchQueue.shift();
-        this.isDispatching = true;
         this._dispatch(action, payload);
-        this.isDispatching = false;
       }
+      this.isDispatching = false;
     }
     _dispatch(action, payload) {
       if (typeof action === "function") {
@@ -2489,31 +2512,39 @@ var cami = (() => {
         return;
       }
       this.__applyMiddleware(action, payload);
-      const oldState = this.state;
-      const [newState, patches, inversePatches] = produceWithPatches(this.state, (draft) => {
+      const oldValue = this.state;
+      const [nextState, patches, inversePatches] = produceWithPatches(this.state, (draft) => {
         reducer({
           state: draft,
           payload
         });
       });
-      __trace("cami:store:state:change", `Changed store state via action: ${action}`);
-      if (__config.events.isEnabled && typeof window !== "undefined") {
-        const event = new CustomEvent("cami:store:state:change", {
-          detail: {
-            action,
-            oldValue: oldState,
-            newValue: newState
-          }
+      const hasChanged = patches.length > 0;
+      if (hasChanged) {
+        Object.keys(nextState).forEach((key) => {
+          this.state[key] = nextState[key];
         });
-        window.dispatchEvent(event);
+        this._notifyPatchListeners(patches);
+        if (this.devTools) {
+          this.devTools.send(action, this.state);
+        }
+        __trace("cami:store:state:change", `Changed store state via action: ${action}`, inversePatches, patches);
+        if (__config.events.isEnabled && typeof window !== "undefined") {
+          const event = new CustomEvent("cami:store:state:change", {
+            detail: {
+              action,
+              patches,
+              inversePatches
+            }
+          });
+          window.dispatchEvent(event);
+        }
       }
-      this.state = newState;
-      this.__observers.forEach((observer) => observer.next(this.state));
-      if (this.devTools) {
-        this.devTools.send(action, this.state);
-      }
+    }
+    _notifyPatchListeners(patches) {
       patches.forEach((patch) => {
-        const listeners = this.patchListeners.get(patch.path[0]);
+        const key = patch.path[0];
+        const listeners = this.patchListeners.get(key);
         if (listeners) {
           listeners.forEach((callback) => callback(patch));
         }
@@ -2634,6 +2665,13 @@ var cami = (() => {
         this.patchListeners.set(key, []);
       }
       this.patchListeners.get(key).push(callback);
+      return () => {
+        const listeners = this.patchListeners.get(key);
+        const index = listeners.indexOf(callback);
+        if (index > -1) {
+          listeners.splice(index, 1);
+        }
+      };
     }
     /**
      * @method applyPatch
@@ -3055,7 +3093,8 @@ var cami = (() => {
     const sliceState = new Proxy(store2.state[name], {
       get(target, property) {
         if (DependencyTracker.current) {
-          DependencyTracker.current.addDependency(store2, `${name}.${property}`);
+          const propertyKey = typeof property === "symbol" ? Symbol.keyFor(property) || property.toString() : property;
+          DependencyTracker.current.addDependency(store2, `${name}.${propertyKey}`);
         }
         return target[property];
       },
@@ -3130,15 +3169,15 @@ var cami = (() => {
       const sliceState2 = newState[name];
       sliceSubscribers.forEach((callback) => callback(sliceState2));
     });
-    const sliceObject = { state: sliceState, subscribe };
+    const sliceObject = { state: sliceState, subscribe, actions: {}, queries: {}, mutations: {} };
     Object.keys(sliceActions).forEach((actionKey) => {
-      sliceObject[actionKey] = sliceActions[actionKey];
+      sliceObject.actions[actionKey] = sliceActions[actionKey];
     });
     Object.keys(sliceQueries).forEach((queryKey) => {
-      sliceObject[queryKey] = sliceQueries[queryKey];
+      sliceObject.queries[queryKey] = sliceQueries[queryKey];
     });
     Object.keys(sliceMutations).forEach((mutationKey) => {
-      sliceObject[mutationKey] = sliceMutations[mutationKey];
+      sliceObject.mutations[mutationKey] = sliceMutations[mutationKey];
     });
     return sliceObject;
   };
@@ -3151,6 +3190,13 @@ var cami = (() => {
       const localInitialState = _deepClone(initialState);
       const store2 = new StoreClass(initialState);
       store2.name = storeName;
+      const validateSchema = (loadedState, initialState2) => {
+        const initialKeys = Object.keys(initialState2);
+        const loadedKeys = Object.keys(loadedState);
+        const allInitialKeysPresent = initialKeys.every((key) => loadedKeys.includes(key));
+        const allLoadedKeysValid = loadedKeys.every((key) => initialKeys.includes(key));
+        return allInitialKeysPresent && allLoadedKeysValid;
+      };
       store2.init = () => {
         if (shouldLoad) {
           const storedState = localStorage.getItem(storeName);
@@ -3163,14 +3209,23 @@ var cami = (() => {
             if (!isExpired) {
               const loadedState = JSON.parse(storedState);
               __trace("cami:localStorage", `Loaded state from localStorage. See Chrome Devtools > Storage > Local Storage`);
-              store2.state = store2._createProxy(_deepMerge(loadedState, localInitialState));
+              if (validateSchema(loadedState, localInitialState)) {
+                store2.state = store2._createProxy(createDraft(_deepMerge(loadedState, localInitialState)));
+              } else {
+                __trace("cami:localStorage", `Loaded state does not match the schema. Resetting localStorage and using initial state.`);
+                localStorage.removeItem(storeName);
+                localStorage.removeItem(`${storeName}-expiry`);
+                store2.state = store2._createProxy(createDraft(localInitialState));
+              }
             } else {
-              __trace("cami:localStorage", `Stored state has expired. Removing from localStorage.`);
+              __trace("cami:localStorage", `Stored state has expired. Removing from localStorage and using initial state.`);
               localStorage.removeItem(storeName);
               localStorage.removeItem(`${storeName}-expiry`);
+              store2.state = store2._createProxy(createDraft(localInitialState));
             }
           } else {
-            __trace("cami:localStorage", `No stored state found in localStorage.`);
+            __trace("cami:localStorage", `No stored state found in localStorage. Using initial state.`);
+            store2.state = store2._createProxy(createDraft(localInitialState));
           }
         }
       };
@@ -3187,7 +3242,6 @@ var cami = (() => {
         const expiryTime = new Date(currentTime.getTime() + expiry);
         localStorage.setItem(storeName, JSON.stringify(state));
         localStorage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
-        __trace("cami:localStorage:state:change", `Synced localStorage state with in-memory store. Expiry time: ${expiryTime.toLocaleString()}`);
       });
       return store2;
     };

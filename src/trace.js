@@ -17,6 +17,10 @@ function __trace(functionName, ...messages) {
       console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', `Changed property state: ${messages[0]}`);
       console.log(`oldValue:`, messages[1]);
       console.log(`newValue:`, messages[2]);
+    } else if (functionName === 'cami:store:state:change') {
+      console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', `Changed store state: ${messages[0]}`);
+      console.log(`oldValue of ${messages[1][0].path.join('.')}:`, messages[1][0].value);
+      console.log(`newValue of ${messages[2][0].path.join('.')}:`, messages[2][0].value);
     } else {
       console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', ...messages);
     }

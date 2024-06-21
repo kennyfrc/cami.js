@@ -1,6 +1,6 @@
 import { Observable } from './observable.js';
 import { DependencyTracker } from './observable-state.js'
-import { produce, produceWithPatches, applyPatches, enablePatches } from 'immer';
+import { current, createDraft, finishDraft, original, produce, produceWithPatches, applyPatches, enablePatches } from 'immer';
 import { _deepMerge, _deepClone } from '../utils.js';
 import { __config } from '../config.js';
 import { __trace } from '../trace.js';
@@ -45,7 +45,7 @@ class ObservableStore extends Observable {
       return () => { this.__subscriber = null; };
     });
 
-    this.state = this._createProxy(initialState);
+    this.state = this._createProxy(createDraft(initialState));
 
     this.reducers = {};
     this.actions = {};
@@ -53,6 +53,7 @@ class ObservableStore extends Observable {
     this.devTools = this.__connectToDevTools();
     this.dispatchQueue = [];
     this.isDispatching = false;
+    this.currentDispatchPromise = null;
     this.queryCache = new Map();
     this.queryFunctions = new Map();
     this.queries = {};
@@ -73,25 +74,18 @@ class ObservableStore extends Observable {
     });
   }
 
-  _createProxy(state) {
-    const store = this;
-    return new Proxy(state, {
-      get(target, property) {
-        const value = target[property];
-        if (typeof value === 'object' && value !== null) {
-          return store._createProxy(value);
-        }
+  _createProxy(target) {
+    return new Proxy(target, {
+      get: (target, prop) => {
         if (DependencyTracker.current) {
-          DependencyTracker.current.addDependency(store, property);
+          const propertyKey = typeof prop === 'symbol' ? Symbol.keyFor(prop) || prop.toString() : prop;
+          DependencyTracker.current.addDependency(this, propertyKey);
         }
-        return Reflect.get(target, property);
+        return target[prop];
       },
-      set(target, property, value) {
-        target[property] = value;
-        store._notifyObservers();
-        if (store.devTools) {
-          store.devTools.send(property, store.state);
-        }
+      set: (target, prop, value) => {
+        target[prop] = value;
+        this._notifyObservers();
         return true;
       }
     });
@@ -99,6 +93,9 @@ class ObservableStore extends Observable {
 
   _notifyObservers() {
     this.__observers.forEach(observer => observer.next(this.state));
+    if (this.__subscriber && typeof this.__subscriber.next === 'function') {
+      this.__subscriber.next(this.state);
+    }
   }
 
   /**
@@ -118,15 +115,18 @@ class ObservableStore extends Observable {
     if (!this.isDispatching) {
       this._processDispatchQueue();
     }
+    return this.currentDispatchPromise;
   }
 
   _processDispatchQueue() {
+    this.isDispatching = true;
+
     while (this.dispatchQueue.length > 0) {
       const { action, payload } = this.dispatchQueue.shift();
-      this.isDispatching = true;
       this._dispatch(action, payload);
-      this.isDispatching = false;
     }
+
+    this.isDispatching = false;
   }
 
   _dispatch(action, payload) {
@@ -146,36 +146,44 @@ class ObservableStore extends Observable {
 
     this.__applyMiddleware(action, payload);
 
-    const oldState = this.state;
-    const [newState, patches, inversePatches] = produceWithPatches(this.state, draft => {
-      reducer({
-        state: draft,
-        payload: payload
+    const oldValue = this.state;
+    const [nextState, patches, inversePatches] = produceWithPatches(this.state, draft => {
+        reducer({
+          state: draft,
+          payload: payload
+        });
       });
-    });
 
-    __trace('cami:store:state:change', `Changed store state via action: ${action}`);
-    if (__config.events.isEnabled && typeof window !== 'undefined') {
-      const event = new CustomEvent('cami:store:state:change', {
-        detail: {
-          action: action,
-          oldValue: oldState,
-          newValue: newState
-        }
+    const hasChanged = patches.length > 0;
+    if (hasChanged) {
+      Object.keys(nextState).forEach(key => {
+        this.state[key] = nextState[key];
       });
-      window.dispatchEvent(event);
+
+      this._notifyPatchListeners(patches);
+      if (this.devTools) {
+        this.devTools.send(action, this.state);
+      }
+
+      __trace('cami:store:state:change', `Changed store state via action: ${action}`, inversePatches, patches);
+
+      if (__config.events.isEnabled && typeof window !== 'undefined') {
+        const event = new CustomEvent('cami:store:state:change', {
+          detail: {
+            action: action,
+            patches: patches,
+            inversePatches: inversePatches
+          }
+        });
+        window.dispatchEvent(event);
+      }
     }
+  }
 
-    this.state = newState;
-    this.__observers.forEach(observer => observer.next(this.state));
-
-    if (this.devTools) {
-      this.devTools.send(action, this.state);
-    }
-
-    // Notify patch listeners
+  _notifyPatchListeners(patches) {
     patches.forEach(patch => {
-      const listeners = this.patchListeners.get(patch.path[0]);
+      const key = patch.path[0];
+      const listeners = this.patchListeners.get(key);
       if (listeners) {
         listeners.forEach(callback => callback(patch));
       }
@@ -307,6 +315,13 @@ class ObservableStore extends Observable {
       this.patchListeners.set(key, []);
     }
     this.patchListeners.get(key).push(callback);
+    return () => {
+      const listeners = this.patchListeners.get(key);
+      const index = listeners.indexOf(callback);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    };
   }
 
   /**
@@ -835,7 +850,8 @@ class ObservableStore extends Observable {
     const sliceState = new Proxy(store.state[name], {
       get(target, property) {
         if (DependencyTracker.current) {
-          DependencyTracker.current.addDependency(store, `${name}.${property}`);
+          const propertyKey = typeof property === 'symbol' ? Symbol.keyFor(property) || property.toString() : property;
+          DependencyTracker.current.addDependency(store, `${name}.${propertyKey}`);
         }
         return target[property];
       },
@@ -926,18 +942,18 @@ class ObservableStore extends Observable {
       sliceSubscribers.forEach(callback => callback(sliceState));
     });
 
-    const sliceObject = { state: sliceState, subscribe };
+    const sliceObject = { state: sliceState, subscribe, actions: {}, queries: {}, mutations: {} };
 
     Object.keys(sliceActions).forEach(actionKey => {
-      sliceObject[actionKey] = sliceActions[actionKey];
+      sliceObject.actions[actionKey] = sliceActions[actionKey];
     });
 
     Object.keys(sliceQueries).forEach(queryKey => {
-      sliceObject[queryKey] = sliceQueries[queryKey];
+      sliceObject.queries[queryKey] = sliceQueries[queryKey];
     });
 
     Object.keys(sliceMutations).forEach(mutationKey => {
-      sliceObject[mutationKey] = sliceMutations[mutationKey];
+      sliceObject.mutations[mutationKey] = sliceMutations[mutationKey];
     });
 
     return sliceObject;
@@ -974,6 +990,15 @@ class ObservableStore extends Observable {
 
       store.name = storeName;
 
+      const validateSchema = (loadedState, initialState) => {
+        const initialKeys = Object.keys(initialState);
+        const loadedKeys = Object.keys(loadedState);
+        const allInitialKeysPresent = initialKeys.every(key => loadedKeys.includes(key));
+        const allLoadedKeysValid = loadedKeys.every(key => initialKeys.includes(key));
+
+        return allInitialKeysPresent && allLoadedKeysValid;
+      };
+
       store.init = () => {
         if (shouldLoad) {
           const storedState = localStorage.getItem(storeName);
@@ -989,14 +1014,27 @@ class ObservableStore extends Observable {
             if (!isExpired) {
               const loadedState = JSON.parse(storedState);
               __trace('cami:localStorage', `Loaded state from localStorage. See Chrome Devtools > Storage > Local Storage`);
-              store.state = store._createProxy(_deepMerge(loadedState, localInitialState));
+
+              if (validateSchema(loadedState, localInitialState)) {
+                // Create a proxy from the merged state
+                store.state = store._createProxy(createDraft(_deepMerge(loadedState, localInitialState)));
+              } else {
+                __trace('cami:localStorage', `Loaded state does not match the schema. Resetting localStorage and using initial state.`);
+                localStorage.removeItem(storeName);
+                localStorage.removeItem(`${storeName}-expiry`);
+                store.state = store._createProxy(createDraft(localInitialState));
+              }
             } else {
-              __trace('cami:localStorage', `Stored state has expired. Removing from localStorage.`);
+              // Handle expired state
+              __trace('cami:localStorage', `Stored state has expired. Removing from localStorage and using initial state.`);
               localStorage.removeItem(storeName);
               localStorage.removeItem(`${storeName}-expiry`);
+              store.state = store._createProxy(createDraft(localInitialState));
             }
           } else {
-            __trace('cami:localStorage', `No stored state found in localStorage.`);
+            // No stored state found
+            __trace('cami:localStorage', `No stored state found in localStorage. Using initial state.`);
+            store.state = store._createProxy(createDraft(localInitialState));
           }
         }
       };
@@ -1019,8 +1057,6 @@ class ObservableStore extends Observable {
 
         localStorage.setItem(storeName, JSON.stringify(state));
         localStorage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
-
-        __trace('cami:localStorage:state:change', `Synced localStorage state with in-memory store. Expiry time: ${expiryTime.toLocaleString()}`);
       });
 
       return store;

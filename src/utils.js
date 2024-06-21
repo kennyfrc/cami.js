@@ -75,12 +75,39 @@ const _deepMerge = (target, source) => {
 /**
  * @private
  * @function _deepClone
- * @param {Object} obj - The object to clone.
- * @returns {Object} A deep clone of the input object.
- * @description Creates a deep clone of the provided object. This ensures that the reset functionality uses the correct initial state, preventing unintended mutations.
+ * @param {*} value - The value to clone.
+ * @returns {*} A deep clone of the input value.
+ * @description Creates a deep clone of the provided value. This function is optimized for performance and handles various types including objects, arrays, dates, and primitive values.
  */
-const _deepClone = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
+const _deepClone = (value) => {
+  if (value === null || typeof value !== 'object') {
+    return value;
+  }
+
+  if (value instanceof Date) {
+    return new Date(value.getTime());
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(_deepClone);
+  }
+
+  if (value instanceof Set) {
+    return new Set([...value].map(_deepClone));
+  }
+
+  if (value instanceof Map) {
+    return new Map([...value].map(([k, v]) => [_deepClone(k), _deepClone(v)]));
+  }
+
+  const clonedObj = Object.create(Object.getPrototypeOf(value));
+  for (const key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      clonedObj[key] = _deepClone(value[key]);
+    }
+  }
+
+  return clonedObj;
 };
 
 export { _deepEqual, _deepMerge, _deepClone };
