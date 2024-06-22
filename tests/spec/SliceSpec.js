@@ -86,7 +86,8 @@ describe("Slice functionality", function() {
             ctx.invalidateQueries({ queryKey: ['posts'] });
           },
           onError: (ctx) => {
-            // Handle error
+            const previousState = ctx.previousState;
+            ctx.actions.setList(previousState.list);
           }
         },
         delete: {
@@ -130,6 +131,35 @@ describe("Slice functionality", function() {
     it("should throw an error for invalid action", function() {
       expect(() => navigationSlice.invalidAction()).toThrow();
     });
+
+    it("should cycle through all states correctly", function() {
+      expect(navigationSlice.status).toBe('menu');
+      expect(navigationSlice.count).toBe(0);
+
+      navigationSlice.toggle();
+      expect(navigationSlice.status).toBe('settings');
+      expect(navigationSlice.count).toBe(1);
+
+      navigationSlice.toggle();
+      expect(navigationSlice.status).toBe('profile');
+      expect(navigationSlice.count).toBe(2);
+
+      navigationSlice.toggle();
+      expect(navigationSlice.status).toBe('menu');
+      expect(navigationSlice.count).toBe(3);
+    });
+
+    it("should handle multiple toggles correctly", function() {
+      for (let i = 0; i < 10; i++) {
+        navigationSlice.toggle();
+      }
+      expect(navigationSlice.count).toBe(10);
+      expect(['menu', 'settings', 'profile']).toContain(navigationSlice.status);
+    });
+
+    it("should throw an error for non-existent action", function() {
+      expect(() => navigationSlice.nonExistentAction()).toThrow();
+    });
   });
 
   describe("Post Slice", function() {
@@ -160,42 +190,117 @@ describe("Slice functionality", function() {
     // potentially using async/await or done() callback in Jasmine.
     // Here's a basic structure for those tests:
 
-    it("should handle read query", function(done) {
-      spyOn(window, 'fetch').and.returnValue(Promise.resolve({
-        json: () => Promise.resolve([{ id: 1, title: 'Test Post' }])
-      }));
-
-      postSlice.read().then(() => {
-        expect(postSlice.list.length).toBe(1);
-        expect(postSlice.list[0].title).toBe('Test Post');
-        expect(postSlice.loading).toBe(false);
-        done();
-      });
-    });
-
-    it("should handle create mutation", function(done) {
+    it("should handle create mutation", async function() {
       const newPost = { title: 'New Test Post' };
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({ id: 2, ...newPost })
       }));
 
-      postSlice.create(newPost).then(() => {
-        expect(postSlice.list.length).toBe(1);
-        expect(postSlice.list[0].title).toBe('New Test Post');
-        done();
-      });
+      await postSlice.create(newPost);
+      expect(postSlice.list.length).toBe(1);
+      expect(postSlice.list[0].title).toBe('New Test Post');
     });
 
-    it("should handle delete mutation", function(done) {
+    it("should handle delete mutation", async function() {
       postSlice.setList([{ id: 1, title: 'Test Post' }]);
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({})
       }));
 
-      postSlice.delete({ id: 1 }).then(() => {
-        expect(postSlice.list.length).toBe(0);
-        done();
-      });
+      await postSlice.delete({ id: 1 });
+      expect(postSlice.list.length).toBe(0);
+    });
+
+    it("should handle read query with empty response", async function() {
+      spyOn(window, 'fetch').and.returnValue(Promise.resolve({
+        json: () => Promise.resolve([])
+      }));
+
+      await postSlice.read();
+      expect(postSlice.list.length).toBe(0);
+      expect(postSlice.loading).toBe(false);
+    });
+
+    it("should handle delete mutation with non-existent id", async function() {
+      postSlice.setList([{ id: 1, title: 'Test Post' }]);
+      spyOn(window, 'fetch').and.returnValue(Promise.resolve({
+        json: () => Promise.resolve({})
+      }));
+
+      await postSlice.delete({ id: 999 });
+      expect(postSlice.list.length).toBe(1);
+    });
+
+    it("should handle concurrent mutations", async function() {
+      const post1 = { id: 1, title: 'Post 1' };
+      const post2 = { id: 2, title: 'Post 2' };
+
+      spyOn(window, 'fetch').and.returnValue(Promise.resolve({
+        json: () => Promise.resolve({})
+      }));
+
+      await Promise.all([
+        postSlice.create(post1),
+        postSlice.create(post2),
+        postSlice.delete({ id: 1 })
+      ]);
+
+      expect(postSlice.list.length).toBe(1);
+      expect(postSlice.list[0].title).toBe('Post 2');
     });
   });
+
+  describe("Edge Cases and Advanced Scenarios", function() {
+    it("should handle deeply nested state updates", function() {
+      const deepSlice = slice(`DeepSlice_${uniqueId}`, {
+        store: `deep-store-${uniqueId}`,
+        state: {
+          level1: {
+            level2: {
+              level3: {
+                value: 0
+              }
+            }
+          }
+        },
+        actions: {
+          updateDeep: ({ state, payload }) => {
+            state.level1.level2.level3.value = payload;
+          }
+        }
+      });
+
+      deepSlice.updateDeep(42);
+      expect(deepSlice.level1.level2.level3.value).toBe(42);
+    });
+
+    it("should handle actions that modify multiple slices", function() {
+      const slice1 = slice(`Slice1_${uniqueId}`, {
+        store: `store1-${uniqueId}`,
+        state: { value: 0 },
+        actions: {
+          increment: ({ state }) => { state.value += 1; }
+        }
+      });
+
+      const slice2 = slice(`Slice2_${uniqueId}`, {
+        store: `store2-${uniqueId}`,
+        state: { value: 0 },
+        actions: {
+          increment: ({ state }) => { state.value += 1; }
+        }
+      });
+
+      const combinedAction = () => {
+        slice1.increment();
+        slice2.increment();
+      };
+
+      combinedAction();
+      expect(slice1.value).toBe(1);
+      expect(slice2.value).toBe(1);
+    });
+  });
+
 });
+

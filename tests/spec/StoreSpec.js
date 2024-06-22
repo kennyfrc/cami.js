@@ -14,9 +14,9 @@ describe("Cami Store", function() {
 
     it("should initialize with the given initial state", function() {
       const appStore = createStore();
-      expect(appStore.state.count).toBe(0);
-      expect(appStore.state.nested.value).toBe(10);
-      expect(appStore.state.list).toEqual([]);
+      expect(appStore.count).toBe(0);
+      expect(appStore.nested.value).toBe(10);
+      expect(appStore.list).toEqual([]);
     });
 
     it("should allow action registration and handle dispatch", function() {
@@ -25,9 +25,9 @@ describe("Cami Store", function() {
         state.count += payload || 1;
       });
       appStore.dispatch('increment');
-      expect(appStore.state.count).toBe(1);
+      expect(appStore.count).toBe(1);
       appStore.dispatch('increment', 5);
-      expect(appStore.state.count).toBe(6);
+      expect(appStore.count).toBe(6);
     });
 
     it("should handle multiple actions and their interactions", function() {
@@ -44,11 +44,11 @@ describe("Cami Store", function() {
 
       appStore.dispatch('increment');
       appStore.dispatch('increment');
-      expect(appStore.state.count).toBe(2);
+      expect(appStore.count).toBe(2);
       appStore.dispatch('decrement');
-      expect(appStore.state.count).toBe(1);
+      expect(appStore.count).toBe(1);
       appStore.dispatch('reset');
-      expect(appStore.state.count).toBe(0);
+      expect(appStore.count).toBe(0);
     });
 
     it("should handle nested state updates", function() {
@@ -57,7 +57,7 @@ describe("Cami Store", function() {
         state.nested.value = payload;
       });
       appStore.dispatch('updateNested', 20);
-      expect(appStore.state.nested.value).toBe(20);
+      expect(appStore.nested.value).toBe(20);
     });
 
     it("should handle array operations", function() {
@@ -74,21 +74,23 @@ describe("Cami Store", function() {
 
       appStore.dispatch('addItem', 'item1');
       appStore.dispatch('addItem', 'item2');
-      expect(appStore.state.list).toEqual(['item1', 'item2']);
+      expect(appStore.list).toEqual(['item1', 'item2']);
       appStore.dispatch('removeItem', 'item1');
-      expect(appStore.state.list).toEqual(['item2']);
+      expect(appStore.list).toEqual(['item2']);
     });
 
-    it("should apply middleware to dispatched actions", function() {
+    it("should apply middleware to dispatched actions", async function() {
       const appStore = createStore();
-      const middlewareSpy = jasmine.createSpy('middleware');
+      const middlewareSpy = jasmine.createSpy('middleware').and.callFake(async (next) => {
+        await new Promise(resolve => setTimeout(resolve, 10)); // Simulate async operation
+      });
       appStore.use(middlewareSpy);
       appStore.action('incrementWithMiddleware', ({ state }) => {
         state.count += 1;
       });
-      appStore.dispatch('incrementWithMiddleware');
+      await appStore.dispatch('incrementWithMiddleware');
       expect(middlewareSpy).toHaveBeenCalled();
-      expect(appStore.state.count).toBe(1);
+      expect(appStore.count).toBe(1);
     });
 
     it("should handle complex state transformations", function() {
@@ -100,14 +102,14 @@ describe("Cami Store", function() {
       });
 
       appStore.dispatch('complexUpdate', 5);
-      expect(appStore.state.count).toBe(0);
-      expect(appStore.state.nested.value).toBe(15);
-      expect(appStore.state.list).toEqual([0, 15]);
+      expect(appStore.count).toBe(0);
+      expect(appStore.nested.value).toBe(15);
+      expect(appStore.list).toEqual([0, 15]);
 
       appStore.dispatch('complexUpdate', 10);
-      expect(appStore.state.count).toBe(0);
-      expect(appStore.state.nested.value).toBe(25);
-      expect(appStore.state.list).toEqual([0, 15, 0, 25]);
+      expect(appStore.count).toBe(0);
+      expect(appStore.nested.value).toBe(25);
+      expect(appStore.list).toEqual([0, 15, 0, 25]);
     });
   });
 });

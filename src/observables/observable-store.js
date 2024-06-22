@@ -86,8 +86,27 @@ class ObservableStore extends Observable {
       },
       set: (target, prop, value) => {
         target[prop] = value;
+        if (!(prop in this)) {
+          this._reProxy(); // Re-proxy in case new properties are added
+        }
         this._notifyObservers();
         return true;
+      }
+    });
+  }
+
+  _reProxy() {
+    Object.keys(this.state).forEach(key => {
+      if (!(key in this)) {
+        Object.defineProperty(this, key, {
+          get: () => this.state[key],
+          set: (value) => {
+            this.state[key] = value;
+            this._notifyObservers();
+          },
+          enumerable: true,
+          configurable: true
+        });
       }
     });
   }
@@ -253,7 +272,7 @@ class ObservableStore extends Observable {
    */
   __applyMiddleware(action, ...args) {
     const context = {
-      state: this.state,
+      state: deepFreeze(this.state),
       action,
       payload: args,
     };
@@ -497,7 +516,7 @@ class ObservableStore extends Observable {
     const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, actions, mutations } = query;
 
     const context = {
-      state: this.state,
+      state: deepFreeze(this.state),
       actions,
       queries: this.queryFunctions,
       mutations: mutations,
@@ -780,8 +799,8 @@ class ObservableStore extends Observable {
 
     const { mutationFn, onMutate, onError, onSuccess, onSettled, actions, queries } = mutation;
     const context = {
-      state: this.state,
-      previousState: this.state,
+      state: deepFreeze(this.state),
+      previousState: deepFreeze(this.state),
       actions,
       queries,
       mutations: this.mutationFunctions,
@@ -1001,7 +1020,7 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (queries[queryKey].onSuccess) {
             queries[queryKey].onSuccess({
               ...ctx,
-              state: ctx.state[sliceName]
+              state: deepFreeze(ctx.state[sliceName])
             });
           }
         }
@@ -1027,7 +1046,7 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (mutations[mutationKey].onMutate) {
             return mutations[mutationKey].onMutate({
               ...ctx,
-              state: ctx.state[sliceName]
+              state: deepFreeze(ctx.state[sliceName])
             });
           }
         },
@@ -1035,7 +1054,7 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (mutations[mutationKey].onSuccess) {
             mutations[mutationKey].onSuccess({
               ...ctx,
-              state: ctx.state[sliceName]
+              state: deepFreeze(ctx.state[sliceName])
             });
           }
         },
@@ -1043,7 +1062,7 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (mutations[mutationKey].onError) {
             mutations[mutationKey].onError({
               ...ctx,
-              state: ctx.state[sliceName]
+              state: deepFreeze(ctx.state[sliceName])
             });
           }
         }
