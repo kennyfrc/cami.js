@@ -2,7 +2,9 @@
   <h1>Navigation State Machine</h1>
   <div id="app">
     <button id="toggleNav">Toggle Navigation</button>
+    <button id="invalidateNav">Invalidate Navigation</button>
     <p>Current Navigation Status: <span id="navStatus"></span></p>
+    <p id="errorMessage" style="color: red;"></p>
   </div>
 </main>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
@@ -12,9 +14,12 @@
   cami.debug.enable()
 
   const appStore = store({
-    navigation: {
-      status: 'menu'
-    }
+    state: {
+      navigation: {
+        status: 'menu'
+      }
+    },
+    name: 'navigation-store'
   });
 
   appStore.action('NAV_FSM:TOGGLE', ({ state }) => {
@@ -29,17 +34,46 @@
     state.navigation.status = transitions[state.navigation.status];
   });
 
+  // Action that attempts to set an invalid type
+  appStore.action('NAV_FSM:INVALIDATE', ({ state }) => {
+    // This should trigger a type error because we're trying to set a number instead of a string
+    state.navigation.status = 123;
+  });
+
   effect(() => {
     console.log('Navigation status changed:', appStore.state.navigation.status);
     document.getElementById('navStatus').textContent = appStore.state.navigation.status;
   });
 
   document.getElementById('toggleNav').addEventListener('click', () => {
-    appStore.dispatch('NAV_FSM:TOGGLE');
+    try {
+      appStore.dispatch('NAV_FSM:TOGGLE');
+    } catch (error) {
+      handleError(error);
+    }
   });
 
+  document.getElementById('invalidateNav').addEventListener('click', () => {
+    try {
+      appStore.dispatch('NAV_FSM:INVALIDATE');
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+  function handleError(error) {
+    console.error('Caught error:', error.message);
+    document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
+    // Optionally, stop the interval to prevent further actions
+    clearInterval(intervalId);
+  }
+
   // Attempt to trigger the bug by rapidly changing the navigation status
-  setInterval(() => {
-    appStore.dispatch('NAV_FSM:TOGGLE');
+  const intervalId = setInterval(() => {
+    try {
+      appStore.dispatch('NAV_FSM:TOGGLE');
+    } catch (error) {
+      handleError(error);
+    }
   }, 1000);
 </script>

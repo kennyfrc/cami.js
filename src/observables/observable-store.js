@@ -1,6 +1,6 @@
 import { Observable } from './observable.js';
 import { DependencyTracker } from './observable-state.js'
-import { current, createDraft, finishDraft, original, produce, produceWithPatches, applyPatches, enablePatches } from 'immer';
+import { current, createDraft, finishDraft, original, produce, produceWithPatches, applyPatches, enablePatches, freeze } from 'immer';
 import { _deepMerge, _deepClone } from '../utils.js';
 import { __config } from '../config.js';
 import { __trace } from '../trace.js';
@@ -46,6 +46,7 @@ class ObservableStore extends Observable {
     });
 
     this.state = this._createProxy(createDraft(initialState));
+    this.schema = this._createDeepSchema(initialState);
 
     this.reducers = {};
     this.actions = {};
@@ -96,6 +97,52 @@ class ObservableStore extends Observable {
     if (this.__subscriber && typeof this.__subscriber.next === 'function') {
       this.__subscriber.next(this.state);
     }
+  }
+
+  _createDeepSchema(state) {
+    const inferType = (value) => {
+      if (Array.isArray(value)) return 'array';
+      if (value === null) return 'maybeNull';
+      if (value === undefined) return 'maybeUndefined';
+      if (typeof value === 'object') return this._createDeepSchema(value);
+      return typeof value;
+    };
+
+    return Object.keys(state).reduce((acc, key) => {
+      acc[key] = inferType(state[key]);
+      return acc;
+    }, {});
+  }
+
+  _validateDeepState(schema, state, path = []) {
+    Object.keys(schema).forEach(key => {
+      const expectedType = schema[key];
+      const actualValue = state[key];
+      const currentPath = [...path, key];
+
+      if (typeof expectedType === 'object' && expectedType !== null) {
+        if (typeof actualValue !== 'object' || actualValue === null) {
+          throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected object, got ${typeof actualValue}`);
+        }
+        this._validateDeepState(expectedType, actualValue, currentPath);
+      } else {
+        const actualType = this._inferType(actualValue);
+        if (expectedType === 'maybeNull') {
+          // Allow any type for maybeNull
+        } else if (expectedType === 'maybeUndefined') {
+          // Allow any type for maybeUndefined
+        } else if (actualType !== expectedType) {
+          throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected ${expectedType}, got ${actualType}`);
+        }
+      }
+    });
+  }
+
+  _inferType(value) {
+    if (Array.isArray(value)) return 'array';
+    if (value === null) return 'maybeNull';
+    if (value === undefined) return 'maybeUndefined';
+    return typeof value;
   }
 
   /**
@@ -153,6 +200,12 @@ class ObservableStore extends Observable {
           payload: payload
         });
       });
+
+    try {
+      this._validateDeepState(this.schema, nextState);
+    } catch (error) {
+      throw new Error(`[Cami.js] Type validation failed for action ${action}: ${error.message}`);
+    }
 
     const hasChanged = patches.length > 0;
     if (hasChanged) {
@@ -242,17 +295,6 @@ class ObservableStore extends Observable {
     this.middlewares.push(middleware);
   }
 
-
-  /**
-   * @method getState
-   * @memberof ObservableStore
-   * @returns {Object} - The current state of the store.
-   * @description Retrieves the current state of the store. This method is crucial in asynchronous operations or event-driven environments to ensure the most current state is accessed, as the state might change frequently due to user interactions or other asynchronous updates.
-   */
-  getState() {
-    return this.state;
-  }
-
   /**
    * @method register
    * @memberof ObservableStore
@@ -280,21 +322,26 @@ class ObservableStore extends Observable {
    */
   action(action, reducer) {
     if (this.reducers[action]) {
-      throw new Error(`[Cami.js] Action type ${action} is already registered.`);
+      console.warn(`[Cami.js] Action type ${action} is already registered. Overwriting.`);
     }
-    this.reducers[action] = reducer;
+
+    this.reducers[action] = ({ state, payload }) => {
+      const result = reducer({ state, payload });
+      this._validateDeepState(this.schema, state);
+      return result;
+    };
 
     this.actions[action] = (...args) => {
-      this.dispatch(action, ...args);
+      return this.dispatch(action, ...args);
     };
 
-    if (this[action]) {
-      throw new Error(`[Cami.js] Method with name ${action} has already been defined.`);
+    if (this[action] && typeof this[action] !== 'function') {
+      console.warn(`[Cami.js] Property ${action} already exists on the store. Skipping method creation.`);
+    } else {
+      this[action] = (...args) => {
+        return this.dispatch(action, ...args);
+      };
     }
-
-    this[action] = (...args) => {
-      this.dispatch(action, ...args);
-    };
   }
 
   /**
@@ -458,6 +505,7 @@ class ObservableStore extends Observable {
     };
 
     const cacheKey = typeof queryKey === 'function' ? queryKey(args).join(':') : Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
+
     const cachedData = this.queryCache.get(cacheKey);
 
     if (cachedData && !cachedData.isStale && !this._isStale(cachedData, staleTime)) {
@@ -481,7 +529,7 @@ class ObservableStore extends Observable {
         resultData = data;
         if (onSuccess) {
           __trace(`fetch`, `Fetch success: ${queryName}`);
-          onSuccess({ result: resultData, ...context });
+          onSuccess({ response: resultData, ...context });
         }
         return data;
       })
@@ -489,14 +537,14 @@ class ObservableStore extends Observable {
         resultError = error;
         if (onError) {
           __trace(`fetch`, `Fetch failed: ${queryName}`);
-          onError({ result: resultError, ...context });
+          onError({ response: resultError, ...context });
         }
         throw error;
       })
       .finally(() => {
         if (onSettled) {
           __trace(`fetch`, `Fetch settled: ${queryName}`);
-          onSettled({ result: resultData, error: resultError, ...context });
+          onSettled({ response: resultData, error: resultError, ...context });
         }
       });
   }
@@ -753,7 +801,7 @@ class ObservableStore extends Observable {
         resultData = data;
         if (onSuccess) {
           __trace(`mutate`, `Mutation successful: ${mutationName}`);
-          onSuccess({ result: resultData, ...context });
+          onSuccess({ response: resultData, ...context });
         }
         return resultData;
       })
@@ -761,341 +809,423 @@ class ObservableStore extends Observable {
         resultError = error;
         if (onError) {
           __trace(`mutate`, `Mutation failed: ${mutationName}`);
-          onError({ result: resultError, ...context });
+          onError({ response: resultError, ...context });
         }
         throw resultError;
       })
       .finally(() => {
         if (onSettled) {
           __trace(`mutate`, `Mutation settled: ${mutationName}`);
-          onSettled({ result: resultData || resultError, ...context });
+          onSettled({ response: resultData || resultError, ...context });
         }
       });
   }
 }
 
-
-  /**
-   * Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
-   *
-   * @function slice
-   * @param {Object} store - The main store instance.
-   * @param {Object} options - The options for creating the slice.
-   * @param {string} options.name - The name of the slice.
-   * @param {Object} options.state - The initial state of the slice.
-   * @param {Object} options.actions - The actions for the slice.
-   * @param {Object} [options.queries] - The queries for the slice.
-   * @param {Object} [options.mutations] - The mutations for the slice.
-   * @returns {Object} - An object containing the action methods for the slice, including getState, actions, queries, mutations, and subscribe methods.
-   *
-   * @example
-   * const appStore = store({
-   *   // Initial state for other parts of the application
-   * });
-   *
-   * const postsSlice = slice(appStore, {
-   *   name: 'posts',
-   *   state: [
-   *     { id: 1, title: 'First Post' },
-   *     { id: 2, title: 'Second Post' }
-   *   ],
-   *   actions: {
-   *     updatePost: (state, { id, title }) => {
-   *       const postIndex = state.findIndex(post => post.id === id);
-   *       if (postIndex !== -1) {
-   *         state[postIndex].title = title;
-   *       }
-   *     }
-   *   }
-   * });
-   *
-   * // Accessing the slice's state
-   * postsSlice.getState();
-   *
-   * // Dispatching actions
-   * postsSlice.actions.updatePost({ id: 1, title: 'Updated Title' });
-   *
-   * // Subscribing to state changes
-   * const unsubscribe = postsSlice.subscribe(state => {
-   *   console.log('Posts slice state changed:', state);
-   * });
-   *
-   * // Unsubscribe when no longer needed
-   * unsubscribe();
-   */
-  const slice = (store, { name, state, actions, queries, mutations }) => {
-    if (store.slices && store.slices[name]) {
-      throw new Error(`[Cami.js] Slice name ${name} is already in use.`);
+const deepFreeze = (value, deep = true) => {
+  if (typeof value !== 'object' || value === null) {
+    return value; // Return primitives as-is
+  }
+  return new Proxy(freeze(value, true), {
+    set(target, prop, val) {
+      throw new Error(`Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`);
+    },
+    deleteProperty(target, prop) {
+      throw new Error(`Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`);
     }
+  });
+}
 
-    if (!store.slices) {
-      store.slices = {};
-    }
+/**
+ * Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
+ *
+ * @function slice
+ * @param {string} sliceName - The name of the slice.
+ * @param {Object} options - The options for creating the slice.
+ * @param {string} [options.store='cami-store'] - The name of the store to use or create.
+ * @param {Object} options.state - The initial state of the slice.
+ * @param {Object} options.actions - The actions for the slice.
+ * @param {Object} [options.queries] - The queries for the slice.
+ * @param {Object} [options.mutations] - The mutations for the slice.
+ * @returns {Object} - An object containing the action methods for the slice, including getState, actions, queries, mutations, and subscribe methods.
+ *
+ * @example
+ * const navigationSlice = slice("Navigation", {
+ *   store: "cami-store",
+ *   state: {
+ *     status: 'menu',
+ *     count: 0
+ *   },
+ *   actions: {
+ *     toggle: ({ state }) => {
+ *       const transitions = {
+ *         'menu': 'settings',
+ *         'settings': 'profile',
+ *         'profile': 'menu'
+ *       };
+ *       state.status = transitions[state.status];
+ *       state.count += 1;
+ *     },
+ *     invalidAction: ({ state }) => {
+ *       state.status = 123;
+ *     }
+ *   }
+ * });
+ *
+ * // Accessing the slice's state
+ * navigationSlice.getState();
+ *
+ * // Dispatching actions
+ * navigationSlice.toggle();
+ *
+ * // Subscribing to state changes
+ * const unsubscribe = navigationSlice.subscribe(state => {
+ *   console.log('Navigation slice state changed:', state);
+ * });
+ *
+ * // Unsubscribe when no longer needed
+ * unsubscribe();
+ */
+const slice = (sliceName, { store: storeName = 'cami-store', state, actions, queries, mutations }) => {
+  let storeInstance = store({
+    state: { [sliceName]: state },
+    name: storeName
+  });
 
-    const _storedState = JSON.parse(localStorage.getItem(`${store.name}`));
-
-    // if length is zero, then it's falsy
-    const storedState = _storedState && Object.keys(_storedState).length ? _storedState[name] : {};
-    const initialState = _deepMerge(state, storedState);
-
-    store.slices[name] = true;
-    store.state[name] = initialState;
-
-    const sliceActions = {};
-    const sliceQueries = {};
-    const sliceMutations = {};
-    const sliceSubscribers = [];
-
-    // Create a proxy for the slice state to ensure reactivity
-    const sliceState = new Proxy(store.state[name], {
-      get(target, property) {
-        if (DependencyTracker.current) {
-          const propertyKey = typeof property === 'symbol' ? Symbol.keyFor(property) || property.toString() : property;
-          DependencyTracker.current.addDependency(store, `${name}.${propertyKey}`);
-        }
-        return target[property];
-      },
-      set(target, property, value) {
-        target[property] = value;
-        store._notifyObservers();
-        if (store.devTools) {
-          store.devTools.send(`${name}.${property}`, store.state);
-        }
-        return true;
-      }
-    });
-
-    // Register actions with namespacing
-    Object.keys(actions).forEach(actionKey => {
-      const namespacedAction = `${name}/${actionKey}`;
-      store.action(namespacedAction, ({ state, payload }) => {
-        state[name] = produce(state[name], draft => {
-          actions[actionKey]({ state: draft, payload });
-        });
-      });
-
-      sliceActions[actionKey] = (...args) => {
-        store.dispatch(namespacedAction, ...args);
-      };
-    });
-
-    // Register queries with namespacing
-    if (queries) {
-      Object.keys(queries).forEach(queryKey => {
-        const namespacedQuery = `${name}/${queryKey}`;
-        const queryConfig = { ...queries[queryKey], actions: sliceActions, queries: sliceQueries };
-
-        if (queryConfig.onSuccess) {
-          const originalOnSuccess = queryConfig.onSuccess;
-          queryConfig.onSuccess = (context) => {
-            store.dispatch(() => originalOnSuccess(context));
-          };
-        }
-
-        if (queryConfig.onError) {
-          const originalOnError = queryConfig.onError;
-          queryConfig.onError = (context) => {
-            store.dispatch(() => originalOnError(context));
-          };
-        }
-
-        if (queryConfig.onSettled) {
-          const originalOnSettled = queryConfig.onSettled;
-          queryConfig.onSettled = (context) => {
-            store.dispatch(() => originalOnSettled(context));
-          };
-        }
-
-        store.query(namespacedQuery, queryConfig);
-
-        sliceQueries[queryKey] = (...args) => {
-          return store.fetch(namespacedQuery, ...args);
-        };
-      });
-    }
-
-    // Register mutations with namespacing
-    if (mutations) {
-      Object.keys(mutations).forEach(mutationKey => {
-        const namespacedMutation = `${name}/${mutationKey}`;
-        const mutationConfig = { ...mutations[mutationKey], actions: sliceActions, queries: sliceQueries, invalidateQueries: store.invalidateQueries.bind(store) };
-        store.mutation(namespacedMutation, mutationConfig);
-
-        sliceMutations[mutationKey] = (...args) => {
-          return store.mutate(namespacedMutation, ...args);
-        };
-      });
-    }
-
-    const subscribe = (callback) => {
-      sliceSubscribers.push(callback);
-      return () => {
-        const index = sliceSubscribers.indexOf(callback);
-        if (index > -1) {
-          sliceSubscribers.splice(index, 1);
-        }
-      };
-    };
-
-    store.subscribe((newState) => {
-      const sliceState = newState[name];
-      sliceSubscribers.forEach(callback => callback(sliceState));
-    });
-
-    const sliceObject = { state: sliceState, subscribe, actions: {}, queries: {}, mutations: {} };
-
-    Object.keys(sliceActions).forEach(actionKey => {
-      sliceObject.actions[actionKey] = sliceActions[actionKey];
-    });
-
-    Object.keys(sliceQueries).forEach(queryKey => {
-      sliceObject.queries[queryKey] = sliceQueries[queryKey];
-    });
-
-    Object.keys(sliceMutations).forEach(mutationKey => {
-      sliceObject.mutations[mutationKey] = sliceMutations[mutationKey];
-    });
-
-    return sliceObject;
+  if (storeInstance.slices && storeInstance.slices[sliceName]) {
+    throw new Error(`[Cami.js] Slice name ${sliceName} is already in use in store ${storeName}.`);
   }
 
-  /**
-   * @private
-   * @function _localStorageEnhancer
-   * @param {Function} StoreClass - The class of the store to enhance.
-   * @param {Object} initialState - The initial state for the new store instance.
-   * @param {Object} options - Configuration options for the store.
-   * @param {string} [options.name='default-store'] - The name of the store to use as the key in localStorage.
-   * @param {number} [options.expiry=86400000] - The time in milliseconds until the stored state expires (default is 24 hours).
-   * @returns {Function} A function that takes initialState and options, and returns an enhanced store instance with localStorage support.
-   * @description This enhancer adds the ability to persist the store's state in localStorage. It returns a function that, when called with initialState and options, creates a new store instance with localStorage support. The state of the store is automatically saved to localStorage whenever it changes, and it is rehydrated from localStorage when the store is created. The enhanced store also includes a `reset()` method for resetting the store's state.
-   * @example
-   * ```javascript
-   * // Enhance the ObservableStore with localStorage capabilities
-   * const enhancedCreateStore = _localStorageEnhancer(ObservableStore);
-   * // Create a store instance with initialState and provide a name to be used as the localStorage key
-   * const storeWithLocalStorage = enhancedCreateStore({ items: [] }, { name: 'my-store', expiry: 1000 * 60 * 60 * 24 });
-   * // Initialize or reset the store's state as needed
-   * storeWithLocalStorage.reset();
-   * ```
-   */
-  const _localStorageEnhancer = (StoreClass) => {
-    return (initialState, options) => {
-      const storeName = options?.name || 'default-store';
-      const shouldLoad = options?.load !== false;
-      const defaultExpiry = 24 * 60 * 60 * 1000;
-      const expiry = options?.expiry !== undefined ? options.expiry : defaultExpiry;
-      const localInitialState = _deepClone(initialState);
-      const store = new StoreClass(initialState);
+  if (!storeInstance.slices) {
+    storeInstance.slices = {};
+  }
 
-      store.name = storeName;
+  storeInstance.slices[sliceName] = true;
 
-      const validateSchema = (loadedState, initialState) => {
-        const initialKeys = Object.keys(initialState);
-        const loadedKeys = Object.keys(loadedState);
-        const allInitialKeysPresent = initialKeys.every(key => loadedKeys.includes(key));
-        const allLoadedKeysValid = loadedKeys.every(key => initialKeys.includes(key));
+  const sliceObject = {
+    subscribe: (callback) => {
+      return storeInstance.subscribe(state => callback(state[sliceName]));
+    }
+  };
 
-        return allInitialKeysPresent && allLoadedKeysValid;
+  // Expose state values as immutable properties
+  Object.keys(state).forEach(key => {
+    Object.defineProperty(sliceObject, key, {
+      get: () => storeInstance.state[sliceName][key],
+      enumerable: true,
+      configurable: false
+    });
+  });
+
+  // Define a function to infer types from the initial state
+  const inferType = (value) => {
+    if (Array.isArray(value)) return 'array';
+    if (value === null) return 'maybeNull';
+    if (value === undefined) return 'maybeUndefined';
+    if (typeof value === 'object') return createDeepSchema(value);
+    return typeof value;
+  };
+
+  // Create a deep schema based on the initial state
+  const createDeepSchema = (state) => {
+    return Object.keys(state).reduce((acc, key) => {
+      acc[key] = inferType(state[key]);
+      return acc;
+    }, {});
+  };
+
+  const schema = createDeepSchema(state);
+
+
+  // Function to validate state against schema
+  const validateDeepState = (schema, newState, path = []) => {
+    Object.keys(schema).forEach(key => {
+      const expectedType = schema[key];
+      const actualValue = newState[key];
+      const currentPath = [...path, key];
+
+      if (typeof expectedType === 'object' && expectedType !== null) {
+        if (typeof actualValue !== 'object' || actualValue === null) {
+          throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected object, got ${typeof actualValue}`);
+        }
+        validateDeepState(expectedType, actualValue, currentPath);
+      } else {
+        const actualType = inferType(actualValue);
+        if (expectedType === 'maybeNull') {
+          // Allow any type for maybeNull
+        } else if (expectedType === 'maybeUndefined') {
+          // Allow any type for maybeUndefined
+        } else if (actualType !== expectedType) {
+          throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected ${expectedType}, got ${actualType}`);
+        }
+      }
+    });
+  };
+
+  // Wrap actions to operate on the slice's state directly
+  const wrappedActions = Object.keys(actions).reduce((acc, actionKey) => {
+    acc[actionKey] = ({ state, payload }) => {
+      try {
+        const newState = produce(state, draft => {
+          actions[actionKey]({ state: draft, payload });
+        });
+        validateDeepState(schema, newState);
+        return newState;
+      } catch (error) {
+        throw error;
+      }
+    };
+    return acc;
+  }, {});
+
+  // Register actions
+  Object.keys(wrappedActions).forEach(actionKey => {
+    const namespacedAction = `${sliceName}/${actionKey}`;
+    storeInstance.action(namespacedAction, ({ state, payload }) => {
+      state[sliceName] = wrappedActions[actionKey]({ state: state[sliceName], payload });
+    });
+
+    sliceObject[actionKey] = (...args) => {
+      return storeInstance.dispatch(namespacedAction, ...args);
+    };
+  });
+
+  // Register queries
+  if (queries) {
+    Object.keys(queries).forEach(queryKey => {
+      const namespacedQuery = `${sliceName}/${queryKey}`;
+      const queryConfig = {
+        ...queries[queryKey],
+        actions: sliceObject,
+        onSuccess: (ctx) => {
+          if (queries[queryKey].onSuccess) {
+            queries[queryKey].onSuccess({
+              ...ctx,
+              state: ctx.state[sliceName]
+            });
+          }
+        }
       };
 
-      store.init = () => {
-        if (shouldLoad) {
-          const storedState = localStorage.getItem(storeName);
-          const storedExpiry = localStorage.getItem(`${storeName}-expiry`);
-          const currentTime = new Date();
+      storeInstance.query(namespacedQuery, queryConfig);
 
-          __trace('cami:localStorage', `Identified localStorage: ${storeName}.`);
+      sliceObject[queryKey] = (...args) => {
+        return storeInstance.fetch(namespacedQuery, ...args);
+      };
+    });
+  }
 
-          if (storedState && storedExpiry) {
-            const isExpired = currentTime.getTime() >= parseInt(storedExpiry, 10);
-            __trace('cami:localStorage', `Confirmed expiry status: ${isExpired ? 'Has Expired' : 'Still Valid'}`);
+  // Register mutations
+  if (mutations) {
+    Object.keys(mutations).forEach(mutationKey => {
+      const namespacedMutation = `${sliceName}/${mutationKey}`;
+      const mutationConfig = {
+        ...mutations[mutationKey],
+        actions: sliceObject,
+        queries: sliceObject,
+        onMutate: (ctx) => {
+          if (mutations[mutationKey].onMutate) {
+            return mutations[mutationKey].onMutate({
+              ...ctx,
+              state: ctx.state[sliceName]
+            });
+          }
+        },
+        onSuccess: (ctx) => {
+          if (mutations[mutationKey].onSuccess) {
+            mutations[mutationKey].onSuccess({
+              ...ctx,
+              state: ctx.state[sliceName]
+            });
+          }
+        },
+        onError: (ctx) => {
+          if (mutations[mutationKey].onError) {
+            mutations[mutationKey].onError({
+              ...ctx,
+              state: ctx.state[sliceName]
+            });
+          }
+        }
+      };
 
-            if (!isExpired) {
-              const loadedState = JSON.parse(storedState);
-              __trace('cami:localStorage', `Loaded state from localStorage. See Chrome Devtools > Storage > Local Storage`);
+      storeInstance.mutation(namespacedMutation, mutationConfig);
 
-              if (validateSchema(loadedState, localInitialState)) {
-                // Create a proxy from the merged state
-                store.state = store._createProxy(createDraft(_deepMerge(loadedState, localInitialState)));
-              } else {
-                __trace('cami:localStorage', `Loaded state does not match the schema. Resetting localStorage and using initial state.`);
-                localStorage.removeItem(storeName);
-                localStorage.removeItem(`${storeName}-expiry`);
-                store.state = store._createProxy(createDraft(localInitialState));
-              }
+      sliceObject[mutationKey] = (...args) => {
+        return storeInstance.mutate(namespacedMutation, ...args);
+      };
+    });
+  }
+
+  return new Proxy(sliceObject, {
+    get(target, prop) {
+      if (prop in target) {
+        return target[prop];
+      }
+      // If the property doesn't exist on the sliceObject, check if it exists on the state
+      if (prop in storeInstance.state[sliceName]) {
+        return storeInstance.state[sliceName][prop];
+      }
+      return undefined;
+    }
+  });
+};
+
+/**
+ * @private
+ * @function _localStorageEnhancer
+ * @param {Function} StoreClass - The class of the store to enhance.
+ * @param {Object} initialState - The initial state for the new store instance.
+ * @param {Object} options - Configuration options for the store.
+ * @param {string} [options.name='default-store'] - The name of the store to use as the key in localStorage.
+ * @param {number} [options.expiry=86400000] - The time in milliseconds until the stored state expires (default is 24 hours).
+ * @returns {Function} A function that takes initialState and options, and returns an enhanced store instance with localStorage support.
+ * @description This enhancer adds the ability to persist the store's state in localStorage. It returns a function that, when called with initialState and options, creates a new store instance with localStorage support. The state of the store is automatically saved to localStorage whenever it changes, and it is rehydrated from localStorage when the store is created. The enhanced store also includes a `reset()` method for resetting the store's state.
+ * @example
+ * ```javascript
+ * // Enhance the ObservableStore with localStorage capabilities
+ * const enhancedCreateStore = _localStorageEnhancer(ObservableStore);
+ * // Create a store instance with initialState and provide a name to be used as the localStorage key
+ * const storeWithLocalStorage = enhancedCreateStore({ items: [] }, { name: 'my-store', expiry: 1000 * 60 * 60 * 24 });
+ * // Initialize or reset the store's state as needed
+ * storeWithLocalStorage.reset();
+ * ```
+ */
+const _localStorageEnhancer = (StoreClass) => {
+  return (initialState, options) => {
+    const storeName = options?.name || 'default-store';
+    const shouldLoad = options?.load !== false;
+    const defaultExpiry = 24 * 60 * 60 * 1000;
+    const expiry = options?.expiry !== undefined ? options.expiry : defaultExpiry;
+    const localInitialState = _deepClone(initialState);
+    const store = new StoreClass(initialState);
+
+    store.name = storeName;
+
+    const validateSchema = (loadedState, initialState) => {
+      const initialKeys = Object.keys(initialState);
+      const loadedKeys = Object.keys(loadedState);
+      const allInitialKeysPresent = initialKeys.every(key => loadedKeys.includes(key));
+      const allLoadedKeysValid = loadedKeys.every(key => initialKeys.includes(key));
+
+      return allInitialKeysPresent && allLoadedKeysValid;
+    };
+
+    store.init = () => {
+      if (shouldLoad) {
+        const storedState = localStorage.getItem(storeName);
+        const storedExpiry = localStorage.getItem(`${storeName}-expiry`);
+        const currentTime = new Date();
+
+        __trace('cami:localStorage', `Identified localStorage: ${storeName}.`);
+
+        if (storedState && storedExpiry) {
+          const isExpired = currentTime.getTime() >= parseInt(storedExpiry, 10);
+          __trace('cami:localStorage', `Confirmed expiry status: ${isExpired ? 'Has Expired' : 'Still Valid'}`);
+
+          if (!isExpired) {
+            const loadedState = JSON.parse(storedState);
+            __trace('cami:localStorage', `Loaded state from localStorage. See Chrome Devtools > Storage > Local Storage`);
+
+            if (validateSchema(loadedState, localInitialState)) {
+              // Create a proxy from the merged state
+              store.state = store._createProxy(createDraft(_deepMerge(loadedState, localInitialState)));
             } else {
-              // Handle expired state
-              __trace('cami:localStorage', `Stored state has expired. Removing from localStorage and using initial state.`);
+              __trace('cami:localStorage', `Loaded state does not match the schema. Resetting localStorage and using initial state.`);
               localStorage.removeItem(storeName);
               localStorage.removeItem(`${storeName}-expiry`);
               store.state = store._createProxy(createDraft(localInitialState));
             }
           } else {
-            // No stored state found
-            __trace('cami:localStorage', `No stored state found in localStorage. Using initial state.`);
+            // Handle expired state
+            __trace('cami:localStorage', `Stored state has expired. Removing from localStorage and using initial state.`);
+            localStorage.removeItem(storeName);
+            localStorage.removeItem(`${storeName}-expiry`);
             store.state = store._createProxy(createDraft(localInitialState));
           }
+        } else {
+          // No stored state found
+          __trace('cami:localStorage', `No stored state found in localStorage. Using initial state.`);
+          store.state = store._createProxy(createDraft(localInitialState));
         }
-      };
-
-      store.init();
-
-      store.reset = () => {
-        localStorage.removeItem(storeName);
-        localStorage.removeItem(`${storeName}-expiry`);
-
-        store.state = store._createProxy(initialState);
-        __trace('cami:localStorage', `Resetted store state of ${storeName}`);
-
-        store.__observers.forEach(observer => observer.next(store.state));
-      };
-
-      store.subscribe((state) => {
-        const currentTime = new Date();
-        const expiryTime = new Date(currentTime.getTime() + expiry);
-
-        localStorage.setItem(storeName, JSON.stringify(state));
-        localStorage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
-      });
-
-      return store;
+      }
     };
+
+    store.init();
+
+    store.reset = () => {
+      localStorage.removeItem(storeName);
+      localStorage.removeItem(`${storeName}-expiry`);
+
+      store.state = store._createProxy(createDraft(initialState));
+      __trace('cami:localStorage', `Resetted store state of ${storeName}`);
+
+      store.__observers.forEach(observer => observer.next(store.state));
+    };
+
+    store.subscribe((state) => {
+      const currentTime = new Date();
+      const expiryTime = new Date(currentTime.getTime() + expiry);
+
+      localStorage.setItem(storeName, JSON.stringify(state));
+      localStorage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
+    });
+
+    return store;
   };
+};
+
+const storeInstances = new Map();
 
 /**
  * @function store
- * @param {Object} initialState - The initial state of the store.
- * @param {Object} [options] - Configuration options for the store.
- * @param {boolean} [options.localStorage=true] - Whether to use localStorage for state persistence.
- * @param {string} [options.name='cami-store'] - The name of the store to use as the key in localStorage.
- * @param {number} [options.expiry=86400000] - The time in milliseconds until the stored state expires (default is 24 hours).
+ * @param {Object} config - Configuration object for the store.
+ * @param {Object} config.state - The initial state of the store.
+ * @param {boolean} [config.localStorage=true] - Whether to use localStorage for state persistence.
+ * @param {string} [config.name='cami-store'] - The name of the store to use as the key in localStorage.
+ * @param {number} [config.expiry=86400000] - The time in milliseconds until the stored state expires (default is 24 hours).
  * @returns {ObservableStore} A new instance of ObservableStore with the provided initial state, enhanced with localStorage if enabled.
  * @description This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The `localStorage` option enables this behavior and can be toggled off if persistence is not needed.
  * @example
  * ```javascript
  * // Create a store with default localStorage support
- * const CartStore = store({ cartItems: [] });
+ * const CartStore = store({
+ *   state: { cartItems: [] },
+ *   name: 'cart-store'
+ * });
  *
  * // Create a store without localStorage support
- * const NonPersistentStore = store({ items: [] }, { localStorage: false });
+ * const NonPersistentStore = store({
+ *   state: { items: [] },
+ *   localStorage: false,
+ *   name: 'non-persistent-store'
+ * });
  * ```
  */
-const store = (initialState, options = {}) => {
-  const defaultOptions = {
+const store = (config = {}) => {
+  const defaultConfig = {
+    state: {},
     localStorage: true,
     name: 'cami-store',
     expiry: 86400000, // 24 hours
   };
 
-  const finalOptions = { ...defaultOptions, ...options };
+  const finalConfig = { ...defaultConfig, ...config };
 
-  if (finalOptions.localStorage) {
-    const enhancedStore = _localStorageEnhancer(ObservableStore)(initialState, finalOptions);
-    return enhancedStore;
-  } else {
-    return new ObservableStore(initialState);
+  if (storeInstances.has(finalConfig.name)) {
+    return storeInstances.get(finalConfig.name);
   }
-}
+
+  let storeInstance;
+  if (finalConfig.localStorage) {
+    storeInstance = _localStorageEnhancer(ObservableStore)(finalConfig.state, finalConfig);
+  } else {
+    storeInstance = new ObservableStore(finalConfig.state);
+  }
+
+  storeInstances.set(finalConfig.name, storeInstance);
+
+  return storeInstance;
+};
 
 export { ObservableStore, store, slice };

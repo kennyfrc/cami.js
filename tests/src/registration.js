@@ -1,25 +1,48 @@
-const { html, ReactiveElement } = cami;
+const { html, ReactiveElement, slice } = cami;
 
-class RegistrationFormElement extends ReactiveElement {
-  emailError = ''
-  passwordError = ''
-  email = '';
-  password = '';
-  emailIsValid = null;
-  isEmailAvailable = null;
+export const RegistrationSlice = slice("RegistrationSlice", {
+  store: "registration-store",
+  state: {
+    emailError: '',
+    passwordError: '',
+    email: '',
+    password: '',
+    emailIsValid: null,
+    isEmailAvailable: null
+  },
+  actions: {
+    setEmailError: ({ state, payload }) => { state.emailError = payload; },
+    setPasswordError: ({ state, payload }) => { state.passwordError = payload; },
+    setEmail: ({ state, payload }) => { state.email = payload; },
+    setPassword: ({ state, payload }) => { state.password = payload; },
+    setEmailIsValid: ({ state, payload }) => { state.emailIsValid = payload; },
+    setIsEmailAvailable: ({ state, payload }) => { state.isEmailAvailable = payload; }
+  },
+  queries: {
+    checkEmailAvailability: {
+      queryKey: ['Email'],
+      queryFn: (email) => fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json()),
+      staleTime: 1000 * 60 * 5,
+      onSuccess: (ctx) => {
+        ctx.actions.setIsEmailAvailable(ctx.response.length === 0);
+      }
+    }
+  }
+});
 
+export class RegistrationFormElement extends ReactiveElement {
   handleEmailInput(e) {
     const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
-    this.emailError = emailError;
-    this.isEmailValid = isEmailValid;
-    this.email = email;
-    this.isEmailAvailable = this.queryEmail(this.email);
+    RegistrationSlice.setEmailError(emailError);
+    RegistrationSlice.setEmailIsValid(isEmailValid);
+    RegistrationSlice.setEmail(email);
+    RegistrationSlice.checkEmailAvailability(email);
   }
 
   handlePasswordInput(e) {
     const { isValid, password } = this.validatePassword(e.target.value);
-    this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
-    this.password = password;
+    RegistrationSlice.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
+    RegistrationSlice.setPassword(password);
   }
 
   validateEmail(email) {
@@ -46,24 +69,13 @@ class RegistrationFormElement extends ReactiveElement {
     } else if (password?.length >= 8) {
       isValid = true;
     }
-
     return { isValid, password }
   }
 
-  queryEmail(email) {
-    return this.query({
-      queryKey: ['Email', email],
-      queryFn: () => {
-        return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
-      },
-      staleTime: 1000 * 60 * 5
-    })
-  }
-
   getEmailInputState() {
-    if (this.email === '') {
+    if (RegistrationSlice.email === '') {
       return '';
-    } else if (this.isEmailValid && this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length === 0) {
+    } else if (RegistrationSlice.emailIsValid && RegistrationSlice.isEmailAvailable) {
       return false;
     } else {
       return true;
@@ -71,9 +83,9 @@ class RegistrationFormElement extends ReactiveElement {
   }
 
   getPasswordInputState() {
-    if (this.password === '') {
+    if (RegistrationSlice.password === '') {
       return '';
-    } else if (this.passwordError === '') {
+    } else if (RegistrationSlice.passwordError === '') {
       return false;
     } else {
       return true;
@@ -87,20 +99,20 @@ class RegistrationFormElement extends ReactiveElement {
           Email:
           <input type="email"
             aria-invalid=${this.getEmailInputState()}
-            @input=${(e) => this.handleEmailInput(e)} value=${this.email}>
+            @input=${(e) => this.handleEmailInput(e)} value=${RegistrationSlice.email}>
             <span id="email-available"
-            >${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
-          <span id="email-error">${this.emailError}</span>
+            >${RegistrationSlice.isEmailAvailable === false && RegistrationSlice.emailError === '' ? 'Email is already taken.' : ''}</span>
+          <span id="email-error">${RegistrationSlice.emailError}</span>
         </label>
         <label>
           Password:
           <input type="password" @input=${(e) => this.handlePasswordInput(e)}
-            value=${this.password}
+            value=${RegistrationSlice.password}
             aria-invalid=${this.getPasswordInputState()}>
           <span id="password-error"
-          >${this.passwordError}</span>
+          >${RegistrationSlice.passwordError}</span>
         </label>
-        <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
+        <input type="submit" value="Submit" ?disabled=${RegistrationSlice.emailError !== '' || RegistrationSlice.passwordError !== '' || RegistrationSlice.email === '' || RegistrationSlice.password === ''}>
       </form>
     `;
   }

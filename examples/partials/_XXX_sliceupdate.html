@@ -1,78 +1,81 @@
 <main class="container">
-  <h1>Store with Effect</h1>
-  <div id="app"></div>
+  <h1>Navigation State Machine</h1>
+  <div id="app">
+    <button id="toggleNav">Toggle Navigation</button>
+    <button id="triggerInvalidAction">Trigger Invalid Action</button>
+    <p>Current Navigation Status: <span id="navStatus"></span></p>
+    <p>Error: <span id="errorMessage"></span></p>
+  </div>
 </main>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { store, slice, effect } = cami;
+  cami.debug.enable()
 
-  // Create the main store
-  const appStore = store({});
-
-  // Create a slice for count
-  const countSlice = slice(appStore, {
-    name: 'count',
-    state: { value: 1 },
-    actions: {
-      double: ({ state }) => {
-        state = { value: state.value * 2 };
-      }
-    }
-  });
-
-  // Create a slice for posts
-  const postsSlice = slice(appStore, {
-    name: 'posts',
-    state: [],
-    actions: {
-      setPosts: ({ state, payload }) => {
-        state = payload;
-      },
-      addPost: ({ state, payload }) => {
-        state.push(payload);
-      }
+  const navigationSlice = slice("Navigation", {
+    state: {
+      status: 'menu',
+      count: 0
     },
-    mutations: {
-      createPost: {
-        mutationFn: (newPost) => fetch('https://jsonplaceholder.typicode.com/posts', {
-          method: 'POST',
-          body: JSON.stringify(newPost),
-          headers: { 'Content-type': 'application/json; charset=UTF-8' }
-        }).then(res => res.json()),
-        onSuccess: (ctx) => {
-          ctx.actions.addPost(ctx.result);
-          console.log(ctx.result);
-        },
-        onSettled: (ctx) => {
-          // console.log(ctx.state);
-        }
+    actions: {
+      toggle: ({ state, payload }) => {
+        const transitions = {
+          'menu': 'settings',
+          'settings': 'profile',
+          'profile': 'menu'
+        };
+
+        state.status = transitions[state.status];
+        state.count += 1;
+      },
+      invalidAction: ({ state }) => {
+        state.status = 123;
       }
     }
   });
 
-  // Effect to log count changes
   effect(() => {
-    console.log('Count changed:', countSlice.state.value);
+    try {
+      const { status, count } = navigationSlice;
+      console.log('Navigation status changed:', status);
+      console.log('Toggle count:', count);
+      document.getElementById('navStatus').textContent = `${status} (${count})`;
+      document.getElementById('errorMessage').textContent = '';
+    } catch (error) {
+      console.error('Error caught in effect:', error.message);
+      document.getElementById('errorMessage').textContent = error.message;
+    }
   });
 
-  // Effect to log posts changes
-  effect(() => {
-    const posts = postsSlice.state
-    console.log(`Posts changed: ${posts.length > 0
-      ? posts.map(post => post.title).join(', ')
-      : 'No posts'}`);
+  document.getElementById('toggleNav').addEventListener('click', () => {
+    navigationSlice.toggle();
   });
 
-  // Double the count every 1.5 seconds
-  setInterval(() => {
-    countSlice.double();
-  }, 1500);
+  document.getElementById('triggerInvalidAction').addEventListener('click', () => {
+    try {
+      navigationSlice.invalidAction();
+    } catch (error) {
+      console.error('Error caught:', error.message);
+      document.getElementById('errorMessage').textContent = error.message;
 
-  // Create a post
-  postsSlice.createPost({ title: 'foo', body: 'bar', userId: 1 });
+      // Stop all intervals
+      for (let i = 1; i < 9999; i++) window.clearInterval(i);
+    }
+  });
 
-  // Example mutation call
-  // postsSlice.createPost({ title: 'foo', body: 'bar', userId: 1 });
+  const toggleInterval = setInterval(() => {
+    navigationSlice.toggle();
+  }, 1000);
 
+  const invalidActionInterval = setInterval(() => {
+    try {
+      navigationSlice.invalidAction();
+    } catch (error) {
+      console.error('Error caught in interval:', error.message);
+      document.getElementById('errorMessage').textContent = error.message;
+
+      for (let i = 1; i < 9999; i++) window.clearInterval(i);
+    }
+  }, 5000);
 </script>

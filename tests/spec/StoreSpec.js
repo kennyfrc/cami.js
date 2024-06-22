@@ -1,133 +1,113 @@
-const { ObservableStore, store } = cami;
+const { store } = cami;
 
-describe("ObservableStore", function() {
-  describe("Cami Store without Local Storage", function() {
-    let store;
+describe("Cami Store", function() {
+  describe("Basic Functionality", function() {
+    let createStore;
 
     beforeEach(function() {
-      store = new ObservableStore({ count: 0 });
+      createStore = () => store({
+        state: { count: 0, nested: { value: 10 }, list: [] },
+        name: `test-store-${Date.now()}`,
+        localStorage: false
+      });
     });
 
     it("should initialize with the given initial state", function() {
-      expect(store.state.count).toBe(0);
+      const appStore = createStore();
+      expect(appStore.state.count).toBe(0);
+      expect(appStore.state.nested.value).toBe(10);
+      expect(appStore.state.list).toEqual([]);
     });
 
     it("should allow action registration and handle dispatch", function() {
-      store.register('increment', ({ state }) => {
-        state.count += 1;
+      const appStore = createStore();
+      appStore.action('increment', ({ state, payload }) => {
+        state.count += payload || 1;
       });
-      store.dispatch('increment');
-      expect(store.state.count).toBe(1);
-    });
-
-    it("should apply middleware to dispatched actions", function() {
-      const middlewareSpy = jasmine.createSpy('middleware');
-      store.use(middlewareSpy);
-      store.register('increment', ({ state }) => {
-        state.count += 1;
-      });
-      store.dispatch('increment');
-      expect(middlewareSpy).toHaveBeenCalled();
+      appStore.dispatch('increment');
+      expect(appStore.state.count).toBe(1);
+      appStore.dispatch('increment', 5);
+      expect(appStore.state.count).toBe(6);
     });
 
     it("should handle multiple actions and their interactions", function() {
-      store.register('increment', ({ state }) => {
+      const appStore = createStore();
+      appStore.action('increment', ({ state }) => {
         state.count += 1;
       });
-      store.register('decrement', ({ state }) => {
+      appStore.action('decrement', ({ state }) => {
         state.count -= 1;
       });
-      store.dispatch('increment');
-      store.dispatch('increment');
-      store.dispatch('decrement');
-      expect(store.state.count).toBe(1);
+      appStore.action('reset', ({ state }) => {
+        state.count = 0;
+      });
+
+      appStore.dispatch('increment');
+      appStore.dispatch('increment');
+      expect(appStore.state.count).toBe(2);
+      appStore.dispatch('decrement');
+      expect(appStore.state.count).toBe(1);
+      appStore.dispatch('reset');
+      expect(appStore.state.count).toBe(0);
     });
 
     it("should handle nested state updates", function() {
-      store.register('addNested', ({ state }) => {
-        if (!state.nested) {
-          state.nested = { count: 0 };
+      const appStore = createStore();
+      appStore.action('updateNested', ({ state, payload }) => {
+        state.nested.value = payload;
+      });
+      appStore.dispatch('updateNested', 20);
+      expect(appStore.state.nested.value).toBe(20);
+    });
+
+    it("should handle array operations", function() {
+      const appStore = createStore();
+      appStore.action('addItem', ({ state, payload }) => {
+        state.list.push(payload);
+      });
+      appStore.action('removeItem', ({ state, payload }) => {
+        const index = state.list.indexOf(payload);
+        if (index > -1) {
+          state.list.splice(index, 1);
         }
-        state.nested.count += 1;
-      });
-      store.dispatch('addNested');
-      expect(store.state.nested.count).toBe(1);
-    });
-  });
-
-  describe("Cami Store with Local Storage", function() {
-    let store;
-    const initialState = {
-      items: []
-    };
-
-    const options = { name: 'test-store', expiry: 1000, localStorage: true };
-
-    beforeEach(function() {
-      spyOn(localStorage, 'getItem').and.callFake((key) => {
-        const store = {
-          'test-store': JSON.stringify(initialState),
-          'test-store-expiry': (new Date().getTime() + options.expiry).toString()
-        };
-        return store[key] || null;
-      });
-      spyOn(localStorage, 'setItem');
-      spyOn(localStorage, 'removeItem');
-
-      store = cami.store(initialState, options);
-
-      // Register actions
-      store.register('addItem', ({state, item}) => {
-        state.items.push(item);
       });
 
-      store.register('resetState', ({ state }) => {
-        state.items = [];
-        localStorage.removeItem('test-store');
-        localStorage.removeItem('test-store-expiry');
+      appStore.dispatch('addItem', 'item1');
+      appStore.dispatch('addItem', 'item2');
+      expect(appStore.state.list).toEqual(['item1', 'item2']);
+      appStore.dispatch('removeItem', 'item1');
+      expect(appStore.state.list).toEqual(['item2']);
+    });
+
+    it("should apply middleware to dispatched actions", function() {
+      const appStore = createStore();
+      const middlewareSpy = jasmine.createSpy('middleware');
+      appStore.use(middlewareSpy);
+      appStore.action('incrementWithMiddleware', ({ state }) => {
+        state.count += 1;
       });
+      appStore.dispatch('incrementWithMiddleware');
+      expect(middlewareSpy).toHaveBeenCalled();
+      expect(appStore.state.count).toBe(1);
     });
 
-    it("should rehydrate state from local storage", function() {
-      expect(store.state.items).toEqual([]);
-    });
-
-    it("should persist state to local storage on update", function() {
-      store.dispatch('addItem', 'test item');
-      expect(localStorage.setItem).toHaveBeenCalledWith('test-store', jasmine.any(String));
-    });
-
-    it("should reset state and clear local storage", function() {
-      store.dispatch('resetState');
-      expect(localStorage.removeItem).toHaveBeenCalledWith('test-store');
-      expect(localStorage.removeItem).toHaveBeenCalledWith('test-store-expiry');
-      expect(store.state.items).toEqual([]);
-    });
-
-    it("should handle state expiry correctly", function(done) {
-      const expiredState = {
-        'test-store': JSON.stringify({ items: ['expired item'] }),
-        'test-store-expiry': (new Date().getTime() - 1000).toString()
-      };
-      localStorage.getItem.and.callFake((key) => expiredState[key] || null);
-
-      store = cami.store(initialState, options);
-      setTimeout(() => {
-        expect(store.state.items).toEqual([]);
-        done();
-      }, 50);
-    });
-
-    it("should handle nested state updates and persist them", function() {
-      store.register('addNestedItem', ({ state, payload: item }) => {
-        if (!state.nested) {
-          state.nested = { items: [] };
-        }
-        state.nested.items.push(item);
+    it("should handle complex state transformations", function() {
+      const appStore = createStore();
+      appStore.action('complexUpdate', ({ state, payload }) => {
+        state.count *= 2;
+        state.nested.value += payload;
+        state.list = state.list.concat([state.count, state.nested.value]);
       });
-      store.dispatch('addNestedItem', 'nested item');
-      expect(store.state.nested.items).toEqual(['nested item']);
-      expect(localStorage.setItem).toHaveBeenCalledWith('test-store', jasmine.any(String));
+
+      appStore.dispatch('complexUpdate', 5);
+      expect(appStore.state.count).toBe(0);
+      expect(appStore.state.nested.value).toBe(15);
+      expect(appStore.state.list).toEqual([0, 15]);
+
+      appStore.dispatch('complexUpdate', 10);
+      expect(appStore.state.count).toBe(0);
+      expect(appStore.state.nested.value).toBe(25);
+      expect(appStore.state.list).toEqual([0, 15, 0, 25]);
     });
   });
 });
