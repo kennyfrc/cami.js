@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+<article>
   <h1>Registration Form</h1>
   <form-component></form-component>
 </article>
@@ -20,7 +12,7 @@
 <script type="module">
   const { html, ReactiveElement, slice } = cami;
 
-  const FormSlice = slice("FormSlice", {
+  const formSlice = slice("formSlice", {
     store: "form-store",
     state: {
       email: '',
@@ -48,7 +40,6 @@
       },
       setIsEmailAvailable: ({ state, payload }) => {
         state.isEmailAvailable = payload;
-        // debugger;
       }
     },
     queries: {
@@ -70,18 +61,22 @@
   });
 
   class FormElement extends ReactiveElement {
+    onCreate() {
+      this.model = formSlice;
+    }
+
     processEmailInput(e) {
       const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
-      FormSlice.setEmailError(emailError);
-      FormSlice.setEmailIsValid(isEmailValid);
-      FormSlice.setEmail(email);
-      FormSlice.queryEmail(email);
+      this.model.setEmailError(emailError);
+      this.model.setEmailIsValid(isEmailValid);
+      this.model.setEmail(email);
+      this.model.queryEmail(email);
     }
 
     processPasswordInput(e) {
       const { isValid, password } = this.validatePassword(e.target.value);
-      FormSlice.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
-      FormSlice.setPassword(password);
+      this.model.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
+      this.model.setPassword(password);
     }
 
     validateEmail(email) {
@@ -112,9 +107,9 @@
     }
 
     getEmailInputState() {
-      if (FormSlice.email === '') {
+      if (this.model.email === '') {
         return '';
-      } else if (FormSlice.emailIsValid && FormSlice.isEmailAvailable === true) {
+      } else if (this.model.emailIsValid && this.model.isEmailAvailable === true) {
         return false;
       } else {
         return true;
@@ -122,9 +117,9 @@
     }
 
     getPasswordInputState() {
-      if (FormSlice.password === '') {
+      if (this.model.password === '') {
         return '';
-      } else if (FormSlice.passwordError === '') {
+      } else if (this.model.passwordError === '') {
         return false;
       } else {
         return true;
@@ -139,19 +134,19 @@
             <input type="email"
               aria-invalid=${this.getEmailInputState()}
               @input=${(e) => this.processEmailInput(e)}
-              value=${FormSlice.email}>
-            <span>${FormSlice.isEmailAvailable === false && FormSlice.emailError === '' ? 'Email is already taken.' : ''}</span>
-            <span>${FormSlice.emailError}</span>
+              value=${this.model.email}>
+            <span>${this.model.isEmailAvailable === false && this.model.emailError === '' ? 'Email is already taken.' : ''}</span>
+            <span>${this.model.emailError}</span>
           </label>
           <label>
             Password:
             <input type="password"
               @input=${(e) => this.processPasswordInput(e)}
-              value=${FormSlice.password}
+              value=${this.model.password}
               aria-invalid=${this.getPasswordInputState()}>
-            <span>${FormSlice.passwordError}</span>
+            <span>${this.model.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" style="opacity: ${FormSlice.emailError !== '' || FormSlice.passwordError !== '' || FormSlice.email === '' || FormSlice.password === '' ? '0.5' : '1'}">
+          <input type="submit" value="Submit" style="opacity: ${this.model.emailError !== '' || this.model.passwordError !== '' || this.model.email === '' || this.model.password === '' ? '0.5' : '1'}">
         </form>
       `;
     }
@@ -159,6 +154,3 @@
 
   customElements.define('form-component', FormElement);
 </script>
-
-</body>
-</html>

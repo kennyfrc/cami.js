@@ -1,0 +1,39 @@
+<article>
+  <h1>Counter (Slice Version)</h1>
+  <counter-component></counter-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, slice } = cami;
+
+  // Create a slice for the counter
+  const counterSlice = slice("counterSlice", {
+    store: "counter-store",
+    state: {
+      count: 0
+    },
+    actions: {
+      increment: ({ state }) => state.count++,
+      decrement: ({ state }) => state.count--,
+    }
+  });
+
+  class CounterElement extends ReactiveElement {
+    onConnect() {
+      this.model = counterSlice;
+    }
+
+    template() {
+      return html`
+        <button @click=${() => this.model.decrement()}>-</button>
+        <button @click=${() => this.model.increment()}>+</button>
+        <div>Count: ${this.model.count}</div>
+      `;
+    }
+  }
+
+  customElements.define('counter-component', CounterElement);
+</script>

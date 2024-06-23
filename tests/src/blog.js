@@ -16,6 +16,9 @@ export const BlogSlice = slice("BlogSlice", {
     },
     setError: ({ state, payload }) => {
       state.error = payload;
+    },
+    pushPost: ({ state, payload }) => {
+      state.posts = [...state.posts, payload];
     }
   },
   queries: {
@@ -41,15 +44,15 @@ export const BlogSlice = slice("BlogSlice", {
           }
         }).then(res => res.json());
       },
-      onMutate: (ctx) => {
-        const optimisticPost = { ...ctx.args[0], id: Date.now() };
-        ctx.actions.setPosts([...ctx.state.posts, optimisticPost]);
+      onMutate: ({ state, payload, actions }) => {
+        const post = { ...payload, id: Date.now() };
+        actions.pushPost(post);
       },
       onSuccess: (ctx) => {
         ctx.invalidateQueries({ queryKey: ['posts'] });
       },
-      onError: (ctx) => {
-        ctx.actions.setError(ctx.error.message);
+      onError: ({ previousState, actions }) => {
+        actions.setPosts(previousState.posts);
       }
     }
   }

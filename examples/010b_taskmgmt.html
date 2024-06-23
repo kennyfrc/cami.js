@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Task Manager</h1>
+  <task-manager-component></task-manager-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, slice } = cami;
+
+  const taskSlice = slice("taskSlice", {
+    store: "task-store",
+    state: {
+      tasks: [],
+      filter: 'all'
+    },
+    actions: {
+      addTask: ({ state, payload }) => {
+        state.tasks.push({ name: payload, completed: false });
+      },
+      removeTask: ({ state, payload }) => {
+        state.tasks.splice(payload, 1);
+      },
+      toggleTask: ({ state, payload }) => {
+        state.tasks[payload].completed = !state.tasks[payload].completed;
+      },
+      setFilter: ({ state, payload }) => {
+        state.filter = payload;
+      }
+    }
+  });
+
+  class TaskManagerElement extends ReactiveElement {
+    onCreate() {
+      this.model = taskSlice;
+    }
+
+    getFilteredTasks() {
+      switch (this.model.filter) {
+        case 'completed':
+          return this.model.tasks.filter(task => task.completed);
+        case 'active':
+          return this.model.tasks.filter(task => !task.completed);
+        default:
+          return this.model.tasks;
+      }
+    }
+
+    template() {
+      return html`
+        <input id="taskInput" type="text" placeholder="Enter task name">
+        <button @click=${() => {
+          this.model.addTask(document.getElementById('taskInput').value);
+          document.getElementById('taskInput').value = '';
+        }}>Add Task</button>
+        <button @click=${() => this.model.setFilter('all')}>All</button>
+        <button @click=${() => this.model.setFilter('active')}>Active</button>
+        <button @click=${() => this.model.setFilter('completed')}>Completed</button>
+        <ul>
+          ${this.getFilteredTasks().map((task, index) => html`
+            <li>
+              <input type="checkbox" .checked=${task.completed} @click=${() => this.model.toggleTask(index)}>
+              ${task.name}
+              <a @click=${() => this.model.removeTask(index)}>Remove</a>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('task-manager-component', TaskManagerElement);
+</script>
+
+</body>
+</html>

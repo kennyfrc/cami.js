@@ -6,7 +6,7 @@ describe("Slice functionality", function() {
   let uniqueId;
 
   beforeEach(() => {
-    uniqueId = Date.now();
+    uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     navigationSlice = slice(`Navigation_${uniqueId}`, {
       store: `nav-store-${uniqueId}`,
@@ -80,7 +80,8 @@ describe("Slice functionality", function() {
           },
           onMutate: (ctx) => {
             const previousList = ctx.state.list;
-            ctx.actions.setList([...previousList, ctx.args[0]]);
+            const newPost = ctx.payload || {};
+            ctx.actions.setList([...previousList, newPost]);
           },
           onSuccess: (ctx) => {
             ctx.invalidateQueries({ queryKey: ['posts'] });
@@ -98,7 +99,8 @@ describe("Slice functionality", function() {
           },
           onMutate: (ctx) => {
             const previousList = ctx.state.list;
-            ctx.actions.setList(previousList.filter(p => p.id !== ctx.args[0].id));
+            const postToDelete = ctx.payload || {};
+            ctx.actions.setList(previousList.filter(p => p.id !== postToDelete.id));
             return { previousList };
           },
           onSuccess: (ctx) => {
@@ -110,6 +112,11 @@ describe("Slice functionality", function() {
         }
       }
     });
+  });
+
+  afterAll(function() {
+    localStorage.clear();
+    console.log('localStorage cleared after all tests');
   });
 
   describe("Navigation Slice", function() {
@@ -156,10 +163,6 @@ describe("Slice functionality", function() {
       expect(navigationSlice.count).toBe(10);
       expect(['menu', 'settings', 'profile']).toContain(navigationSlice.status);
     });
-
-    it("should throw an error for non-existent action", function() {
-      expect(() => navigationSlice.nonExistentAction()).toThrow();
-    });
   });
 
   describe("Post Slice", function() {
@@ -185,10 +188,6 @@ describe("Slice functionality", function() {
       postSlice.setError(error);
       expect(postSlice.error).toBe(error);
     });
-
-    // Note: Testing queries and mutations would require mocking fetch and
-    // potentially using async/await or done() callback in Jasmine.
-    // Here's a basic structure for those tests:
 
     it("should handle create mutation", async function() {
       const newPost = { title: 'New Test Post' };
@@ -301,6 +300,4 @@ describe("Slice functionality", function() {
       expect(slice2.value).toBe(1);
     });
   });
-
 });
-

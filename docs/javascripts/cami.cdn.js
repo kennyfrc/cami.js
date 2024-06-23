@@ -2877,7 +2877,9 @@ var cami = (() => {
         actions,
         queries: this.queryFunctions,
         mutations,
-        invalidateQueries: this.invalidateQueries.bind(this)
+        invalidateQueries: this.invalidateQueries.bind(this),
+        payload: args.length > 1 ? args : args[0]
+        // Flatten payload if it's a single argument
       };
       const cacheKey = typeof queryKey === "function" ? queryKey(args).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
       const cachedData = this.queryCache.get(cacheKey);
@@ -2897,20 +2899,20 @@ var cami = (() => {
         resultData = data;
         if (onSuccess) {
           __trace(`fetch`, `Fetch success: ${queryName}`);
-          onSuccess(__spreadValues({ response: resultData }, context));
+          onSuccess(__spreadProps(__spreadValues({}, context), { response: resultData }));
         }
         return data;
       }).catch((error) => {
         resultError = error;
         if (onError) {
           __trace(`fetch`, `Fetch failed: ${queryName}`);
-          onError(__spreadValues({ response: resultError }, context));
+          onError(__spreadProps(__spreadValues({}, context), { error: resultError }));
         }
         throw error;
       }).finally(() => {
         if (onSettled) {
           __trace(`fetch`, `Fetch settled: ${queryName}`);
-          onSettled(__spreadValues({ response: resultData, error: resultError }, context));
+          onSettled(__spreadProps(__spreadValues({}, context), { response: resultData, error: resultError }));
         }
       });
     }
@@ -3124,11 +3126,13 @@ var cami = (() => {
         actions,
         queries,
         mutations: this.mutationFunctions,
-        invalidateQueries: this.invalidateQueries.bind(this)
+        invalidateQueries: this.invalidateQueries.bind(this),
+        payload: args.length > 1 ? args : args[0]
+        // Flatten payload if it's a single argument
       };
       if (onMutate) {
         __trace(`mutate`, `Mutation in-progress: ${mutationName}`);
-        onMutate(__spreadProps(__spreadValues({}, context), { args }));
+        onMutate(context);
       }
       let resultData;
       let resultError;
@@ -3136,20 +3140,20 @@ var cami = (() => {
         resultData = data;
         if (onSuccess) {
           __trace(`mutate`, `Mutation successful: ${mutationName}`);
-          onSuccess(__spreadValues({ response: resultData }, context));
+          onSuccess(__spreadProps(__spreadValues({}, context), { response: resultData }));
         }
         return resultData;
       }).catch((error) => {
         resultError = error;
         if (onError) {
           __trace(`mutate`, `Mutation failed: ${mutationName}`);
-          onError(__spreadValues({ response: resultError }, context));
+          onError(__spreadProps(__spreadValues({}, context), { error: resultError }));
         }
         throw resultError;
       }).finally(() => {
         if (onSettled) {
           __trace(`mutate`, `Mutation settled: ${mutationName}`);
-          onSettled(__spreadValues({ response: resultData || resultError }, context));
+          onSettled(__spreadProps(__spreadValues({}, context), { response: resultData, error: resultError }));
         }
       });
     }
@@ -3167,7 +3171,7 @@ var cami = (() => {
       }
     });
   };
-  var slice = (sliceName, { store: storeName = "cami-store", state, actions, queries, mutations }) => {
+  var slice = (sliceName, { store: storeName = "cami-store", state, actions, queries, mutations, computed }) => {
     let storeInstance = store({
       state: { [sliceName]: state },
       name: storeName
@@ -3179,6 +3183,9 @@ var cami = (() => {
       storeInstance.slices = {};
     }
     storeInstance.slices[sliceName] = true;
+    if (!storeInstance.state[sliceName]) {
+      storeInstance.state[sliceName] = state;
+    }
     const sliceObject = {
       subscribe: (callback) => {
         return storeInstance.subscribe((state2) => callback(state2[sliceName]));
@@ -3229,24 +3236,62 @@ var cami = (() => {
         }
       });
     };
-    const wrappedActions = Object.keys(actions).reduce((acc, actionKey) => {
-      acc[actionKey] = ({ state: state2, payload }) => {
-        try {
-          const newState = produce(state2, (draft) => {
-            actions[actionKey]({ state: draft, payload });
+    const computedCache = /* @__PURE__ */ new Map();
+    const computedDependencies = /* @__PURE__ */ new Map();
+    const createComputedProperty = (key, computedFn) => {
+      return (context) => {
+        const cacheKey = `${key}:${JSON.stringify(context.payload)}`;
+        if (!computedCache.has(cacheKey)) {
+          const dependencies = /* @__PURE__ */ new Set();
+          const proxyState = new Proxy(storeInstance.state[sliceName], {
+            get(target, prop) {
+              dependencies.add(prop);
+              return target[prop];
+            }
           });
-          validateDeepState(schema, newState);
-          return newState;
-        } catch (error) {
-          throw error;
+          const result = computedFn(__spreadProps(__spreadValues({}, context), {
+            state: proxyState,
+            actions: sliceObject,
+            queries: sliceObject,
+            computeds: sliceObject
+          }));
+          computedCache.set(cacheKey, result);
+          computedDependencies.set(cacheKey, dependencies);
         }
+        return computedCache.get(cacheKey);
+      };
+    };
+    if (computed) {
+      Object.keys(computed).forEach((key) => {
+        Object.defineProperty(sliceObject, key, {
+          get: () => (...args) => createComputedProperty(key, computed[key])({ payload: args }),
+          enumerable: true,
+          configurable: false
+        });
+      });
+    }
+    const wrappedActions = Object.keys(actions).reduce((acc, actionKey) => {
+      acc[actionKey] = (context) => {
+        const oldState = __spreadValues({}, context.state);
+        actions[actionKey](context);
+        validateDeepState(schema, context.state);
+        computedDependencies.forEach((dependencies, cacheKey) => {
+          if ([...dependencies].some((dep) => oldState[dep] !== context.state[dep])) {
+            computedCache.delete(cacheKey);
+          }
+        });
       };
       return acc;
     }, {});
     Object.keys(wrappedActions).forEach((actionKey) => {
       const namespacedAction = `${sliceName}/${actionKey}`;
-      storeInstance.action(namespacedAction, ({ state: state2, payload }) => {
-        state2[sliceName] = wrappedActions[actionKey]({ state: state2[sliceName], payload });
+      storeInstance.action(namespacedAction, (context) => {
+        wrappedActions[actionKey](__spreadProps(__spreadValues({}, context), {
+          state: context.state[sliceName],
+          actions: sliceObject,
+          queries: sliceObject,
+          computeds: sliceObject
+        }));
       });
       sliceObject[actionKey] = (...args) => {
         return storeInstance.dispatch(namespacedAction, ...args);
@@ -3257,10 +3302,28 @@ var cami = (() => {
         const namespacedQuery = `${sliceName}/${queryKey}`;
         const queryConfig = __spreadProps(__spreadValues({}, queries[queryKey]), {
           actions: sliceObject,
-          onSuccess: (ctx) => {
+          queries: sliceObject,
+          computeds: sliceObject,
+          queryFn: (context) => {
+            return queries[queryKey].queryFn(context);
+          },
+          onSuccess: (context) => {
             if (queries[queryKey].onSuccess) {
-              queries[queryKey].onSuccess(__spreadProps(__spreadValues({}, ctx), {
-                state: deepFreeze(ctx.state[sliceName])
+              queries[queryKey].onSuccess(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[sliceName]),
+                actions: sliceObject,
+                queries: sliceObject,
+                computeds: sliceObject
+              }));
+            }
+          },
+          onError: (context) => {
+            if (queries[queryKey].onError) {
+              queries[queryKey].onError(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[sliceName]),
+                actions: sliceObject,
+                queries: sliceObject,
+                computeds: sliceObject
               }));
             }
           }
@@ -3277,24 +3340,37 @@ var cami = (() => {
         const mutationConfig = __spreadProps(__spreadValues({}, mutations[mutationKey]), {
           actions: sliceObject,
           queries: sliceObject,
-          onMutate: (ctx) => {
+          computeds: sliceObject,
+          mutationFn: (args) => {
+            return mutations[mutationKey].mutationFn(args);
+          },
+          onMutate: (context) => {
             if (mutations[mutationKey].onMutate) {
-              return mutations[mutationKey].onMutate(__spreadProps(__spreadValues({}, ctx), {
-                state: deepFreeze(ctx.state[sliceName])
+              return mutations[mutationKey].onMutate(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[sliceName]),
+                actions: sliceObject,
+                queries: sliceObject,
+                computeds: sliceObject
               }));
             }
           },
-          onSuccess: (ctx) => {
+          onSuccess: (context) => {
             if (mutations[mutationKey].onSuccess) {
-              mutations[mutationKey].onSuccess(__spreadProps(__spreadValues({}, ctx), {
-                state: deepFreeze(ctx.state[sliceName])
+              mutations[mutationKey].onSuccess(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[sliceName]),
+                actions: sliceObject,
+                queries: sliceObject,
+                computeds: sliceObject
               }));
             }
           },
-          onError: (ctx) => {
+          onError: (context) => {
             if (mutations[mutationKey].onError) {
-              mutations[mutationKey].onError(__spreadProps(__spreadValues({}, ctx), {
-                state: deepFreeze(ctx.state[sliceName])
+              mutations[mutationKey].onError(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[sliceName]),
+                actions: sliceObject,
+                queries: sliceObject,
+                computeds: sliceObject
               }));
             }
           }
@@ -3312,6 +3388,9 @@ var cami = (() => {
         }
         if (prop in storeInstance.state[sliceName]) {
           return storeInstance.state[sliceName][prop];
+        }
+        if (computed && prop in computed) {
+          return createComputedProperty(prop, computed[prop]);
         }
         return void 0;
       }

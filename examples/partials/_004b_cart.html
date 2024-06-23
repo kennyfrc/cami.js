@@ -1,0 +1,138 @@
+<article>
+    <h2>Products</h2>
+    <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
+    <product-list-component></product-list-component>
+</article>
+<article>
+    <h2>Cart</h2>
+    <cart-component></cart-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, slice } = cami;
+
+  cami.debug.enable();
+
+  const cartSlice = slice("cartSlice", {
+    store: "cart-store",
+    state: {
+      cartItems: [],
+      products: {
+        data: [],
+        status: "idle",
+        error: null
+      }
+    },
+    actions: {
+      add: ({ state, payload }) => {
+        const newItem = {...payload, id: Date.now()};
+        state.cartItems.push(newItem);
+      },
+      remove: ({ state, payload }) => {
+        state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
+      },
+      setProducts: ({ state, payload }) => {
+        state.products = payload;
+      }
+    },
+    queries: {
+      fetchProducts: {
+        queryKey: ['products'],
+        queryFn: () => {
+          return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
+        },
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        onFetch: ({ actions }) => {
+          actions.setProducts({
+            data: [],
+            status: "pending",
+            error: null
+          });
+        },
+        onSuccess: ({ response, actions }) => {
+          actions.setProducts({
+            data: response,
+            status: "success",
+            error: null
+          });
+        },
+        onError: ({ error, actions }) => {
+          actions.setProducts({
+            data: [],
+            status: "error",
+            error: error
+          });
+        }
+      }
+    }
+  }, {
+    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
+  });
+
+  class ProductListElement extends ReactiveElement {
+    onCreate() {
+      this.model = cartSlice;
+    }
+
+    isProductInCart(product) {
+      return this.model.cartItems ? this.model.cartItems.some(item => item.id === product.id) : false;
+    }
+
+    isOutOfStock(product) {
+      return product.stock === 0;
+    }
+
+    template() {
+      if (this.model.products.status === "pending") {
+        return html`<div>Fetching Products...</div>`;
+      }
+
+      if (this.model.products.status === "error") {
+        return html`<div>Error: ${this.model.products.error.message}</div>`;
+      }
+
+      if (this.model.products.data.length > 0) {
+        return html`
+          <ul>
+            ${this.model.products.data.map(product => html`<li>
+              ${product.name} - ${(product.price / 100).toFixed(2)}
+              <button @click=${() => this.model.add(product)} ?disabled=${this.isOutOfStock(product)}>
+                Add to cart
+              </button>
+            </li>`)}
+          </ul>
+        `;
+      }
+    }
+  }
+
+  customElements.define('product-list-component', ProductListElement);
+
+  class CartElement extends ReactiveElement {
+    onCreate() {
+      this.model = cartSlice;
+    }
+
+    template() {
+      return html`
+        ${this.model.cartItems.length > 0 ? html`
+          <p>Cart value: ${(this.model.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
+          <ul>
+            ${this.model.cartItems.map(item => html`
+              <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => this.model.remove(item)}>Remove</button></li>
+            `)}
+          </ul>
+        ` : html`
+          <p>Cart is empty</p>
+        `}
+      `
+    }
+  }
+
+  cartSlice.fetchProducts();
+
+  customElements.define('cart-component', CartElement);
+</script>

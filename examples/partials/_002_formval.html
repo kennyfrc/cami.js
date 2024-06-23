@@ -5,33 +5,75 @@
 <small>
 <p>Try entering an email that is already taken, such as trevinowanda@example.net (mock email)</p>
 </small>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement, slice } = cami;
+
+  const FormSlice = slice("FormSlice", {
+    store: "form-store",
+    state: {
+      email: '',
+      password: '',
+      emailError: '',
+      passwordError: '',
+      emailIsValid: null,
+      isEmailAvailable: null
+    },
+    actions: {
+      setEmail: ({ state, payload }) => {
+        state.email = payload;
+      },
+      setPassword: ({ state, payload }) => {
+        state.password = payload;
+      },
+      setEmailError: ({ state, payload }) => {
+        state.emailError = payload;
+      },
+      setPasswordError: ({ state, payload }) => {
+        state.passwordError = payload;
+      },
+      setEmailIsValid: ({ state, payload }) => {
+        state.emailIsValid = payload;
+      },
+      setIsEmailAvailable: ({ state, payload }) => {
+        state.isEmailAvailable = payload;
+        // debugger;
+      }
+    },
+    queries: {
+      queryEmail: {
+        queryKey: (email) => ['Email', email],
+        queryFn: (email) => {
+          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json());
+        },
+        onSuccess: ({ state, payload, actions, response }) => {
+          if (response.length > 0) {
+            actions.setIsEmailAvailable(false);
+          } else {
+            actions.setIsEmailAvailable(true);
+          }
+        },
+        staleTime: 1000 * 60 * 5
+      }
+    }
+  });
 
   class FormElement extends ReactiveElement {
-    emailError = ''
-    passwordError = ''
-    email = '';
-    password = '';
-    emailIsValid = null;
-    isEmailAvailable = null;
-
     processEmailInput(e) {
       const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
-      this.emailError = emailError;
-      this.isEmailValid = isEmailValid;
-      this.email = email;
-      this.isEmailAvailable = this.queryEmail(this.email);
+      FormSlice.setEmailError(emailError);
+      FormSlice.setEmailIsValid(isEmailValid);
+      FormSlice.setEmail(email);
+      FormSlice.queryEmail(email);
     }
 
     processPasswordInput(e) {
       const { isValid, password } = this.validatePassword(e.target.value);
-      this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
-      this.password = password;
+      FormSlice.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
+      FormSlice.setPassword(password);
     }
 
     validateEmail(email) {
@@ -58,24 +100,13 @@
       } else if (password?.length >= 8) {
         isValid = true;
       }
-
-      return { isValid, password }
-    }
-
-    queryEmail(email) {
-      return this.query({
-        queryKey: ['Email', email],
-        queryFn: () => {
-          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
-        },
-        staleTime: 1000 * 60 * 5
-      })
+      return { isValid, password };
     }
 
     getEmailInputState() {
-      if (this.email === '') {
+      if (FormSlice.email === '') {
         return '';
-      } else if (this.isEmailValid && this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length === 0) {
+      } else if (FormSlice.emailIsValid && FormSlice.isEmailAvailable === true) {
         return false;
       } else {
         return true;
@@ -83,9 +114,9 @@
     }
 
     getPasswordInputState() {
-      if (this.password === '') {
+      if (FormSlice.password === '') {
         return '';
-      } else if (this.passwordError === '') {
+      } else if (FormSlice.passwordError === '') {
         return false;
       } else {
         return true;
@@ -100,21 +131,21 @@
             <input type="email"
               aria-invalid=${this.getEmailInputState()}
               @input=${(e) => this.processEmailInput(e)}
-              value=${this.email}>
-            <span>${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
-            <span>${this.emailError}</span>
+              value=${FormSlice.email}>
+            <span>${FormSlice.isEmailAvailable === false && FormSlice.emailError === '' ? 'Email is already taken.' : ''}</span>
+            <span>${FormSlice.emailError}</span>
           </label>
           <label>
             Password:
             <input type="password"
               @input=${(e) => this.processPasswordInput(e)}
-              value=${this.password}
+              value=${FormSlice.password}
               aria-invalid=${this.getPasswordInputState()}>
-            <span>${this.passwordError}</span>
+            <span>${FormSlice.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" style="opacity: ${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === '' ? '0.5' : '1'}">
-          </form>
-        `;
+          <input type="submit" value="Submit" style="opacity: ${FormSlice.emailError !== '' || FormSlice.passwordError !== '' || FormSlice.email === '' || FormSlice.password === '' ? '0.5' : '1'}">
+        </form>
+      `;
     }
   }
 

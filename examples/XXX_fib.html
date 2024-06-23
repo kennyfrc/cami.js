@@ -13,33 +13,48 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
-  const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement, slice } = cami;
 
-  function fibonacci(num) {
-    if (num <= 1) return 1;
-    return fibonacci(num - 1) + fibonacci(num - 2);
-  }
+  const fibSlice = slice('fibonacci', {
+    state: {
+      count: 1
+    },
+    actions: {
+      increment: ({ state }) => {
+        state.count++;
+      }
+    },
+    computed: {
+      fibonacci: ({ state, payload }) => {
+        const fibonacci = (num) => {
+          if (num <= 1) return 1;
+          return fibonacci(num - 1) + fibonacci(num - 2);
+        };
+        return fibonacci(payload || state.count);
+      },
+      fib: ({ state }) => {
+        return fibSlice.fibonacci(state.count);
+      },
+      fibSequence: ({ state }) => {
+        return Array.from({ length: 10 }, (_, i) => ({
+          index: i + 1,
+          values: Array(5).fill().map(() => fibSlice.fibonacci(state.count))
+        }));
+      }
+    }
+  });
 
   class FibonacciCounter extends ReactiveElement {
-    count = 1;
-
-    get fib() {
-      return fibonacci(this.count);
+    onCreate() {
+      this.state = fibSlice;
     }
 
     template() {
       return html`
-        <button @click=${() => this.count++}>Count: ${this.count}</button>
-        <div>1. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>2. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>3. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>4. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>5. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>6. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>7. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>8. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>9. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
-        <div>10. ${this.fib} ${this.fib} ${this.fib} ${this.fib} ${this.fib}</div>
+        <button @click=${() => this.state.increment()}>Count: ${this.state.count}</button>
+        ${this.state.fibSequence().map(row => html`
+          <div>${row.index}. ${row.values.join(' ')}</div>
+        `)}
       `;
     }
   }
