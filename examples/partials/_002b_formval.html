@@ -10,9 +10,9 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
-  const formSlice = slice("formSlice", {
+  const SigninModel = model("SigninModel", {
     store: "form-store",
     state: {
       email: '',
@@ -21,7 +21,10 @@
       passwordError: '',
       emailIsValid: null,
       isEmailAvailable: null
-    },
+    }
+  });
+
+  SigninModel.register({
     actions: {
       setEmail: ({ state, payload }) => {
         state.email = payload;
@@ -62,7 +65,7 @@
 
   class FormElement extends ReactiveElement {
     onCreate() {
-      this.model = formSlice;
+      this.model = SigninModel;
     }
 
     processEmailInput(e) {

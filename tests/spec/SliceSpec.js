@@ -1,14 +1,14 @@
-const { store, slice } = cami;
+const { store, model } = cami;
 
-describe("Slice functionality", function() {
-  let navigationSlice;
-  let postSlice;
+describe("Model functionality", function() {
+  let NavModel;
+  let PostModel;
   let uniqueId;
 
   beforeEach(() => {
     uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    navigationSlice = slice(`Navigation_${uniqueId}`, {
+    NavModel = model(`Navigation_${uniqueId}`, {
       store: `nav-store-${uniqueId}`,
       state: {
         status: 'menu',
@@ -30,7 +30,7 @@ describe("Slice functionality", function() {
       }
     });
 
-    postSlice = slice(`PostSlice_${uniqueId}`, {
+    PostModel = model(`PostModel_${uniqueId}`, {
       store: `todo-store-${uniqueId}`,
       state: {
         list: [],
@@ -119,74 +119,74 @@ describe("Slice functionality", function() {
     console.log('localStorage cleared after all tests');
   });
 
-  describe("Navigation Slice", function() {
+  describe("Navigation Model", function() {
     it("should initialize with the correct initial state", function() {
-      expect(navigationSlice.status).toBe('menu');
-      expect(navigationSlice.count).toBe(0);
+      expect(NavModel.status).toBe('menu');
+      expect(NavModel.count).toBe(0);
     });
 
     it("should handle toggle action correctly", function() {
-      navigationSlice.toggle();
-      expect(navigationSlice.status).toBe('settings');
-      expect(navigationSlice.count).toBe(1);
+      NavModel.toggle();
+      expect(NavModel.status).toBe('settings');
+      expect(NavModel.count).toBe(1);
 
-      navigationSlice.toggle();
-      expect(navigationSlice.status).toBe('profile');
-      expect(navigationSlice.count).toBe(2);
+      NavModel.toggle();
+      expect(NavModel.status).toBe('profile');
+      expect(NavModel.count).toBe(2);
     });
 
     it("should throw an error for invalid action", function() {
-      expect(() => navigationSlice.invalidAction()).toThrow();
+      expect(() => NavModel.invalidAction()).toThrow();
     });
 
     it("should cycle through all states correctly", function() {
-      expect(navigationSlice.status).toBe('menu');
-      expect(navigationSlice.count).toBe(0);
+      expect(NavModel.status).toBe('menu');
+      expect(NavModel.count).toBe(0);
 
-      navigationSlice.toggle();
-      expect(navigationSlice.status).toBe('settings');
-      expect(navigationSlice.count).toBe(1);
+      NavModel.toggle();
+      expect(NavModel.status).toBe('settings');
+      expect(NavModel.count).toBe(1);
 
-      navigationSlice.toggle();
-      expect(navigationSlice.status).toBe('profile');
-      expect(navigationSlice.count).toBe(2);
+      NavModel.toggle();
+      expect(NavModel.status).toBe('profile');
+      expect(NavModel.count).toBe(2);
 
-      navigationSlice.toggle();
-      expect(navigationSlice.status).toBe('menu');
-      expect(navigationSlice.count).toBe(3);
+      NavModel.toggle();
+      expect(NavModel.status).toBe('menu');
+      expect(NavModel.count).toBe(3);
     });
 
     it("should handle multiple toggles correctly", function() {
       for (let i = 0; i < 10; i++) {
-        navigationSlice.toggle();
+        NavModel.toggle();
       }
-      expect(navigationSlice.count).toBe(10);
-      expect(['menu', 'settings', 'profile']).toContain(navigationSlice.status);
+      expect(NavModel.count).toBe(10);
+      expect(['menu', 'settings', 'profile']).toContain(NavModel.status);
     });
   });
 
-  describe("Post Slice", function() {
+  describe("Post Model", function() {
     it("should initialize with the correct initial state", function() {
-      expect(postSlice.list).toEqual([]);
-      expect(postSlice.loading).toBe(false);
-      expect(postSlice.error).toBeNull();
+      expect(PostModel.list).toEqual([]);
+      expect(PostModel.loading).toBe(false);
+      expect(PostModel.error).toBeNull();
     });
 
     it("should handle setList action correctly", function() {
       const newList = [{ id: 1, title: 'Test Post' }];
-      postSlice.setList(newList);
-      expect(postSlice.list).toEqual(newList);
+      PostModel.setList(newList);
+      expect(PostModel.list).toEqual(newList);
     });
 
     it("should handle setLoading action correctly", function() {
-      postSlice.setLoading(true);
-      expect(postSlice.loading).toBe(true);
+      PostModel.setLoading(true);
+      expect(PostModel.loading).toBe(true);
     });
 
     it("should handle setError action correctly", function() {
       const error = 'Test error';
-      postSlice.setError(error);
-      expect(postSlice.error).toBe(error);
+      PostModel.setError(error);
+      expect(PostModel.error).toBe(error);
     });
 
     it("should handle create mutation", async function() {
@@ -195,19 +195,19 @@ describe("Slice functionality", function() {
         json: () => Promise.resolve({ id: 2, ...newPost })
       }));
 
-      await postSlice.create(newPost);
-      expect(postSlice.list.length).toBe(1);
-      expect(postSlice.list[0].title).toBe('New Test Post');
+      await PostModel.create(newPost);
+      expect(PostModel.list.length).toBe(1);
+      expect(PostModel.list[0].title).toBe('New Test Post');
     });
 
     it("should handle delete mutation", async function() {
-      postSlice.setList([{ id: 1, title: 'Test Post' }]);
+      PostModel.setList([{ id: 1, title: 'Test Post' }]);
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({})
       }));
 
-      await postSlice.delete({ id: 1 });
-      expect(postSlice.list.length).toBe(0);
+      await PostModel.delete({ id: 1 });
+      expect(PostModel.list.length).toBe(0);
     });
 
     it("should handle read query with empty response", async function() {
@@ -215,19 +215,19 @@ describe("Slice functionality", function() {
         json: () => Promise.resolve([])
       }));
 
-      await postSlice.read();
-      expect(postSlice.list.length).toBe(0);
-      expect(postSlice.loading).toBe(false);
+      await PostModel.read();
+      expect(PostModel.list.length).toBe(0);
+      expect(PostModel.loading).toBe(false);
     });
 
     it("should handle delete mutation with non-existent id", async function() {
-      postSlice.setList([{ id: 1, title: 'Test Post' }]);
+      PostModel.setList([{ id: 1, title: 'Test Post' }]);
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({})
       }));
 
-      await postSlice.delete({ id: 999 });
-      expect(postSlice.list.length).toBe(1);
+      await PostModel.delete({ id: 999 });
+      expect(PostModel.list.length).toBe(1);
     });
 
     it("should handle concurrent mutations", async function() {
@@ -239,19 +239,19 @@ describe("Slice functionality", function() {
       }));
 
       await Promise.all([
-        postSlice.create(post1),
-        postSlice.create(post2),
-        postSlice.delete({ id: 1 })
+        PostModel.create(post1),
+        PostModel.create(post2),
+        PostModel.delete({ id: 1 })
       ]);
 
-      expect(postSlice.list.length).toBe(1);
-      expect(postSlice.list[0].title).toBe('Post 2');
+      expect(PostModel.list.length).toBe(1);
+      expect(PostModel.list[0].title).toBe('Post 2');
     });
   });
 
   describe("Edge Cases and Advanced Scenarios", function() {
     it("should handle deeply nested state updates", function() {
-      const deepSlice = slice(`DeepSlice_${uniqueId}`, {
+      const deepModel = model(`DeepModel_${uniqueId}`, {
         store: `deep-store-${uniqueId}`,
         state: {
           level1: {
@@ -269,12 +269,12 @@ describe("Slice functionality", function() {
         }
       });
 
-      deepSlice.updateDeep(42);
-      expect(deepSlice.level1.level2.level3.value).toBe(42);
+      deepModel.updateDeep(42);
+      expect(deepModel.level1.level2.level3.value).toBe(42);
     });
 
-    it("should handle actions that modify multiple slices", function() {
-      const slice1 = slice(`Slice1_${uniqueId}`, {
+    it("should handle actions that modify multiple models", function() {
+      const model1 = model(`Model1_${uniqueId}`, {
         store: `store1-${uniqueId}`,
         state: { value: 0 },
         actions: {
@@ -282,7 +282,7 @@ describe("Slice functionality", function() {
         }
       });
 
-      const slice2 = slice(`Slice2_${uniqueId}`, {
+      const model2 = model(`Model2_${uniqueId}`, {
         store: `store2-${uniqueId}`,
         state: { value: 0 },
         actions: {
@@ -291,13 +291,13 @@ describe("Slice functionality", function() {
       });
 
       const combinedAction = () => {
-        slice1.increment();
-        slice2.increment();
+        model1.increment();
+        model2.increment();
       };
 
       combinedAction();
-      expect(slice1.value).toBe(1);
-      expect(slice2.value).toBe(1);
+      expect(model1.value).toBe(1);
+      expect(model2.value).toBe(1);
     });
   });
 });

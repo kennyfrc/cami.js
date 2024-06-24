@@ -1,6 +1,6 @@
-const { ReactiveElement, slice, html } = cami;
+const { ReactiveElement, model, html } = cami;
 
-export const BlogSlice = slice("BlogSlice", {
+export const BlogModel = model("BlogModel", {
   store: "blog-store",
   state: {
     posts: [],
@@ -61,18 +61,18 @@ export const BlogSlice = slice("BlogSlice", {
 class BlogComponent extends ReactiveElement {
   constructor() {
     super();
-    this.posts = BlogSlice.fetchPosts();
+    this.posts = BlogModel.fetchPosts();
   }
 
-  addPost = BlogSlice.addPost;
+  addPost = BlogModel.addPost;
 
   template() {
-    if (BlogSlice.loading) return html`<p>Loading...</p>`;
-    if (BlogSlice.error) return html`<p>Error: ${BlogSlice.error}</p>`;
+    if (BlogModel.loading) return html`<p>Loading...</p>`;
+    if (BlogModel.error) return html`<p>Error: ${BlogModel.error}</p>`;
 
     return html`
       <ul>
-        ${BlogSlice.posts.map(post => html`<li>${post.title}</li>`)}
+        ${BlogModel.posts.map(post => html`<li>${post.title}</li>`)}
       </ul>
     `;
   }

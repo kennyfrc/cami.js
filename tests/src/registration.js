@@ -1,6 +1,6 @@
-const { html, ReactiveElement, slice } = cami;
+const { html, ReactiveElement, model } = cami;
 
-export const RegistrationSlice = slice("RegistrationSlice", {
+export const RegistrationModel = model("RegistrationModel", {
   store: "registration-store",
   state: {
     emailError: '',
@@ -33,16 +33,16 @@ export const RegistrationSlice = slice("RegistrationSlice", {
 export class RegistrationFormElement extends ReactiveElement {
   handleEmailInput(e) {
     const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
-    RegistrationSlice.setEmailError(emailError);
-    RegistrationSlice.setEmailIsValid(isEmailValid);
-    RegistrationSlice.setEmail(email);
-    RegistrationSlice.checkEmailAvailability(email);
+    RegistrationModel.setEmailError(emailError);
+    RegistrationModel.setEmailIsValid(isEmailValid);
+    RegistrationModel.setEmail(email);
+    RegistrationModel.checkEmailAvailability(email);
   }
 
   handlePasswordInput(e) {
     const { isValid, password } = this.validatePassword(e.target.value);
-    RegistrationSlice.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
-    RegistrationSlice.setPassword(password);
+    RegistrationModel.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
+    RegistrationModel.setPassword(password);
   }
 
   validateEmail(email) {
@@ -73,9 +73,9 @@ export class RegistrationFormElement extends ReactiveElement {
   }
 
   getEmailInputState() {
-    if (RegistrationSlice.email === '') {
+    if (RegistrationModel.email === '') {
       return '';
-    } else if (RegistrationSlice.emailIsValid && RegistrationSlice.isEmailAvailable) {
+    } else if (RegistrationModel.emailIsValid && RegistrationModel.isEmailAvailable) {
       return false;
     } else {
       return true;
@@ -83,9 +83,9 @@ export class RegistrationFormElement extends ReactiveElement {
   }
 
   getPasswordInputState() {
-    if (RegistrationSlice.password === '') {
+    if (RegistrationModel.password === '') {
       return '';
-    } else if (RegistrationSlice.passwordError === '') {
+    } else if (RegistrationModel.passwordError === '') {
       return false;
     } else {
       return true;
@@ -99,20 +99,20 @@ export class RegistrationFormElement extends ReactiveElement {
           Email:
           <input type="email"
             aria-invalid=${this.getEmailInputState()}
-            @input=${(e) => this.handleEmailInput(e)} value=${RegistrationSlice.email}>
+            @input=${(e) => this.handleEmailInput(e)} value=${RegistrationModel.email}>
             <span id="email-available"
-            >${RegistrationSlice.isEmailAvailable === false && RegistrationSlice.emailError === '' ? 'Email is already taken.' : ''}</span>
-          <span id="email-error">${RegistrationSlice.emailError}</span>
+            >${RegistrationModel.isEmailAvailable === false && RegistrationModel.emailError === '' ? 'Email is already taken.' : ''}</span>
+          <span id="email-error">${RegistrationModel.emailError}</span>
         </label>
         <label>
           Password:
           <input type="password" @input=${(e) => this.handlePasswordInput(e)}
-            value=${RegistrationSlice.password}
+            value=${RegistrationModel.password}
             aria-invalid=${this.getPasswordInputState()}>
           <span id="password-error"
-          >${RegistrationSlice.passwordError}</span>
+          >${RegistrationModel.passwordError}</span>
         </label>
-        <input type="submit" value="Submit" ?disabled=${RegistrationSlice.emailError !== '' || RegistrationSlice.passwordError !== '' || RegistrationSlice.email === '' || RegistrationSlice.password === ''}>
+        <input type="submit" value="Submit" ?disabled=${RegistrationModel.emailError !== '' || RegistrationModel.passwordError !== '' || RegistrationModel.email === '' || RegistrationModel.password === ''}>
       </form>
     `;
   }

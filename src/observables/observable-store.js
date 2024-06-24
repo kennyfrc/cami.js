@@ -1,7 +1,7 @@
 import { Observable } from './observable.js';
 import { DependencyTracker } from './observable-state.js'
 import { current, createDraft, finishDraft, original, produce, produceWithPatches, applyPatches, enablePatches, freeze } from 'immer';
-import { _deepMerge, _deepClone } from '../utils.js';
+import { _deepMerge, _deepClone, _deepEqual } from '../utils.js';
 import { __config } from '../config.js';
 import { __trace } from '../trace.js';
 import invariant from '../invariant.js';
@@ -46,6 +46,7 @@ class ObservableStore extends Observable {
     });
 
     this.state = this._createProxy(createDraft(initialState));
+    this.previousState = _deepClone(initialState);
     this.schema = this._createDeepSchema(initialState);
 
     this.reducers = {};
@@ -112,9 +113,12 @@ class ObservableStore extends Observable {
   }
 
   _notifyObservers() {
-    this.__observers.forEach(observer => observer.next(this.state));
-    if (this.__subscriber && typeof this.__subscriber.next === 'function') {
-      this.__subscriber.next(this.state);
+    if (!_deepEqual(this.state, this.previousState)) {
+      this.__observers.forEach(observer => observer.next(this.state));
+      if (this.__subscriber && typeof this.__subscriber.next === 'function') {
+        this.__subscriber.next(this.state);
+      }
+      this.previousState = _deepClone(this.state);
     }
   }
 
@@ -584,14 +588,19 @@ class ObservableStore extends Observable {
       throw new Error(`[Cami.js] invalidateQueries expects either a queryKey or a predicate.`);
     }
 
-    const _queryKey = queryKey.filter(Boolean).join(':');
-
     const queriesToInvalidate = Object.keys(this.queryFunctions).filter(queryName => {
-      if (_queryKey === queryName)
-        return true;
+      if (queryKey) {
+        const storedQueryKey = this.queryFunctions[queryName].queryKey;
+        if (Array.isArray(storedQueryKey)) {
+          return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
+        } else {
+          return storedQueryKey === queryKey[0];
+        }
+      }
 
-      if (predicate)
-        return predicate(query);
+      if (predicate) {
+        return predicate(this.queryFunctions[queryName]);
+      }
 
       return false;
     });
@@ -609,7 +618,8 @@ class ObservableStore extends Observable {
         cacheKey = query.queryKey;
       }
 
-      __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
+        __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
+
 
       if (this.intervals[queryName]) {
         clearInterval(this.intervals[queryName]);
@@ -858,20 +868,20 @@ const deepFreeze = (value, deep = true) => {
 }
 
 /**
- * Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
+ * Creates a model of the store with its own state and actions, namespaced to avoid conflicts.
  *
- * @function slice
- * @param {string} sliceName - The name of the slice.
- * @param {Object} options - The options for creating the slice.
+ * @function model
+ * @param {string} modelName - The name of the model.
+ * @param {Object} options - The options for creating the model.
  * @param {string} [options.store='cami-store'] - The name of the store to use or create.
- * @param {Object} options.state - The initial state of the slice.
- * @param {Object} options.actions - The actions for the slice.
- * @param {Object} [options.queries] - The queries for the slice.
- * @param {Object} [options.mutations] - The mutations for the slice.
- * @returns {Object} - An object containing the action methods for the slice, including getState, actions, queries, mutations, and subscribe methods.
+ * @param {Object} options.state - The initial state of the model.
+ * @param {Object} options.actions - The actions for the model.
+ * @param {Object} [options.queries] - The queries for the model.
+ * @param {Object} [options.mutations] - The mutations for the model.
+ * @returns {Object} - An object containing the action methods for the model, including getState, actions, queries, mutations, and subscribe methods.
  *
  * @example
- * const navigationSlice = slice("Navigation", {
+ * const navigationModel = model("Navigation", {
  *   store: "cami-store",
  *   state: {
  *     status: 'menu',
@@ -893,55 +903,56 @@ const deepFreeze = (value, deep = true) => {
  *   }
  * });
  *
- * // Accessing the slice's state
- * navigationSlice.getState();
+ * // Accessing the model's state
+ * navigationModel.getState();
  *
  * // Dispatching actions
- * navigationSlice.toggle();
+ * navigationModel.toggle();
  *
  * // Subscribing to state changes
- * const unsubscribe = navigationSlice.subscribe(state => {
- *   console.log('Navigation slice state changed:', state);
+ * const unsubscribe = navigationModel.subscribe(state => {
+ *   console.log('Navigation model state changed:', state);
  * });
  *
  * // Unsubscribe when no longer needed
  * unsubscribe();
  */
-const slice = (sliceName, { store: storeName = 'cami-store', state, actions, queries, mutations, computed }) => {
+const model = (modelName, { store: storeName = 'cami-store', state, actions = {}, queries = {}, mutations = {}, computed = {} }) => {
   // Create or get existing store instance
   let storeInstance = store({
-    state: { [sliceName]: state },
+    state: { [modelName]: state },
     name: storeName
   });
-  // Check for slice name conflicts
-  if (storeInstance.slices && storeInstance.slices[sliceName]) {
-    throw new Error(`[Cami.js] Slice name ${sliceName} is already in use in store ${storeName}.`);
+
+  // Check for model name conflicts
+  if (storeInstance.models && storeInstance.models[modelName]) {
+    throw new Error(`[Cami.js] Model name ${modelName} is already in use in store ${storeName}.`);
   }
 
-  // Initialize slices object if not existing
-  if (!storeInstance.slices) {
-    storeInstance.slices = {};
+  // Initialize models object if not existing
+  if (!storeInstance.models) {
+    storeInstance.models = {};
   }
 
-  // Register the slice
-  storeInstance.slices[sliceName] = true;
+  // Register the model
+  storeInstance.models[modelName] = true;
 
-  // Ensure the slice state exists in the store
-  if (!storeInstance.state[sliceName]) {
-    storeInstance.state[sliceName] = state;
+  // Ensure the model state exists in the store
+  if (!storeInstance.state[modelName]) {
+    storeInstance.state[modelName] = state;
   }
 
-   // Create slice object with subscribe method
-  const sliceObject = {
+  // Create model object with subscribe method
+  const modelObject = {
     subscribe: (callback) => {
-      return storeInstance.subscribe(state => callback(state[sliceName]));
+      return storeInstance.subscribe(state => callback(state[modelName]));
     }
   };
 
   // Expose state values as immutable properties
   Object.keys(state).forEach(key => {
-    Object.defineProperty(sliceObject, key, {
-      get: () => storeInstance.state[sliceName][key],
+    Object.defineProperty(modelObject, key, {
+      get: () => storeInstance.state[modelName][key],
       enumerable: true,
       configurable: false
     });
@@ -964,10 +975,10 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
     }, {});
   };
 
-  // Generate schema for the slice
+  // Generate schema for the model
   const schema = createDeepSchema(state);
 
-  /// Define state validation function
+  // Define state validation function
   const validateDeepState = (schema, newState, path = []) => {
     Object.keys(schema).forEach(key => {
       const expectedType = schema[key];
@@ -1004,7 +1015,7 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
       if (!computedCache.has(cacheKey)) {
         // Track dependencies
         const dependencies = new Set();
-        const proxyState = new Proxy(storeInstance.state[sliceName], {
+        const proxyState = new Proxy(storeInstance.state[modelName], {
           get(target, prop) {
             dependencies.add(prop);
             return target[prop];
@@ -1014,9 +1025,9 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
         const result = computedFn({
           ...context,
           state: proxyState,
-          actions: sliceObject,
-          queries: sliceObject,
-          computeds: sliceObject
+          actions: modelObject,
+          queries: modelObject,
+          computeds: modelObject
         });
 
         computedCache.set(cacheKey, result);
@@ -1027,72 +1038,49 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
     };
   };
 
-  // Add computed properties to slice object
-  if (computed) {
-    Object.keys(computed).forEach(key => {
-      Object.defineProperty(sliceObject, key, {
-        get: () => (...args) => createComputedProperty(key, computed[key])({ payload: args }),
-        enumerable: true,
-        configurable: false
+  const registerComponents = ({ actions = {}, queries = {}, mutations = {}, computed = {} }) => {
+    // Register actions
+    Object.keys(actions).forEach(actionKey => {
+      const wrappedAction = (context) => {
+        const oldState = { ...context.state };
+        actions[actionKey](context);
+        validateDeepState(schema, context.state);
+        computedDependencies.forEach((dependencies, cacheKey) => {
+          if ([...dependencies].some(dep => oldState[dep] !== context.state[dep])) {
+            computedCache.delete(cacheKey);
+          }
+        });
+      };
+      const namespacedAction = `${modelName}/${actionKey}`;
+      storeInstance.action(namespacedAction, (context) => {
+        wrappedAction({
+          ...context,
+          state: context.state[modelName],
+          actions: modelObject,
+          queries: modelObject,
+          computeds: modelObject
+        });
       });
-      });
-    }
-
-  // Wrap actions to handle state validation and cache invalidation
-  const wrappedActions = Object.keys(actions).reduce((acc, actionKey) => {
-    acc[actionKey] = (context) => {
-      const oldState = { ...context.state };
-      actions[actionKey](context);
-
-      validateDeepState(schema, context.state);
-
-      computedDependencies.forEach((dependencies, cacheKey) => {
-        if ([...dependencies].some(dep => oldState[dep] !== context.state[dep])) {
-          computedCache.delete(cacheKey);
-        }
-      });
-    };
-    return acc;
-  }, {});
-
-  // Register wrapped actions with the store
-  Object.keys(wrappedActions).forEach(actionKey => {
-    const namespacedAction = `${sliceName}/${actionKey}`;
-    storeInstance.action(namespacedAction, (context) => {
-      wrappedActions[actionKey]({
-        ...context,
-        state: context.state[sliceName],
-        actions: sliceObject,
-        queries: sliceObject,
-        computeds: sliceObject
-      });
+      modelObject[actionKey] = (...args) => storeInstance.dispatch(namespacedAction, ...args);
     });
 
-    sliceObject[actionKey] = (...args) => {
-      return storeInstance.dispatch(namespacedAction, ...args);
-    };
-  });
-
-  // Register queries with the store
-  if (queries) {
+    // Register queries
     Object.keys(queries).forEach(queryKey => {
-      const namespacedQuery = `${sliceName}/${queryKey}`;
+      const namespacedQuery = `${modelName}/${queryKey}`;
       const queryConfig = {
         ...queries[queryKey],
-        actions: sliceObject,
-        queries: sliceObject,
-        computeds: sliceObject,
-        queryFn: (context) => {
-          return queries[queryKey].queryFn(context);
-        },
+        actions: modelObject,
+        queries: modelObject,
+        computeds: modelObject,
+        queryFn: (context) => queries[queryKey].queryFn(context),
         onSuccess: (context) => {
           if (queries[queryKey].onSuccess) {
             queries[queryKey].onSuccess({
               ...context,
-              state: deepFreeze(context.state[sliceName]),
-              actions: sliceObject,
-              queries: sliceObject,
-              computeds: sliceObject
+              state: deepFreeze(context.state[modelName]),
+              actions: modelObject,
+              queries: modelObject,
+              computeds: modelObject
             });
           }
         },
@@ -1100,43 +1088,35 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (queries[queryKey].onError) {
             queries[queryKey].onError({
               ...context,
-              state: deepFreeze(context.state[sliceName]),
-              actions: sliceObject,
-              queries: sliceObject,
-              computeds: sliceObject
+              state: deepFreeze(context.state[modelName]),
+              actions: modelObject,
+              queries: modelObject,
+              computeds: modelObject
             });
           }
         }
       };
-
       storeInstance.query(namespacedQuery, queryConfig);
+      modelObject[queryKey] = (...args) => storeInstance.fetch(namespacedQuery, ...args);
+    });
 
-      sliceObject[queryKey] = (...args) => {
-        return storeInstance.fetch(namespacedQuery, ...args);
-      };
-      });
-    }
-
-  // Register mutations with the store
-  if (mutations) {
+    // Register mutations
     Object.keys(mutations).forEach(mutationKey => {
-      const namespacedMutation = `${sliceName}/${mutationKey}`;
+      const namespacedMutation = `${modelName}/${mutationKey}`;
       const mutationConfig = {
         ...mutations[mutationKey],
-        actions: sliceObject,
-        queries: sliceObject,
-        computeds: sliceObject,
-        mutationFn: (args) => {
-          return mutations[mutationKey].mutationFn(args);
-        },
+        actions: modelObject,
+        queries: modelObject,
+        computeds: modelObject,
+        mutationFn: (args) => mutations[mutationKey].mutationFn(args),
         onMutate: (context) => {
           if (mutations[mutationKey].onMutate) {
             return mutations[mutationKey].onMutate({
               ...context,
-              state: deepFreeze(context.state[sliceName]),
-              actions: sliceObject,
-              queries: sliceObject,
-              computeds: sliceObject
+              state: deepFreeze(context.state[modelName]),
+              actions: modelObject,
+              queries: modelObject,
+              computeds: modelObject
             });
           }
         },
@@ -1144,10 +1124,10 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (mutations[mutationKey].onSuccess) {
             mutations[mutationKey].onSuccess({
               ...context,
-              state: deepFreeze(context.state[sliceName]),
-              actions: sliceObject,
-              queries: sliceObject,
-              computeds: sliceObject,
+              state: deepFreeze(context.state[modelName]),
+              actions: modelObject,
+              queries: modelObject,
+              computeds: modelObject,
             });
           }
         },
@@ -1155,38 +1135,51 @@ const slice = (sliceName, { store: storeName = 'cami-store', state, actions, que
           if (mutations[mutationKey].onError) {
             mutations[mutationKey].onError({
               ...context,
-              state: deepFreeze(context.state[sliceName]),
-              actions: sliceObject,
-              queries: sliceObject,
-              computeds: sliceObject
+              state: deepFreeze(context.state[modelName]),
+              actions: modelObject,
+              queries: modelObject,
+              computeds: modelObject
             });
           }
         }
       };
-
       storeInstance.mutation(namespacedMutation, mutationConfig);
-
-      sliceObject[mutationKey] = (...args) => {
-        return storeInstance.mutate(namespacedMutation, ...args);
-      };
+      modelObject[mutationKey] = (...args) => storeInstance.mutate(namespacedMutation, ...args);
     });
-  }
 
-  // Return proxied slice object for property access
-  return new Proxy(sliceObject, {
-    get(target, prop) {
-      if (prop in target) {
-        return target[prop];
+    // Register computed properties
+    Object.keys(computed).forEach(key => {
+      Object.defineProperty(modelObject, key, {
+        get: () => (...args) => createComputedProperty(key, computed[key])({ payload: args }),
+        enumerable: true,
+        configurable: false
+      });
+    });
+    };
+
+    // Initial registration of components
+    registerComponents({ actions, queries, mutations, computed });
+
+    // Add register method to modelObject
+    modelObject.register = (components) => {
+    registerComponents(components);
+    };
+
+    // Return proxied model object for property access
+    return new Proxy(modelObject, {
+      get(target, prop) {
+        if (prop in target) {
+          return target[prop];
+        }
+        if (prop in storeInstance.state[modelName]) {
+          return storeInstance.state[modelName][prop];
+        }
+        if (computed && prop in computed) {
+          return createComputedProperty(prop, computed[prop]);
+        }
+        return undefined;
       }
-      if (prop in storeInstance.state[sliceName]) {
-        return storeInstance.state[sliceName][prop];
-      }
-      if (computed && prop in computed) {
-        return createComputedProperty(prop, computed[prop]);
-      }
-      return undefined;
-    }
-  });
+    });
 };
 
 /**
@@ -1346,4 +1339,4 @@ const store = (config = {}) => {
   return storeInstance;
 };
 
-export { ObservableStore, store, slice };
+export { ObservableStore, store, model };

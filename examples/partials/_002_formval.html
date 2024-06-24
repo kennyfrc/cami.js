@@ -10,9 +10,9 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
-  const FormSlice = slice("FormSlice", {
+  const FormModel = model("FormModel", {
     store: "form-store",
     state: {
       email: '',
@@ -64,16 +64,16 @@
   class FormElement extends ReactiveElement {
     processEmailInput(e) {
       const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
-      FormSlice.setEmailError(emailError);
-      FormSlice.setEmailIsValid(isEmailValid);
-      FormSlice.setEmail(email);
-      FormSlice.queryEmail(email);
+      FormModel.setEmailError(emailError);
+      FormModel.setEmailIsValid(isEmailValid);
+      FormModel.setEmail(email);
+      FormModel.queryEmail(email);
     }
 
     processPasswordInput(e) {
       const { isValid, password } = this.validatePassword(e.target.value);
-      FormSlice.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
-      FormSlice.setPassword(password);
+      FormModel.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
+      FormModel.setPassword(password);
     }
 
     validateEmail(email) {
@@ -104,9 +104,9 @@
     }
 
     getEmailInputState() {
-      if (FormSlice.email === '') {
+      if (FormModel.email === '') {
         return '';
-      } else if (FormSlice.emailIsValid && FormSlice.isEmailAvailable === true) {
+      } else if (FormModel.emailIsValid && FormModel.isEmailAvailable === true) {
         return false;
       } else {
         return true;
@@ -114,9 +114,9 @@
     }
 
     getPasswordInputState() {
-      if (FormSlice.password === '') {
+      if (FormModel.password === '') {
         return '';
-      } else if (FormSlice.passwordError === '') {
+      } else if (FormModel.passwordError === '') {
         return false;
       } else {
         return true;
@@ -131,19 +131,19 @@
             <input type="email"
               aria-invalid=${this.getEmailInputState()}
               @input=${(e) => this.processEmailInput(e)}
-              value=${FormSlice.email}>
-            <span>${FormSlice.isEmailAvailable === false && FormSlice.emailError === '' ? 'Email is already taken.' : ''}</span>
-            <span>${FormSlice.emailError}</span>
+              value=${FormModel.email}>
+            <span>${FormModel.isEmailAvailable === false && FormModel.emailError === '' ? 'Email is already taken.' : ''}</span>
+            <span>${FormModel.emailError}</span>
           </label>
           <label>
             Password:
             <input type="password"
               @input=${(e) => this.processPasswordInput(e)}
-              value=${FormSlice.password}
+              value=${FormModel.password}
               aria-invalid=${this.getPasswordInputState()}>
-            <span>${FormSlice.passwordError}</span>
+            <span>${FormModel.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" style="opacity: ${FormSlice.emailError !== '' || FormSlice.passwordError !== '' || FormSlice.email === '' || FormSlice.password === '' ? '0.5' : '1'}">
+          <input type="submit" value="Submit" style="opacity: ${FormModel.emailError !== '' || FormModel.passwordError !== '' || FormModel.email === '' || FormModel.password === '' ? '0.5' : '1'}">
         </form>
       `;
     }

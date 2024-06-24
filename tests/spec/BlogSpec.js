@@ -1,5 +1,5 @@
 import BlogComponent from '../src/blog.js';
-import { BlogSlice } from '../src/blog.js';
+import { BlogModel } from '../src/blog.js';
 
 describe('Querying the API & Mutating Data - BlogComponent', () => {
   let blogComponent;
@@ -16,8 +16,8 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
   });
 
   it("should fetch data from the API", async function() {
-    await BlogSlice.fetchPosts();
-    expect(BlogSlice.posts).toEqual([{ id: 1, title: 'Test Post' }]);
+    await BlogModel.fetchPosts();
+    expect(BlogModel.posts).toEqual([{ id: 1, title: 'Test Post' }]);
   });
 
   it("should optimistically add a post", async function() {
@@ -28,9 +28,9 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
       json: () => Promise.resolve(newPost)
     }));
 
-    await BlogSlice.addPost(newPost);
+    await BlogModel.addPost(newPost);
 
-    expect(BlogSlice.posts).toContain(jasmine.objectContaining(optimisticPost));
+    expect(BlogModel.posts).toContain(jasmine.objectContaining(optimisticPost));
     expect(window.fetch).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),

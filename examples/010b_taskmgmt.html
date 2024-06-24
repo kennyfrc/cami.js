@@ -15,9 +15,9 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
-  const taskSlice = slice("taskSlice", {
+  const TaskModel = model("TaskModel", {
     store: "task-store",
     state: {
       tasks: [],
@@ -41,7 +41,7 @@
 
   class TaskManagerElement extends ReactiveElement {
     onCreate() {
-      this.model = taskSlice;
+      this.model = TaskModel;
     }
 
     getFilteredTasks() {

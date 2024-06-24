@@ -8,10 +8,10 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
   cami.debug.enable()
 
-  const todoSlice = slice("todoSlice", {
+  const TodoModel = model("TodoModel", {
     store: "todo-store",
     state: {
       newTodoTitle: '',
@@ -20,7 +20,10 @@
         status: "idle",
         error: null
       }
-    },
+    }
+  });
+
+  TodoModel.register({
     actions: {
       setTodos: ({ state, payload }) => {
         state.todos = {
@@ -35,7 +38,10 @@
       removeTodo: ({ state, payload }) => {
         state.todos.data = state.todos.data.filter(todo => todo.title !== payload.title);
       }
-    },
+    }
+  });
+
+  TodoModel.register({
     queries: {
       fetchTodos: {
         queryKey: ['todos'],
@@ -65,7 +71,10 @@
           })
         }
       }
-    },
+    }
+  });
+
+  TodoModel.register({
     mutations: {
       createTodo: {
         mutationFn: (newTodo) => {
@@ -113,7 +122,7 @@
 
   class TodoListElement extends ReactiveElement {
     onCreate() {
-      this.model = todoSlice;
+      this.model = TodoModel;
       this.newTodoTitle = '';
     }
 
@@ -155,7 +164,7 @@
     }
   }
 
-  todoSlice.fetchTodos(); // usually done in some bootstrap function
+  TodoModel.fetchTodos(); // usually done in some bootstrap function
 
   customElements.define('todo-list-component', TodoListElement);
 </script>

@@ -12,11 +12,11 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
   cami.debug.enable();
 
-  const cartSlice = slice("cartSlice", {
+  const CartModel = model("CartModel", {
     store: "cart-store",
     state: {
       cartItems: [],
@@ -25,7 +25,12 @@
         status: "idle",
         error: null
       }
-    },
+    }
+  }, {
+    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
+  });
+
+  CartModel.register({
     actions: {
       add: ({ state, payload }) => {
         const newItem = {...payload, id: Date.now()};
@@ -37,7 +42,10 @@
       setProducts: ({ state, payload }) => {
         state.products = payload;
       }
-    },
+    }
+  });
+
+  CartModel.register({
     queries: {
       fetchProducts: {
         queryKey: ['products'],
@@ -68,13 +76,11 @@
         }
       }
     }
-  }, {
-    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
   });
 
   class ProductListElement extends ReactiveElement {
     onCreate() {
-      this.model = cartSlice;
+      this.model = CartModel;
     }
 
     isProductInCart(product) {
@@ -113,7 +119,7 @@
 
   class CartElement extends ReactiveElement {
     onCreate() {
-      this.model = cartSlice;
+      this.model = CartModel;
     }
 
     template() {
@@ -132,7 +138,7 @@
     }
   }
 
-  cartSlice.fetchProducts();
+  CartModel.fetchProducts();
 
   customElements.define('cart-component', CartElement);
 </script>

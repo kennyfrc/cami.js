@@ -7,9 +7,9 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
-  const userSlice = slice("userSlice", {
+  const UserModel = model("UserModel", {
     store: "user-store",
     state: {
       user: {
@@ -75,7 +75,7 @@
 
   class NestedObservableElement extends ReactiveElement {
     onCreate() {
-      this.model = userSlice;
+      this.model = UserModel;
     }
 
     template() {

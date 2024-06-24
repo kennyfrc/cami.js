@@ -1,4 +1,4 @@
-import { RegistrationSlice, RegistrationFormElement } from '../src/registration.js';
+import { RegistrationModel, RegistrationFormElement } from '../src/registration.js';
 
 describe('Strings are Observable - RegistrationFormElement', () => {
   let regForm;

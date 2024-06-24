@@ -49,7 +49,7 @@ var cami = (() => {
     effect: () => effect,
     events: () => events,
     html: () => html,
-    slice: () => slice,
+    model: () => model,
     store: () => store,
     svg: () => svg
   });
@@ -2442,6 +2442,7 @@ var cami = (() => {
         };
       });
       this.state = this._createProxy(createDraft(initialState));
+      this.previousState = _deepClone(initialState);
       this.schema = this._createDeepSchema(initialState);
       this.reducers = {};
       this.actions = {};
@@ -2503,9 +2504,12 @@ var cami = (() => {
       });
     }
     _notifyObservers() {
-      this.__observers.forEach((observer) => observer.next(this.state));
-      if (this.__subscriber && typeof this.__subscriber.next === "function") {
-        this.__subscriber.next(this.state);
+      if (!_deepEqual(this.state, this.previousState)) {
+        this.__observers.forEach((observer) => observer.next(this.state));
+        if (this.__subscriber && typeof this.__subscriber.next === "function") {
+          this.__subscriber.next(this.state);
+        }
+        this.previousState = _deepClone(this.state);
       }
     }
     _createDeepSchema(state) {
@@ -2867,11 +2871,11 @@ var cami = (() => {
      * appStore.fetch('fetchPosts', 'someId')
      */
     fetch(queryName, ...args) {
-      const query2 = this.queryFunctions[queryName];
-      if (!query2) {
+      const query = this.queryFunctions[queryName];
+      if (!query) {
         throw new Error(`[Cami.js] No query found for name: ${queryName}`);
       }
-      const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, actions, mutations } = query2;
+      const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, actions, mutations } = query;
       const context = {
         state: deepFreeze(this.state),
         actions,
@@ -2929,25 +2933,31 @@ var cami = (() => {
       if (!queryKey && !predicate) {
         throw new Error(`[Cami.js] invalidateQueries expects either a queryKey or a predicate.`);
       }
-      const _queryKey = queryKey.filter(Boolean).join(":");
       const queriesToInvalidate = Object.keys(this.queryFunctions).filter((queryName) => {
-        if (_queryKey === queryName)
-          return true;
-        if (predicate)
-          return predicate(query);
+        if (queryKey) {
+          const storedQueryKey = this.queryFunctions[queryName].queryKey;
+          if (Array.isArray(storedQueryKey)) {
+            return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
+          } else {
+            return storedQueryKey === queryKey[0];
+          }
+        }
+        if (predicate) {
+          return predicate(this.queryFunctions[queryName]);
+        }
         return false;
       });
       queriesToInvalidate.forEach((queryName) => {
-        const query2 = this.queryFunctions[queryName];
-        if (!query2)
+        const query = this.queryFunctions[queryName];
+        if (!query)
           return;
         let cacheKey;
-        if (typeof query2.queryKey === "function") {
-          cacheKey = query2.queryKey().join(":");
-        } else if (Array.isArray(query2.queryKey)) {
-          cacheKey = query2.queryKey.join(":");
+        if (typeof query.queryKey === "function") {
+          cacheKey = query.queryKey().join(":");
+        } else if (Array.isArray(query.queryKey)) {
+          cacheKey = query.queryKey.join(":");
         } else {
-          cacheKey = query2.queryKey;
+          cacheKey = query.queryKey;
         }
         __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
         if (this.intervals[queryName]) {
@@ -3171,29 +3181,29 @@ var cami = (() => {
       }
     });
   };
-  var slice = (sliceName, { store: storeName = "cami-store", state, actions, queries, mutations, computed }) => {
+  var model = (modelName, { store: storeName = "cami-store", state, actions = {}, queries = {}, mutations = {}, computed = {} }) => {
     let storeInstance = store({
-      state: { [sliceName]: state },
+      state: { [modelName]: state },
       name: storeName
     });
-    if (storeInstance.slices && storeInstance.slices[sliceName]) {
-      throw new Error(`[Cami.js] Slice name ${sliceName} is already in use in store ${storeName}.`);
+    if (storeInstance.models && storeInstance.models[modelName]) {
+      throw new Error(`[Cami.js] Model name ${modelName} is already in use in store ${storeName}.`);
     }
-    if (!storeInstance.slices) {
-      storeInstance.slices = {};
+    if (!storeInstance.models) {
+      storeInstance.models = {};
     }
-    storeInstance.slices[sliceName] = true;
-    if (!storeInstance.state[sliceName]) {
-      storeInstance.state[sliceName] = state;
+    storeInstance.models[modelName] = true;
+    if (!storeInstance.state[modelName]) {
+      storeInstance.state[modelName] = state;
     }
-    const sliceObject = {
+    const modelObject = {
       subscribe: (callback) => {
-        return storeInstance.subscribe((state2) => callback(state2[sliceName]));
+        return storeInstance.subscribe((state2) => callback(state2[modelName]));
       }
     };
     Object.keys(state).forEach((key) => {
-      Object.defineProperty(sliceObject, key, {
-        get: () => storeInstance.state[sliceName][key],
+      Object.defineProperty(modelObject, key, {
+        get: () => storeInstance.state[modelName][key],
         enumerable: true,
         configurable: false
       });
@@ -3243,7 +3253,7 @@ var cami = (() => {
         const cacheKey = `${key}:${JSON.stringify(context.payload)}`;
         if (!computedCache.has(cacheKey)) {
           const dependencies = /* @__PURE__ */ new Set();
-          const proxyState = new Proxy(storeInstance.state[sliceName], {
+          const proxyState = new Proxy(storeInstance.state[modelName], {
             get(target, prop) {
               dependencies.add(prop);
               return target[prop];
@@ -3251,9 +3261,9 @@ var cami = (() => {
           });
           const result = computedFn(__spreadProps(__spreadValues({}, context), {
             state: proxyState,
-            actions: sliceObject,
-            queries: sliceObject,
-            computeds: sliceObject
+            actions: modelObject,
+            queries: modelObject,
+            computeds: modelObject
           }));
           computedCache.set(cacheKey, result);
           computedDependencies.set(cacheKey, dependencies);
@@ -3261,133 +3271,120 @@ var cami = (() => {
         return computedCache.get(cacheKey);
       };
     };
-    if (computed) {
-      Object.keys(computed).forEach((key) => {
-        Object.defineProperty(sliceObject, key, {
-          get: () => (...args) => createComputedProperty(key, computed[key])({ payload: args }),
-          enumerable: true,
-          configurable: false
+    const registerComponents = ({ actions: actions2 = {}, queries: queries2 = {}, mutations: mutations2 = {}, computed: computed2 = {} }) => {
+      Object.keys(actions2).forEach((actionKey) => {
+        const wrappedAction = (context) => {
+          const oldState = __spreadValues({}, context.state);
+          actions2[actionKey](context);
+          validateDeepState(schema, context.state);
+          computedDependencies.forEach((dependencies, cacheKey) => {
+            if ([...dependencies].some((dep) => oldState[dep] !== context.state[dep])) {
+              computedCache.delete(cacheKey);
+            }
+          });
+        };
+        const namespacedAction = `${modelName}/${actionKey}`;
+        storeInstance.action(namespacedAction, (context) => {
+          wrappedAction(__spreadProps(__spreadValues({}, context), {
+            state: context.state[modelName],
+            actions: modelObject,
+            queries: modelObject,
+            computeds: modelObject
+          }));
         });
+        modelObject[actionKey] = (...args) => storeInstance.dispatch(namespacedAction, ...args);
       });
-    }
-    const wrappedActions = Object.keys(actions).reduce((acc, actionKey) => {
-      acc[actionKey] = (context) => {
-        const oldState = __spreadValues({}, context.state);
-        actions[actionKey](context);
-        validateDeepState(schema, context.state);
-        computedDependencies.forEach((dependencies, cacheKey) => {
-          if ([...dependencies].some((dep) => oldState[dep] !== context.state[dep])) {
-            computedCache.delete(cacheKey);
-          }
-        });
-      };
-      return acc;
-    }, {});
-    Object.keys(wrappedActions).forEach((actionKey) => {
-      const namespacedAction = `${sliceName}/${actionKey}`;
-      storeInstance.action(namespacedAction, (context) => {
-        wrappedActions[actionKey](__spreadProps(__spreadValues({}, context), {
-          state: context.state[sliceName],
-          actions: sliceObject,
-          queries: sliceObject,
-          computeds: sliceObject
-        }));
-      });
-      sliceObject[actionKey] = (...args) => {
-        return storeInstance.dispatch(namespacedAction, ...args);
-      };
-    });
-    if (queries) {
-      Object.keys(queries).forEach((queryKey) => {
-        const namespacedQuery = `${sliceName}/${queryKey}`;
-        const queryConfig = __spreadProps(__spreadValues({}, queries[queryKey]), {
-          actions: sliceObject,
-          queries: sliceObject,
-          computeds: sliceObject,
-          queryFn: (context) => {
-            return queries[queryKey].queryFn(context);
-          },
+      Object.keys(queries2).forEach((queryKey) => {
+        const namespacedQuery = `${modelName}/${queryKey}`;
+        const queryConfig = __spreadProps(__spreadValues({}, queries2[queryKey]), {
+          actions: modelObject,
+          queries: modelObject,
+          computeds: modelObject,
+          queryFn: (context) => queries2[queryKey].queryFn(context),
           onSuccess: (context) => {
-            if (queries[queryKey].onSuccess) {
-              queries[queryKey].onSuccess(__spreadProps(__spreadValues({}, context), {
-                state: deepFreeze(context.state[sliceName]),
-                actions: sliceObject,
-                queries: sliceObject,
-                computeds: sliceObject
+            if (queries2[queryKey].onSuccess) {
+              queries2[queryKey].onSuccess(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[modelName]),
+                actions: modelObject,
+                queries: modelObject,
+                computeds: modelObject
               }));
             }
           },
           onError: (context) => {
-            if (queries[queryKey].onError) {
-              queries[queryKey].onError(__spreadProps(__spreadValues({}, context), {
-                state: deepFreeze(context.state[sliceName]),
-                actions: sliceObject,
-                queries: sliceObject,
-                computeds: sliceObject
+            if (queries2[queryKey].onError) {
+              queries2[queryKey].onError(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[modelName]),
+                actions: modelObject,
+                queries: modelObject,
+                computeds: modelObject
               }));
             }
           }
         });
         storeInstance.query(namespacedQuery, queryConfig);
-        sliceObject[queryKey] = (...args) => {
-          return storeInstance.fetch(namespacedQuery, ...args);
-        };
+        modelObject[queryKey] = (...args) => storeInstance.fetch(namespacedQuery, ...args);
       });
-    }
-    if (mutations) {
-      Object.keys(mutations).forEach((mutationKey) => {
-        const namespacedMutation = `${sliceName}/${mutationKey}`;
-        const mutationConfig = __spreadProps(__spreadValues({}, mutations[mutationKey]), {
-          actions: sliceObject,
-          queries: sliceObject,
-          computeds: sliceObject,
-          mutationFn: (args) => {
-            return mutations[mutationKey].mutationFn(args);
-          },
+      Object.keys(mutations2).forEach((mutationKey) => {
+        const namespacedMutation = `${modelName}/${mutationKey}`;
+        const mutationConfig = __spreadProps(__spreadValues({}, mutations2[mutationKey]), {
+          actions: modelObject,
+          queries: modelObject,
+          computeds: modelObject,
+          mutationFn: (args) => mutations2[mutationKey].mutationFn(args),
           onMutate: (context) => {
-            if (mutations[mutationKey].onMutate) {
-              return mutations[mutationKey].onMutate(__spreadProps(__spreadValues({}, context), {
-                state: deepFreeze(context.state[sliceName]),
-                actions: sliceObject,
-                queries: sliceObject,
-                computeds: sliceObject
+            if (mutations2[mutationKey].onMutate) {
+              return mutations2[mutationKey].onMutate(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[modelName]),
+                actions: modelObject,
+                queries: modelObject,
+                computeds: modelObject
               }));
             }
           },
           onSuccess: (context) => {
-            if (mutations[mutationKey].onSuccess) {
-              mutations[mutationKey].onSuccess(__spreadProps(__spreadValues({}, context), {
-                state: deepFreeze(context.state[sliceName]),
-                actions: sliceObject,
-                queries: sliceObject,
-                computeds: sliceObject
+            if (mutations2[mutationKey].onSuccess) {
+              mutations2[mutationKey].onSuccess(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[modelName]),
+                actions: modelObject,
+                queries: modelObject,
+                computeds: modelObject
               }));
             }
           },
           onError: (context) => {
-            if (mutations[mutationKey].onError) {
-              mutations[mutationKey].onError(__spreadProps(__spreadValues({}, context), {
-                state: deepFreeze(context.state[sliceName]),
-                actions: sliceObject,
-                queries: sliceObject,
-                computeds: sliceObject
+            if (mutations2[mutationKey].onError) {
+              mutations2[mutationKey].onError(__spreadProps(__spreadValues({}, context), {
+                state: deepFreeze(context.state[modelName]),
+                actions: modelObject,
+                queries: modelObject,
+                computeds: modelObject
               }));
             }
           }
         });
         storeInstance.mutation(namespacedMutation, mutationConfig);
-        sliceObject[mutationKey] = (...args) => {
-          return storeInstance.mutate(namespacedMutation, ...args);
-        };
+        modelObject[mutationKey] = (...args) => storeInstance.mutate(namespacedMutation, ...args);
       });
-    }
-    return new Proxy(sliceObject, {
+      Object.keys(computed2).forEach((key) => {
+        Object.defineProperty(modelObject, key, {
+          get: () => (...args) => createComputedProperty(key, computed2[key])({ payload: args }),
+          enumerable: true,
+          configurable: false
+        });
+      });
+    };
+    registerComponents({ actions, queries, mutations, computed });
+    modelObject.register = (components) => {
+      registerComponents(components);
+    };
+    return new Proxy(modelObject, {
       get(target, prop) {
         if (prop in target) {
           return target[prop];
         }
-        if (prop in storeInstance.state[sliceName]) {
-          return storeInstance.state[sliceName][prop];
+        if (prop in storeInstance.state[modelName]) {
+          return storeInstance.state[modelName][prop];
         }
         if (computed && prop in computed) {
           return createComputedProperty(prop, computed[prop]);

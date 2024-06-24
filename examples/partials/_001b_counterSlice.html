@@ -1,5 +1,5 @@
 <article>
-  <h1>Counter (Slice Version)</h1>
+  <h1>Counter (Model Version)</h1>
   <counter-component></counter-component>
 </article>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
@@ -7,14 +7,15 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
-  // Create a slice for the counter
-  const counterSlice = slice("counterSlice", {
-    store: "counter-store",
+  const CounterModel = model("CounterModel", {
     state: {
       count: 0
-    },
+    }
+  });
+
+  CounterModel.register({
     actions: {
       increment: ({ state }) => state.count++,
       decrement: ({ state }) => state.count--,
@@ -22,8 +23,8 @@
   });
 
   class CounterElement extends ReactiveElement {
-    onConnect() {
-      this.model = counterSlice;
+    onCreate() {
+      this.model = CounterModel;
     }
 
     template() {

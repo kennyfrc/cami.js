@@ -15,9 +15,9 @@
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, model } = cami;
 
-  const userFormSlice = slice("userFormSlice", {
+  const UserFormModel = model("UserFormModel", {
     store: "user-form-store",
     state: {
       user: { name: 'Kenn', age: 34, email: 'kenn@example.com' }
@@ -49,7 +49,7 @@
 
   class UserFormElement extends ReactiveElement {
     onCreate() {
-      this.model = userFormSlice;
+      this.model = UserFormModel;
     }
 
     handleInput(event, key) {
