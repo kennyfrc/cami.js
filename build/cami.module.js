@@ -3556,6 +3556,12 @@ var StorageInterface = {
   }
 };
 var StorageValidator = class {
+  /**
+   * @method validateAdapter
+   * @memberof StorageValidator
+   * @param {Object} adapter - The storage adapter to validate.
+   * @throws {Error} If the adapter is missing required methods or has invalid method signatures.
+   */
   static validateAdapter(adapter) {
     const requiredMethods = Object.keys(StorageInterface);
     const missingMethods = requiredMethods.filter((method) => {
@@ -3571,15 +3577,37 @@ var MemoryStorage = class {
     this.storage = /* @__PURE__ */ new Map();
     StorageValidator.validateAdapter(this);
   }
+  /**
+   * @method getItem
+   * @memberof MemoryStorage
+   * @param {string} key - The key of the item to retrieve.
+   * @returns {string|null} The value associated with the key, or null if the key does not exist.
+   */
   getItem(key) {
     return this.storage.get(key) || null;
   }
+  /**
+   * @method setItem
+   * @memberof MemoryStorage
+   * @param {string} key - The key of the item to set.
+   * @param {string} value - The value to set.
+   */
   setItem(key, value) {
     this.storage.set(key, value);
   }
+  /**
+   * @method removeItem
+   * @memberof MemoryStorage
+   * @param {string} key - The key of the item to remove.
+   */
   removeItem(key) {
     this.storage.delete(key);
   }
+  /**
+   * @method clear
+   * @memberof MemoryStorage
+   * @description Clears all items from the storage.
+   */
   clear() {
     this.storage.clear();
   }
@@ -3588,15 +3616,37 @@ var LocalStorageAdapter = class {
   constructor() {
     StorageValidator.validateAdapter(this);
   }
+  /**
+   * @method getItem
+   * @memberof LocalStorageAdapter
+   * @param {string} key - The key of the item to retrieve.
+   * @returns {string|null} The value associated with the key, or null if the key does not exist.
+   */
   getItem(key) {
     return localStorage.getItem(key);
   }
+  /**
+   * @method setItem
+   * @memberof LocalStorageAdapter
+   * @param {string} key - The key of the item to set.
+   * @param {string} value - The value to set.
+   */
   setItem(key, value) {
     localStorage.setItem(key, value);
   }
+  /**
+   * @method removeItem
+   * @memberof LocalStorageAdapter
+   * @param {string} key - The key of the item to remove.
+   */
   removeItem(key) {
     localStorage.removeItem(key);
   }
+  /**
+   * @method clear
+   * @memberof LocalStorageAdapter
+   * @description Clears all items from the storage.
+   */
   clear() {
     localStorage.clear();
   }
