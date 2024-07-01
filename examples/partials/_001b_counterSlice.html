@@ -8,11 +8,13 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
 
   const CounterModel = model("CounterModel", {
+    store: "counter-store",
     state: {
       count: 0
-    }
+    },
   });
 
   CounterModel.register({
@@ -20,18 +22,16 @@
       increment: ({ state }) => state.count++,
       decrement: ({ state }) => state.count--,
     }
-  });
+  })
 
   class CounterElement extends ReactiveElement {
-    onCreate() {
-      this.model = CounterModel;
-    }
-
     template() {
+      const { count, dispatch } = CounterModel;
+
       return html`
-        <button @click=${() => this.model.decrement()}>-</button>
-        <button @click=${() => this.model.increment()}>+</button>
-        <div>Count: ${this.model.count}</div>
+        <button @click=${() => dispatch('decrement')}>-</button>
+        <button @click=${() => dispatch('increment')}>+</button>
+        <div>Count: ${CounterModel.count}</div>
       `;
     }
   }

@@ -21,6 +21,26 @@ var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
 };
+var __async = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
 
 // src/html.js
 var global = globalThis;
@@ -1869,26 +1889,6 @@ var _deepEqual = (obj1, obj2) => {
   }
   return true;
 };
-var _deepMerge = (target, source) => {
-  if (typeof target !== "object" || target === null) {
-    return source;
-  }
-  if (typeof source !== "object" || source === null) {
-    return target;
-  }
-  Object.keys(source).forEach((key) => {
-    const targetValue = target[key];
-    const sourceValue = source[key];
-    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
-      target[key] = sourceValue;
-    } else if (typeof targetValue === "object" && targetValue !== null && typeof sourceValue === "object" && sourceValue !== null) {
-      target[key] = _deepMerge(__spreadValues({}, targetValue), sourceValue);
-    } else {
-      target[key] = sourceValue;
-    }
-  });
-  return target;
-};
 var _deepClone = (value) => {
   if (value === null || typeof value !== "object") {
     return value;
@@ -1946,6 +1946,7 @@ var __config = {
 // src/trace.js
 function __trace(functionName, ...messages) {
   if (__config.debug.isEnabled) {
+    const formattedMessages = messages.join("\n");
     if (functionName === "cami:elem:state:change") {
       console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", `Changed property state: ${messages[0]}`);
       console.log(`oldValue:`, messages[1]);
@@ -1955,7 +1956,7 @@ function __trace(functionName, ...messages) {
       console.log(`oldValue of ${messages[1][0].path.join(".")}:`, messages[1][0].value);
       console.log(`newValue of ${messages[2][0].path.join(".")}:`, messages[2][0].value);
     } else {
-      console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", ...messages);
+      console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", formattedMessages);
     }
     console.trace();
     console.groupEnd();
@@ -2429,6 +2430,14 @@ var ObservableStore = class extends Observable {
     this.mutationFunctions = /* @__PURE__ */ new Map();
     this.mutations = {};
     this.patchListeners = /* @__PURE__ */ new Map();
+    this._persistState = () => {
+      if (this.storage) {
+        const currentTime = /* @__PURE__ */ new Date();
+        const expiryTime = new Date(currentTime.getTime() + this.expiry);
+        this.storage.setItem(this.name, JSON.stringify(this.state));
+        this.storage.setItem(`${this.name}-expiry`, expiryTime.getTime().toString());
+      }
+    };
     Object.keys(initialState).forEach((key) => {
       if (typeof initialState[key] === "function") {
         this.action(key, initialState[key]);
@@ -2502,13 +2511,16 @@ var ObservableStore = class extends Observable {
       const expectedType = schema[key];
       const actualValue = state[key];
       const currentPath = [...path, key];
+      const actualType = this._inferType(actualValue);
+      if (actualType === "function") {
+        debugger;
+      }
       if (typeof expectedType === "object" && expectedType !== null) {
         if (typeof actualValue !== "object" || actualValue === null) {
           throw new TypeError(`Invalid type at ${currentPath.join(".")}. Expected object, got ${typeof actualValue}`);
         }
         this._validateDeepState(expectedType, actualValue, currentPath);
       } else {
-        const actualType = this._inferType(actualValue);
         if (expectedType === "maybeNull") {
         } else if (expectedType === "maybeUndefined") {
         } else if (actualType !== expectedType) {
@@ -2525,25 +2537,6 @@ var ObservableStore = class extends Observable {
     if (value === void 0)
       return "maybeUndefined";
     return typeof value;
-  }
-  /**
-   * Dispatches an action to update the store's state.
-   * @param {string|function} action - The action type (string) or action creator (function).
-   * @param {any} [payload] - The optional payload object to pass to the reducer.
-   * @example
-   * // Dispatching a simple action
-   * store.dispatch('increment');
-   *
-   * // Dispatching an action with payload
-   * store.dispatch('addItem', { id: 1, name: 'New Item' });
-   *
-   */
-  dispatch(action, payload) {
-    this.dispatchQueue.push({ action, payload });
-    if (!this.isDispatching) {
-      this._processDispatchQueue();
-    }
-    return this.currentDispatchPromise;
   }
   _processDispatchQueue() {
     this.isDispatching = true;
@@ -2688,19 +2681,22 @@ var ObservableStore = class extends Observable {
     }
     this.reducers[action] = ({ state, payload }) => {
       const result = reducer({ state, payload });
-      this._validateDeepState(this.schema, state);
       return result;
     };
     this.actions[action] = (...args) => {
       return this.dispatch(action, ...args);
     };
-    if (this[action] && typeof this[action] !== "function") {
-      console.warn(`[Cami.js] Property ${action} already exists on the store. Skipping method creation.`);
-    } else {
-      this[action] = (...args) => {
-        return this.dispatch(action, ...args);
-      };
+  }
+  dispatch(action, payload) {
+    this.dispatchQueue.push({ action, payload });
+    if (!this.isDispatching) {
+      this._processDispatchQueue();
     }
+    return this.currentDispatchPromise;
+  }
+  _modelDispatch(action, payload) {
+    const [modelName, actionName] = action.split("/");
+    return this.dispatch(`${modelName}/${actionName}`, payload);
   }
   /**
    * @method onPatch
@@ -2817,42 +2813,44 @@ var ObservableStore = class extends Observable {
       onSettled
     };
     this.queries[queryName] = (...args) => {
-      return this.fetch(queryName, ...args);
-    };
-    if (this[queryName]) {
-      throw new Error(`[Cami.js] Method with name ${queryName} has already been defined.`);
-    }
-    this[queryName] = (...args) => {
-      return this.fetch(queryName, ...args);
+      return this.read(queryName, ...args);
     };
   }
-  /**
-   * @method fetch
-   * @memberof ObservableStore
-   * @param {string} queryName - The name of the query to fetch.
-   * @param {...any} args - The arguments to pass to the query function.
-   * @returns {Promise} A promise that resolves to the query result.
-   * @description Fetches data for the given query name. If the data is cached and not stale, it returns the cached data.
-   * Otherwise, it fetches new data using the query function. Supports retry logic and calls lifecycle hooks.
-   * @example
-   * // Fetching data for a query named 'fetchPosts'
-   * appStore.fetch('fetchPosts', 'someId')
-   */
-  fetch(queryName, ...args) {
+  read(queryName, ...args) {
+    const options = args[args.length - 1] && typeof args[args.length - 1] === "object" ? args.pop() : {};
+    const useModelMethods = options.useModelMethods || queryName.includes("/");
     const query = this.queryFunctions[queryName];
     if (!query) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
     }
-    const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, actions, mutations } = query;
-    const context = {
+    const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
+    const [modelName, _] = queryName.split("/");
+    const storeContext = {
       state: deepFreeze(this.state),
-      actions,
-      queries: this.queryFunctions,
-      mutations,
-      invalidateQueries: this.invalidateQueries.bind(this),
-      payload: args.length > 1 ? args : args[0]
-      // Flatten payload if it's a single argument
+      dispatch: (action, payload) => {
+        if (useModelMethods) {
+          return this._modelDispatch(`${modelName}/${action}`, payload);
+        } else {
+          return this.dispatch(action, payload);
+        }
+      },
+      query: (query2, queryArgs) => {
+        if (useModelMethods) {
+          return this.modelFetch(`${modelName}/${query2}`, queryArgs);
+        } else {
+          return this.read(query2, queryArgs);
+        }
+      },
+      write: (mutation, mutationArgs) => {
+        if (useModelMethods) {
+          return this.modelMutate(`${modelName}/${mutation}`, mutationArgs);
+        } else {
+          return this.write(mutation, mutationArgs);
+        }
+      },
+      invalidateQueries: this.invalidateQueries.bind(this)
     };
+    const context = query.createContext ? query.createContext(storeContext, args) : storeContext;
     const cacheKey = typeof queryKey === "function" ? queryKey(args).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
     const cachedData = this.queryCache.get(cacheKey);
     if (cachedData && !cachedData.isStale && !this._isStale(cachedData, staleTime)) {
@@ -2866,7 +2864,7 @@ var ObservableStore = class extends Observable {
     }
     let resultData;
     let resultError;
-    return this._fetchWithRetry(queryFn, args, retry, retryDelay).then((data) => {
+    return this._fetchWithRetry(() => queryFn(context, ...args), retry, retryDelay).then((data) => {
       this.queryCache.set(cacheKey, { data, timestamp: Date.now(), isStale: false });
       resultData = data;
       if (onSuccess) {
@@ -2887,6 +2885,10 @@ var ObservableStore = class extends Observable {
         onSettled(__spreadProps(__spreadValues({}, context), { response: resultData, error: resultError }));
       }
     });
+  }
+  _modelRead(queryName, args) {
+    const [modelName, actualQueryName] = queryName.split("/");
+    return this.read(`${modelName}/${actualQueryName}`, args, { useModelMethods: true });
   }
   /**
    * @method invalidateQueries
@@ -2944,10 +2946,13 @@ var ObservableStore = class extends Observable {
         clearTimeout(this.gcTimeouts[queryName]);
         delete this.gcTimeouts[queryName];
       }
-      const cachedData = this.queryCache.get(cacheKey);
-      if (cachedData) {
-        cachedData.isStale = true;
+      if (!this.queryCache.has(cacheKey)) {
+        this.queryCache.set(cacheKey, { isStale: true, data: void 0 });
+      } else {
+        const cachedData2 = this.queryCache.get(cacheKey);
+        cachedData2.isStale = true;
       }
+      const cachedData = this.queryCache.get(cacheKey);
       invariant_default("Cached data should always exist if there's a query with that key", () => cachedData !== void 0);
       invariant_default("isStale is always true if there's a cached data", () => cachedData.isStale === true);
     });
@@ -2962,10 +2967,10 @@ var ObservableStore = class extends Observable {
    * @returns {Promise} A promise that resolves to the query result.
    * @description Executes the query function with retries and exponential backoff.
    */
-  _fetchWithRetry(queryFn, args, retry, retryDelay) {
+  _fetchWithRetry(queryFnWithContext, retry, retryDelay) {
     let attempts = 0;
     const executeFetch = () => {
-      return queryFn(...args).catch((error) => {
+      return queryFnWithContext().catch((error) => {
         if (attempts < retry) {
           attempts++;
           const delay = typeof retryDelay === "function" ? retryDelay(attempts) : retryDelay;
@@ -3021,7 +3026,7 @@ var ObservableStore = class extends Observable {
    *   }
    * });
    *
-   * appStore.mutate('deletePost', id);
+   * appStore.write('deletePost', id);
    * ```
    */
   mutation(mutationName, config) {
@@ -3047,93 +3052,74 @@ var ObservableStore = class extends Observable {
       queries
     };
     this.mutations[mutationName] = (...args) => {
-      return this.mutate(mutationName, ...args);
-    };
-    if (this[mutationName]) {
-      throw new Error(`[Cami.js] Method with name ${mutationName} has already been defined.`);
-    }
-    this[mutationName] = (...args) => {
-      return this.mutate(mutationName, ...args);
+      return this.write(mutationName, ...args);
     };
   }
-  /**
-   * @method mutate
-   * @memberof ObservableStore
-   * @param {string} mutationName - The name of the mutation to perform.
-   * @param {...any} args - The arguments to pass to the mutation function.
-   * @returns {Promise} A promise that resolves to the mutation result.
-   * @description Performs the mutation with the given name and arguments. This method handles the mutation lifecycle, including optimistic updates, success handling, and error handling.
-   * @example
-   * ```javascript
-   * // Define a mutation named 'deletePost'
-   * appStore.mutation('deletePost', {
-   *   // The function that performs the actual mutation logic
-   *   mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
-   *   // Optional: Optimistically update the state before the mutation
-   *   onMutate: (context) => {
-   *     context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
-   *   },
-   *   // Optional: Handle errors during mutation
-   *   onError: (context) => {
-   *     context.actions.setPosts(context.previousState.posts);
-   *   },
-   *   // Optional: Perform actions after a successful mutation
-   *   onSuccess: (context) => {
-   *     console.log('Mutation successful:', context);
-   *   },
-   *   // Optional: Perform actions after the mutation is settled (success or error)
-   *   onSettled: (context) => {
-   *     console.log('Mutation settled');
-   *     context.invalidateQueries('posts');
-   *   }
-   * });
-   *
-   * // Execute the 'deletePost' mutation with a post ID
-   * appStore.mutate('deletePost', 1);
-   * ```
-   */
-  mutate(mutationName, ...args) {
+  write(mutationName, args, options = {}) {
+    const useModelMethods = options.useModelMethods || mutationName.includes("/");
     const mutation = this.mutationFunctions[mutationName];
     if (!mutation) {
       throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
     }
-    const { mutationFn, onMutate, onError, onSuccess, onSettled, actions, queries } = mutation;
+    const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
+    const [modelName, _] = mutationName.split("/");
     const context = {
       state: deepFreeze(this.state),
       previousState: deepFreeze(this.state),
-      actions,
-      queries,
-      mutations: this.mutationFunctions,
+      dispatch: (action, payload) => {
+        if (useModelMethods) {
+          return this._modelDispatch(`${modelName}/${action}`, payload);
+        } else {
+          return this.dispatch(action, payload);
+        }
+      },
+      read: (query, queryArgs) => {
+        if (useModelMethods) {
+          return this._modelRead(`${modelName}/${query}`, queryArgs);
+        } else {
+          return this.read(query, queryArgs);
+        }
+      },
+      write: (mutation2, mutationArgs) => {
+        if (useModelMethods) {
+          return this._modelWrite(`${modelName}/${mutation2}`, mutationArgs);
+        } else {
+          return this.write(mutation2, mutationArgs);
+        }
+      },
       invalidateQueries: this.invalidateQueries.bind(this),
-      payload: args.length > 1 ? args : args[0]
-      // Flatten payload if it's a single argument
+      payload: args
     };
     if (onMutate) {
-      __trace(`mutate`, `Mutation in-progress: ${mutationName}`);
+      __trace(`write`, `Mutation in-progress: ${mutationName}`);
       onMutate(context);
     }
     let resultData;
     let resultError;
-    return mutationFn(...args).then((data) => {
+    return mutationFn(context).then((data) => {
       resultData = data;
       if (onSuccess) {
-        __trace(`mutate`, `Mutation successful: ${mutationName}`);
+        __trace(`write`, `Mutation successful: ${mutationName}`);
         onSuccess(__spreadProps(__spreadValues({}, context), { response: resultData }));
       }
       return resultData;
     }).catch((error) => {
       resultError = error;
       if (onError) {
-        __trace(`mutate`, `Mutation failed: ${mutationName}`);
+        __trace(`write`, `Mutation failed: ${mutationName}`);
         onError(__spreadProps(__spreadValues({}, context), { error: resultError }));
       }
       throw resultError;
     }).finally(() => {
       if (onSettled) {
-        __trace(`mutate`, `Mutation settled: ${mutationName}`);
+        __trace(`write`, `Mutation settled: ${mutationName}`);
         onSettled(__spreadProps(__spreadValues({}, context), { response: resultData, error: resultError }));
       }
     });
+  }
+  _modelWrite(mutationName, args) {
+    const [modelName, actualMutationName] = mutationName.split("/");
+    return this.write(`${modelName}/${actualMutationName}`, args, { useModelMethods: true });
   }
 };
 var deepFreeze = (value, deep = true) => {
@@ -3149,7 +3135,7 @@ var deepFreeze = (value, deep = true) => {
     }
   });
 };
-var model = (modelName, { store: storeName = "cami-store", state, actions = {}, queries = {}, mutations = {}, computed = {} }) => {
+var model = (modelName, { store: storeName = "cami-store", state, actions = {}, queries = {}, mutations = {}, computed = {}, machine, invalidationRules }) => {
   let storeInstance = store({
     state: { [modelName]: state },
     name: storeName
@@ -3161,188 +3147,386 @@ var model = (modelName, { store: storeName = "cami-store", state, actions = {}, 
     storeInstance.models = {};
   }
   storeInstance.models[modelName] = true;
-  if (!storeInstance.state[modelName]) {
-    storeInstance.state[modelName] = state;
-  }
+  const validateState = (storedState) => {
+    if (!invalidationRules || !invalidationRules.presence) {
+      __trace("cami:model", `No invalidation rules specified for model ${modelName}. Using state in model definition.`);
+      return false;
+    }
+    const { keys, values } = invalidationRules.presence;
+    if (keys) {
+      for (const key of keys) {
+        if (!(key in storedState)) {
+          __trace("cami:model", `Store Invalidated: Key '${key}' is missing in stored state for model ${modelName}.`);
+          return false;
+        }
+      }
+    }
+    if (values) {
+      for (const valueObj of values) {
+        for (const [key, value] of Object.entries(valueObj)) {
+          if (storedState[key] !== value) {
+            __trace("cami:model", `Store Invalidated: Value mismatch for key '${key}' in model ${modelName}. Expected ${value}, got ${storedState[key]}.`);
+            return false;
+          }
+        }
+      }
+    }
+    __trace("cami:model", `No invalidation rules violated for model ${modelName}.`);
+    return true;
+  };
+  const loadState = () => __async(void 0, null, function* () {
+    const storedState = storeInstance.storage.getItem(storeName);
+    if (!storedState) {
+      __trace("cami:model", `No stored state found for model ${modelName}. Using state in model definition.`);
+      return state;
+    }
+    const parsedState = JSON.parse(storedState);
+    const modelState = parsedState[modelName];
+    if (!validateState(modelState)) {
+      return state;
+    }
+    if (invalidationRules && invalidationRules.server) {
+      const { fetchFn, onFetch, onSuccess, onError, onSettled } = invalidationRules.server;
+      try {
+        if (onFetch)
+          onFetch();
+        __trace("cami:model", `Performing server-side validation for model ${modelName}.`);
+        const response = yield fetchFn();
+        if (onSuccess)
+          onSuccess(response);
+        let shouldInvalidate = false;
+        if (onSettled) {
+          onSettled({
+            response,
+            state: modelState,
+            invalidate: () => {
+              shouldInvalidate = true;
+            }
+          });
+        }
+        if (shouldInvalidate) {
+          __trace("cami:model", `Server-side validation invalidated stored state for model ${modelName}. Using state in model definition.`);
+          return state;
+        }
+      } catch (error) {
+        if (onError)
+          onError(error);
+        __trace("cami:model", `Server-side validation failed for model ${modelName}. Using state in model definition.`, error);
+        return state;
+      }
+    }
+    return modelState;
+  });
+  loadState().then((loadedState) => {
+    storeInstance.state[modelName] = loadedState;
+    storeInstance._persistState();
+  });
   const modelObject = {
     subscribe: (callback) => {
       return storeInstance.subscribe((state2) => callback(state2[modelName]));
-    }
+    },
+    dispatch: (actionName, payload) => {
+      const action = modelObject.actions[actionName];
+      if (!action)
+        throw new Error(`[Cami.js] Action '${actionName}' not found in model '${modelName}'.`);
+      return storeInstance.dispatch(`${modelName}/${actionName}`, payload);
+    },
+    read: (queryName, ...args) => storeInstance._modelRead(`${modelName}/${queryName}`, ...args),
+    write: (mutationName, payload) => {
+      const mutation = modelObject.mutations[mutationName];
+      if (!mutation)
+        throw new Error(`[Cami.js] Mutation '${mutationName}' not found in model '${modelName}'.`);
+      return storeInstance.write(`${modelName}/${mutationName}`, payload);
+    },
+    trigger: (eventName, payload) => {
+      if (!modelObject.machine || !modelObject.machine[eventName]) {
+        throw new Error(`[Cami.js] Event '${eventName}' not found in model '${modelName}' state machine.`);
+      }
+      return storeInstance.dispatch(`${modelName}/${eventName}`, payload);
+    },
+    compute: (computedName, payload) => {
+      const computedFn = modelObject.computed[computedName];
+      if (!computedFn)
+        throw new Error(`[Cami.js] Computed property '${computedName}' not found in model '${modelName}'.`);
+      return computedFn({ state: storeInstance.state[modelName], payload });
+    },
+    actions: {},
+    queries: {},
+    mutations: {},
+    computed: {},
+    machine: null
   };
   Object.keys(state).forEach((key) => {
     Object.defineProperty(modelObject, key, {
-      get: () => storeInstance.state[modelName][key],
+      get: () => {
+        return storeInstance.state[modelName][key];
+      },
       enumerable: true,
       configurable: false
     });
   });
-  const inferType = (value) => {
-    if (Array.isArray(value))
-      return "array";
-    if (value === null)
-      return "maybeNull";
-    if (value === void 0)
-      return "maybeUndefined";
-    if (typeof value === "object")
-      return createDeepSchema(value);
-    return typeof value;
-  };
-  const createDeepSchema = (state2) => {
-    return Object.keys(state2).reduce((acc, key) => {
-      acc[key] = inferType(state2[key]);
-      return acc;
-    }, {});
-  };
-  const schema = createDeepSchema(state);
-  const validateDeepState = (schema2, newState, path = []) => {
-    Object.keys(schema2).forEach((key) => {
-      const expectedType = schema2[key];
-      const actualValue = newState[key];
-      const currentPath = [...path, key];
-      if (typeof expectedType === "object" && expectedType !== null) {
-        if (typeof actualValue !== "object" || actualValue === null) {
-          throw new TypeError(`Invalid type at ${currentPath.join(".")}. Expected object, got ${typeof actualValue}`);
-        }
-        validateDeepState(expectedType, actualValue, currentPath);
-      } else {
-        const actualType = inferType(actualValue);
-        if (expectedType === "maybeNull") {
-        } else if (expectedType === "maybeUndefined") {
-        } else if (actualType !== expectedType) {
-          throw new TypeError(`Invalid type at ${currentPath.join(".")}. Expected ${expectedType}, got ${actualType}`);
-        }
-      }
-    });
-  };
-  const computedCache = /* @__PURE__ */ new Map();
-  const computedDependencies = /* @__PURE__ */ new Map();
-  const createComputedProperty = (key, computedFn) => {
-    return (context) => {
-      const cacheKey = `${key}:${JSON.stringify(context.payload)}`;
-      if (!computedCache.has(cacheKey)) {
-        const dependencies = /* @__PURE__ */ new Set();
-        const proxyState = new Proxy(storeInstance.state[modelName], {
-          get(target, prop) {
-            dependencies.add(prop);
-            return target[prop];
-          }
-        });
-        const result = computedFn(__spreadProps(__spreadValues({}, context), {
-          state: proxyState,
-          actions: modelObject,
-          queries: modelObject,
-          computeds: modelObject
-        }));
-        computedCache.set(cacheKey, result);
-        computedDependencies.set(cacheKey, dependencies);
-      }
-      return computedCache.get(cacheKey);
-    };
-  };
-  const registerComponents = ({ actions: actions2 = {}, queries: queries2 = {}, mutations: mutations2 = {}, computed: computed2 = {} }) => {
+  const registerComponents = ({ actions: actions2 = {}, queries: queries2 = {}, mutations: mutations2 = {}, computed: computed2 = {}, machine: machine2 }) => {
     Object.keys(actions2).forEach((actionKey) => {
-      const wrappedAction = (context) => {
-        const oldState = __spreadValues({}, context.state);
-        actions2[actionKey](context);
-        validateDeepState(schema, context.state);
-        computedDependencies.forEach((dependencies, cacheKey) => {
-          if ([...dependencies].some((dep) => oldState[dep] !== context.state[dep])) {
-            computedCache.delete(cacheKey);
-          }
-        });
-      };
       const namespacedAction = `${modelName}/${actionKey}`;
       storeInstance.action(namespacedAction, (context) => {
-        wrappedAction(__spreadProps(__spreadValues({}, context), {
+        const wrappedContext = __spreadProps(__spreadValues({}, context), {
           state: context.state[modelName],
-          actions: modelObject,
-          queries: modelObject,
-          computeds: modelObject
-        }));
+          dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
+          read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
+          write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
+          trigger: modelObject.trigger,
+          compute: modelObject.compute
+        });
+        return actions2[actionKey](wrappedContext);
       });
-      modelObject[actionKey] = (...args) => storeInstance.dispatch(namespacedAction, ...args);
+      modelObject.actions[actionKey] = actions2[actionKey];
     });
     Object.keys(queries2).forEach((queryKey) => {
       const namespacedQuery = `${modelName}/${queryKey}`;
       const queryConfig = __spreadProps(__spreadValues({}, queries2[queryKey]), {
-        actions: modelObject,
-        queries: modelObject,
-        computeds: modelObject,
-        queryFn: (context) => queries2[queryKey].queryFn(context),
-        onSuccess: (context) => {
-          if (queries2[queryKey].onSuccess) {
-            queries2[queryKey].onSuccess(__spreadProps(__spreadValues({}, context), {
-              state: deepFreeze(context.state[modelName]),
-              actions: modelObject,
-              queries: modelObject,
-              computeds: modelObject
-            }));
-          }
+        queryFn: (context, ...args) => {
+          const wrappedContext = __spreadProps(__spreadValues({}, context), {
+            state: context.state && context.state[modelName] || {},
+            dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
+            read: (query, args2) => storeInstance._modelRead(`${modelName}/${query}`, args2),
+            write: (mutation, args2) => storeInstance._modelWrite(`${modelName}/${mutation}`, args2),
+            trigger: modelObject.trigger,
+            compute: modelObject.compute
+          });
+          return queries2[queryKey].queryFn(wrappedContext, ...args);
         },
-        onError: (context) => {
-          if (queries2[queryKey].onError) {
-            queries2[queryKey].onError(__spreadProps(__spreadValues({}, context), {
-              state: deepFreeze(context.state[modelName]),
-              actions: modelObject,
-              queries: modelObject,
-              computeds: modelObject
-            }));
-          }
+        onSuccess: (context) => {
+          const wrappedContext = __spreadProps(__spreadValues({}, context), {
+            state: context.state && context.state[modelName] || {},
+            dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
+            read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
+            write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
+            trigger: modelObject.trigger,
+            compute: modelObject.compute
+          });
+          return queries2[queryKey].onSuccess(wrappedContext);
         }
       });
       storeInstance.query(namespacedQuery, queryConfig);
-      modelObject[queryKey] = (...args) => storeInstance.fetch(namespacedQuery, ...args);
+      modelObject.queries[queryKey] = (...args) => storeInstance.read(namespacedQuery, ...args, { useModelMethods: true });
     });
     Object.keys(mutations2).forEach((mutationKey) => {
       const namespacedMutation = `${modelName}/${mutationKey}`;
       const mutationConfig = __spreadProps(__spreadValues({}, mutations2[mutationKey]), {
-        actions: modelObject,
-        queries: modelObject,
-        computeds: modelObject,
-        mutationFn: (args) => mutations2[mutationKey].mutationFn(args),
-        onMutate: (context) => {
-          if (mutations2[mutationKey].onMutate) {
-            return mutations2[mutationKey].onMutate(__spreadProps(__spreadValues({}, context), {
-              state: deepFreeze(context.state[modelName]),
-              actions: modelObject,
-              queries: modelObject,
-              computeds: modelObject
-            }));
-          }
-        },
-        onSuccess: (context) => {
-          if (mutations2[mutationKey].onSuccess) {
-            mutations2[mutationKey].onSuccess(__spreadProps(__spreadValues({}, context), {
-              state: deepFreeze(context.state[modelName]),
-              actions: modelObject,
-              queries: modelObject,
-              computeds: modelObject
-            }));
-          }
-        },
-        onError: (context) => {
-          if (mutations2[mutationKey].onError) {
-            mutations2[mutationKey].onError(__spreadProps(__spreadValues({}, context), {
-              state: deepFreeze(context.state[modelName]),
-              actions: modelObject,
-              queries: modelObject,
-              computeds: modelObject
-            }));
-          }
+        mutationFn: (context) => {
+          const wrappedContext = __spreadProps(__spreadValues({}, context), {
+            state: context.state[modelName],
+            dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
+            read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
+            write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
+            trigger: modelObject.trigger,
+            compute: modelObject.compute
+          });
+          return mutations2[mutationKey].mutationFn(wrappedContext);
         }
       });
       storeInstance.mutation(namespacedMutation, mutationConfig);
-      modelObject[mutationKey] = (...args) => storeInstance.mutate(namespacedMutation, ...args);
+      modelObject.mutations[mutationKey] = (args) => storeInstance.write(namespacedMutation, args, { useModelMethods: true });
     });
-    Object.keys(computed2).forEach((key) => {
-      Object.defineProperty(modelObject, key, {
-        get: () => (...args) => createComputedProperty(key, computed2[key])({ payload: args }),
+    Object.keys(computed2).forEach((computedKey) => {
+      modelObject.computed[computedKey] = computed2[computedKey];
+    });
+    if (machine2) {
+      const validateMachine = (machineDefinition) => {
+        if (typeof machineDefinition !== "object" || machineDefinition === null) {
+          throw new Error("Machine definition must be an object");
+        }
+        Object.entries(machineDefinition).forEach(([eventName, event]) => {
+          if (typeof event !== "object" || event === null) {
+            throw new Error(`Event '${eventName}' must be an object`);
+          }
+          if (!event.to || typeof event.to !== "function" && typeof event.to !== "object") {
+            throw new Error(`Event '${eventName}' must have a 'to' property that is an object or a function returning an object`);
+          }
+          if (event.guard && typeof event.guard !== "function") {
+            throw new Error(`Guard for event '${eventName}' must be a function`);
+          }
+          if (event.onTransition && typeof event.onTransition !== "function") {
+            throw new Error(`onTransition for event '${eventName}' must be a function`);
+          }
+          if (event.onEntry && typeof event.onEntry !== "function") {
+            throw new Error(`onEntry for event '${eventName}' must be a function`);
+          }
+          if (event.onExit && typeof event.onExit !== "function") {
+            throw new Error(`onExit for event '${eventName}' must be a function`);
+          }
+          if (event.onTransition && typeof event.onTransition !== "function") {
+            throw new Error(`onTransition for event '${eventName}' must be a function`);
+          }
+        });
+      };
+      const getShapeDescription = (obj) => {
+        if (typeof obj !== "object" || obj === null) {
+          return typeof obj;
+        }
+        return Object.entries(obj).reduce((acc, [key, value]) => {
+          if (typeof value === "object" && value !== null) {
+            acc[key] = getShapeDescription(value);
+          } else if (Array.isArray(value)) {
+            acc[key] = `Array<${typeof value[0]}>`;
+          } else {
+            acc[key] = typeof value;
+          }
+          return acc;
+        }, {});
+      };
+      const validateToShape = (from, to) => {
+        if (from === void 0) {
+          return;
+        }
+        const fromShape = Array.isArray(from) ? from[0] : from;
+        if (typeof to !== "object" || to === null) {
+          const expectedShape = getShapeDescription(fromShape);
+          throw new Error(`Invalid 'to' state: must be an object.
+
+Expected key-value pairs:
+${JSON.stringify(expectedShape, null, 2)}`);
+        }
+        const mismatchedKeys = findMismatchedKeys(fromShape, to);
+        if (mismatchedKeys.length > 0) {
+          const expectedShape = getShapeDescription(fromShape);
+          throw new Error(`Invalid 'to' state shape.
+
+Expected key-value pairs:
+${JSON.stringify(expectedShape, null, 2)}
+
+Mismatched keys: ${mismatchedKeys.join(", ")}`);
+        }
+      };
+      const executeHandler = (handler, context) => {
+        if (typeof handler === "function") {
+          handler(context);
+        }
+      };
+      validateMachine(machine2);
+      modelObject.machine = machine2;
+      const isValidTransition = (from, currentState) => {
+        if (from === void 0) {
+          return true;
+        }
+        const checkState = (fromState, currentStateSlice) => {
+          if (typeof fromState !== "object" || fromState === null) {
+            return fromState === currentStateSlice;
+          }
+          return Object.entries(fromState).every(([key, value]) => {
+            if (!(key in currentStateSlice)) {
+              return false;
+            }
+            if (Array.isArray(value)) {
+              return value.includes(currentStateSlice[key]);
+            }
+            if (typeof value === "object" && value !== null) {
+              return checkState(value, currentStateSlice[key]);
+            }
+            return currentStateSlice[key] === value;
+          });
+        };
+        if (Array.isArray(from)) {
+          return from.some((state2) => checkState(state2, currentState));
+        }
+        return checkState(from, currentState);
+      };
+      Object.keys(modelObject.machine).forEach((eventName) => {
+        const namespacedAction = `${modelName}/${eventName}`;
+        storeInstance.action(namespacedAction, ({ state: state2, payload }) => {
+          const currentState = __spreadValues({}, state2[modelName]);
+          const event = modelObject.machine[eventName];
+          if (isValidTransition(event.from, currentState)) {
+            const applyTransition = (to) => {
+              try {
+                validateToShape(event.from, to);
+              } catch (error) {
+                console.error(`[Cami.js] State transition error for event '${eventName}':`, error.message);
+                return;
+              }
+              executeHandler(event.onExit, {
+                state: currentState,
+                dispatch: modelObject.dispatch,
+                read: modelObject.read,
+                write: modelObject.write,
+                trigger: modelObject.trigger,
+                compute: modelObject.compute,
+                payload
+              });
+              Object.entries(to).forEach(([key, value]) => {
+                state2[modelName][key] = value;
+              });
+              executeHandler(event.onEntry, {
+                state: state2[modelName],
+                dispatch: modelObject.dispatch,
+                read: modelObject.read,
+                write: modelObject.write,
+                trigger: modelObject.trigger,
+                compute: modelObject.compute,
+                payload
+              });
+            };
+            const newState = typeof event.to === "function" ? event.to({ state: currentState, payload }) : event.to;
+            applyTransition(newState);
+            executeHandler(event.onTransition, {
+              state: state2[modelName],
+              dispatch: modelObject.dispatch,
+              read: modelObject.read,
+              write: modelObject.write,
+              trigger: modelObject.trigger,
+              compute: modelObject.compute,
+              from: currentState,
+              to: newState,
+              payload
+            });
+          } else {
+            __trace(
+              "cami:state-machine:ignored-transition",
+              `Ignored transition '${eventName}' event from the current state.
+
+`,
+              `Current state:
+
+${JSON.stringify(currentState)}
+
+`,
+              `The '${eventName}' event expected any of these 'from' states:
+`,
+              ...Array.isArray(event.from) ? event.from.map((validState, index) => `  ${index + 1}. ${JSON.stringify(validState)}`) : [`  ${JSON.stringify(event.from)}`],
+              "\n\nA key or element of the current state must match one of the 'from' states to trigger the state transition. If you intended to transition, either the 'from' state or current state is incorrect.\n"
+            );
+          }
+        });
+      });
+      const findMismatchedKeys = (expected, actual, prefix = "") => {
+        const mismatched = [];
+        Object.keys(expected).forEach((key) => {
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (!(key in actual)) {
+            mismatched.push(`${fullKey} (missing)`);
+          } else if (typeof expected[key] !== typeof actual[key]) {
+            mismatched.push(`${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`);
+          } else if (typeof expected[key] === "object" && expected[key] !== null) {
+            mismatched.push(...findMismatchedKeys(expected[key], actual[key], fullKey));
+          }
+        });
+        return mismatched;
+      };
+      modelObject.canTransition = (eventName) => {
+        const currentState = storeInstance.state[modelName];
+        const event = modelObject.machine[eventName];
+        if (!event)
+          return false;
+        return isValidTransition(event.from, currentState);
+      };
+      Object.defineProperty(modelObject, "state", {
+        get: () => storeInstance.state[modelName],
         enumerable: true,
         configurable: false
       });
-    });
+    }
   };
-  registerComponents({ actions, queries, mutations, computed });
+  registerComponents({ actions, queries, mutations, computed, machine });
   modelObject.register = (components) => {
     registerComponents(components);
   };
@@ -3354,83 +3538,130 @@ var model = (modelName, { store: storeName = "cami-store", state, actions = {}, 
       if (prop in storeInstance.state[modelName]) {
         return storeInstance.state[modelName][prop];
       }
-      if (computed && prop in computed) {
-        return createComputedProperty(prop, computed[prop]);
+      if (target.computed && prop in target.computed) {
+        return target.compute(prop);
       }
       return void 0;
     }
   });
 };
-var _localStorageEnhancer = (StoreClass) => {
+var StorageInterface = {
+  getItem: (key) => {
+  },
+  setItem: (key, value) => {
+  },
+  removeItem: (key) => {
+  },
+  clear: () => {
+  }
+};
+var StorageValidator = class {
+  static validateAdapter(adapter) {
+    const requiredMethods = Object.keys(StorageInterface);
+    const missingMethods = requiredMethods.filter((method) => {
+      return !(method in adapter) || typeof adapter[method] !== "function" || adapter[method].length !== StorageInterface[method].length;
+    });
+    if (missingMethods.length > 0) {
+      throw new Error(`Invalid storage adapter: missing or invalid methods: ${missingMethods.join(", ")}`);
+    }
+  }
+};
+var MemoryStorage = class {
+  constructor() {
+    this.storage = /* @__PURE__ */ new Map();
+    StorageValidator.validateAdapter(this);
+  }
+  getItem(key) {
+    return this.storage.get(key) || null;
+  }
+  setItem(key, value) {
+    this.storage.set(key, value);
+  }
+  removeItem(key) {
+    this.storage.delete(key);
+  }
+  clear() {
+    this.storage.clear();
+  }
+};
+var LocalStorageAdapter = class {
+  constructor() {
+    StorageValidator.validateAdapter(this);
+  }
+  getItem(key) {
+    return localStorage.getItem(key);
+  }
+  setItem(key, value) {
+    localStorage.setItem(key, value);
+  }
+  removeItem(key) {
+    localStorage.removeItem(key);
+  }
+  clear() {
+    localStorage.clear();
+  }
+};
+var _storageEnhancer = (StoreClass) => {
   return (initialState, options) => {
     const storeName = (options == null ? void 0 : options.name) || "default-store";
     const shouldLoad = (options == null ? void 0 : options.load) !== false;
     const defaultExpiry = 24 * 60 * 60 * 1e3;
     const expiry = (options == null ? void 0 : options.expiry) !== void 0 ? options.expiry : defaultExpiry;
-    const localInitialState = _deepClone(initialState);
-    const store2 = new StoreClass(initialState);
-    store2.name = storeName;
-    const validateSchema = (loadedState, initialState2) => {
-      const initialKeys = Object.keys(initialState2);
-      const loadedKeys = Object.keys(loadedState);
-      const allInitialKeysPresent = initialKeys.every((key) => loadedKeys.includes(key));
-      const allLoadedKeysValid = loadedKeys.every((key) => initialKeys.includes(key));
-      return allInitialKeysPresent && allLoadedKeysValid;
-    };
-    store2.init = () => {
+    const storage = options.storageAdapter;
+    const adapterType = options.adapterType;
+    const loadState = () => {
       if (shouldLoad) {
-        const storedState = localStorage.getItem(storeName);
-        const storedExpiry = localStorage.getItem(`${storeName}-expiry`);
+        const storedState = storage.getItem(storeName);
+        const storedExpiry = storage.getItem(`${storeName}-expiry`);
         const currentTime = /* @__PURE__ */ new Date();
-        __trace("cami:localStorage", `Identified localStorage: ${storeName}.`);
+        __trace("cami:storage", `Identified ${adapterType} storage: ${storeName}.`);
         if (storedState && storedExpiry) {
           const isExpired = currentTime.getTime() >= parseInt(storedExpiry, 10);
-          __trace("cami:localStorage", `Confirmed expiry status: ${isExpired ? "Has Expired" : "Still Valid"}`);
+          __trace("cami:storage", `Checked expiry status for ${adapterType} storage: ${isExpired ? "Has Expired" : "Still Valid"}`);
           if (!isExpired) {
             const loadedState = JSON.parse(storedState);
-            __trace("cami:localStorage", `Loaded state from localStorage. See Chrome Devtools > Storage > Local Storage`);
-            if (validateSchema(loadedState, localInitialState)) {
-              store2.state = store2._createProxy(createDraft(_deepMerge(loadedState, localInitialState)));
-            } else {
-              __trace("cami:localStorage", `Loaded state does not match the schema. Resetting localStorage and using initial state.`);
-              localStorage.removeItem(storeName);
-              localStorage.removeItem(`${storeName}-expiry`);
-              store2.state = store2._createProxy(createDraft(localInitialState));
-            }
-          } else {
-            __trace("cami:localStorage", `Stored state has expired. Removing from localStorage and using initial state.`);
-            localStorage.removeItem(storeName);
-            localStorage.removeItem(`${storeName}-expiry`);
-            store2.state = store2._createProxy(createDraft(localInitialState));
+            __trace("cami:storage", `Loaded state from ${adapterType} storage`);
+            return loadedState;
           }
-        } else {
-          __trace("cami:localStorage", `No stored state found in localStorage. Using initial state.`);
-          store2.state = store2._createProxy(createDraft(localInitialState));
         }
       }
+      __trace("cami:storage", `Using initial state for ${adapterType} storage:`, initialState);
+      return initialState;
     };
-    store2.init();
-    store2.reset = () => {
-      localStorage.removeItem(storeName);
-      localStorage.removeItem(`${storeName}-expiry`);
-      store2.state = store2._createProxy(createDraft(initialState));
-      __trace("cami:localStorage", `Resetted store state of ${storeName}`);
-      store2.__observers.forEach((observer) => observer.next(store2.state));
-    };
-    store2.subscribe((state) => {
+    const initialLoadedState = loadState();
+    const store2 = new StoreClass(initialLoadedState);
+    store2.name = storeName;
+    store2.storage = storage;
+    store2.expiry = expiry;
+    store2._persistState = () => {
       const currentTime = /* @__PURE__ */ new Date();
       const expiryTime = new Date(currentTime.getTime() + expiry);
-      localStorage.setItem(storeName, JSON.stringify(state));
-      localStorage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
+      storage.setItem(storeName, JSON.stringify(store2.state));
+      storage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
+    };
+    store2.reset = () => {
+      storage.removeItem(storeName);
+      storage.removeItem(`${storeName}-expiry`);
+      store2.state = store2._createProxy(createDraft(initialState));
+      __trace("cami:storage", `Reset store state of ${storeName} in ${adapterType} storage to:`, store2.state);
+      store2.__observers.forEach((observer) => observer.next(store2.state));
+      store2._persistState();
+    };
+    store2.subscribe((state) => {
+      store2._persistState();
     });
     return store2;
   };
 };
 var storeInstances = /* @__PURE__ */ new Map();
+var ADAPTERS = {
+  memory: MemoryStorage,
+  localStorage: LocalStorageAdapter
+};
 var store = (config = {}) => {
   const defaultConfig = {
     state: {},
-    localStorage: true,
+    adapter: "localStorage",
     name: "cami-store",
     expiry: 864e5
     // 24 hours
@@ -3439,12 +3670,15 @@ var store = (config = {}) => {
   if (storeInstances.has(finalConfig.name)) {
     return storeInstances.get(finalConfig.name);
   }
-  let storeInstance;
-  if (finalConfig.localStorage) {
-    storeInstance = _localStorageEnhancer(ObservableStore)(finalConfig.state, finalConfig);
-  } else {
-    storeInstance = new ObservableStore(finalConfig.state);
+  const AdapterClass = ADAPTERS[finalConfig.adapter];
+  if (!AdapterClass) {
+    throw new Error(`Invalid adapter: ${finalConfig.adapter}. Available adapters are: ${Object.keys(ADAPTERS).join(", ")}`);
   }
+  const storageAdapter = new AdapterClass();
+  const storeInstance = _storageEnhancer(ObservableStore)(finalConfig.state, __spreadProps(__spreadValues({}, finalConfig), {
+    storageAdapter,
+    adapterType: finalConfig.adapter
+  }));
   storeInstances.set(finalConfig.name, storeInstance);
   return storeInstance;
 };

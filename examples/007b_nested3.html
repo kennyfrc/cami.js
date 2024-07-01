@@ -16,6 +16,7 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
 
   const UserModel = model("UserModel", {
     store: "user-store",
@@ -48,7 +49,10 @@
           }
         },
       ]
-    },
+    }
+  });
+
+  UserModel.register({
     actions: {
       updateStatus: ({ state, payload }) => {
         const user = state.users.find(user => user.id === payload.id);
@@ -72,21 +76,19 @@
   });
 
   class UserListElement extends ReactiveElement {
-    onCreate() {
-      this.model = UserModel;
-    }
-
     template() {
+      const { users, dispatch } = UserModel;
+
       return html`
         <ul>
-          ${this.model.users.map(user => html`
+          ${users.map(user => html`
             <li>
               ${user.name} - ${user.status}<br />
               ${user.address.street} - ${user.address.coordinates.lat}
-              <button @click=${() => this.model.updateStatus({ id: user.id, status: "Active" })}>Activate</button>
-              <button @click=${() => this.model.updateStatus({ id: user.id, status: "Inactive" })}>Deactivate</button>
-              <button @click=${() => this.model.updateStreet({ id: user.id, street: "999 Main St" })}>Change Street</button>
-              <button @click=${() => this.model.updateLat({ id: user.id, lat: "99.9999" })}>Change Latitude</button>
+              <button @click=${() => dispatch('updateStatus', { id: user.id, status: "Active" })}>Activate</button>
+              <button @click=${() => dispatch('updateStatus', { id: user.id, status: "Inactive" })}>Deactivate</button>
+              <button @click=${() => dispatch('updateStreet', { id: user.id, street: "999 Main St" })}>Change Street</button>
+              <button @click=${() => dispatch('updateLat', { id: user.id, lat: "99.9999" })}>Change Latitude</button>
             </li>
           `)}
         </ul>

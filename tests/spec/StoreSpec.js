@@ -3,6 +3,7 @@ const { store } = cami;
 describe("Cami Store", function() {
   describe("Basic Functionality", function() {
     let createStore;
+    let appStore;
 
     beforeEach(function() {
       createStore = () => store({
@@ -12,15 +13,21 @@ describe("Cami Store", function() {
       });
     });
 
+    afterEach(function() {
+      // Null the appStore and reset it after each test
+      appStore = null;
+      createStore = null;
+    });
+
     it("should initialize with the given initial state", function() {
-      const appStore = createStore();
+      appStore = createStore();
       expect(appStore.count).toBe(0);
       expect(appStore.nested.value).toBe(10);
       expect(appStore.list).toEqual([]);
     });
 
     it("should allow action registration and handle dispatch", function() {
-      const appStore = createStore();
+      appStore = createStore();
       appStore.action('increment', ({ state, payload }) => {
         state.count += payload || 1;
       });
@@ -31,7 +38,7 @@ describe("Cami Store", function() {
     });
 
     it("should handle multiple actions and their interactions", function() {
-      const appStore = createStore();
+      appStore = createStore();
       appStore.action('increment', ({ state }) => {
         state.count += 1;
       });
@@ -52,7 +59,7 @@ describe("Cami Store", function() {
     });
 
     it("should handle nested state updates", function() {
-      const appStore = createStore();
+      appStore = createStore();
       appStore.action('updateNested', ({ state, payload }) => {
         state.nested.value = payload;
       });
@@ -61,7 +68,7 @@ describe("Cami Store", function() {
     });
 
     it("should handle array operations", function() {
-      const appStore = createStore();
+      appStore = createStore();
       appStore.action('addItem', ({ state, payload }) => {
         state.list.push(payload);
       });
@@ -80,7 +87,7 @@ describe("Cami Store", function() {
     });
 
     it("should apply middleware to dispatched actions", async function() {
-      const appStore = createStore();
+      appStore = createStore();
       const middlewareSpy = jasmine.createSpy('middleware').and.callFake(async (next) => {
         await new Promise(resolve => setTimeout(resolve, 10)); // Simulate async operation
       });
@@ -93,23 +100,35 @@ describe("Cami Store", function() {
       expect(appStore.count).toBe(1);
     });
 
-    it("should handle complex state transformations", function() {
-      const appStore = createStore();
-      appStore.action('complexUpdate', ({ state, payload }) => {
-        state.count *= 2;
-        state.nested.value += payload;
-        state.list = state.list.concat([state.count, state.nested.value]);
+    describe("Complex State Transformations", function() {
+      let appStore;
+
+      beforeEach(function() {
+        appStore = createStore();
+        appStore.action('complexUpdate', ({ state, payload }) => {
+          state.count *= 2;
+          state.nested.value += payload;
+          state.list = state.list.concat([state.count, state.nested.value]);
+        });
       });
 
-      appStore.dispatch('complexUpdate', 5);
-      expect(appStore.count).toBe(0);
-      expect(appStore.nested.value).toBe(15);
-      expect(appStore.list).toEqual([0, 15]);
+      it("should handle the first complex state transformation", function() {
+        appStore.dispatch('complexUpdate', 5);
+        expect(appStore.count).toBe(0);
+        expect(appStore.nested.value).toBe(15);
+        expect(appStore.list).toEqual([0, 15]);
+      });
 
-      appStore.dispatch('complexUpdate', 10);
-      expect(appStore.count).toBe(0);
-      expect(appStore.nested.value).toBe(25);
-      expect(appStore.list).toEqual([0, 15, 0, 25]);
-    });
+      it("should handle the second complex state transformation", function() {
+        // First dispatch to set up the initial state
+        appStore.dispatch('complexUpdate', 5);
+
+        // The actual test dispatch
+        appStore.dispatch('complexUpdate', 10);
+        expect(appStore.count).toBe(0);
+        expect(appStore.nested.value).toBe(25);
+        expect(appStore.list).toEqual([0, 15, 0, 25]);
+      });
+});
   });
 });

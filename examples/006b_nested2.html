@@ -82,19 +82,17 @@
   });
 
   class NestedObservableElement extends ReactiveElement {
-    onCreate() {
-      this.model = UserModel;
-    }
-
     template() {
+      const { user, dispatch } = UserModel;
+
       return html`
-        <div>Name: ${this.model.user.name}</div>
-        <div>Street: ${this.model.user.address.street}</div>
-        <div>Latitude: ${this.model.user.address.coordinates.lat}</div>
-        <button @click=${() => this.model.changeUser()}>Change User</button>
-        <button @click=${() => this.model.changeName()}>Change Name</button>
-        <button @click=${() => this.model.changeStreet()}>Change Street</button>
-        <button @click=${() => this.model.changeLat()}>Change Latitude</button>
+        <div>Name: ${user.name}</div>
+        <div>Street: ${user.address.street}</div>
+        <div>Latitude: ${user.address.coordinates.lat}</div>
+        <button @click=${() => dispatch('changeUser')}>Change User</button>
+        <button @click=${() => dispatch('changeName')}>Change Name</button>
+        <button @click=${() => dispatch('changeStreet')}>Change Street</button>
+        <button @click=${() => dispatch('changeLat')}>Change Latitude</button>
       `;
     }
   }

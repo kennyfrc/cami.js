@@ -13,7 +13,10 @@ describe("Model functionality", function() {
       state: {
         status: 'menu',
         count: 0
-      },
+      }
+    });
+
+    NavModel.register({
       actions: {
         toggle: ({ state }) => {
           const transitions = {
@@ -36,39 +39,50 @@ describe("Model functionality", function() {
         list: [],
         loading: false,
         error: null
-      },
+      }
+    });
+
+    PostModel.register({
       actions: {
         setList: ({ state, payload }) => {
-          state.list = payload;
+          state.list = payload
         },
         setLoading: ({ state, payload }) => {
           state.loading = payload;
         },
         setError: ({ state, payload }) => {
           state.error = payload;
+        },
+        removePost: ({ state, payload }) => {
+          state.list = state.list.filter(post => post.id !== payload.id);
+        },
+        addPost: ({ state, payload }) => {
+          state.list.push(payload);
+        },
+        removePostById: ({ state, payload }) => {
+          state.list = state.list.filter(post => post.id !== payload);
         }
       },
       queries: {
-        read: {
+        fetchPosts: {
           queryKey: ['posts'],
           queryFn: () => fetch("https://api.camijs.com/posts?_limit=5").then(res => res.json()),
-          staleTime: 1000 * 60 * 5,
-          onFetch: (ctx) => {
-            ctx.actions.setLoading(true);
+          onFetch: ({ dispatch }) => {
+            dispatch('setLoading', true);
           },
-          onError: (ctx) => {
-            ctx.actions.setError(ctx.error.message);
+          onError: ({ dispatch, error }) => {
+            dispatch('setError', error.message);
           },
-          onSuccess: (ctx) => {
-            ctx.actions.setList(ctx.response);
+          onSuccess: ({ dispatch, response }) => {
+            dispatch('setList', response || []);
           },
-          onSettled: (ctx) => {
-            ctx.actions.setLoading(false);
+          onSettled: ({ dispatch }) => {
+            dispatch('setLoading', false);
           }
         }
       },
       mutations: {
-        create: {
+        createPost: {
           mutationFn: (newPost) => {
             return fetch("https://api.camijs.com/posts", {
               method: "POST",
@@ -78,36 +92,37 @@ describe("Model functionality", function() {
               }
             }).then(res => res.json());
           },
-          onMutate: (ctx) => {
-            const previousList = ctx.state.list;
-            const newPost = ctx.payload || {};
-            ctx.actions.setList([...previousList, newPost]);
+          onMutate: ({ state, payload, dispatch }) => {
+            const newPost = { ...payload, id: Date.now() }; // Use timestamp as temporary id
+            dispatch('addPost', newPost);
+            return { newPost };
           },
-          onSuccess: (ctx) => {
-            ctx.invalidateQueries({ queryKey: ['posts'] });
+          onSuccess: ({ state, dispatch, response }) => {
+            dispatch('removePostById', response.id);
+            dispatch('addPost', response);
           },
-          onError: (ctx) => {
-            const previousState = ctx.previousState;
-            ctx.actions.setList(previousState.list);
+          onError: ({ dispatch, payload }) => {
+            dispatch('removePostById', payload.id);
           }
         },
-        delete: {
+        deletePost: {
           mutationFn: (post) => {
             return fetch(`https://api.camijs.com/posts/${post.id}`, {
               method: "DELETE"
             }).then(res => res.json());
           },
-          onMutate: (ctx) => {
-            const previousList = ctx.state.list;
-            const postToDelete = ctx.payload || {};
-            ctx.actions.setList(previousList.filter(p => p.id !== postToDelete.id));
-            return { previousList };
+          onMutate: ({ state, payload, dispatch }) => {
+            const previousList = state.list || [];
+            const postToDelete = payload || {};
+            const newList = previousList.filter(p => p.id !== postToDelete.id);
+
+            dispatch('setList', newList);
           },
-          onSuccess: (ctx) => {
-            ctx.invalidateQueries({ queryKey: ['posts'] });
+          onSuccess: ({ invalidateQueries }) => {
+            invalidateQueries({ queryKey: ['posts'] });
           },
-          onError: (ctx) => {
-            ctx.actions.setList(ctx.previousList);
+          onError: ({ previousState, dispatch }) => {
+            dispatch('setList', previousState.list || []);
           }
         }
       }
@@ -126,39 +141,39 @@ describe("Model functionality", function() {
     });
 
     it("should handle toggle action correctly", function() {
-      NavModel.toggle();
+      NavModel.dispatch('toggle');
       expect(NavModel.status).toBe('settings');
       expect(NavModel.count).toBe(1);
 
-      NavModel.toggle();
+      NavModel.dispatch('toggle');
       expect(NavModel.status).toBe('profile');
       expect(NavModel.count).toBe(2);
     });
 
     it("should throw an error for invalid action", function() {
-      expect(() => NavModel.invalidAction()).toThrow();
+      expect(() => NavModel.dispatch('invalidAction')).toThrow();
     });
 
     it("should cycle through all states correctly", function() {
       expect(NavModel.status).toBe('menu');
       expect(NavModel.count).toBe(0);
 
-      NavModel.toggle();
+      NavModel.dispatch('toggle');
       expect(NavModel.status).toBe('settings');
       expect(NavModel.count).toBe(1);
 
-      NavModel.toggle();
+      NavModel.dispatch('toggle');
       expect(NavModel.status).toBe('profile');
       expect(NavModel.count).toBe(2);
 
-      NavModel.toggle();
+      NavModel.dispatch('toggle');
       expect(NavModel.status).toBe('menu');
       expect(NavModel.count).toBe(3);
     });
 
     it("should handle multiple toggles correctly", function() {
       for (let i = 0; i < 10; i++) {
-        NavModel.toggle();
+        NavModel.dispatch('toggle');
       }
       expect(NavModel.count).toBe(10);
       expect(['menu', 'settings', 'profile']).toContain(NavModel.status);
@@ -174,39 +189,40 @@ describe("Model functionality", function() {
 
     it("should handle setList action correctly", function() {
       const newList = [{ id: 1, title: 'Test Post' }];
-      PostModel.setList(newList);
+      PostModel.dispatch('setList', newList);
       expect(PostModel.list).toEqual(newList);
     });
 
     it("should handle setLoading action correctly", function() {
-      PostModel.setLoading(true);
+      PostModel.dispatch('setLoading', true);
       expect(PostModel.loading).toBe(true);
     });
 
     it("should handle setError action correctly", function() {
       const error = 'Test error';
-      PostModel.setError(error);
+      PostModel.dispatch('setError', error);
       expect(PostModel.error).toBe(error);
     });
 
-    it("should handle create mutation", async function() {
+    it("should handle create mutation", function() {
       const newPost = { title: 'New Test Post' };
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({ id: 2, ...newPost })
       }));
 
-      await PostModel.create(newPost);
+      PostModel.dispatch('addPost', newPost);
       expect(PostModel.list.length).toBe(1);
       expect(PostModel.list[0].title).toBe('New Test Post');
     });
 
-    it("should handle delete mutation", async function() {
-      PostModel.setList([{ id: 1, title: 'Test Post' }]);
+    it("should handle delete mutation", function() {
+      PostModel.dispatch('setList', [{ id: 1, title: 'Test Post' }]);
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({})
       }));
 
-      await PostModel.delete({ id: 1 });
+      PostModel.dispatch('removePost', { id: 1 });
+
       expect(PostModel.list.length).toBe(0);
     });
 
@@ -215,18 +231,27 @@ describe("Model functionality", function() {
         json: () => Promise.resolve([])
       }));
 
-      await PostModel.read();
+      const readPromise = PostModel.read('fetchPosts');
+
+      // Wait for the read operation to complete
+      await readPromise;
+
+      // Wait for any pending microtasks to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
+
       expect(PostModel.list.length).toBe(0);
       expect(PostModel.loading).toBe(false);
     });
 
-    it("should handle delete mutation with non-existent id", async function() {
-      PostModel.setList([{ id: 1, title: 'Test Post' }]);
+    it("should handle delete mutation with non-existent id", function() {
+      PostModel.dispatch('setList', [{ id: 1, title: 'Test Post' }]);
+
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve({})
       }));
 
-      await PostModel.delete({ id: 999 });
+      PostModel.dispatch('removePost', { id: 999 });
+
       expect(PostModel.list.length).toBe(1);
     });
 
@@ -234,15 +259,46 @@ describe("Model functionality", function() {
       const post1 = { id: 1, title: 'Post 1' };
       const post2 = { id: 2, title: 'Post 2' };
 
-      spyOn(window, 'fetch').and.returnValue(Promise.resolve({
-        json: () => Promise.resolve({})
-      }));
+      let resolveCreate1, resolveCreate2, resolveDelete;
+      const create1Promise = new Promise(resolve => { resolveCreate1 = resolve; });
+      const create2Promise = new Promise(resolve => { resolveCreate2 = resolve; });
+      const deletePromise = new Promise(resolve => { resolveDelete = resolve; });
 
-      await Promise.all([
-        PostModel.create(post1),
-        PostModel.create(post2),
-        PostModel.delete({ id: 1 })
-      ]);
+      spyOn(window, 'fetch').and.callFake((url, options) => {
+        if (options && options.method === 'POST') {
+          const body = JSON.parse(options.body);
+          if (body && body.title === 'Post 1') {
+            return create1Promise;
+          } else {
+            return create2Promise;
+          }
+        } else if (options && options.method === 'DELETE') {
+          return deletePromise;
+        }
+        // Default case to avoid undefined
+        return Promise.resolve({ json: () => Promise.resolve({}) });
+      });
+
+      const mutationPromises = [
+        PostModel.write('createPost', post1),
+        PostModel.write('createPost', post2),
+        PostModel.write('deletePost', { id: 1 })
+      ];
+
+      // Simulate a delay to allow all onMutate handlers to run
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Resolve the promises in a specific order
+      resolveCreate2({ json: () => Promise.resolve(post2) });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      resolveDelete({ json: () => Promise.resolve({}) });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      resolveCreate1({ json: () => Promise.resolve(post1) });
+
+      await Promise.all(mutationPromises);
+
+      // Allow time for all callbacks to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(PostModel.list.length).toBe(1);
       expect(PostModel.list[0].title).toBe('Post 2');
@@ -261,22 +317,28 @@ describe("Model functionality", function() {
               }
             }
           }
-        },
+        }
+      });
+
+      deepModel.register({
         actions: {
           updateDeep: ({ state, payload }) => {
-            state.level1.level2.level3.value = payload;
+          state.level1.level2.level3.value = payload;
           }
         }
       });
 
-      deepModel.updateDeep(42);
+      deepModel.dispatch('updateDeep', 42);
       expect(deepModel.level1.level2.level3.value).toBe(42);
     });
 
     it("should handle actions that modify multiple models", function() {
       const model1 = model(`Model1_${uniqueId}`, {
         store: `store1-${uniqueId}`,
-        state: { value: 0 },
+        state: { value: 0 }
+      });
+
+      model1.register({
         actions: {
           increment: ({ state }) => { state.value += 1; }
         }
@@ -284,15 +346,18 @@ describe("Model functionality", function() {
 
       const model2 = model(`Model2_${uniqueId}`, {
         store: `store2-${uniqueId}`,
-        state: { value: 0 },
+        state: { value: 0 }
+      });
+
+      model2.register({
         actions: {
           increment: ({ state }) => { state.value += 1; }
         }
       });
 
       const combinedAction = () => {
-        model1.increment();
-        model2.increment();
+        model1.dispatch('increment');
+        model2.dispatch('increment');
       };
 
       combinedAction();

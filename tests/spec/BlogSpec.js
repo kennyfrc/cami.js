@@ -1,22 +1,32 @@
-import BlogComponent from '../src/blog.js';
 import { BlogModel } from '../src/blog.js';
 
 describe('Querying the API & Mutating Data - BlogComponent', () => {
-  let blogComponent;
+  let blogElement;
 
   beforeEach(async function() {
     spyOn(window, 'fetch').and.returnValue(Promise.resolve({
       json: () => Promise.resolve([{ id: 1, title: 'Test Post' }])
     }));
 
-    blogComponent = new BlogComponent();
-    await blogComponent.updateComplete;
+    // Create and append the custom element to the DOM
+    blogElement = document.createElement('blog-component');
+    document.body.appendChild(blogElement);
+
+    await customElements.whenDefined('blog-component');
+    await blogElement.updateComplete;
 
     await new Promise(resolve => setTimeout(resolve, 0));
   });
 
+  afterEach(function() {
+    // Clean up the DOM after each test
+    if (blogElement && blogElement.parentNode) {
+      blogElement.parentNode.removeChild(blogElement);
+    }
+  });
+
   it("should fetch data from the API", async function() {
-    await BlogModel.fetchPosts();
+    await BlogModel.read('fetchPosts');
     expect(BlogModel.posts).toEqual([{ id: 1, title: 'Test Post' }]);
   });
 
@@ -28,7 +38,7 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
       json: () => Promise.resolve(newPost)
     }));
 
-    await BlogModel.addPost(newPost);
+    await BlogModel.write('createPost', newPost);
 
     expect(BlogModel.posts).toContain(jasmine.objectContaining(optimisticPost));
     expect(window.fetch).toHaveBeenCalledWith("https://api.camijs.com/posts", {

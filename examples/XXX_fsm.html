@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  <article>
+  <h1>Traffic Light Simulator</h1>
+  <traffic-light-component></traffic-light-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
+
+  const TrafficLightModel = model("TrafficLight", {
+    store: "traffic-light-store-fsm1",
+    state: {
+      color: 'red',
+      timer: 5,
+      random: "hello"
+    },
+  });
+
+  TrafficLightModel.register({
+    machine: {
+      timer_expired: {
+        from: [
+          { color: 'red' },
+          { color: 'green' },
+          { color: 'yellow' }
+        ],
+        to: ({ state }) => {
+          const transitions = {
+            red: { color: 'green', timer: 5 },
+            green: { color: 'yellow', timer: 2 },
+            yellow: { color: 'red', timer: 5 }
+          };
+          return transitions[state.color];
+        },
+        onTransition: ({ from, to }) => {
+          console.log(`Light changed from ${from.color} to ${to.color}`);
+        }
+      },
+      tick: {
+        from: [
+          { color: 'red' },
+          { color: 'green' },
+          { color: 'yellow' }
+        ],
+        to: ({ state }) => {
+          return {
+            color: state.color,
+            timer: state.timer - 1
+          };
+        },
+        guard: ({ state }) => state.timer > 0
+      }
+    }
+  });
+
+  class TrafficLightElement extends ReactiveElement {
+    onCreate() {
+      this.intervalId = setInterval(() => {
+        const { timer } = TrafficLightModel;
+        if (timer > 1) {
+          TrafficLightModel.trigger('tick');
+        } else {
+          TrafficLightModel.trigger('timer_expired');
+        }
+      }, 1000);
+    }
+
+    onDestroy() {
+      clearInterval(this.intervalId);
+    }
+
+    template() {
+      const { color, timer, trigger } = TrafficLightModel;
+
+      return html`
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+          <div style="width: 100px; height: 100px; border-radius: 50%; background-color: ${color};"></div>
+          <p>Current light: ${color}</p>
+          <p>Time remaining: ${timer} second${timer > 1 ? 's' : ''}</p>
+          <button @click=${() => trigger('timer_expired')}>Force Change</button>
+        </div>
+      `;
+    }
+  }
+
+  customElements.define('traffic-light-component', TrafficLightElement);
+</script>
+
+</body>
+</html>

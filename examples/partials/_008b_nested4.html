@@ -8,6 +8,7 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
 
   const TeamModel = model("TeamModel", {
     store: "team-store",
@@ -17,7 +18,10 @@
         { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]}
       ],
       editing: { isEditing: false, memberId: null }
-    },
+    }
+  });
+
+  TeamModel.register({
     actions: {
       addMember: ({ state, payload }) => {
         const { teamId, name } = payload;
@@ -51,23 +55,21 @@
   });
 
   class TeamManagementElement extends ReactiveElement {
-    onCreate() {
-      this.model = TeamModel;
-    }
-
     template() {
+      const { teams, editing, dispatch } = TeamModel;
+
       return html`
         <ul>
-          ${this.model.teams.map(team => html`
+          ${teams.map(team => html`
             <li>
               ${team.name}
               <ul>
                 ${team.members.map(member => html`
                   <li>
-                    ${this.model.editing.isEditing && this.model.editing.memberId === member.id ? html`
+                    ${editing.isEditing && editing.memberId === member.id ? html`
                       <input id="editMemberName${member.id}" type="text" value="${member.name}">
                       <button @click=${() => {
-                        this.model.editMember({
+                        dispatch('editMember', {
                           teamId: team.id,
                           memberId: member.id,
                           newName: document.getElementById('editMemberName' + member.id).value
@@ -75,15 +77,15 @@
                       }}>Save</button>
                     ` : html`
                       <span>${member.name}</span>
-                      <a @click=${() => this.model.startEditing(member.id)}>Edit</a>
-                      <a @click=${() => this.model.removeMember({ teamId: team.id, memberId: member.id })}>Remove</a>
+                      <a @click=${() => dispatch('startEditing', member.id)}>Edit</a>
+                      <a @click=${() => dispatch('removeMember', { teamId: team.id, memberId: member.id })}>Remove</a>
                     `}
                   </li>
                 `)}
               </ul>
               <input id="newMemberName${team.id}" type="text" placeholder="New member name">
               <button @click=${() => {
-                this.model.addMember({
+                dispatch('addMember', {
                   teamId: team.id,
                   name: document.getElementById('newMemberName' + team.id).value
                 });

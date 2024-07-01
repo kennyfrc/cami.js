@@ -8,61 +8,85 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
 
   const TaskModel = model("TaskModel", {
     store: "task-store",
     state: {
       tasks: [],
-      filter: 'all'
-    },
+      filter: 'all',
+      inputError: ''
+    }
+  });
+
+  TaskModel.register({
     actions: {
       addTask: ({ state, payload }) => {
-        state.tasks.push({ name: payload, completed: false });
+        if (payload.trim() === '') {
+          state.inputError = 'Task name cannot be empty';
+        } else {
+          state.tasks.push({ id: Date.now(), name: payload, completed: false });
+          state.inputError = '';
+        }
       },
       removeTask: ({ state, payload }) => {
-        state.tasks.splice(payload, 1);
+        state.tasks = state.tasks.filter(task => task.id !== payload);
       },
       toggleTask: ({ state, payload }) => {
-        state.tasks[payload].completed = !state.tasks[payload].completed;
+        state.tasks = state.tasks.map(task =>
+          task.id === payload ? { ...task, completed: !task.completed } : task
+        );
       },
       setFilter: ({ state, payload }) => {
         state.filter = payload;
+      },
+      clearInputError: ({ state }) => {
+        state.inputError = '';
+      }
+    }
+  });
+
+  TaskModel.register({
+    computed: {
+      filteredTasks: ({ state }) => {
+        switch (state.filter) {
+          case 'completed':
+            return state.tasks.filter(task => task.completed);
+          case 'active':
+            return state.tasks.filter(task => !task.completed);
+          default:
+            return state.tasks;
+        }
       }
     }
   });
 
   class TaskManagerElement extends ReactiveElement {
-    onCreate() {
-      this.model = TaskModel;
-    }
-
-    getFilteredTasks() {
-      switch (this.model.filter) {
-        case 'completed':
-          return this.model.tasks.filter(task => task.completed);
-        case 'active':
-          return this.model.tasks.filter(task => !task.completed);
-        default:
-          return this.model.tasks;
-      }
-    }
-
     template() {
+      const { tasks, filter, inputError, dispatch, compute } = TaskModel;
+      const filteredTasks = compute('filteredTasks');
+
       return html`
-        <input id="taskInput" type="text" placeholder="Enter task name">
+        <input id="taskInput" type="text" placeholder="Enter task name"
+               @input=${() => dispatch('clearInputError')}
+               aria-invalid=${inputError ? 'true' : 'false'}>
         <button @click=${() => {
-          this.model.addTask(document.getElementById('taskInput').value);
-          document.getElementById('taskInput').value = '';
+          const input = document.getElementById('taskInput');
+          dispatch('addTask', input.value);
+          if (!inputError) {
+            input.value = '';
+          }
         }}>Add Task</button>
-        <button @click=${() => this.model.setFilter('all')}>All</button>
-        <button @click=${() => this.model.setFilter('active')}>Active</button>
-        <button @click=${() => this.model.setFilter('completed')}>Completed</button>
+        ${inputError ? html`<p style="color: red;">${inputError}</p>` : ''}
+        <button @click=${() => dispatch('setFilter', 'all')}>All</button>
+        <button @click=${() => dispatch('setFilter', 'active')}>Active</button>
+        <button @click=${() => dispatch('setFilter', 'completed')}>Completed</button>
         <ul>
-          ${this.getFilteredTasks().map((task, index) => html`
+          ${filteredTasks.map((task) => html`
             <li>
-              <input type="checkbox" .checked=${task.completed} @click=${() => this.model.toggleTask(index)}>
+              <input type="checkbox" .checked=${task.completed} @click=${() => dispatch('toggleTask', task.id)}>
               ${task.name}
-              <a @click=${() => this.model.removeTask(index)}>Remove</a>
+              <a @click=${() => dispatch('removeTask', task.id)}>Remove</a>
             </li>
           `)}
         </ul>

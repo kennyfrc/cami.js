@@ -19,6 +19,7 @@
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
   const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
 
   const SigninModel = model("SigninModel", {
     store: "form-store",
@@ -29,135 +30,134 @@
       passwordError: '',
       emailIsValid: null,
       isEmailAvailable: null
-    }
-  });
-
-  SigninModel.register({
+    },
     actions: {
       setEmail: ({ state, payload }) => {
-        state.email = payload;
+        const { email } = payload;
+        state.email = email;
       },
       setPassword: ({ state, payload }) => {
-        state.password = payload;
+        const { password } = payload;
+        state.password = password;
       },
       setEmailError: ({ state, payload }) => {
-        state.emailError = payload;
+        const { emailError } = payload;
+        state.emailError = emailError;
       },
       setPasswordError: ({ state, payload }) => {
-        state.passwordError = payload;
+        const { passwordError } = payload;
+        state.passwordError = passwordError;
       },
       setEmailIsValid: ({ state, payload }) => {
-        state.emailIsValid = payload;
+        const { isValid } = payload;
+        state.emailIsValid = isValid;
       },
       setIsEmailAvailable: ({ state, payload }) => {
-        state.isEmailAvailable = payload;
+        const { isAvailable } = payload;
+        state.isEmailAvailable = isAvailable;
+      },
+      processEmailInput: ({ dispatch, read, payload }) => {
+        const { email } = payload;
+        const { isEmailValid, emailError } = validateEmail(email);
+        dispatch('setEmailError', { emailError });
+        dispatch('setEmailIsValid', { isValid: isEmailValid });
+        dispatch('setEmail', { email });
+        read('fetchEmail', { email });
+      },
+      processPasswordInput: ({ dispatch, payload }) => {
+        const { password } = payload;
+        const { isValid } = validatePassword(password);
+        dispatch('setPasswordError', { passwordError: isValid ? '' : 'Password must be at least 8 characters long.' });
+        dispatch('setPassword', { password });
       }
     },
     queries: {
-      queryEmail: {
-        queryKey: (email) => ['Email', email],
-        queryFn: (email) => {
+      fetchEmail: {
+        queryKey: (payload) => {
+          const { email } = payload;
+          return ['Email', email];
+        },
+        queryFn: (payload) => {
+          const { email } = payload;
           return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json());
         },
-        onSuccess: ({ state, payload, actions, response }) => {
-          if (response.length > 0) {
-            actions.setIsEmailAvailable(false);
-          } else {
-            actions.setIsEmailAvailable(true);
-          }
+        onSuccess: ({ dispatch, response }) => {
+          dispatch('setIsEmailAvailable', { isAvailable: response.length === 0 });
         },
         staleTime: 1000 * 60 * 5
       }
     }
   });
 
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let emailError = '';
+    let isEmailValid = null;
+    if (email === '') {
+      emailError = '';
+      isEmailValid = null;
+    } else if (!emailRegex.test(email)) {
+      emailError = 'Please enter a valid email address.';
+      isEmailValid = false;
+    } else {
+      emailError = '';
+      isEmailValid = true;
+    }
+    return { isEmailValid, emailError };
+  }
+
+  function validatePassword(password) {
+    let isValid = false;
+    if (password === '') {
+      isValid = null;
+    } else if (password?.length >= 8) {
+      isValid = true;
+    }
+    return { isValid };
+  }
+
   class FormElement extends ReactiveElement {
-    onCreate() {
-      this.model = SigninModel;
-    }
-
-    processEmailInput(e) {
-      const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
-      this.model.setEmailError(emailError);
-      this.model.setEmailIsValid(isEmailValid);
-      this.model.setEmail(email);
-      this.model.queryEmail(email);
-    }
-
-    processPasswordInput(e) {
-      const { isValid, password } = this.validatePassword(e.target.value);
-      this.model.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
-      this.model.setPassword(password);
-    }
-
-    validateEmail(email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      let emailError = '';
-      let isEmailValid = null;
-      if (email === '') {
-        emailError = '';
-        isEmailValid = null;
-      } else if (!emailRegex.test(email)) {
-        emailError = 'Please enter a valid email address.';
-        isEmailValid = false;
-      } else {
-        emailError = '';
-        isEmailValid = true;
-      }
-      return { isEmailValid, emailError, email };
-    }
-
-    validatePassword(password) {
-      let isValid = false;
-      if (password === '') {
-        isValid = null;
-      } else if (password?.length >= 8) {
-        isValid = true;
-      }
-      return { isValid, password };
-    }
-
-    getEmailInputState() {
-      if (this.model.email === '') {
-        return '';
-      } else if (this.model.emailIsValid && this.model.isEmailAvailable === true) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-
-    getPasswordInputState() {
-      if (this.model.password === '') {
-        return '';
-      } else if (this.model.passwordError === '') {
-        return false;
-      } else {
-        return true;
-      }
-    }
-
     template() {
+      const { email, password, emailError, passwordError, emailIsValid, isEmailAvailable, dispatch } = SigninModel;
+
+      const getEmailInputState = () => {
+        if (email === '') {
+          return '';
+        }
+
+        const isValidAndAvailable = emailIsValid && isEmailAvailable === true;
+        return isValidAndAvailable ? false : true;
+      };
+
+      const getPasswordInputState = () => {
+        if (password === '') {
+          return '';
+        }
+
+        const isPasswordValid = passwordError === '';
+        return isPasswordValid ? false : true;
+      };
+
       return html`
         <form action="/submit" method="POST">
           <label>
             Email:
             <input type="email"
-              aria-invalid=${this.getEmailInputState()}
-              @input=${(e) => this.processEmailInput(e)}
-              value=${this.model.email}>
-            <span>${this.model.isEmailAvailable === false && this.model.emailError === '' ? 'Email is already taken.' : ''}</span>
-            <span>${this.model.emailError}</span>
+              aria-invalid=${getEmailInputState()}
+              @input=${(e) => dispatch('processEmailInput', { email: e.target.value })}
+              value=${email}>
+            <span>${isEmailAvailable === false && emailError === '' ? 'Email is already taken.' : ''}</span>
+            <span>${emailError}</span>
           </label>
           <label>
             Password:
             <input type="password"
-              @input=${(e) => this.processPasswordInput(e)}
-              value=${this.model.password}
-              aria-invalid=${this.getPasswordInputState()}>
-            <span>${this.model.passwordError}</span>
+              @input=${(e) => dispatch('processPasswordInput', { password: e.target.value })}
+              value=${password}
+              aria-invalid=${getPasswordInputState()}>
+            <span>${passwordError}</span>
           </label>
-          <input type="submit" value="Submit" style="opacity: ${this.model.emailError !== '' || this.model.passwordError !== '' || this.model.email === '' || this.model.password === '' ? '0.5' : '1'}">
+          <input type="submit" value="Submit" style="opacity: ${emailError !== '' || passwordError !== '' || email === '' || password === '' ? '0.5' : '1'}">
         </form>
       `;
     }

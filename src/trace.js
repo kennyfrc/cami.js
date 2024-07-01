@@ -13,6 +13,8 @@ import { __config } from './config.js';
  */
 function __trace(functionName, ...messages) {
   if (__config.debug.isEnabled) {
+    const formattedMessages = messages.join('\n');
+
     if (functionName === 'cami:elem:state:change') {
       console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', `Changed property state: ${messages[0]}`);
       console.log(`oldValue:`, messages[1]);
@@ -22,7 +24,7 @@ function __trace(functionName, ...messages) {
       console.log(`oldValue of ${messages[1][0].path.join('.')}:`, messages[1][0].value);
       console.log(`newValue of ${messages[2][0].path.join('.')}:`, messages[2][0].value);
     } else {
-      console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', ...messages);
+      console.groupCollapsed(`%c[${functionName}]`, 'color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;', formattedMessages);
     }
 
     console.trace();

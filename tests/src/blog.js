@@ -10,69 +10,62 @@ export const BlogModel = model("BlogModel", {
   actions: {
     setPosts: ({ state, payload }) => {
       state.posts = payload;
-    },
-    setLoading: ({ state, payload }) => {
-      state.loading = payload;
+      state.loading = false;
     },
     setError: ({ state, payload }) => {
       state.error = payload;
+      state.loading = false;
     },
     pushPost: ({ state, payload }) => {
-      state.posts = [...state.posts, payload];
+      state.posts.push(payload);
     }
   },
   queries: {
     fetchPosts: {
-      queryKey: ['posts'],
       queryFn: () => fetch("https://api.camijs.com/posts").then(res => res.json()),
-      onSuccess: (ctx) => {
-        ctx.actions.setPosts(ctx.response);
+      onSuccess: ({ dispatch, response }) => {
+        dispatch('setPosts', response);
       },
-      onError: (ctx) => {
-        ctx.actions.setError(ctx.error.message);
+      onError: ({ dispatch, error }) => {
+        dispatch('setError', error.message);
       }
     }
   },
   mutations: {
-    addPost: {
-      mutationFn: (newPost) => {
+    createPost: {
+      mutationFn: ({ payload }) => {
         return fetch("https://api.camijs.com/posts", {
           method: "POST",
-          body: JSON.stringify(newPost),
+          body: JSON.stringify(payload),
           headers: {
             "Content-type": "application/json; charset=UTF-8"
           }
         }).then(res => res.json());
       },
-      onMutate: ({ state, payload, actions }) => {
+      onMutate: ({ dispatch, payload }) => {
         const post = { ...payload, id: Date.now() };
-        actions.pushPost(post);
+        dispatch('pushPost', post);
       },
-      onSuccess: (ctx) => {
-        ctx.invalidateQueries({ queryKey: ['posts'] });
+      onSuccess: ({ invalidateQueries }) => {
+        invalidateQueries({ queryKey: 'fetchPosts' });
       },
-      onError: ({ previousState, actions }) => {
-        actions.setPosts(previousState.posts);
+      onError: ({ dispatch, previousState }) => {
+        dispatch('setPosts', previousState.posts);
       }
     }
   }
 });
 
 class BlogComponent extends ReactiveElement {
-  constructor() {
-    super();
-    this.posts = BlogModel.fetchPosts();
-  }
-
-  addPost = BlogModel.addPost;
-
   template() {
-    if (BlogModel.loading) return html`<p>Loading...</p>`;
-    if (BlogModel.error) return html`<p>Error: ${BlogModel.error}</p>`;
+    const { loading, error, posts } = BlogModel;
+
+    if (loading) return html`<p>Loading...</p>`;
+    if (error) return html`<p>Error: ${error}</p>`;
 
     return html`
       <ul>
-        ${BlogModel.posts.map(post => html`<li>${post.title}</li>`)}
+        ${posts.map(post => html`<li>${post.title}</li>`)}
       </ul>
     `;
   }

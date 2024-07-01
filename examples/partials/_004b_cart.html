@@ -25,12 +25,7 @@
         status: "idle",
         error: null
       }
-    }
-  }, {
-    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
-  });
-
-  CartModel.register({
+    },
     actions: {
       add: ({ state, payload }) => {
         const newItem = {...payload, id: Date.now()};
@@ -42,10 +37,7 @@
       setProducts: ({ state, payload }) => {
         state.products = payload;
       }
-    }
-  });
-
-  CartModel.register({
+    },
     queries: {
       fetchProducts: {
         queryKey: ['products'],
@@ -53,22 +45,22 @@
           return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
         },
         staleTime: 1000 * 60 * 5, // 5 minutes
-        onFetch: ({ actions }) => {
-          actions.setProducts({
+        onFetch: ({ dispatch }) => {
+          dispatch('setProducts', {
             data: [],
             status: "pending",
             error: null
           });
         },
-        onSuccess: ({ response, actions }) => {
-          actions.setProducts({
+        onSuccess: ({ dispatch, response }) => {
+          dispatch('setProducts', {
             data: response,
             status: "success",
             error: null
           });
         },
-        onError: ({ error, actions }) => {
-          actions.setProducts({
+        onError: ({ dispatch, error }) => {
+          dispatch('setProducts', {
             data: [],
             status: "error",
             error: error
@@ -76,36 +68,28 @@
         }
       }
     }
+  }, {
+    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
   });
 
   class ProductListElement extends ReactiveElement {
-    onCreate() {
-      this.model = CartModel;
-    }
-
-    isProductInCart(product) {
-      return this.model.cartItems ? this.model.cartItems.some(item => item.id === product.id) : false;
-    }
-
-    isOutOfStock(product) {
-      return product.stock === 0;
-    }
-
     template() {
-      if (this.model.products.status === "pending") {
+      const { products, dispatch } = CartModel;
+
+      if (products.status === "pending") {
         return html`<div>Fetching Products...</div>`;
       }
 
-      if (this.model.products.status === "error") {
-        return html`<div>Error: ${this.model.products.error.message}</div>`;
+      if (products.status === "error") {
+        return html`<div>Error: ${products.error.message}</div>`;
       }
 
-      if (this.model.products.data.length > 0) {
+      if (products.data.length > 0) {
         return html`
           <ul>
-            ${this.model.products.data.map(product => html`<li>
+            ${products.data.map(product => html`<li>
               ${product.name} - ${(product.price / 100).toFixed(2)}
-              <button @click=${() => this.model.add(product)} ?disabled=${this.isOutOfStock(product)}>
+              <button @click=${() => dispatch('add', product)} ?disabled=${product.stock === 0}>
                 Add to cart
               </button>
             </li>`)}
@@ -118,27 +102,25 @@
   customElements.define('product-list-component', ProductListElement);
 
   class CartElement extends ReactiveElement {
-    onCreate() {
-      this.model = CartModel;
-    }
-
     template() {
+      const { cartItems, dispatch } = CartModel;
+
       return html`
-        ${this.model.cartItems.length > 0 ? html`
-          <p>Cart value: ${(this.model.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
+        ${cartItems.length > 0 ? html`
+          <p>Cart value: ${(cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
           <ul>
-            ${this.model.cartItems.map(item => html`
-              <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => this.model.remove(item)}>Remove</button></li>
+            ${cartItems.map(item => html`
+              <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => dispatch('remove', item)}>Remove</button></li>
             `)}
           </ul>
         ` : html`
           <p>Cart is empty</p>
         `}
-      `
+      `;
     }
   }
 
-  CartModel.fetchProducts();
+  CartModel.read('fetchProducts');
 
   customElements.define('cart-component', CartElement);
 </script>

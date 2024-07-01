@@ -20,28 +20,22 @@
         status: "idle",
         error: null
       }
-    }
-  });
-
-  TodoModel.register({
+    },
     actions: {
       setTodos: ({ state, payload }) => {
-        state.todos = {
-          data: payload.data,
-          status: payload.status,
-          error: payload.error
-        }
+        const { data, status, error } = payload;
+        state.todos = { data, status, error };
       },
       addTodo: ({ state, payload }) => {
         state.todos.data.push(payload);
       },
       removeTodo: ({ state, payload }) => {
         state.todos.data = state.todos.data.filter(todo => todo.title !== payload.title);
+      },
+      setNewTodoTitle: ({ state, payload }) => {
+        state.newTodoTitle = payload;
       }
-    }
-  });
-
-  TodoModel.register({
+    },
     queries: {
       fetchTodos: {
         queryKey: ['todos'],
@@ -49,32 +43,29 @@
           return fetch("https://api.camijs.com/todos?_limit=5").then(res => res.json())
         },
         staleTime: 1000 * 60 * 5,
-        onFetch: ({ actions }) => {
-          actions.setTodos({
+        onFetch: ({ dispatch }) => {
+          dispatch('setTodos', {
             data: [],
             status: "pending",
             error: null
-          })
+          });
         },
-        onSuccess: ({ response, actions }) => {
-          actions.setTodos({
+        onSuccess: ({ dispatch, response }) => {
+          dispatch('setTodos', {
             data: response,
             status: "success",
             error: null
-          })
+          });
         },
-        onError: ({ error, actions }) => {
-          actions.setTodos({
+        onError: ({ dispatch, response }) => {
+          dispatch('setTodos', {
             data: [],
             status: "error",
-            error: error
-          })
+            error: response
+          });
         }
       }
-    }
-  });
-
-  TodoModel.register({
+    },
     mutations: {
       createTodo: {
         mutationFn: (newTodo) => {
@@ -89,13 +80,13 @@
             return res.json();
           })
         },
-        onMutate: ({ actions, payload }) => {
+        onMutate: ({ dispatch, payload }) => {
           const newTodo = {
             id: Date.now(),
             title: payload.title,
             completed: payload.completed
           }
-          actions.addTodo(newTodo);
+          dispatch('addTodo', newTodo);
         },
         onSuccess: ({ invalidateQueries }) => {
           invalidateQueries({ queryKey: ['todos'] });
@@ -110,8 +101,8 @@
             return res.json();
           })
         },
-        onMutate: ({ actions, payload }) => {
-          actions.removeTodo(payload);
+        onMutate: ({ dispatch, payload }) => {
+          dispatch('removeTodo', payload);
         },
         onSuccess: ({ invalidateQueries }) => {
           invalidateQueries({ queryKey: ['todos'] });
@@ -121,50 +112,48 @@
   });
 
   class TodoListElement extends ReactiveElement {
-    onCreate() {
-      this.model = TodoModel;
-      this.newTodoTitle = '';
-    }
-
     template() {
-      if (this.model.todos.status === "success") {
+      const { todos, newTodoTitle, write, dispatch } = TodoModel
+
+
+      if (todos.status === "success") {
         return html`
           <input
             type="text"
-            .value=${this.newTodoTitle}
-            @input=${(e) => this.newTodoTitle = e.target.value}
+            .value=${newTodoTitle}
+            @input=${(e) => dispatch('setNewTodoTitle', e.target.value)}
           />
           <button @click=${() => {
-            if (this.newTodoTitle.trim()) {
-              this.model.createTodo({
-                title: this.newTodoTitle.trim(),
+            if (newTodoTitle.trim()) {
+              write('createTodo', {
+                title: newTodoTitle.trim(),
                 completed: false
               });
-              this.newTodoTitle = ''; // Clear the input after adding
+              dispatch('setNewTodoTitle', '');
             }
           }}>Add</button>
           <ul>
-            ${this.model.todos.data.slice().reverse().map(todo => html`
+            ${todos.data.slice().reverse().map(todo => html`
               <li>
                 ${todo.title}
-                <button @click=${() => this.model.deleteTodo(todo)}>Delete</button>
+                <button @click=${() => write('deleteTodo', todo)}>Delete</button>
               </li>
             `)}
           </ul>
         `;
       }
 
-      if (this.model.todos.status === "pending") {
+      if (todos.status === "pending") {
         return html`<div>Loading...</div>`;
       }
 
-      if (this.model.todos.status === "error") {
-        return html`<div>Error: ${this.model.todos.error.message}</div>`;
+      if (todos.status === "error") {
+        return html`<div>Error: ${todos.error.message}</div>`;
       }
     }
   }
 
-  TodoModel.fetchTodos(); // usually done in some bootstrap function
+  TodoModel.read('fetchTodos');
 
   customElements.define('todo-list-component', TodoListElement);
 </script>

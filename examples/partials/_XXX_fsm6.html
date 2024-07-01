@@ -1,0 +1,168 @@
+<article>
+  <h1>Smart Home System</h1>
+  <smart-home-component></smart-home-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
+
+  const SmartHomeModel = model("SmartHome", {
+    store: "smart-home-store",
+    state: {
+      mode: 'home',
+      thermostat: {
+        status: 'idle',
+        temperature: 22
+      },
+      lights: {
+        status: 'off',
+        brightness: 0
+      },
+      security: {
+        status: 'disarmed'
+      }
+    },
+  });
+
+  SmartHomeModel.register({
+    machine: {
+      change_mode: {
+        from: [
+          { mode: 'home' },
+          { mode: 'away' },
+          { mode: 'night' }
+        ],
+        to: ({ payload }) => ({ mode: payload }),
+        onTransition: ({ trigger, to, state }) => {
+          if (to.mode === 'away') {
+            if (state.security.status === 'disarmed') {
+              trigger('arm_security');
+            }
+            trigger('lights_off');
+            trigger('set_eco_temperature');
+          } else if (to.mode === 'night') {
+            if (state.security.status === 'disarmed') {
+              trigger('arm_security');
+            }
+            if (state.lights.status === 'on') {
+              trigger('dim_lights');
+            }
+            trigger('set_sleep_temperature');
+          } else {
+            if (state.security.status === 'armed') {
+              trigger('disarm_security');
+            }
+            trigger('lights_on');
+            trigger('set_comfort_temperature');
+          }
+        }
+      },
+      arm_security: {
+        from: { security: { status: 'disarmed' } },
+        to: { security: { status: 'armed' } }
+      },
+      disarm_security: {
+        from: { security: { status: 'armed' } },
+        to: { security: { status: 'disarmed' } }
+      },
+      lights_on: {
+        from: { lights: { status: 'off' } },
+        to: { lights: { status: 'on', brightness: 100 } }
+      },
+      lights_off: {
+        from: { lights: { status: 'on' } },
+        to: { lights: { status: 'off', brightness: 0 } }
+      },
+      dim_lights: {
+        from: { lights: { status: 'on' } },
+        to: { lights: { status: 'on', brightness: 30 } }
+      },
+      set_eco_temperature: {
+        to: { thermostat: { status: 'eco', temperature: 18 } }
+      },
+      set_sleep_temperature: {
+        to: { thermostat: { status: 'sleep', temperature: 20 } }
+      },
+      set_comfort_temperature: {
+        to: { thermostat: { status: 'comfort', temperature: 22 } }
+      },
+      adjust_temperature: {
+        from: [
+          { thermostat: { status: 'eco' } },
+          { thermostat: { status: 'sleep' } },
+          { thermostat: { status: 'comfort' } }
+        ],
+        to: ({ state, payload }) => ({
+          thermostat: {
+            ...state.thermostat,
+            temperature: state.thermostat.temperature + payload
+          }
+        })
+      }
+    }
+  });
+
+class SmartHomeElement extends ReactiveElement {
+  template() {
+    const { mode, thermostat, lights, security, trigger } = SmartHomeModel;
+
+    const getModeIcon = (currentMode) => {
+      switch (currentMode) {
+        case 'home': return '🏠';
+        case 'away': return '🚶';
+        case 'night': return '🌙';
+        default: return '❓';
+      }
+    };
+
+    const getThermostatIcon = (status) => {
+      switch (status) {
+        case 'idle': return '💤';
+        case 'eco': return '🍃';
+        case 'sleep': return '😴';
+        case 'comfort': return '😊';
+        default: return '❓';
+      }
+    };
+
+    const getLightsIcon = (status, brightness) => {
+      if (status === 'off') return '🔅';
+      if (brightness < 50) return '💡';
+      return '🔆';
+    };
+
+    const getSecurityIcon = (status) => {
+      return status === 'armed' ? '🔒' : '🔓';
+    };
+
+    return html`
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+        <h2>Current Mode: ${getModeIcon(mode)} ${mode}</h2>
+        <div>
+          <button @click=${() => trigger('change_mode', 'home')}>🏠 Home Mode</button>
+          <button @click=${() => trigger('change_mode', 'away')}>🚶 Away Mode</button>
+          <button @click=${() => trigger('change_mode', 'night')}>🌙 Night Mode</button>
+        </div>
+        <div>
+          <h3>Thermostat ${getThermostatIcon(thermostat.status)}</h3>
+          <p>Status: ${thermostat.status}, Temperature: ${thermostat.temperature}°C</p>
+          <button @click=${() => trigger('adjust_temperature', 1)}>🔼</button>
+          <button @click=${() => trigger('adjust_temperature', -1)}>🔽</button>
+        </div>
+        <div>
+          <h3>Lights ${getLightsIcon(lights.status, lights.brightness)}</h3>
+          <p>Status: ${lights.status}, Brightness: ${lights.brightness}%</p>
+        </div>
+        <div>
+          <h3>Security ${getSecurityIcon(security.status)}</h3>
+          <p>Status: ${security.status}</p>
+        </div>
+      </div>
+    `;
+  }
+}
+
+  customElements.define('smart-home-component', SmartHomeElement);
+</script>
