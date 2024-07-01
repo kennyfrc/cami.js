@@ -3167,7 +3167,7 @@ var cami = (() => {
       }
     });
   };
-  var model = (modelName, { store: storeName = "cami-store", state, actions = {}, queries = {}, mutations = {}, computed = {}, machine, invalidationRules }) => {
+  var model = (modelName, { store: storeName = "cami-store", state, actions = {}, queries = {}, mutations = {}, computed = {}, machine, validationRules }) => {
     let storeInstance = store({
       state: { [modelName]: state },
       name: storeName
@@ -3180,11 +3180,11 @@ var cami = (() => {
     }
     storeInstance.models[modelName] = true;
     const validateState = (storedState) => {
-      if (!invalidationRules || !invalidationRules.presence) {
+      if (!validationRules || !validationRules.presence) {
         __trace("cami:model", `No invalidation rules specified for model ${modelName}. Using state in model definition.`);
         return false;
       }
-      const { keys, values } = invalidationRules.presence;
+      const { keys, values } = validationRules.presence;
       if (keys) {
         for (const key of keys) {
           if (!(key in storedState)) {
@@ -3206,6 +3206,33 @@ var cami = (() => {
       __trace("cami:model", `No invalidation rules violated for model ${modelName}.`);
       return true;
     };
+    const isValidValidationRules = (rules) => {
+      if (!rules || typeof rules !== "object")
+        return false;
+      const hasPresence = "presence" in rules;
+      const hasServer = "server" in rules;
+      if (!hasPresence && !hasServer)
+        return false;
+      if (hasPresence) {
+        if (typeof rules.presence !== "object")
+          return false;
+        if ("keys" in rules.presence && !Array.isArray(rules.presence.keys))
+          return false;
+        if ("values" in rules.presence) {
+          if (!Array.isArray(rules.presence.values))
+            return false;
+          if (!rules.presence.values.every((v) => typeof v === "object"))
+            return false;
+        }
+      }
+      if (hasServer) {
+        if (typeof rules.server !== "object")
+          return false;
+        if (typeof rules.server.fetchFn !== "function")
+          return false;
+      }
+      return true;
+    };
     const loadState = () => __async(void 0, null, function* () {
       const storedState = storeInstance.storage.getItem(storeName);
       if (!storedState) {
@@ -3214,11 +3241,14 @@ var cami = (() => {
       }
       const parsedState = JSON.parse(storedState);
       const modelState = parsedState[modelName];
+      if (!isValidValidationRules(validationRules)) {
+        throw new Error(`Invalid validation rules structure for model ${modelName}.`);
+      }
       if (!validateState(modelState)) {
         return state;
       }
-      if (invalidationRules && invalidationRules.server) {
-        const { fetchFn, onFetch, onSuccess, onError, onSettled } = invalidationRules.server;
+      if (validationRules && validationRules.server) {
+        const { fetchFn, onFetch, onSuccess, onError, onSettled } = validationRules.server;
         try {
           if (onFetch)
             onFetch();
