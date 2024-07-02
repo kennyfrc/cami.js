@@ -8,8 +8,8 @@ export const RegistrationModel = model("RegistrationModel", {
     password: '',
     emailError: '',
     passwordError: '',
-    emailIsValid: null,
-    isEmailAvailable: null
+    emailIsValid: false,
+    isEmailAvailable: false
   },
   actions: {
     setEmail: ({ state, payload }) => {
@@ -30,12 +30,12 @@ export const RegistrationModel = model("RegistrationModel", {
     setIsEmailAvailable: ({ state, payload }) => {
       state.isEmailAvailable = payload;
     },
-    processEmailInput: ({ dispatch, read, payload }) => {
+    processEmailInput: ({ dispatch, query, payload }) => {
       const { isEmailValid, emailError } = validateEmail(payload);
       dispatch('setEmailError', emailError);
       dispatch('setEmailIsValid', isEmailValid);
       dispatch('setEmail', payload);
-      read('checkEmailAvailability', payload);
+      query('checkEmailAvailability', payload);
     },
     processPasswordInput: ({ dispatch, payload }) => {
       const { isValid } = validatePassword(payload);
@@ -47,8 +47,8 @@ export const RegistrationModel = model("RegistrationModel", {
     checkEmailAvailability: {
       queryKey: (email) => ['Email', email],
       queryFn: (email) => fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json()),
-      onSuccess: ({ dispatch, response }) => {
-        dispatch('setIsEmailAvailable', response.length === 0);
+      onSuccess: ({ dispatch, data }) => {
+        dispatch('setIsEmailAvailable', data.length === 0);
       },
       staleTime: 1000 * 60 * 5 // 5 minutes
     }

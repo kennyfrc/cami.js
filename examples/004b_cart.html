@@ -60,9 +60,9 @@
             error: null
           });
         },
-        onSuccess: ({ dispatch, response }) => {
+        onSuccess: ({ dispatch, data }) => {
           dispatch('setProducts', {
-            data: response,
+            data: data,
             status: "success",
             error: null
           });
@@ -128,7 +128,7 @@
     }
   }
 
-  CartModel.read('fetchProducts');
+  CartModel.query('fetchProducts');
 
   customElements.define('cart-component', CartElement);
 </script>

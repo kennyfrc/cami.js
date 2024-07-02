@@ -433,7 +433,7 @@ class ObservableStore extends Observable {
    *   state.posts = posts;
    * });
    *
-   * appStore.query('fetchPosts', {
+   * appStore.defineQuery('fetchPosts', {
    *   queryKey: (args) => ['posts', ...args],
    *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
    *   onSuccess: (ctx) => {
@@ -445,7 +445,7 @@ class ObservableStore extends Observable {
    * });
    * ```
    */
-  query(queryName, config) {
+  defineQuery(queryName, config) {
     if (this.queryFunctions[queryName]) {
       throw new Error(`[Cami.js] Query with name ${queryName} has already been defined.`);
     }
@@ -486,98 +486,82 @@ class ObservableStore extends Observable {
     };
 
     this.queries[queryName] = (...args) => {
-      return this.read(queryName, ...args);
+      return this.query(queryName, ...args);
     }
   }
 
-  read(queryName, ...args) {
-    const options = args[args.length - 1] && typeof args[args.length - 1] === 'object' ? args.pop() : {};
-    const useModelMethods = options.useModelMethods || queryName.includes('/');
+  query(queryName, payload) {
+    if (typeof queryName !== 'string') {
+      throw new TypeError(`[Cami.js] queryName must be a string. Received: ${typeof queryName}`);
+    }
+
     const query = this.queryFunctions[queryName];
     if (!query) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
     }
 
-    const { queryKey, queryFn, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
+    const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
 
     const [modelName, _] = queryName.split('/');
 
     const storeContext = {
       state: deepFreeze(this.state),
-      dispatch: (action, payload) => {
-        if (useModelMethods) {
-          return this._modelDispatch(`${modelName}/${action}`, payload);
-        } else {
-          return this.dispatch(action, payload);
-        }
-      },
-      query: (query, queryArgs) => {
-        if (useModelMethods) {
-          return this.modelFetch(`${modelName}/${query}`, queryArgs);
-        } else {
-          return this.read(query, queryArgs);
-        }
-      },
-      write: (mutation, mutationArgs) => {
-        if (useModelMethods) {
-          return this.modelMutate(`${modelName}/${mutation}`, mutationArgs);
-        } else {
-          return this.write(mutation, mutationArgs);
-        }
-      },
+      dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
+      query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
+      mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this),
     };
 
-    const context = query.createContext ? query.createContext(storeContext, args) : storeContext;
+    const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
 
-    const cacheKey = typeof queryKey === 'function' ? queryKey(args).join(':') : Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
+    const cacheKey = typeof queryKey === 'function' ? queryKey(payload).join(':') : Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
 
     const cachedData = this.queryCache.get(cacheKey);
 
     if (cachedData && !cachedData.isStale && !this._isStale(cachedData, staleTime)) {
-      __trace(`fetch`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
+      __trace(`query`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
       return Promise.resolve(cachedData.data);
     }
 
-    __trace(`fetch`, `Data is stale or not cached, fetching new data for: ${queryName}`);
+    __trace(`query`, `Data is stale or not cached, fetching new data for: ${queryName}`);
 
     if (onFetch) {
-      __trace(`fetch`, `onFetch callback invoked for: ${queryName}`);
-        onFetch(context);
-      }
+      __trace(`query`, `onFetch callback invoked for: ${queryName}`);
+      onFetch(context);
+    }
 
     let resultData;
     let resultError;
 
-    return this._fetchWithRetry(() => queryFn(context, ...args), retry, retryDelay)
+    return this._fetchWithRetry(() => queryFn(payload), retry, retryDelay)
       .then((data) => {
         this.queryCache.set(cacheKey, { data, timestamp: Date.now(), isStale: false });
         resultData = data;
         if (onSuccess) {
-          __trace(`fetch`, `Fetch success: ${queryName}`);
-          onSuccess({ ...context, response: resultData });
+          __trace(`query`, `Fetch success: ${queryName}`);
+          onSuccess({ ...context, data: resultData });
         }
         return data;
       })
       .catch((error) => {
         resultError = error;
         if (onError) {
-          __trace(`fetch`, `Fetch failed: ${queryName}`);
-          onError({ ...context, error: resultError });
+          __trace(`query`, `Fetch failed: ${queryName}`);
+          onError({ ...context, data: error });
         }
         throw error;
       })
       .finally(() => {
         if (onSettled) {
-          __trace(`fetch`, `Fetch settled: ${queryName}`);
-          onSettled({ ...context, response: resultData, error: resultError });
+          __trace(`query`, `Fetch settled: ${queryName}`);
+          onSettled({ ...context, data: resultData || resultError });
         }
       });
   }
 
-  _modelRead(queryName, args) {
+  _modelQuery(queryName, args) {
     const [modelName, actualQueryName] = queryName.split('/');
-    return this.read(`${modelName}/${actualQueryName}`, args, { useModelMethods: true });
+    return this.query(`${modelName}/${actualQueryName}`, args, { useModelMethods: true });
   }
 
   /**
@@ -716,7 +700,7 @@ class ObservableStore extends Observable {
    * @description Registers a mutation with the given configuration. This method sets up the mutation with the provided options and handles the mutation lifecycle.
    * @example
    * ```javascript
-   * appStore.mutation('deletePost', {
+   * appStore.defineMutation('deletePost', {
    *   mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
    *   onMutate: (context) => {
    *     context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
@@ -733,10 +717,10 @@ class ObservableStore extends Observable {
    *   }
    * });
    *
-   * appStore.write('deletePost', id);
+   * appStore.mutate('deletePost', id);
    * ```
    */
-  mutation(mutationName, config) {
+  defineMutation(mutationName, config) {
     if (this.mutationFunctions[mutationName]) {
       throw new Error(`[Cami.js] Mutation with name ${mutationName} is already registered.`);
     }
@@ -762,12 +746,11 @@ class ObservableStore extends Observable {
     };
 
     this.mutations[mutationName] = (...args) => {
-      return this.write(mutationName, ...args);
+      return this.mutate(mutationName, ...args);
     };
   }
 
-  write(mutationName, args, options = {}) {
-    const useModelMethods = options.useModelMethods || mutationName.includes('/');
+  mutate(mutationName, payload) {
     const mutation = this.mutationFunctions[mutationName];
     if (!mutation) {
       throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
@@ -779,67 +762,41 @@ class ObservableStore extends Observable {
     const context = {
       state: deepFreeze(this.state),
       previousState: deepFreeze(this.state),
-      dispatch: (action, payload) => {
-        if (useModelMethods) {
-          return this._modelDispatch(`${modelName}/${action}`, payload);
-        } else {
-          return this.dispatch(action, payload);
-        }
-      },
-      read: (query, queryArgs) => {
-        if (useModelMethods) {
-          return this._modelRead(`${modelName}/${query}`, queryArgs);
-        } else {
-          return this.read(query, queryArgs);
-        }
-      },
-      write: (mutation, mutationArgs) => {
-        if (useModelMethods) {
-          return this._modelWrite(`${modelName}/${mutation}`, mutationArgs);
-        } else {
-          return this.write(mutation, mutationArgs);
-        }
-      },
+      dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
+      query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
+      mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this),
-      payload: args
+      payload
     };
 
+    let optimisticUpdate;
     if (onMutate) {
-      __trace(`write`, `Mutation in-progress: ${mutationName}`);
-      onMutate(context);
+      optimisticUpdate = onMutate(context);
     }
 
-    let resultData;
-    let resultError;
-
-    return mutationFn(context)
+    return Promise.resolve(mutationFn(payload))
       .then(data => {
-        resultData = data;
         if (onSuccess) {
-          __trace(`write`, `Mutation successful: ${mutationName}`);
-          onSuccess({ ...context, response: resultData });
+          onSuccess({ ...context, data });
         }
-        return resultData;
+        return data;
       })
       .catch(error => {
-        resultError = error;
         if (onError) {
-          __trace(`write`, `Mutation failed: ${mutationName}`);
-          onError({ ...context, error: resultError });
+          onError({ ...context, error });
         }
-        throw resultError;
+        throw error;
       })
       .finally(() => {
         if (onSettled) {
-          __trace(`write`, `Mutation settled: ${mutationName}`);
-          onSettled({ ...context, response: resultData, error: resultError });
+          onSettled(context);
         }
       });
   }
 
-  _modelWrite(mutationName, args) {
+  _modelMutate(mutationName, args) {
     const [modelName, actualMutationName] = mutationName.split('/');
-    return this.write(`${modelName}/${actualMutationName}`, args, { useModelMethods: true });
+    return this.mutate(`${modelName}/${actualMutationName}`, args, { useModelMethods: true });
   }
 }
 
@@ -925,7 +882,7 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
 
   const validateState = (storedState) => {
     if (!validationRules || !validationRules.presence) {
-      __trace('cami:model', `No invalidation rules specified for model ${modelName}. Using state in model definition.`);
+      __trace('cami:model', `No validation rules specified for model ${modelName}. Using state in model definition.`);
       return false;
     }
 
@@ -951,17 +908,19 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       }
     }
 
-    __trace('cami:model', `No invalidation rules violated for model ${modelName}.`);
+    __trace('cami:model', `No validation rules violated for model ${modelName}.`);
     return true;
   };
 
   const isValidValidationRules = (rules) => {
-    if (!rules || typeof rules !== 'object') return false;
+    if (!rules) return true; // Allow undefined or null validation rules
+
+    if (typeof rules !== 'object') return false;
 
     const hasPresence = 'presence' in rules;
     const hasServer = 'server' in rules;
 
-    if (!hasPresence && !hasServer) return false;
+    if (!hasPresence && !hasServer) return true; // Allow empty validation rules object
 
     if (hasPresence) {
       if (typeof rules.presence !== 'object') return false;
@@ -977,8 +936,8 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       if (typeof rules.server.fetchFn !== 'function') return false;
     }
 
-      return true;
-    };
+    return true;
+  };
 
   const loadState = async () => {
     const storedState = storeInstance.storage.getItem(storeName);
@@ -994,7 +953,7 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       throw new Error(`Invalid validation rules structure for model ${modelName}.`);
     }
 
-    if (!validateState(modelState)) {
+    if (!validateState(modelState, validationRules, { type: 'model', name: modelName })) {
       return state;
     }
 
@@ -1004,13 +963,13 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       try {
         if (onFetch) onFetch();
         __trace('cami:model', `Performing server-side validation for model ${modelName}.`);
-        const response = await fetchFn();
-        if (onSuccess) onSuccess(response);
+        const data = await fetchFn(); // Changed from 'response' to 'data'
+        if (onSuccess) onSuccess(data);
 
         let shouldInvalidate = false;
         if (onSettled) {
           onSettled({
-            response,
+            data, // Changed from 'response' to 'data'
             state: modelState,
             invalidate: () => { shouldInvalidate = true; }
           });
@@ -1044,11 +1003,11 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       if (!action) throw new Error(`[Cami.js] Action '${actionName}' not found in model '${modelName}'.`);
       return storeInstance.dispatch(`${modelName}/${actionName}`, payload);
     },
-    read: (queryName, ...args) => storeInstance._modelRead(`${modelName}/${queryName}`, ...args),
-    write: (mutationName, payload) => {
+    query: (queryName, ...args) => storeInstance._modelQuery(`${modelName}/${queryName}`, ...args),
+    mutate: (mutationName, payload) => {
       const mutation = modelObject.mutations[mutationName];
       if (!mutation) throw new Error(`[Cami.js] Mutation '${mutationName}' not found in model '${modelName}'.`);
-      return storeInstance.write(`${modelName}/${mutationName}`, payload);
+      return storeInstance.mutate(`${modelName}/${mutationName}`, payload);
     },
     trigger: (eventName, payload) => {
       if (!modelObject.machine || !modelObject.machine[eventName]) {
@@ -1087,8 +1046,8 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
           ...context,
           state: context.state[modelName],
           dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
-          read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
-          write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
+          query: (query, args) => storeInstance._modelQuery(`${modelName}/${query}`, args),
+          mutate: (mutation, args) => storeInstance._modelMutate(`${modelName}/${mutation}`, args),
           trigger: modelObject.trigger,
           compute: modelObject.compute
         };
@@ -1102,33 +1061,25 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       const namespacedQuery = `${modelName}/${queryKey}`;
       const queryConfig = {
         ...queries[queryKey],
-        queryFn: (context, ...args) => {
-          const wrappedContext = {
-            ...context,
-            state: (context.state && context.state[modelName]) || {},
-            dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
-            read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
-            write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
-            trigger: modelObject.trigger,
-            compute: modelObject.compute
-          };
-          return queries[queryKey].queryFn(wrappedContext, ...args);
+        queryFn: (payload) => {
+          return queries[queryKey].queryFn(payload);
         },
         onSuccess: (context) => {
           const wrappedContext = {
             ...context,
-            state: (context.state && context.state[modelName]) || {},
-            dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
-            read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
-            write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
+            state: storeInstance.state[modelName],
+            dispatch: (action, actionPayload) => storeInstance._modelDispatch(`${modelName}/${action}`, actionPayload),
+            query: (query, queryArgs) => storeInstance._modelQuery(`${modelName}/${query}`, queryArgs),
+            mutate: (mutation, mutationArgs) => storeInstance._modelMutate(`${modelName}/${mutation}`, mutationArgs),
             trigger: modelObject.trigger,
-            compute: modelObject.compute
+            compute: modelObject.compute,
+            data: context.data
           };
           return queries[queryKey].onSuccess(wrappedContext);
-        }
+        },
       };
-      storeInstance.query(namespacedQuery, queryConfig);
-      modelObject.queries[queryKey] = (...args) => storeInstance.read(namespacedQuery, ...args, { useModelMethods: true });
+      storeInstance.defineQuery(namespacedQuery, queryConfig);
+      modelObject.queries[queryKey] = (payload) => storeInstance.query(namespacedQuery, payload);
     });
 
     // Register mutations
@@ -1136,25 +1087,43 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
       const namespacedMutation = `${modelName}/${mutationKey}`;
       const mutationConfig = {
         ...mutations[mutationKey],
-        mutationFn: (context) => {
+        mutationFn: (payload) => {
+          return mutations[mutationKey].mutationFn(payload);
+        },
+        onMutate: (context) => {
           const wrappedContext = {
             ...context,
-            state: context.state[modelName],
+            state: storeInstance.state[modelName],
             dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
-            read: (query, args) => storeInstance._modelRead(`${modelName}/${query}`, args),
-            write: (mutation, args) => storeInstance._modelWrite(`${modelName}/${mutation}`, args),
+            query: (query, args) => storeInstance._modelQuery(`${modelName}/${query}`, args),
+            mutate: (mutation, args) => storeInstance._modelMutate(`${modelName}/${mutation}`, args),
             trigger: modelObject.trigger,
             compute: modelObject.compute
           };
-          return mutations[mutationKey].mutationFn(wrappedContext);
-        }
+          return mutations[mutationKey].onMutate(wrappedContext);
+        },
+        onSuccess: (context) => {
+          const wrappedContext = {
+            ...context,
+            state: storeInstance.state[modelName],
+            dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
+            query: (query, args) => storeInstance._modelQuery(`${modelName}/${query}`, args),
+            mutate: (mutation, args) => storeInstance._modelMutate(`${modelName}/${mutation}`, args),
+            trigger: modelObject.trigger,
+            compute: modelObject.compute,
+            data: context.data
+          };
+          const result = mutations[mutationKey].onSuccess(wrappedContext);
+          // Ensure the store's state is updated
+          storeInstance.state[modelName] = { ...storeInstance.state[modelName], ...wrappedContext.state };
+          return result;
+        },
       };
-      storeInstance.mutation(namespacedMutation, mutationConfig);
-      modelObject.mutations[mutationKey] = (args) => storeInstance.write(namespacedMutation, args, { useModelMethods: true });
+      storeInstance.defineMutation(namespacedMutation, mutationConfig);
+      modelObject.mutations[mutationKey] = (payload) => storeInstance.mutate(namespacedMutation, payload);
     });
 
-
-     // Register computed properties
+    // Register computed properties
     Object.keys(computed).forEach(computedKey => {
       modelObject.computed[computedKey] = computed[computedKey];
     });
@@ -1288,8 +1257,8 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
               executeHandler(event.onExit, {
                 state: currentState,
                 dispatch: modelObject.dispatch,
-                read: modelObject.read,
-                write: modelObject.write,
+                query: modelObject.query,
+                mutate: modelObject.mutate,
                 trigger: modelObject.trigger,
                 compute: modelObject.compute,
                 payload
@@ -1303,8 +1272,8 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
               executeHandler(event.onEntry, {
                 state: state[modelName],
                 dispatch: modelObject.dispatch,
-                read: modelObject.read,
-                write: modelObject.write,
+                query: modelObject.query,
+                mutate: modelObject.mutate,
                 trigger: modelObject.trigger,
                 compute: modelObject.compute,
                 payload
@@ -1321,13 +1290,14 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
             executeHandler(event.onTransition, {
               state: state[modelName],
               dispatch: modelObject.dispatch,
-              read: modelObject.read,
-              write: modelObject.write,
+              query: modelObject.query,
+              mutate: modelObject.mutate,
               trigger: modelObject.trigger,
               compute: modelObject.compute,
               from: currentState,
               to: newState,
-              payload
+              payload,
+              data: event.data
             });
           } else {
             __trace('cami:state-machine:ignored-transition',
@@ -1530,6 +1500,65 @@ class LocalStorageAdapter {
   }
 }
 
+const isValidValidationRules = (rules) => {
+  if (!rules || typeof rules !== 'object') return false;
+
+  const hasPresence = 'presence' in rules;
+  const hasServer = 'server' in rules;
+
+  if (!hasPresence && !hasServer) return false;
+
+  if (hasPresence) {
+    if (typeof rules.presence !== 'object') return false;
+    if ('keys' in rules.presence && !Array.isArray(rules.presence.keys)) return false;
+    if ('values' in rules.presence) {
+      if (!Array.isArray(rules.presence.values)) return false;
+      if (!rules.presence.values.every(v => typeof v === 'object')) return false;
+    }
+  }
+
+  if (hasServer) {
+    if (typeof rules.server !== 'object') return false;
+    if (typeof rules.server.fetchFn !== 'function') return false;
+  }
+
+  return true;
+};
+
+const validateState = (storedState, validationRules, context) => {
+  const { type, name } = context;
+
+  if (!validationRules || !validationRules.presence) {
+    __trace(`cami:${type}`, `No validation rules specified for ${type} ${name}. Using initial state.`);
+    return false; // Invalidate by default if no rules are defined
+  }
+
+  const { keys, values } = validationRules.presence;
+
+  if (keys) {
+    for (const key of keys) {
+      if (!(key in storedState)) {
+        __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`);
+        return false;
+      }
+    }
+  }
+
+  if (values) {
+    for (const valueObj of values) {
+      for (const [key, value] of Object.entries(valueObj)) {
+        if (storedState[key] !== value) {
+          __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${storedState[key]}.`);
+          return false;
+        }
+      }
+    }
+  }
+
+  __trace(`cami:${type}`, `No validation rules violated for ${type} ${name}.`);
+  return true;
+};
+
 /**
  * @private
  * @function _localStorageEnhancer
@@ -1573,8 +1602,51 @@ const _storageEnhancer = (StoreClass) => {
 
           if (!isExpired) {
             const loadedState = JSON.parse(storedState);
+
+              if (options.validationRules) {
+                if (!isValidValidationRules(options.validationRules)) {
+                  throw new Error(`Invalid validation rules structure for store ${storeName}.`);
+                }
+
+                if (!validateState(loadedState, options.validationRules, { type: 'store', name: storeName })) {
+                  __trace('cami:storage', `Stored state failed validation for ${storeName}. Using initial state.`);
+                  return initialState;
+                }
+
+                if (options.validationRules && options.validationRules.server) {
+                  const { fetchFn, onFetch, onSuccess, onError, onSettled } = options.validationRules.server;
+
+                  if (onFetch) onFetch();
+                  __trace('cami:store', `Performing server-side validation for store ${storeName}.`);
+                  fetchFn().then(data => {
+                    if (onSuccess) onSuccess(data);
+
+                    let shouldInvalidate = false;
+                    if (onSettled) {
+                      onSettled({
+                        data, // Changed from 'response' to 'data'
+                        state: loadedState,
+                        invalidate: () => { shouldInvalidate = true; }
+                      });
+                    }
+
+                    if (shouldInvalidate) {
+                      __trace('cami:store', `Server-side validation invalidated stored state for store ${storeName}. Using initial state.`);
+                      return initialState;
+                    }
+                  }).catch(error => {
+                    if (onError) onError(error);
+                    __trace('cami:store', `Server-side validation failed for store ${storeName}. Using initial state.`, error);
+                    return initialState;
+                  });
+                }
+
+            } else {
+              __trace('cami:storage', `No validation rules defined for ${storeName}. Using stored state.`);
+            }
+
             __trace('cami:storage', `Loaded state from ${adapterType} storage`);
-            return loadedState; // Return the loaded state without merging
+            return loadedState;
           }
         }
       }
@@ -1654,6 +1726,7 @@ const store = (config = {}) => {
     adapter: 'localStorage',
     name: 'cami-store',
     expiry: 86400000, // 24 hours
+    validationRules: null
   };
 
   const finalConfig = { ...defaultConfig, ...config };
@@ -1665,6 +1738,10 @@ const store = (config = {}) => {
   const AdapterClass = ADAPTERS[finalConfig.adapter];
   if (!AdapterClass) {
     throw new Error(`Invalid adapter: ${finalConfig.adapter}. Available adapters are: ${Object.keys(ADAPTERS).join(', ')}`);
+  }
+
+  if (finalConfig.validationRules && !isValidValidationRules(finalConfig.validationRules)) {
+    throw new Error(`Invalid validation rules structure for store ${finalConfig.name}.`);
   }
 
   const storageAdapter = new AdapterClass();

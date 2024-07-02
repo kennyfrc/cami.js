@@ -26,7 +26,7 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
   });
 
   it("should fetch data from the API", async function() {
-    await BlogModel.read('fetchPosts');
+    await BlogModel.query('fetchPosts');
     expect(BlogModel.posts).toEqual([{ id: 1, title: 'Test Post' }]);
   });
 
@@ -38,7 +38,7 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
       json: () => Promise.resolve(newPost)
     }));
 
-    await BlogModel.write('createPost', newPost);
+    await BlogModel.mutate('createPost', newPost);
 
     expect(BlogModel.posts).toContain(jasmine.objectContaining(optimisticPost));
     expect(window.fetch).toHaveBeenCalledWith("https://api.camijs.com/posts", {

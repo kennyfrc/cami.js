@@ -22,18 +22,19 @@ export const BlogModel = model("BlogModel", {
   },
   queries: {
     fetchPosts: {
+      queryKey: ['posts'],
       queryFn: () => fetch("https://api.camijs.com/posts").then(res => res.json()),
-      onSuccess: ({ dispatch, response }) => {
-        dispatch('setPosts', response);
+      onSuccess: ({ dispatch, data }) => {
+        dispatch('setPosts', data);
       },
-      onError: ({ dispatch, error }) => {
-        dispatch('setError', error.message);
+      onError: ({ dispatch, data }) => {
+        dispatch('setError', data.message);
       }
     }
   },
   mutations: {
     createPost: {
-      mutationFn: ({ payload }) => {
+      mutationFn: (payload) => {
         return fetch("https://api.camijs.com/posts", {
           method: "POST",
           body: JSON.stringify(payload),

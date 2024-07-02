@@ -3,7 +3,7 @@
   <form-component></form-component>
 </article>
 <small>
-<p>Try entering an email that is already taken, such as trevinowanda@example.net (mock email)</p>
+<p>Try entering an email that is alqueryy taken, such as trevinowanda@example.net (mock email)</p>
 </small>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
@@ -20,8 +20,8 @@
       password: '',
       emailError: '',
       passwordError: '',
-      emailIsValid: null,
-      isEmailAvailable: null
+      emailIsValid: false,
+      isEmailAvailable: false
     },
     actions: {
       setEmail: ({ state, payload }) => {
@@ -48,13 +48,13 @@
         const { isAvailable } = payload;
         state.isEmailAvailable = isAvailable;
       },
-      processEmailInput: ({ dispatch, read, payload }) => {
+      processEmailInput: ({ dispatch, query, payload }) => {
         const { email } = payload;
         const { isEmailValid, emailError } = validateEmail(email);
         dispatch('setEmailError', { emailError });
         dispatch('setEmailIsValid', { isValid: isEmailValid });
         dispatch('setEmail', { email });
-        read('fetchEmail', { email });
+        query('fetchEmail', { email });
       },
       processPasswordInput: ({ dispatch, payload }) => {
         const { password } = payload;
@@ -73,8 +73,8 @@
           const { email } = payload;
           return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json());
         },
-        onSuccess: ({ dispatch, response }) => {
-          dispatch('setIsEmailAvailable', { isAvailable: response.length === 0 });
+        onSuccess: ({ dispatch, data }) => {
+          dispatch('setIsEmailAvailable', { isAvailable: data.length === 0 });
         },
         staleTime: 1000 * 60 * 5
       }

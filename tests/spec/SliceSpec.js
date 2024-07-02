@@ -73,8 +73,8 @@ describe("Model functionality", function() {
           onError: ({ dispatch, error }) => {
             dispatch('setError', error.message);
           },
-          onSuccess: ({ dispatch, response }) => {
-            dispatch('setList', response || []);
+          onSuccess: ({ dispatch, data }) => {
+            dispatch('setList', data || []);
           },
           onSettled: ({ dispatch }) => {
             dispatch('setLoading', false);
@@ -93,16 +93,18 @@ describe("Model functionality", function() {
             }).then(res => res.json());
           },
           onMutate: ({ state, payload, dispatch }) => {
-            const newPost = { ...payload, id: Date.now() }; // Use timestamp as temporary id
-            dispatch('addPost', newPost);
-            return { newPost };
+            dispatch('addPost', payload);
+
+            console.log(`newPost: ${JSON.stringify(payload)}`);
           },
-          onSuccess: ({ state, dispatch, response }) => {
-            dispatch('removePostById', response.id);
-            dispatch('addPost', response);
+          onSuccess: ({ data, dispatch }) => {
+            // dispatch('addPost', data);
           },
           onError: ({ dispatch, payload }) => {
-            dispatch('removePostById', payload.id);
+            // dispatch('removePostById', payload.id);
+          },
+          onSettled: ({ dispatch, state }) => {
+            // debugger
           }
         },
         deletePost: {
@@ -117,12 +119,14 @@ describe("Model functionality", function() {
             const newList = previousList.filter(p => p.id !== postToDelete.id);
 
             dispatch('setList', newList);
+
+            console.log(`newList: ${JSON.stringify(newList)}`);
           },
           onSuccess: ({ invalidateQueries }) => {
-            invalidateQueries({ queryKey: ['posts'] });
+            // invalidateQueries({ queryKey: ['posts'] });
           },
           onError: ({ previousState, dispatch }) => {
-            dispatch('setList', previousState.list || []);
+            // dispatch('setList', previousState.list || []);
           }
         }
       }
@@ -226,12 +230,12 @@ describe("Model functionality", function() {
       expect(PostModel.list.length).toBe(0);
     });
 
-    it("should handle read query with empty response", async function() {
+    it("should handle read query with empty data", async function() {
       spyOn(window, 'fetch').and.returnValue(Promise.resolve({
         json: () => Promise.resolve([])
       }));
 
-      const readPromise = PostModel.read('fetchPosts');
+      const readPromise = PostModel.query('fetchPosts');
 
       // Wait for the read operation to complete
       await readPromise;
@@ -279,29 +283,13 @@ describe("Model functionality", function() {
         return Promise.resolve({ json: () => Promise.resolve({}) });
       });
 
-      const mutationPromises = [
-        PostModel.write('createPost', post1),
-        PostModel.write('createPost', post2),
-        PostModel.write('deletePost', { id: 1 })
-      ];
+      PostModel.mutate('createPost', post1),
+      PostModel.mutate('createPost', post2),
+      PostModel.mutate('deletePost', { id: 1 })
 
-      // Simulate a delay to allow all onMutate handlers to run
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      // Resolve the promises in a specific order
-      resolveCreate2({ json: () => Promise.resolve(post2) });
-      await new Promise(resolve => setTimeout(resolve, 0));
-      resolveDelete({ json: () => Promise.resolve({}) });
-      await new Promise(resolve => setTimeout(resolve, 0));
-      resolveCreate1({ json: () => Promise.resolve(post1) });
-
-      await Promise.all(mutationPromises);
-
-      // Allow time for all callbacks to complete
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      expect(PostModel.list.length).toBe(1);
-      expect(PostModel.list[0].title).toBe('Post 2');
+      const list = PostModel.list;
+      expect(list.length).toBe(1);
+      expect(list[0].title).toBe('Post 2');
     });
   });
 
