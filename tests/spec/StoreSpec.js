@@ -28,7 +28,7 @@ describe("Cami Store", function() {
 
     it("should allow action registration and handle dispatch", function() {
       appStore = createStore();
-      appStore.action('increment', ({ state, payload }) => {
+      appStore.defineAction('increment', ({ state, payload }) => {
         state.count += payload || 1;
       });
       appStore.dispatch('increment');
@@ -39,13 +39,13 @@ describe("Cami Store", function() {
 
     it("should handle multiple actions and their interactions", function() {
       appStore = createStore();
-      appStore.action('increment', ({ state }) => {
+      appStore.defineAction('increment', ({ state }) => {
         state.count += 1;
       });
-      appStore.action('decrement', ({ state }) => {
+      appStore.defineAction('decrement', ({ state }) => {
         state.count -= 1;
       });
-      appStore.action('reset', ({ state }) => {
+      appStore.defineAction('reset', ({ state }) => {
         state.count = 0;
       });
 
@@ -60,7 +60,7 @@ describe("Cami Store", function() {
 
     it("should handle nested state updates", function() {
       appStore = createStore();
-      appStore.action('updateNested', ({ state, payload }) => {
+      appStore.defineAction('updateNested', ({ state, payload }) => {
         state.nested.value = payload;
       });
       appStore.dispatch('updateNested', 20);
@@ -69,10 +69,10 @@ describe("Cami Store", function() {
 
     it("should handle array operations", function() {
       appStore = createStore();
-      appStore.action('addItem', ({ state, payload }) => {
+      appStore.defineAction('addItem', ({ state, payload }) => {
         state.list.push(payload);
       });
-      appStore.action('removeItem', ({ state, payload }) => {
+      appStore.defineAction('removeItem', ({ state, payload }) => {
         const index = state.list.indexOf(payload);
         if (index > -1) {
           state.list.splice(index, 1);
@@ -92,7 +92,7 @@ describe("Cami Store", function() {
         await new Promise(resolve => setTimeout(resolve, 10)); // Simulate async operation
       });
       appStore.use(middlewareSpy);
-      appStore.action('incrementWithMiddleware', ({ state }) => {
+      appStore.defineAction('incrementWithMiddleware', ({ state }) => {
         state.count += 1;
       });
       await appStore.dispatch('incrementWithMiddleware');
@@ -105,7 +105,7 @@ describe("Cami Store", function() {
 
       beforeEach(function() {
         appStore = createStore();
-        appStore.action('complexUpdate', ({ state, payload }) => {
+        appStore.defineAction('complexUpdate', ({ state, payload }) => {
           state.count *= 2;
           state.nested.value += payload;
           state.list = state.list.concat([state.count, state.nested.value]);

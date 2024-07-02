@@ -18,12 +18,12 @@ enablePatches();
  *   cartItems: [],
  * });
  *
- * CartStore.action('add', (state, product) => {
+ * CartStore.defineAction('add', (state, product) => {
  *   const cartItem = { ...product, cartItemId: Date.now() };
  *   state.cartItems.push(cartItem);
  * });
  *
- * CartStore.action('remove', (state, product) => {
+ * CartStore.defineAction('remove', (state, product) => {
  *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
  * });
  *
@@ -79,7 +79,7 @@ class ObservableStore extends Observable {
 
     Object.keys(initialState).forEach(key => {
       if (typeof initialState[key] === 'function') {
-        this.action(key, initialState[key]);
+        this.defineAction(key, initialState[key]);
       } else {
         this.state[key] = initialState[key];
       }
@@ -195,14 +195,24 @@ class ObservableStore extends Observable {
 
   _dispatch(action, payload) {
     if (typeof action === 'function') {
-      return action(this._dispatch.bind(this), () => this.state);
+      return defineAction(this._dispatch.bind(this), () => this.state);
     }
 
     if (typeof action !== 'string') {
       throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
     }
 
-    const reducer = this.reducers[action];
+    const [modelName, actionName] = action.split('/');
+    let reducer;
+
+    if (actionName) {
+      // Model-level action
+      reducer = this.reducers[modelName] && this.reducers[modelName][actionName];
+    } else {
+      // Store-level action
+      reducer = this.reducers[action];
+    }
+
     if (!reducer) {
       console.warn(`No reducer found for action ${action}`);
       return;
@@ -326,26 +336,34 @@ class ObservableStore extends Observable {
    *   cartItems: [],
    * });
    *
-   * CartStore.action('add', ({ state, product }) => { // Updated parameter format
+   * CartStore.defineAction('add', ({ state, product }) => { // Updated parameter format
    *   const cartItem = { ...product, cartItemId: Date.now() };
    *   state.cartItems.push(cartItem);
    * });
    *
-   * CartStore.action('remove', ({ state, product }) => { // Updated parameter format
+   * CartStore.defineAction('remove', ({ state, product }) => { // Updated parameter format
    *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
    * });
    *
    * ```
    */
-  action(action, reducer) {
-    if (this.reducers[action]) {
-      console.warn(`[Cami.js] Action type ${action} is already registered. Overwriting.`);
-    }
+  defineAction(action, reducer) {
+    const [modelName, actionName] = action.split('/');
 
-    this.reducers[action] = ({ state, payload }) => {
-      const result = reducer({ state, payload });
-      return result;
-    };
+    if (actionName) {
+      // This is a model-level action
+      if (!this.reducers[modelName]) {
+        this.reducers[modelName] = {};
+      }
+      this.reducers[modelName][actionName] = (context) => {
+        return reducer(context);
+      };
+    } else {
+      // This is a store-level action
+      this.reducers[action] = (context) => {
+        return reducer(context);
+      };
+    }
 
     this.actions[action] = (...args) => {
       return this.dispatch(action, ...args);
@@ -429,7 +447,7 @@ class ObservableStore extends Observable {
    * @description Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
    * @example
    * ```javascript
-   * appStore.action('setPosts', (state, posts) => {
+   * appStore.defineAction('setPosts', (state, posts) => {
    *   state.posts = posts;
    * });
    *
@@ -495,6 +513,14 @@ class ObservableStore extends Observable {
       throw new TypeError(`[Cami.js] queryName must be a string. Received: ${typeof queryName}`);
     }
 
+    if (queryName.includes('/')) {
+      return this._modelQuery(queryName, payload);
+    } else {
+      return this._storeQuery(queryName, payload);
+    }
+  }
+
+  _storeQuery(queryName, payload) {
     const query = this.queryFunctions[queryName];
     if (!query) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
@@ -502,10 +528,30 @@ class ObservableStore extends Observable {
 
     const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
 
-    const [modelName, _] = queryName.split('/');
-
     const storeContext = {
       state: deepFreeze(this.state),
+      dispatch: this.dispatch.bind(this),
+      query: this.query.bind(this),
+      mutate: this.mutate.bind(this),
+      invalidateQueries: this.invalidateQueries.bind(this),
+    };
+
+    const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
+
+    return this._executeQuery(queryName, payload, query, context);
+  }
+
+  _modelQuery(queryName, payload) {
+    const [modelName, modelQueryName] = queryName.split('/');
+    const query = this.queryFunctions[queryName];
+    if (!query) {
+      throw new Error(`[Cami.js] No query found for name: ${queryName}`);
+    }
+
+    const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
+
+    const storeContext = {
+      state: deepFreeze(this.state[modelName]),
       dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
       query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
       mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
@@ -513,6 +559,12 @@ class ObservableStore extends Observable {
     };
 
     const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
+
+    return this._executeQuery(queryName, payload, query, context);
+  }
+
+  _executeQuery(queryName, payload, query, context) {
+    const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
 
     const cacheKey = typeof queryKey === 'function' ? queryKey(payload).join(':') : Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
 
@@ -557,11 +609,6 @@ class ObservableStore extends Observable {
           onSettled({ ...context, data: resultData || resultError });
         }
       });
-  }
-
-  _modelQuery(queryName, args) {
-    const [modelName, actualQueryName] = queryName.split('/');
-    return this.query(`${modelName}/${actualQueryName}`, args, { useModelMethods: true });
   }
 
   /**
@@ -751,23 +798,58 @@ class ObservableStore extends Observable {
   }
 
   mutate(mutationName, payload) {
+    if (mutationName.includes('/')) {
+      return this._modelMutate(mutationName, payload);
+    } else {
+      return this._storeMutate(mutationName, payload);
+    }
+  }
+
+  _storeMutate(mutationName, payload) {
     const mutation = this.mutationFunctions[mutationName];
     if (!mutation) {
       throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
     }
 
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
-    const [modelName, _] = mutationName.split('/');
 
     const context = {
       state: deepFreeze(this.state),
       previousState: deepFreeze(this.state),
+      dispatch: this.dispatch.bind(this),
+      query: this.query.bind(this),
+      mutate: this.mutate.bind(this),
+      invalidateQueries: this.invalidateQueries.bind(this),
+      payload
+    };
+
+    return this._executeMutation(mutationName, payload, mutation, context);
+  }
+
+  _modelMutate(mutationName, payload) {
+    const [modelName, actualMutationName] = mutationName.split('/');
+    const mutation = this.mutationFunctions[mutationName];
+    if (!mutation) {
+      throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
+    }
+
+    const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
+
+    const context = {
+      state: deepFreeze(this.state[modelName]),
+      previousState: deepFreeze(this.state[modelName]),
       dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
       query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
       mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this),
       payload
     };
+
+    return this._executeMutation(mutationName, payload, mutation, context);
+  }
+
+  _executeMutation(mutationName, payload, mutation, context) {
+    const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
 
     let optimisticUpdate;
     if (onMutate) {
@@ -792,11 +874,6 @@ class ObservableStore extends Observable {
           onSettled(context);
         }
       });
-  }
-
-  _modelMutate(mutationName, args) {
-    const [modelName, actualMutationName] = mutationName.split('/');
-    return this.mutate(`${modelName}/${actualMutationName}`, args, { useModelMethods: true });
   }
 }
 
@@ -1041,7 +1118,7 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
     // Register actions
     Object.keys(actions).forEach(actionKey => {
       const namespacedAction = `${modelName}/${actionKey}`;
-      storeInstance.action(namespacedAction, (context) => {
+      storeInstance.defineAction(namespacedAction, (context) => {
         const wrappedContext = {
           ...context,
           state: context.state[modelName],
@@ -1053,7 +1130,7 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
         };
         return actions[actionKey](wrappedContext);
       });
-      modelObject.actions[actionKey] = actions[actionKey];
+      modelObject.actions[actionKey] = (...args) => storeInstance.dispatch(namespacedAction, ...args);
     });
 
     // Register queries
@@ -1240,7 +1317,7 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
 
       Object.keys(modelObject.machine).forEach(eventName => {
         const namespacedAction = `${modelName}/${eventName}`;
-        storeInstance.action(namespacedAction, ({ state, payload }) => {
+        storeInstance.defineAction(namespacedAction, ({ state, payload }) => {
           const currentState = { ...state[modelName] };
           const event = modelObject.machine[eventName];
 

@@ -2440,7 +2440,7 @@ var ObservableStore = class extends Observable {
     };
     Object.keys(initialState).forEach((key) => {
       if (typeof initialState[key] === "function") {
-        this.action(key, initialState[key]);
+        this.defineAction(key, initialState[key]);
       } else {
         this.state[key] = initialState[key];
       }
@@ -2548,12 +2548,18 @@ var ObservableStore = class extends Observable {
   }
   _dispatch(action, payload) {
     if (typeof action === "function") {
-      return action(this._dispatch.bind(this), () => this.state);
+      return defineAction(this._dispatch.bind(this), () => this.state);
     }
     if (typeof action !== "string") {
       throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
     }
-    const reducer = this.reducers[action];
+    const [modelName, actionName] = action.split("/");
+    let reducer;
+    if (actionName) {
+      reducer = this.reducers[modelName] && this.reducers[modelName][actionName];
+    } else {
+      reducer = this.reducers[action];
+    }
     if (!reducer) {
       console.warn(`No reducer found for action ${action}`);
       return;
@@ -2664,25 +2670,31 @@ var ObservableStore = class extends Observable {
    *   cartItems: [],
    * });
    *
-   * CartStore.action('add', ({ state, product }) => { // Updated parameter format
+   * CartStore.defineAction('add', ({ state, product }) => { // Updated parameter format
    *   const cartItem = { ...product, cartItemId: Date.now() };
    *   state.cartItems.push(cartItem);
    * });
    *
-   * CartStore.action('remove', ({ state, product }) => { // Updated parameter format
+   * CartStore.defineAction('remove', ({ state, product }) => { // Updated parameter format
    *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
    * });
    *
    * ```
    */
-  action(action, reducer) {
-    if (this.reducers[action]) {
-      console.warn(`[Cami.js] Action type ${action} is already registered. Overwriting.`);
+  defineAction(action, reducer) {
+    const [modelName, actionName] = action.split("/");
+    if (actionName) {
+      if (!this.reducers[modelName]) {
+        this.reducers[modelName] = {};
+      }
+      this.reducers[modelName][actionName] = (context) => {
+        return reducer(context);
+      };
+    } else {
+      this.reducers[action] = (context) => {
+        return reducer(context);
+      };
     }
-    this.reducers[action] = ({ state, payload }) => {
-      const result = reducer({ state, payload });
-      return result;
-    };
     this.actions[action] = (...args) => {
       return this.dispatch(action, ...args);
     };
@@ -2759,7 +2771,7 @@ var ObservableStore = class extends Observable {
     * @description Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
     * @example
     * ```javascript
-    * appStore.action('setPosts', (state, posts) => {
+    * appStore.defineAction('setPosts', (state, posts) => {
     *   state.posts = posts;
     * });
     *
@@ -2820,20 +2832,47 @@ var ObservableStore = class extends Observable {
     if (typeof queryName !== "string") {
       throw new TypeError(`[Cami.js] queryName must be a string. Received: ${typeof queryName}`);
     }
+    if (queryName.includes("/")) {
+      return this._modelQuery(queryName, payload);
+    } else {
+      return this._storeQuery(queryName, payload);
+    }
+  }
+  _storeQuery(queryName, payload) {
     const query = this.queryFunctions[queryName];
     if (!query) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
     }
     const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
-    const [modelName, _] = queryName.split("/");
     const storeContext = {
       state: deepFreeze(this.state),
+      dispatch: this.dispatch.bind(this),
+      query: this.query.bind(this),
+      mutate: this.mutate.bind(this),
+      invalidateQueries: this.invalidateQueries.bind(this)
+    };
+    const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
+    return this._executeQuery(queryName, payload, query, context);
+  }
+  _modelQuery(queryName, payload) {
+    const [modelName, modelQueryName] = queryName.split("/");
+    const query = this.queryFunctions[queryName];
+    if (!query) {
+      throw new Error(`[Cami.js] No query found for name: ${queryName}`);
+    }
+    const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
+    const storeContext = {
+      state: deepFreeze(this.state[modelName]),
       dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
       query: (query2, queryArgs) => this._modelQuery(`${modelName}/${query2}`, queryArgs),
       mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this)
     };
     const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
+    return this._executeQuery(queryName, payload, query, context);
+  }
+  _executeQuery(queryName, payload, query, context) {
+    const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
     const cacheKey = typeof queryKey === "function" ? queryKey(payload).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
     const cachedData = this.queryCache.get(cacheKey);
     if (cachedData && !cachedData.isStale && !this._isStale(cachedData, staleTime)) {
@@ -2868,10 +2907,6 @@ var ObservableStore = class extends Observable {
         onSettled(__spreadProps(__spreadValues({}, context), { data: resultData || resultError }));
       }
     });
-  }
-  _modelQuery(queryName, args) {
-    const [modelName, actualQueryName] = queryName.split("/");
-    return this.query(`${modelName}/${actualQueryName}`, args, { useModelMethods: true });
   }
   /**
    * @method invalidateQueries
@@ -3039,21 +3074,49 @@ var ObservableStore = class extends Observable {
     };
   }
   mutate(mutationName, payload) {
+    if (mutationName.includes("/")) {
+      return this._modelMutate(mutationName, payload);
+    } else {
+      return this._storeMutate(mutationName, payload);
+    }
+  }
+  _storeMutate(mutationName, payload) {
     const mutation = this.mutationFunctions[mutationName];
     if (!mutation) {
       throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
     }
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
-    const [modelName, _] = mutationName.split("/");
     const context = {
       state: deepFreeze(this.state),
       previousState: deepFreeze(this.state),
+      dispatch: this.dispatch.bind(this),
+      query: this.query.bind(this),
+      mutate: this.mutate.bind(this),
+      invalidateQueries: this.invalidateQueries.bind(this),
+      payload
+    };
+    return this._executeMutation(mutationName, payload, mutation, context);
+  }
+  _modelMutate(mutationName, payload) {
+    const [modelName, actualMutationName] = mutationName.split("/");
+    const mutation = this.mutationFunctions[mutationName];
+    if (!mutation) {
+      throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
+    }
+    const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
+    const context = {
+      state: deepFreeze(this.state[modelName]),
+      previousState: deepFreeze(this.state[modelName]),
       dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
       query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
       mutate: (mutation2, mutationArgs) => this._modelMutate(`${modelName}/${mutation2}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this),
       payload
     };
+    return this._executeMutation(mutationName, payload, mutation, context);
+  }
+  _executeMutation(mutationName, payload, mutation, context) {
+    const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
     let optimisticUpdate;
     if (onMutate) {
       optimisticUpdate = onMutate(context);
@@ -3073,10 +3136,6 @@ var ObservableStore = class extends Observable {
         onSettled(context);
       }
     });
-  }
-  _modelMutate(mutationName, args) {
-    const [modelName, actualMutationName] = mutationName.split("/");
-    return this.mutate(`${modelName}/${actualMutationName}`, args, { useModelMethods: true });
   }
 };
 var deepFreeze = (value, deep = true) => {
@@ -3258,7 +3317,7 @@ var model = (modelName, { store: storeName = "cami-store", state, actions = {}, 
   const registerComponents = ({ actions: actions2 = {}, queries: queries2 = {}, mutations: mutations2 = {}, computed: computed2 = {}, machine: machine2 }) => {
     Object.keys(actions2).forEach((actionKey) => {
       const namespacedAction = `${modelName}/${actionKey}`;
-      storeInstance.action(namespacedAction, (context) => {
+      storeInstance.defineAction(namespacedAction, (context) => {
         const wrappedContext = __spreadProps(__spreadValues({}, context), {
           state: context.state[modelName],
           dispatch: (action, payload) => storeInstance._modelDispatch(`${modelName}/${action}`, payload),
@@ -3269,7 +3328,7 @@ var model = (modelName, { store: storeName = "cami-store", state, actions = {}, 
         });
         return actions2[actionKey](wrappedContext);
       });
-      modelObject.actions[actionKey] = actions2[actionKey];
+      modelObject.actions[actionKey] = (...args) => storeInstance.dispatch(namespacedAction, ...args);
     });
     Object.keys(queries2).forEach((queryKey) => {
       const namespacedQuery = `${modelName}/${queryKey}`;
@@ -3433,7 +3492,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
       };
       Object.keys(modelObject.machine).forEach((eventName) => {
         const namespacedAction = `${modelName}/${eventName}`;
-        storeInstance.action(namespacedAction, ({ state: state2, payload }) => {
+        storeInstance.defineAction(namespacedAction, ({ state: state2, payload }) => {
           const currentState = __spreadValues({}, state2[modelName]);
           const event = modelObject.machine[eventName];
           if (isValidTransition(event.from, currentState)) {
