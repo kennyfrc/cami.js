@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+<article>
+  <h1>Task Manager</h1>
+  <task-manager-component></task-manager-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const taskStore = store({
+    state: {
+      tasks: [],
+      filter: 'all',
+      inputError: ''
+    },
+    name: "task-store"
+  });
+
+  taskStore.defineAction('addTask', ({ state, payload }) => {
+    if (payload.trim() === '') {
+      state.inputError = 'Task name cannot be empty';
+    } else {
+      state.tasks.push({ id: Date.now(), name: payload, completed: false });
+      state.inputError = '';
+    }
+  });
+
+  taskStore.defineAction('removeTask', ({ state, payload }) => {
+    state.tasks = state.tasks.filter(task => task.id !== payload);
+  });
+
+  taskStore.defineAction('toggleTask', ({ state, payload }) => {
+    state.tasks = state.tasks.map(task =>
+      task.id === payload ? { ...task, completed: !task.completed } : task
+    );
+  });
+
+  taskStore.defineAction('setFilter', ({ state, payload }) => {
+    state.filter = payload;
+  });
+
+  taskStore.defineAction('clearInputError', ({ state }) => {
+    state.inputError = '';
+  });
+
+  taskStore.defineMemo('filteredTasks', ({ state }) => {
+    switch (state.filter) {
+      case 'completed':
+        return state.tasks.filter(task => task.completed);
+      case 'active':
+        return state.tasks.filter(task => !task.completed);
+      default:
+        return state.tasks;
+    }
+  });
+
+  customElements.define('task-manager-component',
+    class extends ReactiveElement {
+      template() {
+        const { tasks, filter, inputError } = taskStore.state;
+        const { dispatch } = taskStore;
+        const filteredTasks = taskStore.memo('filteredTasks');
+
+        return html`
+          <input id="taskInput" type="text" placeholder="Enter task name"
+                 @input=${() => dispatch('clearInputError')}
+                 aria-invalid=${inputError ? 'true' : 'false'}>
+          <button @click=${() => {
+            const input = document.getElementById('taskInput');
+            dispatch('addTask', input.value);
+            if (!inputError) {
+              input.value = '';
+            }
+          }}>Add Task</button>
+          ${inputError ? html`<p style="color: red;">${inputError}</p>` : ''}
+          <button @click=${() => dispatch('setFilter', 'all')}>All</button>
+          <button @click=${() => dispatch('setFilter', 'active')}>Active</button>
+          <button @click=${() => dispatch('setFilter', 'completed')}>Completed</button>
+          <ul>
+            ${filteredTasks.map((task) => html`
+              <li>
+                <input type="checkbox" .checked=${task.completed} @click=${() => dispatch('toggleTask', task.id)}>
+                ${task.name}
+                <a @click=${() => dispatch('removeTask', task.id)}>Remove</a>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+  );
+</script>
+</body>
+</html>

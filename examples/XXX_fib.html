@@ -6,60 +6,61 @@
     <title>Application Shell</title>
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+<article>
   <h1>Fibonacci Counter</h1>
   <fibonacci-counter></fibonacci-counter>
 </article>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
-  const { html, ReactiveElement, slice } = cami;
+  const { html, ReactiveElement, store } = cami;
 
-  const fibSlice = slice('fibonacci', {
+  const fibStore = store({
     state: {
       count: 1
     },
-    actions: {
-      increment: ({ state }) => {
-        state.count++;
-      }
-    },
-    computed: {
-      fibonacci: ({ state, payload }) => {
-        const fibonacci = (num) => {
-          if (num <= 1) return 1;
-          return fibonacci(num - 1) + fibonacci(num - 2);
-        };
-        return fibonacci(payload || state.count);
-      },
-      fib: ({ state }) => {
-        return fibSlice.fibonacci(state.count);
-      },
-      fibSequence: ({ state }) => {
-        return Array.from({ length: 10 }, (_, i) => ({
-          index: i + 1,
-          values: Array(5).fill().map(() => fibSlice.fibonacci(state.count))
-        }));
-      }
-    }
+    name: "fibonacci-store"
   });
 
-  class FibonacciCounter extends ReactiveElement {
-    onCreate() {
-      this.state = fibSlice;
-    }
+  fibStore.defineAction('increment', ({ state }) => {
+    state.count++;
+  });
 
-    template() {
-      return html`
-        <button @click=${() => this.state.increment()}>Count: ${this.state.count}</button>
-        ${this.state.fibSequence().map(row => html`
-          <div>${row.index}. ${row.values.join(' ')}</div>
-        `)}
-      `;
+  fibStore.defineMemo('fibonacci', ({ state, payload }) => {
+    const fibonacci = (num) => {
+      if (num <= 1) return 1;
+      return fibonacci(num - 1) + fibonacci(num - 2);
+    };
+    return fibonacci(payload || state.count);
+  });
+
+  fibStore.defineMemo('fib', ({ state, memo }) => {
+    return memo('fibonacci', state.count);
+  });
+
+  fibStore.defineMemo('fibSequence', ({ state, memo }) => {
+    return Array.from({ length: 10 }, (_, i) => ({
+      index: i + 1,
+      values: Array(5).fill().map(() => memo('fibonacci', state.count))
+    }));
+  });
+
+  customElements.define('fibonacci-counter',
+    class extends ReactiveElement {
+      template() {
+        const { count } = fibStore.state;
+        const { dispatch, memo } = fibStore;
+        const fibSequence = memo('fibSequence');
+
+        return html`
+          <button @click=${() => dispatch('increment')}>Count: ${count}</button>
+          ${fibSequence.map(row => html`
+            <div>${row.index}. ${row.values.join(' ')}</div>
+          `)}
+        `;
+      }
     }
-  }
-  customElements.define('fibonacci-counter', FibonacciCounter);
+  );
 </script>
-
 </body>
 </html>

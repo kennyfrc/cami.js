@@ -6,18 +6,17 @@
     <title>Application Shell</title>
 </head>
 <body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+<article>
   <h1>Vending Machine Simulator</h1>
   <vending-machine-component></vending-machine-component>
 </article>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
-  const { html, ReactiveElement, model } = cami;
+  const { html, ReactiveElement, store } = cami;
   cami.debug.enable();
 
-  const VendingMachineModel = model("VendingMachine", {
-    store: "vending-machine-store",
+  const vendingMachineStore = store({
     state: {
       balance: 0,
       selectedProduct: null,
@@ -29,104 +28,103 @@
       message: '',
       machineState: 'idle'
     },
+    name: "vending-machine-store"
   });
 
-  VendingMachineModel.register({
-    actions: {
-      addBalance: ({ state, payload }) => {
-        state.balance += payload;
-      },
-      selectProduct: ({ state, payload }) => {
-        state.selectedProduct = state.products.find(p => p.name === payload);
-      },
-      dispenseProduct: ({ state }) => {
-        state.balance -= state.selectedProduct.price;
-        state.message = `Dispensed ${state.selectedProduct.name}. Enjoy!`;
-        state.selectedProduct = null;
-      },
-      resetMachine: ({ state }) => {
-        state.selectedProduct = null;
-        state.message = '';
-      },
-      setMachineState: ({ state, payload }) => {
-        state.machineState = payload;
+  vendingMachineStore.defineAction('addBalance', ({ state, payload }) => {
+    state.balance += payload;
+  });
+
+  vendingMachineStore.defineAction('selectProduct', ({ state, payload }) => {
+    state.selectedProduct = state.products.find(p => p.name === payload);
+  });
+
+  vendingMachineStore.defineAction('dispenseProduct', ({ state }) => {
+    state.balance -= state.selectedProduct.price;
+    state.message = `Dispensed ${state.selectedProduct.name}. Enjoy!`;
+    state.selectedProduct = null;
+  });
+
+  vendingMachineStore.defineAction('resetMachine', ({ state }) => {
+    state.selectedProduct = null;
+    state.message = '';
+  });
+
+  vendingMachineStore.defineAction('setMachineState', ({ state, payload }) => {
+    state.machineState = payload;
+  });
+
+  vendingMachineStore.defineMachine('vending-machine', {
+    insert_coin: {
+      from: [
+        { machineState: 'idle' },
+        { machineState: 'product_selected' }
+      ],
+      to: ({ state }) => ({ machineState: state.machineState }),
+      onTransition: ({ dispatch, payload }) => {
+        dispatch('addBalance', payload);
       }
     },
-  })
-
-  VendingMachineModel.register({
-    machine: {
-      insert_coin: {
-        from: [
-          { machineState: 'idle' },
-          { machineState: 'product_selected' }
-        ],
-        to: ({ state }) => ({ machineState: state.machineState }),
-        onTransition: ({ dispatch, payload }) => {
-          dispatch('addBalance', payload);
-        }
-      },
-      select_product: {
-        from: [
-          { machineState: 'idle' },
-          { machineState: 'product_selected' }
-        ],
-        to: { machineState: 'product_selected' },
-        onTransition: ({ dispatch, payload }) => {
-          dispatch('selectProduct', payload);
-        }
-      },
-      dispense: {
-        from: { machineState: 'product_selected' },
-        to: { machineState: 'idle' },
-        guard: ({ state }) => state.selectedProduct && state.balance >= state.selectedProduct.price,
-        onTransition: ({ dispatch }) => {
-          dispatch('dispenseProduct');
-        }
-      },
-      reset: {
-        from: [
-          { machineState: 'idle' },
-          { machineState: 'product_selected' }
-        ],
-        to: { machineState: 'idle' },
-        onTransition: ({ dispatch }) => {
-          dispatch('resetMachine');
-        }
+    select_product: {
+      from: [
+        { machineState: 'idle' },
+        { machineState: 'product_selected' }
+      ],
+      to: { machineState: 'product_selected' },
+      onTransition: ({ dispatch, payload }) => {
+        dispatch('selectProduct', payload);
+      }
+    },
+    dispense: {
+      from: { machineState: 'product_selected' },
+      to: { machineState: 'idle' },
+      guard: ({ state }) => state.selectedProduct && state.balance >= state.selectedProduct.price,
+      onTransition: ({ dispatch }) => {
+        dispatch('dispenseProduct');
+      }
+    },
+    reset: {
+      from: [
+        { machineState: 'idle' },
+        { machineState: 'product_selected' }
+      ],
+      to: { machineState: 'idle' },
+      onTransition: ({ dispatch }) => {
+        dispatch('resetMachine');
       }
     }
-  })
+  });
 
-  class VendingMachineElement extends ReactiveElement {
-    template() {
-      const { balance, selectedProduct, products, message, trigger, machineState } = VendingMachineModel;
+  customElements.define('vending-machine-component',
+    class extends ReactiveElement {
+      template() {
+        const { balance, selectedProduct, products, message, machineState } = vendingMachineStore.state;
+        const { trigger } = vendingMachineStore;
 
-      return html`
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h2>Balance: $${balance.toFixed(2)}</h2>
-          <p>Machine State: ${machineState}</p>
-          ${message ? html`<p>${message}</p>` : ''}
-          ${selectedProduct ? html`<p>Selected: ${selectedProduct.name} ($${selectedProduct.price.toFixed(2)})</p>` : ''}
-          <div>
-            <button @click=${() => trigger('insert_coin', 0.25)}>Insert $0.25</button>
-            <button @click=${() => trigger('insert_coin', 1.00)}>Insert $1.00</button>
+        return html`
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <h2>Balance: $${balance.toFixed(2)}</h2>
+            <p>Machine State: ${machineState}</p>
+            ${message ? html`<p>${message}</p>` : ''}
+            ${selectedProduct ? html`<p>Selected: ${selectedProduct.name} ($${selectedProduct.price.toFixed(2)})</p>` : ''}
+            <div>
+              <button @click=${() => trigger('vending-machine:insert_coin', 0.25)}>Insert $0.25</button>
+              <button @click=${() => trigger('vending-machine:insert_coin', 1.00)}>Insert $1.00</button>
+            </div>
+            <div>
+              ${products.map(product => html`
+                <button @click=${() => trigger('vending-machine:select_product', product.name)}>
+                  ${product.name} ($${product.price.toFixed(2)})
+                </button>
+              `)}
+            </div>
+            <button @click=${() => trigger('vending-machine:dispense')} ?disabled=${!selectedProduct || (selectedProduct && balance < selectedProduct.price)}>Dispense</button>
+            <button @click=${() => trigger('vending-machine:reset')}>Reset</button>
           </div>
-          <div>
-            ${products.map(product => html`
-              <button @click=${() => trigger('select_product', product.name)}>
-                ${product.name} ($${product.price.toFixed(2)})
-              </button>
-            `)}
-          </div>
-          <button @click=${() => trigger('dispense')} ?disabled=${!selectedProduct || (selectedProduct && balance < selectedProduct.price)}>Dispense</button>
-          <button @click=${() => trigger('reset')}>Reset</button>
-        </div>
-      `;
+        `;
+      }
     }
-  }
-
-  customElements.define('vending-machine-component', VendingMachineElement);
+  );
 </script>
-
 </body>
 </html>

@@ -1,6 +1,6 @@
 const { store } = cami;
 
-describe("Cami Store", function() {
+describe("Observable Store (Set 1)", function() {
   describe("Basic Functionality", function() {
     let createStore;
     let appStore;

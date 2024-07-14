@@ -66,6 +66,18 @@ class ObservableStore extends Observable {
     this.mutationFunctions = new Map();
     this.mutations = {};
     this.patchListeners = new Map();
+    this.machines = {};
+    this.memos = {};
+    this.memoCache = new Map();
+
+    // destructurable methods
+    this.dispatch = this.dispatch.bind(this);
+    this.query = this.query.bind(this);
+    this.mutate = this.mutate.bind(this);
+    this.subscribe = this.subscribe.bind(this);
+    this.trigger = this.trigger.bind(this);
+    this.memo = this.memo.bind(this);
+    this.invalidateQueries = this.invalidateQueries.bind(this);
 
     this._persistState = () => {
       if (this.storage) {
@@ -124,6 +136,7 @@ class ObservableStore extends Observable {
 
   _notifyObservers() {
     if (!_deepEqual(this.state, this.previousState)) {
+      this.memoCache.clear();
       this.__observers.forEach(observer => observer.next(this.state));
       if (this.__subscriber && typeof this.__subscriber.next === 'function') {
         this.__subscriber.next(this.state);
@@ -155,7 +168,6 @@ class ObservableStore extends Observable {
 
       const actualType = this._inferType(actualValue);
       if (actualType === 'function') {
-        debugger;
       }
 
       if (typeof expectedType === 'object' && expectedType !== null) {
@@ -222,11 +234,17 @@ class ObservableStore extends Observable {
 
     const oldValue = this.state;
     const [nextState, patches, inversePatches] = produceWithPatches(this.state, draft => {
-        reducer({
-          state: draft,
-          payload: payload
-        });
+      reducer({
+        state: draft,
+        payload: payload,
+        dispatch: this.dispatch.bind(this),
+        query: this.query.bind(this),
+        mutate: this.mutate.bind(this),
+        invalidateQueries: this.invalidateQueries.bind(this),
+        memo: this.memo.bind(this),
+        trigger: this.trigger.bind(this)
       });
+    });
 
     try {
       this._validateDeepState(this.schema, nextState);
@@ -350,19 +368,28 @@ class ObservableStore extends Observable {
   defineAction(action, reducer) {
     const [modelName, actionName] = action.split('/');
 
+    const actionReducer = (context) => {
+      const enhancedContext = {
+        ...context,
+        dispatch: this.dispatch.bind(this),
+        query: this.query.bind(this),
+        mutate: this.mutate.bind(this),
+        invalidateQueries: this.invalidateQueries.bind(this),
+        memo: this.memo.bind(this),
+        trigger: this.trigger.bind(this)
+      };
+      return reducer(enhancedContext);
+    };
+
     if (actionName) {
-      // This is a model-level action
+      // Model-level action
       if (!this.reducers[modelName]) {
         this.reducers[modelName] = {};
       }
-      this.reducers[modelName][actionName] = (context) => {
-        return reducer(context);
-      };
+      this.reducers[modelName][actionName] = actionReducer;
     } else {
-      // This is a store-level action
-      this.reducers[action] = (context) => {
-        return reducer(context);
-      };
+      // Store-level action
+      this.reducers[action] = actionReducer;
     }
 
     this.actions[action] = (...args) => {
@@ -534,6 +561,8 @@ class ObservableStore extends Observable {
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
       invalidateQueries: this.invalidateQueries.bind(this),
+      memo: this.memo.bind(this),
+      trigger: this.trigger.bind(this)
     };
 
     const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
@@ -556,6 +585,8 @@ class ObservableStore extends Observable {
       query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
       mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this),
+      memo: (memoName, payload) => this.memo(`${modelName}/${memoName}`, payload),
+      trigger: (event, eventPayload) => this.trigger(`${modelName}/${event}`, eventPayload)
     };
 
     const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
@@ -570,7 +601,9 @@ class ObservableStore extends Observable {
 
     const cachedData = this.queryCache.get(cacheKey);
 
-    if (cachedData && !cachedData.isStale && !this._isStale(cachedData, staleTime)) {
+    __trace(`_executeQuery`, `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`);
+
+    if (cachedData && !this._isStale(cachedData, staleTime)) {
       __trace(`query`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
       return Promise.resolve(cachedData.data);
     }
@@ -628,7 +661,18 @@ class ObservableStore extends Observable {
     const queriesToInvalidate = Object.keys(this.queryFunctions).filter(queryName => {
       if (queryKey) {
         const storedQueryKey = this.queryFunctions[queryName].queryKey;
-        if (Array.isArray(storedQueryKey)) {
+
+        if (typeof storedQueryKey === 'function') {
+          // If storedQueryKey is a function, we need to call it and compare the result
+          // Pass an empty object as default argument to prevent destructuring errors
+          try {
+            const generatedKey = storedQueryKey({});
+            return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
+          } catch (error) {
+            __trace(`invalidateQueries`, `Error generating key for ${queryName}: ${error.message}`);
+            return false;
+          }
+        } else if (Array.isArray(storedQueryKey)) {
           return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
         } else {
           return storedQueryKey === queryKey[0];
@@ -655,8 +699,17 @@ class ObservableStore extends Observable {
         cacheKey = query.queryKey;
       }
 
-      __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
+      __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`);
 
+      // Instead of deleting, mark as stale and reset timestamp
+      if (this.queryCache.has(cacheKey)) {
+        const cachedData = this.queryCache.get(cacheKey);
+        cachedData.isStale = true;
+        cachedData.timestamp = 0;
+        this.queryCache.set(cacheKey, cachedData);
+      }
+
+      // Clear any associated intervals or event listeners
       if (this.intervals[queryName]) {
         clearInterval(this.intervals[queryName]);
         delete this.intervals[queryName];
@@ -677,17 +730,7 @@ class ObservableStore extends Observable {
         delete this.gcTimeouts[queryName];
       }
 
-      // If the query hasn't been executed yet, we create a placeholder in the cache
-      if (!this.queryCache.has(cacheKey)) {
-        this.queryCache.set(cacheKey, { isStale: true, data: undefined });
-      } else {
-        const cachedData = this.queryCache.get(cacheKey);
-        cachedData.isStale = true;
-      }
-
-      const cachedData = this.queryCache.get(cacheKey);
-      invariant("Cached data should always exist if there's a query with that key", () => cachedData !== undefined);
-      invariant("isStale is always true if there's a cached data", () => cachedData.isStale === true);
+      __trace(`invalidateQueries`, `Cache entry removed for key: ${cacheKey}`);
     });
   }
 
@@ -727,9 +770,21 @@ class ObservableStore extends Observable {
    * @description Checks if the cached data is stale based on the stale time.
    */
   _isStale(cachedData, staleTime) {
-    const isDataStale = Date.now() - cachedData.timestamp > staleTime;
-    __trace(`isStale`, `isDataStale: ${isDataStale} (Current Time: ${Date.now()}, Data Timestamp: ${cachedData.timestamp}, Stale Time: ${staleTime})`);
-    return isDataStale;
+    const currentTime = Date.now();
+    const timeSinceLastUpdate = currentTime - cachedData.timestamp;
+    const isDataStale = !cachedData.timestamp || timeSinceLastUpdate > staleTime;
+    const isManuallyInvalidated = cachedData.isStale === true;
+
+    __trace(`_isStale`, `
+      isDataStale: ${isDataStale}
+      isManuallyInvalidated: ${isManuallyInvalidated}
+      Current Time: ${currentTime}
+      Data Timestamp: ${cachedData.timestamp}
+      Time Since Last Update: ${timeSinceLastUpdate}ms
+      Stale Time: ${staleTime}ms
+    `);
+
+    return isDataStale || isManuallyInvalidated;
   }
 
   /**
@@ -813,17 +868,19 @@ class ObservableStore extends Observable {
 
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
 
-    const context = {
+    const storeContext = {
       state: deepFreeze(this.state),
       previousState: deepFreeze(this.state),
       dispatch: this.dispatch.bind(this),
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
       invalidateQueries: this.invalidateQueries.bind(this),
-      payload
+      payload,
+      memo: this.memo.bind(this),
+      trigger: this.trigger.bind(this),
     };
 
-    return this._executeMutation(mutationName, payload, mutation, context);
+    return this._executeMutation(mutationName, payload, mutation, storeContext);
   }
 
   _modelMutate(mutationName, payload) {
@@ -835,17 +892,19 @@ class ObservableStore extends Observable {
 
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
 
-    const context = {
+    const storeContext = {
       state: deepFreeze(this.state[modelName]),
       previousState: deepFreeze(this.state[modelName]),
       dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
       query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
       mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
       invalidateQueries: this.invalidateQueries.bind(this),
-      payload
+      payload,
+      memo: this.memo.bind(this),
+      trigger: this.trigger.bind(this),
     };
 
-    return this._executeMutation(mutationName, payload, mutation, context);
+    return this._executeMutation(mutationName, payload, mutation, storeContext);
   }
 
   _executeMutation(mutationName, payload, mutation, context) {
@@ -856,24 +915,331 @@ class ObservableStore extends Observable {
       optimisticUpdate = onMutate(context);
     }
 
+    let result;
+    let error;
+
     return Promise.resolve(mutationFn(payload))
       .then(data => {
+        result = data;
         if (onSuccess) {
           onSuccess({ ...context, data });
         }
         return data;
       })
-      .catch(error => {
+      .catch(err => {
+        error = err;
         if (onError) {
-          onError({ ...context, error });
+          onError({ ...context, error: err });
         }
-        throw error;
+        throw err;
       })
       .finally(() => {
         if (onSettled) {
-          onSettled(context);
+          onSettled({
+            ...context,
+            data: result || error,
+          });
         }
       });
+  }
+
+  /**
+   * @method defineMachine
+   * @param {string} machineName - The name of the machine
+   * @param {Object} machineDefinition - The state machine definition
+   * @description Defines or updates a state machine for the store
+   */
+  defineMachine(machineName, machineDefinition) {
+    const validateMachine = (machine) => {
+      if (typeof machine !== 'object' || machine === null) {
+        throw new Error('Machine definition must be an object');
+      }
+
+      Object.entries(machine).forEach(([eventName, event]) => {
+        if (typeof event !== 'object' || event === null) {
+          throw new Error(`Event '${eventName}' must be an object`);
+        }
+
+        if (!event.to || (typeof event.to !== 'function' && typeof event.to !== 'object')) {
+          throw new Error(`Event '${eventName}' must have a 'to' property that is an object or a function returning an object`);
+        }
+
+        if (event.guard && typeof event.guard !== 'function') {
+          throw new Error(`Guard for event '${eventName}' must be a function`);
+        }
+
+        if (event.onTransition && typeof event.onTransition !== 'function') {
+          throw new Error(`onTransition for event '${eventName}' must be a function`);
+        }
+
+        if (event.onEntry && typeof event.onEntry !== 'function') {
+          throw new Error(`onEntry for event '${eventName}' must be a function`);
+        }
+
+        if (event.onExit && typeof event.onExit !== 'function') {
+          throw new Error(`onExit for event '${eventName}' must be a function`);
+        }
+      });
+    };
+
+    validateMachine(machineDefinition);
+
+    // Create or update the machine
+    if (!this.machines[machineName]) {
+      this.machines[machineName] = {};
+    }
+
+    // Merge the new definition with the existing one
+    this.machines[machineName] = { ...this.machines[machineName], ...machineDefinition };
+
+    // Define actions for the new or updated events
+    Object.keys(machineDefinition).forEach(eventName => {
+      const fullEventName = `${machineName}:${eventName}`;
+      this.defineAction(fullEventName, ({ state, payload }) => {
+        const event = this.machines[machineName][eventName];
+        const currentState = { ...state };
+
+        if (this.isValidTransition(event.from, currentState)) {
+          const applyTransition = (to) => {
+            this.validateToShape(event.from, to);
+
+            // Execute onExit for the current state
+            this.executeHandler(event.onExit, {
+              state: currentState,
+              dispatch: this.dispatch,
+              query: this.query,
+              mutate: this.mutate,
+              trigger: this.trigger,
+              memo: this.memo,
+              payload
+            });
+
+            Object.entries(to).forEach(([key, value]) => {
+              state[key] = value;
+            });
+
+            // Execute onEntry for the new state
+            this.executeHandler(event.onEntry, {
+              state,
+              dispatch: this.dispatch,
+              query: this.query,
+              mutate: this.mutate,
+              trigger: this.trigger,
+              memo: this.memo,
+              payload
+            });
+          };
+
+          const newState = typeof event.to === 'function'
+            ? event.to({ state: currentState, payload })
+            : event.to;
+
+          applyTransition(newState);
+
+          // Execute onTransition
+          this.executeHandler(event.onTransition, {
+            state,
+            dispatch: this.dispatch,
+            query: this.query,
+            mutate: this.mutate,
+            trigger: this.trigger,
+            memo: this.memo,
+            from: currentState,
+            to: newState,
+            payload,
+            data: event.data
+          });
+        } else {
+          __trace('cami:state-machine:ignored-transition',
+            `Ignored transition '${fullEventName}' event from the current state.\n\n`,
+            `Current state:\n\n${JSON.stringify(currentState)}\n\n`,
+            `The '${fullEventName}' event expected any of these 'from' states:\n`,
+            ...(Array.isArray(event.from)
+              ? event.from.map((validState, index) => `  ${index + 1}. ${JSON.stringify(validState)}`)
+              : [`  ${JSON.stringify(event.from)}`]
+            ),
+            "\n\nA key or element of the current state must match one of the 'from' states to trigger the state transition. If you intended to transition, either the 'from' state or current state is incorrect.\n"
+          );
+        }
+      });
+    });
+  }
+
+  /**
+   * @method trigger
+   * @param {string} fullEventName - The full name of the event to trigger (machineName/eventName)
+   * @param {*} payload - The payload for the event
+   * @returns {Promise} A promise that resolves when the event is processed
+   * @description Triggers a state machine event
+   */
+  trigger(fullEventName, payload) {
+    const [machineName, eventName] = fullEventName.split(':');
+    if (!this.machines[machineName] || !this.machines[machineName][eventName]) {
+      throw new Error(`Event '${fullEventName}' not found in any state machine.`);
+    }
+    return this.dispatch(fullEventName, payload);
+  }
+
+
+  /**
+   * @method defineMemo
+   * @param {string} memoName - The name of the memo to define
+   * @param {Function} memoFn - The memo function
+   * @description Defines a single memoized computed property for the store
+   */
+  defineMemo(memoName, memoFn) {
+    if (typeof memoName !== 'string') {
+      throw new Error('Memo name must be a string');
+    }
+    if (typeof memoFn !== 'function') {
+      throw new Error(`Memo '${memoName}' must be a function`);
+    }
+    this.memos[memoName] = memoFn;
+    this.memoCache.set(memoName, new Map());
+  }
+
+
+  /**
+   * @method memo
+   * @param {string} memoName - The name of the memo to compute
+   * @param {*} [payload] - Optional payload for the memo
+   * @returns {*} The computed value of the memo
+   * @description Computes and returns the value of a memoized property
+   */
+  memo(memoName, payload) {
+    const memoFn = this.memos[memoName];
+    if (!memoFn) {
+      throw new Error(`Memo '${memoName}' not found.`);
+    }
+
+    let cache = this.memoCache.get(memoName);
+    if (!cache) {
+      cache = new Map();
+      this.memoCache.set(memoName, cache);
+    }
+
+    const cacheKey = JSON.stringify(payload);
+
+    if (cache.has(cacheKey)) {
+      const { result, dependencies } = cache.get(cacheKey);
+      if (this._areDependenciesUnchanged(dependencies)) {
+        return result;
+      }
+    }
+
+    const dependencies = new Set();
+    const trackingProxy = new Proxy(this.state, {
+      get: (target, prop) => {
+        dependencies.add(prop);
+        return target[prop];
+      }
+    });
+
+    const storeContext = {
+      state: trackingProxy,
+      payload,
+      dispatch: this.dispatch.bind(this),
+      trigger: this.trigger.bind(this),
+      memo: this.memo.bind(this),
+      query: this.query.bind(this),
+      mutate: this.mutate.bind(this)
+    };
+
+    const result = memoFn(storeContext);
+    cache.set(cacheKey, { result, dependencies });
+
+    return result;
+  }
+
+  _areDependenciesUnchanged(dependencies) {
+    return Array.from(dependencies).every(dep =>
+      this.state[dep] === this.previousState[dep]
+    );
+  }
+
+  // Helper methods for the state machine
+  isValidTransition(from, currentState) {
+    if (from === undefined) {
+      return true;
+    }
+
+    const checkState = (fromState, currentStateSlice) => {
+      if (typeof fromState !== 'object' || fromState === null) {
+        return fromState === currentStateSlice;
+      }
+      return Object.entries(fromState).every(([key, value]) => {
+        if (!(key in currentStateSlice)) {
+          return false;
+        }
+        if (Array.isArray(value)) {
+          return value.includes(currentStateSlice[key]);
+        }
+        if (typeof value === 'object' && value !== null) {
+          return checkState(value, currentStateSlice[key]);
+        }
+        return currentStateSlice[key] === value;
+      });
+    };
+
+    if (Array.isArray(from)) {
+      return from.some(state => checkState(state, currentState));
+    }
+    return checkState(from, currentState);
+  }
+
+  validateToShape(from, to) {
+    if (from === undefined) {
+      return;
+    }
+
+    const getShapeDescription = (obj) => {
+      if (typeof obj !== 'object' || obj === null) {
+        return typeof obj;
+      }
+
+      return Object.entries(obj).reduce((acc, [key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          acc[key] = getShapeDescription(value);
+        } else if (Array.isArray(value)) {
+          acc[key] = `Array<${typeof value[0]}>`;
+        } else {
+          acc[key] = typeof value;
+        }
+        return acc;
+      }, {});
+    };
+
+    const findMismatchedKeys = (expected, actual, prefix = '') => {
+      const mismatched = [];
+      Object.keys(expected).forEach(key => {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        if (!(key in actual)) {
+          mismatched.push(`${fullKey} (missing)`);
+        } else if (typeof expected[key] !== typeof actual[key]) {
+          mismatched.push(`${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`);
+        } else if (typeof expected[key] === 'object' && expected[key] !== null) {
+          mismatched.push(...findMismatchedKeys(expected[key], actual[key], fullKey));
+        }
+      });
+      return mismatched;
+    };
+
+    const fromShape = Array.isArray(from) ? from[0] : from;
+    if (typeof to !== 'object' || to === null) {
+      const expectedShape = getShapeDescription(fromShape);
+      throw new Error(`Invalid 'to' state: must be an object.\n\nExpected key-value pairs:\n${JSON.stringify(expectedShape, null, 2)}`);
+    }
+    const mismatchedKeys = findMismatchedKeys(fromShape, to);
+    if (mismatchedKeys.length > 0) {
+      const expectedShape = getShapeDescription(fromShape);
+      throw new Error(`Invalid 'to' state shape.\n\nExpected key-value pairs:\n${JSON.stringify(expectedShape, null, 2)}\n\nMismatched keys: ${mismatchedKeys.join(', ')}`);
+    }
+  }
+
+  executeHandler(handler, context) {
+    if (typeof handler === 'function') {
+      handler(context);
+    }
   }
 }
 
@@ -1072,6 +1438,7 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
   });
 
   const modelObject = {
+    state: storeInstance.state[modelName],
     subscribe: (callback) => {
       return storeInstance.subscribe(state => callback(state[modelName]));
     },
@@ -1430,6 +1797,9 @@ const model = (modelName, { store: storeName = 'cami-store', state, actions = {}
 
   return new Proxy(modelObject, {
     get(target, prop) {
+      if (prop === 'state') {
+        return target.state;
+      }
       if (prop in target) {
         return target[prop];
       }
@@ -1656,29 +2026,70 @@ const validateState = (storedState, validationRules, context) => {
  * storeWithLocalStorage.reset();
  * ```
  */
-const _storageEnhancer = (StoreClass) => {
-  return (initialState, options) => {
-    const storeName = options?.name || 'default-store';
-    const shouldLoad = options?.load !== false;
-    const defaultExpiry = 24 * 60 * 60 * 1000;
-    const expiry = options?.expiry !== undefined ? options.expiry : defaultExpiry;
-    const storage = options.storageAdapter;
-    const adapterType = options.adapterType;
+  const _storageEnhancer = (StoreClass) => {
+    return (initialState, options) => {
+      const storeName = options?.name || 'default-store';
+      const shouldLoad = options?.load !== false;
+      const defaultExpiry = 24 * 60 * 60 * 1000;
+      const expiry = options?.expiry !== undefined ? options.expiry : defaultExpiry;
+      const storage = options.storageAdapter;
+      const adapterType = options.adapterType;
 
-    const loadState = () => {
-      if (shouldLoad) {
-        const storedState = storage.getItem(storeName);
-        const storedExpiry = storage.getItem(`${storeName}-expiry`);
-        const currentTime = new Date();
+      const compareObjects = (obj1, obj2) => {
+        console.assert(obj1 !== null && obj2 !== null, 'Both objects must be non-null');
+        console.assert(typeof obj1 === 'object' && typeof obj2 === 'object', 'Both arguments must be objects');
 
-        __trace('cami:storage', `Identified ${adapterType} storage: ${storeName}.`);
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
 
-        if (storedState && storedExpiry) {
-          const isExpired = currentTime.getTime() >= parseInt(storedExpiry, 10);
-          __trace('cami:storage', `Checked expiry status for ${adapterType} storage: ${isExpired ? 'Has Expired' : 'Still Valid'}`);
+        console.assert(Array.isArray(keys1) && Array.isArray(keys2), 'Object.keys should always return arrays');
 
-          if (!isExpired) {
-            const loadedState = JSON.parse(storedState);
+        if (keys1.length !== keys2.length) {
+          return false;
+        }
+
+        for (let key of keys1) {
+          console.assert(typeof key === 'string', 'Object keys should always be strings');
+
+          if (!(key in obj2)) {
+            return false;
+          }
+
+          if (typeof obj1[key] === 'object' && obj1[key] !== null) {
+            if (typeof obj2[key] !== 'object' || obj2[key] === null) {
+              return false;
+            }
+
+            if (!compareObjects(obj1[key], obj2[key])) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      };
+
+      const loadState = () => {
+        if (shouldLoad) {
+          const storedState = storage.getItem(storeName);
+          const storedExpiry = storage.getItem(`${storeName}-expiry`);
+          const currentTime = new Date();
+
+          __trace('cami:storage', `Identified ${adapterType} storage: ${storeName}.`);
+
+          if (storedState && storedExpiry) {
+            const isExpired = currentTime.getTime() >= parseInt(storedExpiry, 10);
+            __trace('cami:storage', `Checked expiry status for ${adapterType} storage: ${isExpired ? 'Has Expired' : 'Still Valid'}`);
+
+            if (!isExpired) {
+              const loadedState = JSON.parse(storedState);
+
+              if (!compareObjects(initialState, loadedState)) {
+                __trace('cami:storage', `Stored state structure doesn't match initial state for ${storeName}. Resetting to initial state.`);
+                storage.setItem(storeName, JSON.stringify(initialState));
+                storage.setItem(`${storeName}-expiry`, (currentTime.getTime() + expiry).toString());
+                return initialState;
+              }
 
               if (options.validationRules) {
                 if (!isValidValidationRules(options.validationRules)) {
@@ -1826,6 +2237,14 @@ const store = (config = {}) => {
     ...finalConfig,
     storageAdapter,
     adapterType: finalConfig.adapter,
+  });
+
+  // Ensure all necessary methods are available on the store instance
+  const methods = ['memo', 'query', 'trigger', 'dispatch', 'mutate'];
+  methods.forEach(method => {
+    if (typeof storeInstance[method] !== 'function') {
+      console.warn(`Method ${method} is not available on the store instance.`);
+    }
   });
 
   storeInstances.set(finalConfig.name, storeInstance);

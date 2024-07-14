@@ -3,18 +3,15 @@
   <form-component></form-component>
 </article>
 <small>
-<p>Try entering an email that is alqueryy taken, such as trevinowanda@example.net (mock email)</p>
+<p>Try entering an email that is already taken, such as trevinowanda@example.net (mock email)</p>
 </small>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
-<!-- CDN version below -->
-<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement, model } = cami;
+  const { html, ReactiveElement, store } = cami;
   cami.debug.enable();
 
-  const SigninModel = model("SigninModel", {
-    store: "form-store",
+  const formStore = store({
     state: {
       email: '',
       password: '',
@@ -23,62 +20,72 @@
       emailIsValid: false,
       isEmailAvailable: false
     },
-    actions: {
-      setEmail: ({ state, payload }) => {
-        const { email } = payload;
-        state.email = email;
-      },
-      setPassword: ({ state, payload }) => {
-        const { password } = payload;
-        state.password = password;
-      },
-      setEmailError: ({ state, payload }) => {
-        const { emailError } = payload;
-        state.emailError = emailError;
-      },
-      setPasswordError: ({ state, payload }) => {
-        const { passwordError } = payload;
-        state.passwordError = passwordError;
-      },
-      setEmailIsValid: ({ state, payload }) => {
-        const { isValid } = payload;
-        state.emailIsValid = isValid;
-      },
-      setIsEmailAvailable: ({ state, payload }) => {
-        const { isAvailable } = payload;
-        state.isEmailAvailable = isAvailable;
-      },
-      processEmailInput: ({ dispatch, query, payload }) => {
-        const { email } = payload;
-        const { isEmailValid, emailError } = validateEmail(email);
-        dispatch('setEmailError', { emailError });
-        dispatch('setEmailIsValid', { isValid: isEmailValid });
-        dispatch('setEmail', { email });
-        query('fetchEmail', { email });
-      },
-      processPasswordInput: ({ dispatch, payload }) => {
-        const { password } = payload;
-        const { isValid } = validatePassword(password);
-        dispatch('setPasswordError', { passwordError: isValid ? '' : 'Password must be at least 8 characters long.' });
-        dispatch('setPassword', { password });
-      }
+    name: "form-store"
+  });
+
+  formStore.defineAction('setEmail', ({ state, payload }) => {
+    state.email = payload;
+  });
+
+  formStore.defineAction('setPassword', ({ state, payload }) => {
+    state.password = payload;
+  });
+
+  formStore.defineAction('setEmailError', ({ state, payload }) => {
+    state.emailError = payload;
+  });
+
+  formStore.defineAction('setPasswordError', ({ state, payload }) => {
+    state.passwordError = payload;
+  });
+
+  formStore.defineAction('setEmailIsValid', ({ state, payload }) => {
+    state.emailIsValid = payload;
+  });
+
+  formStore.defineAction('setIsEmailAvailable', ({ state, payload }) => {
+    state.isEmailAvailable = payload;
+  });
+
+  formStore.defineAction('processEmailInput', ({ dispatch, query, payload }) => {
+    const { isEmailValid, emailError } = validateEmail(payload);
+    dispatch('setEmailError', emailError);
+    dispatch('setEmailIsValid', isEmailValid);
+    dispatch('setEmail', payload);
+    query('fetchEmail', { email: payload });
+  });
+
+  formStore.defineAction('processPasswordInput', ({ dispatch, payload }) => {
+    const { isValid } = validatePassword(payload);
+    dispatch('setPasswordError', isValid ? '' : 'Password must be at least 8 characters long.');
+    dispatch('setPassword', payload);
+  });
+
+  formStore.defineQuery('fetchEmail', {
+    queryKey: (payload) => ['Email', payload.email],
+    queryFn: (payload) => {
+      return fetch(`https://api.camijs.com/users?email=${payload.email}`).then(res => res.json());
     },
-    queries: {
-      fetchEmail: {
-        queryKey: (payload) => {
-          const { email } = payload;
-          return ['Email', email];
-        },
-        queryFn: (payload) => {
-          const { email } = payload;
-          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json());
-        },
-        onSuccess: ({ dispatch, data }) => {
-          dispatch('setIsEmailAvailable', { isAvailable: data.length === 0 });
-        },
-        staleTime: 1000 * 60 * 5
-      }
+    onSuccess: ({ dispatch, data }) => {
+      dispatch('setIsEmailAvailable', data.length === 0);
+    },
+    staleTime: 1000 * 60 * 5
+  });
+
+  formStore.defineMemo('getEmailInputState', ({ state }) => {
+    if (state.email === '') {
+      return '';
     }
+    const isValidAndAvailable = state.emailIsValid && state.isEmailAvailable === true;
+    return isValidAndAvailable ? false : true;
+  });
+
+  formStore.defineMemo('getPasswordInputState', ({ state }) => {
+    if (state.password === '') {
+      return '';
+    }
+    const isPasswordValid = state.passwordError === '';
+    return isPasswordValid ? false : true;
   });
 
   function validateEmail(email) {
@@ -110,33 +117,18 @@
 
   class FormElement extends ReactiveElement {
     template() {
-      const { email, password, emailError, passwordError, emailIsValid, isEmailAvailable, dispatch } = SigninModel;
-
-      const getEmailInputState = () => {
-        if (email === '') {
-          return '';
-        }
-
-        const isValidAndAvailable = emailIsValid && isEmailAvailable === true;
-        return isValidAndAvailable ? false : true;
-      };
-
-      const getPasswordInputState = () => {
-        if (password === '') {
-          return '';
-        }
-
-        const isPasswordValid = passwordError === '';
-        return isPasswordValid ? false : true;
-      };
+      const { email, password, emailError, passwordError, emailIsValid, isEmailAvailable } = formStore.state;
+      const { dispatch } = formStore;
+      const getEmailInputState = formStore.memo('getEmailInputState');
+      const getPasswordInputState = formStore.memo('getPasswordInputState');
 
       return html`
         <form action="/submit" method="POST">
           <label>
             Email:
             <input type="email"
-              aria-invalid=${getEmailInputState()}
-              @input=${(e) => dispatch('processEmailInput', { email: e.target.value })}
+              aria-invalid=${getEmailInputState}
+              @input=${(e) => dispatch('processEmailInput', e.target.value)}
               value=${email}>
             <span>${isEmailAvailable === false && emailError === '' ? 'Email is already taken.' : ''}</span>
             <span>${emailError}</span>
@@ -144,9 +136,9 @@
           <label>
             Password:
             <input type="password"
-              @input=${(e) => dispatch('processPasswordInput', { password: e.target.value })}
+              @input=${(e) => dispatch('processPasswordInput', e.target.value)}
               value=${password}
-              aria-invalid=${getPasswordInputState()}>
+              aria-invalid=${getPasswordInputState}>
             <span>${passwordError}</span>
           </label>
           <input type="submit" value="Submit" style="opacity: ${emailError !== '' || passwordError !== '' || email === '' || password === '' ? '0.5' : '1'}">

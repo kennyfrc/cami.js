@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Shell</title>
+</head>
+<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+<article>
+  <h1>User Update Page (Nested Store)</h1>
+  <user-list-component></user-list-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const userStore = store({
+    state: {
+      users: [
+        {
+          id: 1,
+          name: "Alice",
+          status: "Active",
+          address: {
+            street: '123 Main St',
+            city: 'Anytown',
+            coordinates: {
+              lat: '40.7128',
+              long: '74.0060'
+            }
+          }
+        },
+        {
+          id: 2,
+          name: "Bob",
+          status: "Inactive",
+          address: {
+            street: '456 Elm St',
+            city: 'Othertown',
+            coordinates: {
+              lat: '51.5074',
+              long: '0.1278'
+            }
+          }
+        },
+      ]
+    },
+    name: "user-store"
+  });
+
+  userStore.defineAction('updateStatus', ({ state, payload }) => {
+    const user = state.users.find(user => user.id === payload.id);
+    if (user) {
+      user.status = payload.status;
+    }
+  });
+
+  userStore.defineAction('updateStreet', ({ state, payload }) => {
+    const user = state.users.find(user => user.id === payload.id);
+    if (user) {
+      user.address.street = payload.street;
+    }
+  });
+
+  userStore.defineAction('updateLat', ({ state, payload }) => {
+    const user = state.users.find(user => user.id === payload.id);
+    if (user) {
+      user.address.coordinates.lat = payload.lat;
+    }
+  });
+
+  customElements.define('user-list-component',
+    class extends ReactiveElement {
+      template() {
+        const { users } = userStore.state;
+        const { dispatch } = userStore;
+
+        return html`
+          <ul>
+            ${users.map(user => html`
+              <li>
+                ${user.name} - ${user.status}<br />
+                ${user.address.street} - ${user.address.coordinates.lat}
+                <button @click=${() => dispatch('updateStatus', { id: user.id, status: "Active" })}>Activate</button>
+                <button @click=${() => dispatch('updateStatus', { id: user.id, status: "Inactive" })}>Deactivate</button>
+                <button @click=${() => dispatch('updateStreet', { id: user.id, street: "999 Main St" })}>Change Street</button>
+                <button @click=${() => dispatch('updateLat', { id: user.id, lat: "99.9999" })}>Change Latitude</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+  );
+</script>
+</body>
+</html>

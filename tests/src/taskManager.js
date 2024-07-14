@@ -1,46 +1,51 @@
 const { html, ReactiveElement } = cami;
 
 class TaskManagerElement extends ReactiveElement {
-  tasks = [];
+  constructor() {
+    super();
+    this.tasks = [];
+  }
 
   addTask(task) {
-    this.tasks.push(task);
+    this.tasks = [...this.tasks, task];
   }
 
   removeFirstTask() {
-    this.tasks.shift();
+    this.tasks = this.tasks.slice(1);
   }
 
   removeLastTask() {
-    this.tasks.pop();
+    this.tasks = this.tasks.slice(0, -1);
   }
 
   addTaskToFront(task) {
-    this.tasks.unshift(task);
+    this.tasks = [task, ...this.tasks];
   }
 
   removeTask(index) {
-    this.tasks.splice(index, 1);
+    this.tasks = [...this.tasks.slice(0, index), ...this.tasks.slice(index + 1)];
   }
 
   replaceTask(index, task) {
-    this.tasks.splice(index, 1, task);
+    this.tasks = [...this.tasks.slice(0, index), task, ...this.tasks.slice(index + 1)];
   }
 
   sortTasks() {
-    this.tasks.sort();
+    this.tasks = [...this.tasks].sort();
   }
 
   reverseTasks() {
-    this.tasks.reverse();
+    this.tasks = [...this.tasks].reverse();
   }
 
   fillTasks(task) {
-    this.tasks.fill(task);
+    this.tasks = this.tasks.map(() => task);
   }
 
   copyWithinTasks(target, start, end) {
-    this.tasks.copyWithin(target, start, end);
+    const newTasks = [...this.tasks];
+    newTasks.copyWithin(target, start, end);
+    this.tasks = newTasks;
   }
 
   template() {

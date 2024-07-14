@@ -5,11 +5,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
-  const { html, ReactiveElement, model } = cami;
+  const { html, ReactiveElement, store } = cami;
   cami.debug.enable();
 
-  const MusicPlayerModel = model("MusicPlayer", {
-    store: "music-player-store",
+  const musicPlayerStore = store({
     state: {
       playerState: 'stopped',
       trackState: 'ready',
@@ -20,104 +19,103 @@
         { id: 3, title: 'Song 3' },
       ],
     },
+    name: "music-player-store"
   });
 
-  MusicPlayerModel.register({
-    machine: {
-      play: {
-        from: [
-          { playerState: 'stopped'},
-          { playerState: 'paused'},
-        ],
-        to: { playerState: 'playing'},
-        guard: ({ state }) => state.currentTrack !== null,
-      },
-      pause: {
-        from: { playerState: 'playing' },
-        to: { playerState: 'paused' }
-      },
-      stop: {
-        from: [
-          { playerState: 'playing' },
-          { playerState: 'paused' },
-        ],
-        to: { playerState: 'stopped'},
-      },
-      load_track: {
-        from: [
-          { playerState: 'stopped'},
-          { playerState: 'playing'},
-          { playerState: 'paused'},
-        ],
-        to: ({ state }) => ({ playerState: state.playerState, trackState: 'loading' }),
-        onTransition: ({ dispatch, trigger, payload }) => {
-          dispatch('setCurrentTrack', payload);
-          // Simulate track loading
-          setTimeout(() => trigger('track_loaded'), 300);
-        },
-      },
-      track_loaded: {
-        from: { trackState: 'loading' },
-        to: { trackState: 'ready' },
-        onTransition: ({ state, trigger }) => {
-          if (state.playerState === 'playing') {
-            trigger('play');
-          }
-        },
-      },
-      track_error: {
-        from: { trackState: 'loading' },
-        to: { trackState: 'error' },
+  musicPlayerStore.defineAction('setCurrentTrack', ({ state, payload }) => {
+    state.currentTrack = payload;
+  });
+
+  musicPlayerStore.defineMachine('music-player', {
+    play: {
+      from: [
+        { playerState: 'stopped'},
+        { playerState: 'paused'},
+      ],
+      to: { playerState: 'playing'},
+      guard: ({ state }) => state.currentTrack !== null,
+    },
+    pause: {
+      from: { playerState: 'playing' },
+      to: { playerState: 'paused' }
+    },
+    stop: {
+      from: [
+        { playerState: 'playing' },
+        { playerState: 'paused' },
+      ],
+      to: { playerState: 'stopped'},
+    },
+    load_track: {
+      from: [
+        { playerState: 'stopped'},
+        { playerState: 'playing'},
+        { playerState: 'paused'},
+      ],
+      to: ({ state }) => ({ playerState: state.playerState, trackState: 'loading' }),
+      onTransition: ({ dispatch, trigger, payload }) => {
+        dispatch('setCurrentTrack', payload);
+        // Simulate track loading
+        setTimeout(() => trigger('music-player:track_loaded'), 300);
       },
     },
-    actions: {
-      setCurrentTrack: ({ state, payload }) => {
-        state.currentTrack = payload;
+    track_loaded: {
+      from: { trackState: 'loading' },
+      to: { trackState: 'ready' },
+      onTransition: ({ state, trigger }) => {
+        if (state.playerState === 'playing') {
+          trigger('music-player:play');
+        }
       },
+    },
+    track_error: {
+      from: { trackState: 'loading' },
+      to: { trackState: 'error' },
     },
   });
 
-  class MusicPlayerElement extends ReactiveElement {
-    template() {
-      const { playerState, trackState, currentTrack, playlist, trigger } = MusicPlayerModel;
+  customElements.define('music-player-component',
+    class extends ReactiveElement {
+      template() {
+        const { playerState, trackState, currentTrack, playlist } = musicPlayerStore.state;
+        const { trigger } = musicPlayerStore;
 
-      const getMessage = () => {
-        if (trackState === 'loading') return `Loading: ${currentTrack?.title}`;
-        if (trackState === 'error') return 'Error loading track';
-        if (playerState === 'playing') return `Now playing: ${currentTrack?.title}`;
-        if (playerState === 'paused') return 'Paused';
-        if (playerState === 'stopped') return 'Stopped';
-        return '';
-      };
+        const getMessage = () => {
+          if (trackState === 'loading') return `Loading: ${currentTrack?.title}`;
+          if (trackState === 'error') return 'Error loading track';
+          if (playerState === 'playing') return `Now playing: ${currentTrack?.title}`;
+          if (playerState === 'paused') return 'Paused';
+          if (playerState === 'stopped') return 'Stopped';
+          return '';
+        };
 
-      return html`
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-          <h2>Player State: ${playerState}</h2>
-          <h3>Track State: ${trackState}</h3>
-          <p>${getMessage()}</p>
-          <p>Current Track: ${currentTrack?.title || 'None'}</p>
-          <div>
-            <button
-              @click=${() => trigger('play')}
-              ?disabled=${playerState === 'playing' || trackState !== 'ready' || currentTrack === null}
-            >
-              Play
-            </button>
-            <button @click=${() => trigger('pause')} ?disabled=${playerState !== 'playing'}>Pause</button>
-            <button @click=${() => trigger('stop')} ?disabled=${playerState === 'stopped'}>Stop</button>
-          </div>
-          <div>
-            <h4>Playlist:</h4>
-            ${playlist.map(track => html`
-              <button @click=${() => trigger('load_track', track)} ?disabled=${trackState === 'loading'}>
-                ${track.title}
+        return html`
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <h2>Player State: ${playerState}</h2>
+            <h3>Track State: ${trackState}</h3>
+            <p>${getMessage()}</p>
+            <p>Current Track: ${currentTrack?.title || 'None'}</p>
+            <div>
+              <button
+                @click=${() => trigger('music-player:play')}
+                ?disabled=${playerState === 'playing' || trackState !== 'ready' || currentTrack === null}
+              >
+                Play
               </button>
-            `)}
+              <button @click=${() => trigger('music-player:pause')} ?disabled=${playerState !== 'playing'}>Pause</button>
+              <button @click=${() => trigger('music-player:stop')} ?disabled=${playerState === 'stopped'}>Stop</button>
+            </div>
+            <div>
+              <h4>Playlist:</h4>
+              ${playlist.map(track => html`
+                <button @click=${() => trigger('music-player:load_track', track)} ?disabled=${trackState === 'loading'}>
+                  ${track.title}
+                </button>
+              `)}
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     }
-  }
-
-  customElements.define('music-player-component', MusicPlayerElement);
+  );
 </script>

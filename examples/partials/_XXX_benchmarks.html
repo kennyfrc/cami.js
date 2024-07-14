@@ -1,0 +1,255 @@
+<article>
+  <h1>Krausest Benchmark Comparison</h1>
+  <div style="margin-bottom: 20px;">
+    <h2>Common Controls</h2>
+    <button id="run">Create 1,000 rows</button>
+    <button id="runlots">Create 10,000 rows</button>
+    <button id="add">Append 1,000 rows</button>
+    <button id="update">Update every 10th row</button>
+    <button id="clear">Clear</button>
+    <button id="swaprows">Swap Rows</button>
+  </div>
+  <div id="results" style="margin-bottom: 20px;"></div>
+  <div style="display: flex; justify-content: space-between;">
+    <div style="width: 48%;">
+      <h2>Cami.js Implementation</h2>
+      <benchmark-element></benchmark-element>
+    </div>
+    <div style="width: 48%;">
+      <h2>Vanilla JS Implementation</h2>
+      <div id="vanilla-benchmark">
+        <table class="table table-hover table-striped test-data">
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
+
+  // Common utilities
+  const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'];
+  const colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'];
+  const nouns = ['table', 'chair', 'house', 'bbq', 'desk', 'car', 'pony', 'cookie', 'sandwich', 'burger', 'pizza', 'mouse', 'keyboard'];
+
+  const pick = dict => dict[Math.floor(Math.random() * dict.length)];
+  const label = () => `${pick(adjectives)} ${pick(colours)} ${pick(nouns)}`;
+
+  // Cami.js implementation
+const BenchmarkModel = model("BenchmarkModel", {
+  store: "benchmark-store",
+  state: {
+    data: [],
+    selected: null,
+    lastOperationTime: 0
+  },
+  actions: {
+    createRows: ({ state, payload }) => {
+      const start = performance.now();
+      state.data = Array.from({ length: payload }, (_, i) => ({
+        id: i + 1,
+        label: label()
+      }));
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    },
+    appendRows: ({ state, payload }) => {
+      const start = performance.now();
+      const newRows = Array.from({ length: payload }, (_, i) => ({
+        id: state.data.length + i + 1,
+        label: label()
+      }));
+      state.data.push(...newRows);
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    },
+    updateEveryTenth: ({ state }) => {
+      const start = performance.now();
+      for (let i = 0; i < state.data.length; i += 10) {
+        state.data[i].label += ' !!!';
+      }
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    },
+    clear: ({ state }) => {
+      const start = performance.now();
+      state.data = [];
+      state.selected = null;
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    },
+    swapRows: ({ state }) => {
+      const start = performance.now();
+      if (state.data.length > 998) {
+        [state.data[1], state.data[998]] = [state.data[998], state.data[1]];
+      }
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    },
+    remove: ({ state, payload }) => {
+      const start = performance.now();
+      state.data = state.data.filter(item => item.id !== payload);
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    },
+    select: ({ state, payload }) => {
+      const start = performance.now();
+      state.selected = payload;
+      state.lastOperationTime = performance.now() - start;
+      return state.lastOperationTime;
+    }
+  }
+});
+
+  class BenchmarkElement extends ReactiveElement {
+    onCreate() {
+      this.state = BenchmarkModel;
+    }
+
+    template() {
+      const { data, selected, lastOperationTime } = this.state;
+
+      return html`
+        <div id="main">
+          <div>Last operation time: ${lastOperationTime.toFixed(2)} ms</div>
+          <table class="table table-hover table-striped test-data">
+            <tbody>
+              ${data.map(item => html`
+                <tr class=${selected === item.id ? 'danger' : ''}>
+                  <td class="col-md-1">${item.id}</td>
+                  <td class="col-md-4">
+                    <a @click=${() => this.state.dispatch('select', item.id)}>${item.label}</a>
+                  </td>
+                  <td class="col-md-1">
+                    <a @click=${() => this.state.dispatch('remove', item.id)}>
+                      <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                    </a>
+                  </td>
+                  <td class="col-md-6"></td>
+                </tr>
+              `)}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  }
+
+  customElements.define('benchmark-element', BenchmarkElement);
+
+  // Vanilla JS implementation
+  const VanillaJS = {
+    data: [],
+    selected: null,
+    lastOperationTime: 0,
+    ID: 1,
+    SEL: null,
+    TMPL: null,
+    SIZE: 0,
+    TBODY: document.getElementById('tbody'),
+
+    createRows(count) {
+      const start = performance.now();
+      this.data = Array.from({ length: count }, (_, i) => ({
+        id: this.ID++,
+        label: label()
+      }));
+      this.render();
+      this.lastOperationTime = performance.now() - start;
+      return this.lastOperationTime;
+    },
+
+    appendRows(count) {
+      const start = performance.now();
+      const newRows = Array.from({ length: count }, (_, i) => ({
+        id: this.data.length + this.ID++,
+        label: label()
+      }));
+      this.data.push(...newRows);
+      this.render();
+      this.lastOperationTime = performance.now() - start;
+      return this.lastOperationTime;
+    },
+
+    updateEveryTenth() {
+      const start = performance.now();
+      for (let i = 0; i < this.data.length; i += 10) {
+        this.data[i].label += ' !!!';
+      }
+      this.render();
+      this.lastOperationTime = performance.now() - start;
+      return this.lastOperationTime;
+    },
+
+    clear() {
+      const start = performance.now();
+      this.data = [];
+      this.selected = null;
+      this.render();
+      this.lastOperationTime = performance.now() - start;
+      return this.lastOperationTime;
+    },
+
+    swapRows() {
+      const start = performance.now();
+      if (this.data.length > 998) {
+        [this.data[1], this.data[998]] = [this.data[998], this.data[1]];
+      }
+      this.render();
+      this.lastOperationTime = performance.now() - start;
+      return this.lastOperationTime;
+    },
+
+    render() {
+      this.TBODY.innerHTML = this.data.map(item => `
+        <tr class="${this.selected === item.id ? 'danger' : ''}">
+          <td class="col-md-1">${item.id}</td>
+          <td class="col-md-4">
+            <a>${item.label}</a>
+          </td>
+          <td class="col-md-1">
+            <a>
+              <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </a>
+          </td>
+          <td class="col-md-6"></td>
+        </tr>
+      `).join('');
+    }
+  };
+
+const runBenchmark = async (action, count) => {
+  const trials = 10;
+  let camiTimes = [];
+  let vanillaTimes = [];
+
+  for (let i = 0; i < trials; i++) {
+    const camiStart = performance.now();
+    await BenchmarkModel.dispatch(action, count);
+    camiTimes.push(performance.now() - camiStart);
+
+    const vanillaStart = performance.now();
+    await VanillaJS[action](count);
+    vanillaTimes.push(performance.now() - vanillaStart);
+  }
+
+  const avgCamiTime = camiTimes.reduce((a, b) => a + b, 0) / trials;
+  const avgVanillaTime = vanillaTimes.reduce((a, b) => a + b, 0) / trials;
+
+  document.getElementById('results').innerHTML = `
+    <div>Cami.js average time (${trials} trials): ${avgCamiTime.toFixed(2)} ms</div>
+    <div>Vanilla JS average time (${trials} trials): ${avgVanillaTime.toFixed(2)} ms</div>
+  `;
+};
+
+document.getElementById('run').addEventListener('click', () => runBenchmark('createRows', 1000));
+document.getElementById('runlots').addEventListener('click', () => runBenchmark('createRows', 10000));
+document.getElementById('add').addEventListener('click', () => runBenchmark('appendRows', 1000));
+document.getElementById('update').addEventListener('click', () => runBenchmark('updateEveryTenth'));
+document.getElementById('clear').addEventListener('click', () => runBenchmark('clear'));
+document.getElementById('swaprows').addEventListener('click', () => runBenchmark('swapRows'));
+</script>

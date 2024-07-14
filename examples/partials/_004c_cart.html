@@ -1,0 +1,131 @@
+<article>
+    <h2>Products</h2>
+    <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
+    <product-list-component></product-list-component>
+</article>
+<article>
+    <h2>Cart</h2>
+    <cart-component></cart-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+
+  cami.debug.enable();
+
+  const cartStore = store({
+    state: {
+      cartItems: [],
+      products: {
+        data: [],
+        status: "idle",
+        error: null
+      }
+    },
+    name: "cart-store"
+  }, {
+    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
+  });
+
+  cartStore.defineAction('add', ({ state, payload }) => {
+    const newItem = {...payload, id: Date.now()};
+    state.cartItems.push(newItem);
+  });
+
+  cartStore.defineAction('remove', ({ state, payload }) => {
+    state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
+  });
+
+  cartStore.defineAction('setProducts', ({ state, payload }) => {
+    state.products = payload;
+  });
+
+  cartStore.defineQuery('fetchProducts', {
+    queryKey: ['products'],
+    queryFn: () => {
+      return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    onFetch: ({ dispatch }) => {
+      dispatch('setProducts', {
+        data: [],
+        status: "pending",
+        error: null
+      });
+    },
+    onSuccess: ({ dispatch, data }) => {
+      dispatch('setProducts', {
+        data: data,
+        status: "success",
+        error: null
+      });
+    },
+    onError: ({ dispatch, error }) => {
+      dispatch('setProducts', {
+        data: [],
+        status: "error",
+        error: error
+      });
+    }
+  });
+
+  cartStore.defineMemo('cartValue', ({ state }) => {
+    return (state.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2);
+  });
+
+  customElements.define('product-list-component',
+    class extends ReactiveElement {
+      template() {
+        const { products } = cartStore.state;
+        const { dispatch } = cartStore;
+
+        if (products.status === "pending") {
+          return html`<div>Fetching Products...</div>`;
+        }
+
+        if (products.status === "error") {
+          return html`<div>Error: ${products.error.message}</div>`;
+        }
+
+        if (products.data.length > 0) {
+          return html`
+            <ul>
+              ${products.data.map(product => html`<li>
+                ${product.name} - ${(product.price / 100).toFixed(2)}
+                <button @click=${() => dispatch('add', product)} ?disabled=${product.stock === 0}>
+                  Add to cart
+                </button>
+              </li>`)}
+            </ul>
+          `;
+        }
+      }
+    }
+  );
+
+  customElements.define('cart-component',
+    class extends ReactiveElement {
+      template() {
+        const { cartItems } = cartStore.state;
+        const { dispatch } = cartStore;
+        const cartValue = cartStore.memo('cartValue');
+
+        return html`
+          ${cartItems.length > 0 ? html`
+            <p>Cart value: ${cartValue}</p>
+            <ul>
+              ${cartItems.map(item => html`
+                <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => dispatch('remove', item)}>Remove</button></li>
+              `)}
+            </ul>
+          ` : html`
+            <p>Cart is empty</p>
+          `}
+        `;
+      }
+    }
+  );
+
+  cartStore.query('fetchProducts');
+</script>

@@ -2427,7 +2427,6 @@ var cami = (() => {
       alwaysEnabled = config.alwaysEnabled;
     }
   };
-  var invariant_default = invariant;
 
   // src/observables/observable-store.js
   enablePatches();
@@ -2462,6 +2461,16 @@ var cami = (() => {
       this.mutationFunctions = /* @__PURE__ */ new Map();
       this.mutations = {};
       this.patchListeners = /* @__PURE__ */ new Map();
+      this.machines = {};
+      this.memos = {};
+      this.memoCache = /* @__PURE__ */ new Map();
+      this.dispatch = this.dispatch.bind(this);
+      this.query = this.query.bind(this);
+      this.mutate = this.mutate.bind(this);
+      this.subscribe = this.subscribe.bind(this);
+      this.trigger = this.trigger.bind(this);
+      this.memo = this.memo.bind(this);
+      this.invalidateQueries = this.invalidateQueries.bind(this);
       this._persistState = () => {
         if (this.storage) {
           const currentTime = /* @__PURE__ */ new Date();
@@ -2514,6 +2523,7 @@ var cami = (() => {
     }
     _notifyObservers() {
       if (!_deepEqual(this.state, this.previousState)) {
+        this.memoCache.clear();
         this.__observers.forEach((observer) => observer.next(this.state));
         if (this.__subscriber && typeof this.__subscriber.next === "function") {
           this.__subscriber.next(this.state);
@@ -2545,7 +2555,6 @@ var cami = (() => {
         const currentPath = [...path, key];
         const actualType = this._inferType(actualValue);
         if (actualType === "function") {
-          debugger;
         }
         if (typeof expectedType === "object" && expectedType !== null) {
           if (typeof actualValue !== "object" || actualValue === null) {
@@ -2601,7 +2610,13 @@ var cami = (() => {
       const [nextState, patches, inversePatches] = produceWithPatches(this.state, (draft) => {
         reducer({
           state: draft,
-          payload
+          payload,
+          dispatch: this.dispatch.bind(this),
+          query: this.query.bind(this),
+          mutate: this.mutate.bind(this),
+          invalidateQueries: this.invalidateQueries.bind(this),
+          memo: this.memo.bind(this),
+          trigger: this.trigger.bind(this)
         });
       });
       try {
@@ -2715,17 +2730,24 @@ var cami = (() => {
      */
     defineAction(action, reducer) {
       const [modelName, actionName] = action.split("/");
+      const actionReducer = (context) => {
+        const enhancedContext = __spreadProps(__spreadValues({}, context), {
+          dispatch: this.dispatch.bind(this),
+          query: this.query.bind(this),
+          mutate: this.mutate.bind(this),
+          invalidateQueries: this.invalidateQueries.bind(this),
+          memo: this.memo.bind(this),
+          trigger: this.trigger.bind(this)
+        });
+        return reducer(enhancedContext);
+      };
       if (actionName) {
         if (!this.reducers[modelName]) {
           this.reducers[modelName] = {};
         }
-        this.reducers[modelName][actionName] = (context) => {
-          return reducer(context);
-        };
+        this.reducers[modelName][actionName] = actionReducer;
       } else {
-        this.reducers[action] = (context) => {
-          return reducer(context);
-        };
+        this.reducers[action] = actionReducer;
       }
       this.actions[action] = (...args) => {
         return this.dispatch(action, ...args);
@@ -2881,7 +2903,9 @@ var cami = (() => {
         dispatch: this.dispatch.bind(this),
         query: this.query.bind(this),
         mutate: this.mutate.bind(this),
-        invalidateQueries: this.invalidateQueries.bind(this)
+        invalidateQueries: this.invalidateQueries.bind(this),
+        memo: this.memo.bind(this),
+        trigger: this.trigger.bind(this)
       };
       const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
       return this._executeQuery(queryName, payload, query, context);
@@ -2898,7 +2922,9 @@ var cami = (() => {
         dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
         query: (query2, queryArgs) => this._modelQuery(`${modelName}/${query2}`, queryArgs),
         mutate: (mutation, mutationArgs) => this._modelMutate(`${modelName}/${mutation}`, mutationArgs),
-        invalidateQueries: this.invalidateQueries.bind(this)
+        invalidateQueries: this.invalidateQueries.bind(this),
+        memo: (memoName, payload2) => this.memo(`${modelName}/${memoName}`, payload2),
+        trigger: (event, eventPayload) => this.trigger(`${modelName}/${event}`, eventPayload)
       };
       const context = query.createContext ? query.createContext(storeContext, payload) : storeContext;
       return this._executeQuery(queryName, payload, query, context);
@@ -2907,7 +2933,8 @@ var cami = (() => {
       const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
       const cacheKey = typeof queryKey === "function" ? queryKey(payload).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
       const cachedData = this.queryCache.get(cacheKey);
-      if (cachedData && !cachedData.isStale && !this._isStale(cachedData, staleTime)) {
+      __trace(`_executeQuery`, `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`);
+      if (cachedData && !this._isStale(cachedData, staleTime)) {
         __trace(`query`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
         return Promise.resolve(cachedData.data);
       }
@@ -2956,7 +2983,15 @@ var cami = (() => {
       const queriesToInvalidate = Object.keys(this.queryFunctions).filter((queryName) => {
         if (queryKey) {
           const storedQueryKey = this.queryFunctions[queryName].queryKey;
-          if (Array.isArray(storedQueryKey)) {
+          if (typeof storedQueryKey === "function") {
+            try {
+              const generatedKey = storedQueryKey({});
+              return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
+            } catch (error) {
+              __trace(`invalidateQueries`, `Error generating key for ${queryName}: ${error.message}`);
+              return false;
+            }
+          } else if (Array.isArray(storedQueryKey)) {
             return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
           } else {
             return storedQueryKey === queryKey[0];
@@ -2979,7 +3014,13 @@ var cami = (() => {
         } else {
           cacheKey = query.queryKey;
         }
-        __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}`);
+        __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`);
+        if (this.queryCache.has(cacheKey)) {
+          const cachedData = this.queryCache.get(cacheKey);
+          cachedData.isStale = true;
+          cachedData.timestamp = 0;
+          this.queryCache.set(cacheKey, cachedData);
+        }
         if (this.intervals[queryName]) {
           clearInterval(this.intervals[queryName]);
           delete this.intervals[queryName];
@@ -2996,15 +3037,7 @@ var cami = (() => {
           clearTimeout(this.gcTimeouts[queryName]);
           delete this.gcTimeouts[queryName];
         }
-        if (!this.queryCache.has(cacheKey)) {
-          this.queryCache.set(cacheKey, { isStale: true, data: void 0 });
-        } else {
-          const cachedData2 = this.queryCache.get(cacheKey);
-          cachedData2.isStale = true;
-        }
-        const cachedData = this.queryCache.get(cacheKey);
-        invariant_default("Cached data should always exist if there's a query with that key", () => cachedData !== void 0);
-        invariant_default("isStale is always true if there's a cached data", () => cachedData.isStale === true);
+        __trace(`invalidateQueries`, `Cache entry removed for key: ${cacheKey}`);
       });
     }
     /**
@@ -3040,9 +3073,19 @@ var cami = (() => {
      * @description Checks if the cached data is stale based on the stale time.
      */
     _isStale(cachedData, staleTime) {
-      const isDataStale = Date.now() - cachedData.timestamp > staleTime;
-      __trace(`isStale`, `isDataStale: ${isDataStale} (Current Time: ${Date.now()}, Data Timestamp: ${cachedData.timestamp}, Stale Time: ${staleTime})`);
-      return isDataStale;
+      const currentTime = Date.now();
+      const timeSinceLastUpdate = currentTime - cachedData.timestamp;
+      const isDataStale = !cachedData.timestamp || timeSinceLastUpdate > staleTime;
+      const isManuallyInvalidated = cachedData.isStale === true;
+      __trace(`_isStale`, `
+      isDataStale: ${isDataStale}
+      isManuallyInvalidated: ${isManuallyInvalidated}
+      Current Time: ${currentTime}
+      Data Timestamp: ${cachedData.timestamp}
+      Time Since Last Update: ${timeSinceLastUpdate}ms
+      Stale Time: ${staleTime}ms
+    `);
+      return isDataStale || isManuallyInvalidated;
     }
     /**
      * @method mutation
@@ -3118,16 +3161,18 @@ var cami = (() => {
         throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
       }
       const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
-      const context = {
+      const storeContext = {
         state: deepFreeze(this.state),
         previousState: deepFreeze(this.state),
         dispatch: this.dispatch.bind(this),
         query: this.query.bind(this),
         mutate: this.mutate.bind(this),
         invalidateQueries: this.invalidateQueries.bind(this),
-        payload
+        payload,
+        memo: this.memo.bind(this),
+        trigger: this.trigger.bind(this)
       };
-      return this._executeMutation(mutationName, payload, mutation, context);
+      return this._executeMutation(mutationName, payload, mutation, storeContext);
     }
     _modelMutate(mutationName, payload) {
       const [modelName, actualMutationName] = mutationName.split("/");
@@ -3136,16 +3181,18 @@ var cami = (() => {
         throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
       }
       const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
-      const context = {
+      const storeContext = {
         state: deepFreeze(this.state[modelName]),
         previousState: deepFreeze(this.state[modelName]),
         dispatch: (action, actionPayload) => this._modelDispatch(`${modelName}/${action}`, actionPayload),
         query: (query, queryArgs) => this._modelQuery(`${modelName}/${query}`, queryArgs),
         mutate: (mutation2, mutationArgs) => this._modelMutate(`${modelName}/${mutation2}`, mutationArgs),
         invalidateQueries: this.invalidateQueries.bind(this),
-        payload
+        payload,
+        memo: this.memo.bind(this),
+        trigger: this.trigger.bind(this)
       };
-      return this._executeMutation(mutationName, payload, mutation, context);
+      return this._executeMutation(mutationName, payload, mutation, storeContext);
     }
     _executeMutation(mutationName, payload, mutation, context) {
       const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
@@ -3153,21 +3200,291 @@ var cami = (() => {
       if (onMutate) {
         optimisticUpdate = onMutate(context);
       }
+      let result;
+      let error;
       return Promise.resolve(mutationFn(payload)).then((data) => {
+        result = data;
         if (onSuccess) {
           onSuccess(__spreadProps(__spreadValues({}, context), { data }));
         }
         return data;
-      }).catch((error) => {
+      }).catch((err) => {
+        error = err;
         if (onError) {
-          onError(__spreadProps(__spreadValues({}, context), { error }));
+          onError(__spreadProps(__spreadValues({}, context), { error: err }));
         }
-        throw error;
+        throw err;
       }).finally(() => {
         if (onSettled) {
-          onSettled(context);
+          onSettled(__spreadProps(__spreadValues({}, context), {
+            data: result || error
+          }));
         }
       });
+    }
+    /**
+     * @method defineMachine
+     * @param {string} machineName - The name of the machine
+     * @param {Object} machineDefinition - The state machine definition
+     * @description Defines or updates a state machine for the store
+     */
+    defineMachine(machineName, machineDefinition) {
+      const validateMachine = (machine) => {
+        if (typeof machine !== "object" || machine === null) {
+          throw new Error("Machine definition must be an object");
+        }
+        Object.entries(machine).forEach(([eventName, event]) => {
+          if (typeof event !== "object" || event === null) {
+            throw new Error(`Event '${eventName}' must be an object`);
+          }
+          if (!event.to || typeof event.to !== "function" && typeof event.to !== "object") {
+            throw new Error(`Event '${eventName}' must have a 'to' property that is an object or a function returning an object`);
+          }
+          if (event.guard && typeof event.guard !== "function") {
+            throw new Error(`Guard for event '${eventName}' must be a function`);
+          }
+          if (event.onTransition && typeof event.onTransition !== "function") {
+            throw new Error(`onTransition for event '${eventName}' must be a function`);
+          }
+          if (event.onEntry && typeof event.onEntry !== "function") {
+            throw new Error(`onEntry for event '${eventName}' must be a function`);
+          }
+          if (event.onExit && typeof event.onExit !== "function") {
+            throw new Error(`onExit for event '${eventName}' must be a function`);
+          }
+        });
+      };
+      validateMachine(machineDefinition);
+      if (!this.machines[machineName]) {
+        this.machines[machineName] = {};
+      }
+      this.machines[machineName] = __spreadValues(__spreadValues({}, this.machines[machineName]), machineDefinition);
+      Object.keys(machineDefinition).forEach((eventName) => {
+        const fullEventName = `${machineName}:${eventName}`;
+        this.defineAction(fullEventName, ({ state, payload }) => {
+          const event = this.machines[machineName][eventName];
+          const currentState = __spreadValues({}, state);
+          if (this.isValidTransition(event.from, currentState)) {
+            const applyTransition = (to) => {
+              this.validateToShape(event.from, to);
+              this.executeHandler(event.onExit, {
+                state: currentState,
+                dispatch: this.dispatch,
+                query: this.query,
+                mutate: this.mutate,
+                trigger: this.trigger,
+                memo: this.memo,
+                payload
+              });
+              Object.entries(to).forEach(([key, value]) => {
+                state[key] = value;
+              });
+              this.executeHandler(event.onEntry, {
+                state,
+                dispatch: this.dispatch,
+                query: this.query,
+                mutate: this.mutate,
+                trigger: this.trigger,
+                memo: this.memo,
+                payload
+              });
+            };
+            const newState = typeof event.to === "function" ? event.to({ state: currentState, payload }) : event.to;
+            applyTransition(newState);
+            this.executeHandler(event.onTransition, {
+              state,
+              dispatch: this.dispatch,
+              query: this.query,
+              mutate: this.mutate,
+              trigger: this.trigger,
+              memo: this.memo,
+              from: currentState,
+              to: newState,
+              payload,
+              data: event.data
+            });
+          } else {
+            __trace(
+              "cami:state-machine:ignored-transition",
+              `Ignored transition '${fullEventName}' event from the current state.
+
+`,
+              `Current state:
+
+${JSON.stringify(currentState)}
+
+`,
+              `The '${fullEventName}' event expected any of these 'from' states:
+`,
+              ...Array.isArray(event.from) ? event.from.map((validState, index) => `  ${index + 1}. ${JSON.stringify(validState)}`) : [`  ${JSON.stringify(event.from)}`],
+              "\n\nA key or element of the current state must match one of the 'from' states to trigger the state transition. If you intended to transition, either the 'from' state or current state is incorrect.\n"
+            );
+          }
+        });
+      });
+    }
+    /**
+     * @method trigger
+     * @param {string} fullEventName - The full name of the event to trigger (machineName/eventName)
+     * @param {*} payload - The payload for the event
+     * @returns {Promise} A promise that resolves when the event is processed
+     * @description Triggers a state machine event
+     */
+    trigger(fullEventName, payload) {
+      const [machineName, eventName] = fullEventName.split(":");
+      if (!this.machines[machineName] || !this.machines[machineName][eventName]) {
+        throw new Error(`Event '${fullEventName}' not found in any state machine.`);
+      }
+      return this.dispatch(fullEventName, payload);
+    }
+    /**
+     * @method defineMemo
+     * @param {string} memoName - The name of the memo to define
+     * @param {Function} memoFn - The memo function
+     * @description Defines a single memoized computed property for the store
+     */
+    defineMemo(memoName, memoFn) {
+      if (typeof memoName !== "string") {
+        throw new Error("Memo name must be a string");
+      }
+      if (typeof memoFn !== "function") {
+        throw new Error(`Memo '${memoName}' must be a function`);
+      }
+      this.memos[memoName] = memoFn;
+      this.memoCache.set(memoName, /* @__PURE__ */ new Map());
+    }
+    /**
+     * @method memo
+     * @param {string} memoName - The name of the memo to compute
+     * @param {*} [payload] - Optional payload for the memo
+     * @returns {*} The computed value of the memo
+     * @description Computes and returns the value of a memoized property
+     */
+    memo(memoName, payload) {
+      const memoFn = this.memos[memoName];
+      if (!memoFn) {
+        throw new Error(`Memo '${memoName}' not found.`);
+      }
+      let cache = this.memoCache.get(memoName);
+      if (!cache) {
+        cache = /* @__PURE__ */ new Map();
+        this.memoCache.set(memoName, cache);
+      }
+      const cacheKey = JSON.stringify(payload);
+      if (cache.has(cacheKey)) {
+        const { result: result2, dependencies: dependencies2 } = cache.get(cacheKey);
+        if (this._areDependenciesUnchanged(dependencies2)) {
+          return result2;
+        }
+      }
+      const dependencies = /* @__PURE__ */ new Set();
+      const trackingProxy = new Proxy(this.state, {
+        get: (target, prop) => {
+          dependencies.add(prop);
+          return target[prop];
+        }
+      });
+      const storeContext = {
+        state: trackingProxy,
+        payload,
+        dispatch: this.dispatch.bind(this),
+        trigger: this.trigger.bind(this),
+        memo: this.memo.bind(this),
+        query: this.query.bind(this),
+        mutate: this.mutate.bind(this)
+      };
+      const result = memoFn(storeContext);
+      cache.set(cacheKey, { result, dependencies });
+      return result;
+    }
+    _areDependenciesUnchanged(dependencies) {
+      return Array.from(dependencies).every(
+        (dep) => this.state[dep] === this.previousState[dep]
+      );
+    }
+    // Helper methods for the state machine
+    isValidTransition(from, currentState) {
+      if (from === void 0) {
+        return true;
+      }
+      const checkState = (fromState, currentStateSlice) => {
+        if (typeof fromState !== "object" || fromState === null) {
+          return fromState === currentStateSlice;
+        }
+        return Object.entries(fromState).every(([key, value]) => {
+          if (!(key in currentStateSlice)) {
+            return false;
+          }
+          if (Array.isArray(value)) {
+            return value.includes(currentStateSlice[key]);
+          }
+          if (typeof value === "object" && value !== null) {
+            return checkState(value, currentStateSlice[key]);
+          }
+          return currentStateSlice[key] === value;
+        });
+      };
+      if (Array.isArray(from)) {
+        return from.some((state) => checkState(state, currentState));
+      }
+      return checkState(from, currentState);
+    }
+    validateToShape(from, to) {
+      if (from === void 0) {
+        return;
+      }
+      const getShapeDescription = (obj) => {
+        if (typeof obj !== "object" || obj === null) {
+          return typeof obj;
+        }
+        return Object.entries(obj).reduce((acc, [key, value]) => {
+          if (typeof value === "object" && value !== null) {
+            acc[key] = getShapeDescription(value);
+          } else if (Array.isArray(value)) {
+            acc[key] = `Array<${typeof value[0]}>`;
+          } else {
+            acc[key] = typeof value;
+          }
+          return acc;
+        }, {});
+      };
+      const findMismatchedKeys = (expected, actual, prefix = "") => {
+        const mismatched = [];
+        Object.keys(expected).forEach((key) => {
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          if (!(key in actual)) {
+            mismatched.push(`${fullKey} (missing)`);
+          } else if (typeof expected[key] !== typeof actual[key]) {
+            mismatched.push(`${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`);
+          } else if (typeof expected[key] === "object" && expected[key] !== null) {
+            mismatched.push(...findMismatchedKeys(expected[key], actual[key], fullKey));
+          }
+        });
+        return mismatched;
+      };
+      const fromShape = Array.isArray(from) ? from[0] : from;
+      if (typeof to !== "object" || to === null) {
+        const expectedShape = getShapeDescription(fromShape);
+        throw new Error(`Invalid 'to' state: must be an object.
+
+Expected key-value pairs:
+${JSON.stringify(expectedShape, null, 2)}`);
+      }
+      const mismatchedKeys = findMismatchedKeys(fromShape, to);
+      if (mismatchedKeys.length > 0) {
+        const expectedShape = getShapeDescription(fromShape);
+        throw new Error(`Invalid 'to' state shape.
+
+Expected key-value pairs:
+${JSON.stringify(expectedShape, null, 2)}
+
+Mismatched keys: ${mismatchedKeys.join(", ")}`);
+      }
+    }
+    executeHandler(handler, context) {
+      if (typeof handler === "function") {
+        handler(context);
+      }
     }
   };
   var deepFreeze = (value, deep = true) => {
@@ -3303,6 +3620,7 @@ var cami = (() => {
       storeInstance._persistState();
     });
     const modelObject = {
+      state: storeInstance.state[modelName],
       subscribe: (callback) => {
         return storeInstance.subscribe((state2) => callback(state2[modelName]));
       },
@@ -3624,6 +3942,9 @@ ${JSON.stringify(currentState)}
     };
     return new Proxy(modelObject, {
       get(target, prop) {
+        if (prop === "state") {
+          return target.state;
+        }
         if (prop in target) {
           return target[prop];
         }
@@ -3806,6 +4127,31 @@ ${JSON.stringify(currentState)}
       const expiry = (options == null ? void 0 : options.expiry) !== void 0 ? options.expiry : defaultExpiry;
       const storage = options.storageAdapter;
       const adapterType = options.adapterType;
+      const compareObjects = (obj1, obj2) => {
+        console.assert(obj1 !== null && obj2 !== null, "Both objects must be non-null");
+        console.assert(typeof obj1 === "object" && typeof obj2 === "object", "Both arguments must be objects");
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+        console.assert(Array.isArray(keys1) && Array.isArray(keys2), "Object.keys should always return arrays");
+        if (keys1.length !== keys2.length) {
+          return false;
+        }
+        for (let key of keys1) {
+          console.assert(typeof key === "string", "Object keys should always be strings");
+          if (!(key in obj2)) {
+            return false;
+          }
+          if (typeof obj1[key] === "object" && obj1[key] !== null) {
+            if (typeof obj2[key] !== "object" || obj2[key] === null) {
+              return false;
+            }
+            if (!compareObjects(obj1[key], obj2[key])) {
+              return false;
+            }
+          }
+        }
+        return true;
+      };
       const loadState = () => {
         if (shouldLoad) {
           const storedState = storage.getItem(storeName);
@@ -3817,6 +4163,12 @@ ${JSON.stringify(currentState)}
             __trace("cami:storage", `Checked expiry status for ${adapterType} storage: ${isExpired ? "Has Expired" : "Still Valid"}`);
             if (!isExpired) {
               const loadedState = JSON.parse(storedState);
+              if (!compareObjects(initialState, loadedState)) {
+                __trace("cami:storage", `Stored state structure doesn't match initial state for ${storeName}. Resetting to initial state.`);
+                storage.setItem(storeName, JSON.stringify(initialState));
+                storage.setItem(`${storeName}-expiry`, (currentTime.getTime() + expiry).toString());
+                return initialState;
+              }
               if (options.validationRules) {
                 if (!isValidValidationRules(options.validationRules)) {
                   throw new Error(`Invalid validation rules structure for store ${storeName}.`);
@@ -3921,6 +4273,12 @@ ${JSON.stringify(currentState)}
       storageAdapter,
       adapterType: finalConfig.adapter
     }));
+    const methods = ["memo", "query", "trigger", "dispatch", "mutate"];
+    methods.forEach((method) => {
+      if (typeof storeInstance[method] !== "function") {
+        console.warn(`Method ${method} is not available on the store instance.`);
+      }
+    });
     storeInstances.set(finalConfig.name, storeInstance);
     return storeInstance;
   };
@@ -3936,11 +4294,11 @@ ${JSON.stringify(currentState)}
           if (typeof target[property] === "function") {
             return target[property].bind(target);
           } else if (property in target) {
-            return target[property];
+            return _deepClone(target[property]);
           } else if (typeof target.value[property] === "function") {
             return (...args) => target.value[property](...args);
           } else {
-            return target.value[property];
+            return _deepClone(target.value[property]);
           }
         },
         set: (target, property, value) => {
