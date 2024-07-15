@@ -1,4 +1,4 @@
-import { BlogModel } from '../src/blog.js';
+import { blogStore } from '../src/blog.js';
 
 describe('Querying the API & Mutating Data - BlogComponent', () => {
   let blogElement;
@@ -23,11 +23,13 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
     if (blogElement && blogElement.parentNode) {
       blogElement.parentNode.removeChild(blogElement);
     }
+    // Reset the store state
+    blogStore.reset();
   });
 
   it("should fetch data from the API", async function() {
-    await BlogModel.query('fetchPosts');
-    expect(BlogModel.posts).toEqual([{ id: 1, title: 'Test Post' }]);
+    await blogStore.query('fetchPosts');
+    expect(blogStore.state.posts).toEqual([{ id: 1, title: 'Test Post' }]);
   });
 
   it("should optimistically add a post", async function() {
@@ -38,9 +40,9 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
       json: () => Promise.resolve(newPost)
     }));
 
-    await BlogModel.mutate('createPost', newPost);
+    await blogStore.mutate('createPost', newPost);
 
-    expect(BlogModel.posts).toContain(jasmine.objectContaining(optimisticPost));
+    expect(blogStore.state.posts).toContain(jasmine.objectContaining(optimisticPost));
     expect(window.fetch).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),

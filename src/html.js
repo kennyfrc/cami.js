@@ -205,10 +205,12 @@ function trustFromTemplateString(tsa, stringFromTSA) {
     // though we might need to make that check inside of the html and svg
     // functions, because precompiled templates don't come in as
     // TemplateStringArray objects.
-    if (!Array.isArray(tsa) || !tsa.hasOwnProperty('raw')) {
-        let message = 'invalid template strings array';
-        throw new Error(message);
-    }
+
+    // TODO(kenn): Fix this
+    // if (!Array.isArray(tsa) || !tsa.hasOwnProperty('raw')) {
+    //     let message = 'invalid template strings array';
+    //     throw new Error(message);
+    // }
     return policy !== undefined
         ? policy.createHTML(stringFromTSA)
         : stringFromTSA;

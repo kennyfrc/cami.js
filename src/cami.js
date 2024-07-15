@@ -11,7 +11,7 @@
 import { html, render, svg } from './html.js';
 import { produce } from "immer";
 import { ReactiveElement } from './reactive-element.js';
-import { ObservableStore, store, model } from './observables/observable-store.js';
+import { ObservableStore, store } from './observables/observable-store.js';
 import { Observable } from './observables/observable.js';
 import { ObservableState, effect } from './observables/observable-state.js';
 import { __config } from './config.js';
@@ -21,7 +21,6 @@ const { debug, events } = __config;
 
 /**
  * @exports store - The store object from observable-store.js. This uses local storage by default.
- * @exports model - The model function from observable-store.js. This allows creating models of the store.
  * @exports html - The html function from html.js
  * @exports svg - The svg function from html.js
  * @exports ReactiveElement - The ReactiveElement class from reactive_element.js
@@ -32,4 +31,4 @@ const { debug, events } = __config;
  * @exports debug - The debug property from __config
  * @exports events - The events property from __config
  */
-export { store, model, html, svg, ReactiveElement, Observable, ObservableState, ObservableStore, debug, events, effect };
+export { store, html, svg, ReactiveElement, Observable, ObservableState, ObservableStore, debug, events, effect };
