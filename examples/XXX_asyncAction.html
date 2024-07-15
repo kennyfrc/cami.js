@@ -38,7 +38,7 @@
   });
 
   // Define an async action
-  const fetchUser = (userId) => async (dispatch, getState) => {
+  const fetchUser = (userId) => async ({ dispatch, state, query, mutate, invalidateQueries }) => {
     try {
       dispatch('setLoading', true);
       dispatch('setError', null);
@@ -49,6 +49,10 @@
       }
       const user = await response.json();
       dispatch('setUser', user);
+
+      // Example of using other context properties
+      console.log('Current state:', state);
+      // You can use query, mutate, and invalidateQueries here if needed
     } catch (error) {
       dispatch('setError', error.message);
     } finally {

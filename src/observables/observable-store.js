@@ -226,7 +226,15 @@ class ObservableStore extends Observable {
 
   _dispatch(action, payload) {
     if (typeof action === 'function') {
-      return action(this._dispatch.bind(this), () => deepFreeze(this._state));
+      const context = {
+        state: deepFreeze(this._state),
+        dispatch: this._dispatch.bind(this),
+        trigger: this.trigger.bind(this),
+        query: this.query.bind(this),
+        mutate: this.mutate.bind(this),
+        invalidateQueries: this.invalidateQueries.bind(this)
+      };
+      return action(context);
     }
 
     if (typeof action !== 'string') {
