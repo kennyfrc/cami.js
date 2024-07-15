@@ -45,7 +45,7 @@ class ObservableStore extends Observable {
       return () => { this.__subscriber = null; };
     });
 
-    this.state = this._createProxy(createDraft(initialState));
+    this._state = this._createProxy(createDraft(initialState));
     this.previousState = _deepClone(initialState);
     this.schema = this._createDeepSchema(initialState);
 
@@ -84,7 +84,7 @@ class ObservableStore extends Observable {
         const currentTime = new Date();
         const expiryTime = new Date(currentTime.getTime() + this.expiry);
 
-        this.storage.setItem(this.name, JSON.stringify(this.state));
+        this.storage.setItem(this.name, JSON.stringify(this._state));
         this.storage.setItem(`${this.name}-expiry`, expiryTime.getTime().toString());
       }
     };
@@ -93,9 +93,17 @@ class ObservableStore extends Observable {
       if (typeof initialState[key] === 'function') {
         this.defineAction(key, initialState[key]);
       } else {
-        this.state[key] = initialState[key];
+        this._state[key] = initialState[key];
       }
     });
+  }
+
+  get state() {
+    return deepFreeze(this._state);
+  }
+
+  getState() {
+    return deepFreeze(this._state);
   }
 
   _createProxy(target) {
@@ -119,12 +127,12 @@ class ObservableStore extends Observable {
   }
 
   _reProxy() {
-    Object.keys(this.state).forEach(key => {
+    Object.keys(this._state).forEach(key => {
       if (!(key in this)) {
         Object.defineProperty(this, key, {
-          get: () => this.state[key],
+          get: () => this._state[key],
           set: (value) => {
-            this.state[key] = value;
+            this._state[key] = value;
             this._notifyObservers();
           },
           enumerable: true,
@@ -135,13 +143,13 @@ class ObservableStore extends Observable {
   }
 
   _notifyObservers() {
-    if (!_deepEqual(this.state, this.previousState)) {
+    if (!_deepEqual(this._state, this.previousState)) {
       this.memoCache.clear();
-      this.__observers.forEach(observer => observer.next(this.state));
+      this.__observers.forEach(observer => observer.next(this._state));
       if (this.__subscriber && typeof this.__subscriber.next === 'function') {
-        this.__subscriber.next(this.state);
+        this.__subscriber.next(this._state);
       }
-      this.previousState = _deepClone(this.state);
+      this.previousState = _deepClone(this._state);
     }
   }
 
@@ -197,17 +205,28 @@ class ObservableStore extends Observable {
   _processDispatchQueue() {
     this.isDispatching = true;
 
-    while (this.dispatchQueue.length > 0) {
-      const { action, payload } = this.dispatchQueue.shift();
-      this._dispatch(action, payload);
-    }
+    const processNext = () => {
+      if (this.dispatchQueue.length > 0) {
+        const { action, payload, resolve } = this.dispatchQueue.shift();
+        try {
+          const result = this._dispatch(action, payload);
+          resolve(result);
+        } catch (error) {
+          this.isDispatching = false;
+          throw error;
+        }
+        processNext();
+      } else {
+        this.isDispatching = false;
+      }
+    };
 
-    this.isDispatching = false;
+    processNext();
   }
 
   _dispatch(action, payload) {
     if (typeof action === 'function') {
-      return defineAction(this._dispatch.bind(this), () => this.state);
+      return action(this._dispatch.bind(this), () => deepFreeze(this._state));
     }
 
     if (typeof action !== 'string') {
@@ -223,8 +242,8 @@ class ObservableStore extends Observable {
 
     this.__applyMiddleware(action, payload);
 
-    const oldValue = this.state;
-    const [nextState, patches, inversePatches] = produceWithPatches(this.state, draft => {
+    const oldValue = this._state;
+    const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
       reducer({
         state: draft,
         payload: payload,
@@ -247,12 +266,12 @@ class ObservableStore extends Observable {
     const hasChanged = patches.length > 0;
     if (hasChanged) {
       Object.keys(nextState).forEach(key => {
-        this.state[key] = nextState[key];
+        this._state[key] = nextState[key];
       });
 
       this._notifyPatchListeners(patches);
       if (this.devTools) {
-        this.devTools.send(action, this.state);
+        this.devTools.send(action, this._state);
       }
 
       __trace('cami:store:state:change', `Changed store state via action: ${action}`, inversePatches, patches);
@@ -268,6 +287,8 @@ class ObservableStore extends Observable {
         window.dispatchEvent(event);
       }
     }
+
+    return _deepClone(this._state);
   }
 
   _notifyPatchListeners(patches) {
@@ -290,7 +311,7 @@ class ObservableStore extends Observable {
    */
   __applyMiddleware(action, ...args) {
     const context = {
-      state: deepFreeze(this.state),
+      state: deepFreeze(this._state),
       action,
       payload: args,
     };
@@ -309,7 +330,7 @@ class ObservableStore extends Observable {
   __connectToDevTools() {
     if (typeof window !== 'undefined' && window['__REDUX_DEVTOOLS_EXTENSION__']) {
       const devTools = window['__REDUX_DEVTOOLS_EXTENSION__'].connect();
-      devTools.init(this.state);
+      devTools.init(this._state);
       return devTools;
     }
     return null;
@@ -381,11 +402,12 @@ class ObservableStore extends Observable {
   }
 
   dispatch(action, payload) {
-    this.dispatchQueue.push({ action, payload });
-    if (!this.isDispatching) {
-      this._processDispatchQueue();
-    }
-    return this.currentDispatchPromise;
+    return new Promise((resolve) => {
+      this.dispatchQueue.push({ action, payload, resolve });
+      if (!this.isDispatching) {
+        this._processDispatchQueue();
+      }
+    });
   }
 
   query(queryName, payload) {
@@ -456,8 +478,8 @@ class ObservableStore extends Observable {
    * ```
    */
   applyPatch(patches) {
-    this.state = applyPatches(this.state, patches);
-    this.__observers.forEach(observer => observer.next(this.state));
+    this._state = applyPatches(this._state, patches);
+    this.__observers.forEach(observer => observer.next(this._state));
   }
 
  /**
@@ -513,7 +535,7 @@ class ObservableStore extends Observable {
     const cachedData = this.queryCache.get(cacheKey);
 
     const storeContext = {
-      state: this.state,
+      state: this._state,
       payload,
       dispatch: this.dispatch.bind(this),
       trigger: this.trigger.bind(this),
@@ -756,10 +778,10 @@ class ObservableStore extends Observable {
   _executeMutation(mutationName, payload, mutation) {
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
 
-    const previousState = _deepClone(this.state);
+    const previousState = _deepClone(this._state);
 
     const storeContext = {
-      state: this.state,
+      state: this._state,
       payload,
       dispatch: this.dispatch.bind(this),
       trigger: this.trigger.bind(this),
@@ -970,7 +992,7 @@ class ObservableStore extends Observable {
     }
 
     const dependencies = new Set();
-    const trackingProxy = new Proxy(this.state, {
+    const trackingProxy = new Proxy(this._state, {
       get: (target, prop) => {
         dependencies.add(prop);
         return target[prop];
@@ -995,7 +1017,7 @@ class ObservableStore extends Observable {
 
   _areDependenciesUnchanged(dependencies) {
     return Array.from(dependencies).every(dep =>
-      this.state[dep] === this.previousState[dep]
+      this._state[dep] === this.previousState[dep]
     );
   }
 
