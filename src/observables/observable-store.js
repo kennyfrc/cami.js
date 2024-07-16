@@ -427,7 +427,7 @@ class ObservableStore extends Observable {
    * @returns {Promise} A promise that resolves with the result of the thunk
    * @description Dispatches an async thunk
    */
-  dispatchAsync(thunkName, payload) {
+  async dispatchAsync(thunkName, payload) {
     const thunk = this.thunks[thunkName];
     if (!thunk) {
       throw new Error(`[Cami.js] No thunk found for name: ${thunkName}`);
@@ -444,25 +444,40 @@ class ObservableStore extends Observable {
       payload: payload
     };
 
-    return Promise.resolve(thunk(context, payload));
+    try {
+      return await thunk(context, payload);
+    } catch (error) {
+      console.error(`Error in thunk ${thunkName}:`, error);
+      throw error;
+    }
   }
 
-  query(queryName, payload) {
+  async query(queryName, payload) {
     const query = this.queryFunctions.get(queryName);
     if (!query) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
     }
 
-    return this._executeQuery(queryName, payload, query);
+    try {
+      return await this._executeQuery(queryName, payload, query);
+    } catch (error) {
+      console.error(`Error in query ${queryName}:`, error);
+      throw error;
+    }
   }
 
-  mutate(mutationName, payload) {
+  async mutate(mutationName, payload) {
     const mutation = this.mutationFunctions.get(mutationName);
     if (!mutation) {
       throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
     }
 
-    return this._executeMutation(mutationName, payload, mutation);
+    try {
+      return await this._executeMutation(mutationName, payload, mutation);
+    } catch (error) {
+      console.error(`Error in mutation ${mutationName}:`, error);
+      throw error;
+    }
   }
 
   defineMemo(memoName, memoFn) {
