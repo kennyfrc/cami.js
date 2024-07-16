@@ -98,13 +98,22 @@ class ObservableStore extends Observable {
         this._state[key] = initialState[key];
       }
     });
+
+    this.__isDispatching = false;
+    this.__dispatchStack = [];
   }
 
   get state() {
+    if (DependencyTracker.current) {
+      DependencyTracker.current.addDependency(this);
+    }
     return deepFreeze(this._state);
   }
 
   getState() {
+    if (DependencyTracker.current) {
+      DependencyTracker.current.addDependency(this);
+    }
     return deepFreeze(this._state);
   }
 
@@ -112,8 +121,7 @@ class ObservableStore extends Observable {
     return new Proxy(target, {
       get: (target, prop) => {
         if (DependencyTracker.current) {
-          const propertyKey = typeof prop === 'symbol' ? Symbol.keyFor(prop) || prop.toString() : prop;
-          DependencyTracker.current.addDependency(this, propertyKey);
+          DependencyTracker.current.addDependency(this, prop);
         }
         return target[prop];
       },
@@ -152,6 +160,16 @@ class ObservableStore extends Observable {
         this.__subscriber.next(this._state);
       }
       this.previousState = _deepClone(this._state);
+
+      // Notify dependencies
+      const dependencies = DependencyTracker.dependencyGraph.get(this);
+      if (dependencies) {
+        dependencies.forEach(dep => {
+          if (typeof dep.update === 'function') {
+            dep.update();
+          }
+        });
+      }
     }
   }
 
@@ -226,64 +244,83 @@ class ObservableStore extends Observable {
   }
 
   _dispatch(action, payload) {
-    if (typeof action !== 'string') {
-      throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+    if (this.__isDispatching) {
+      const cycle = [...this.__dispatchStack, action].join(' -> ');
+      console.warn(`[Cami.js] Cyclic dispatch detected: ${cycle}`);
     }
 
-    const reducer = this.reducers[action];
-
-    if (!reducer) {
-      console.warn(`No reducer found for action ${action}`);
-      return;
-    }
-
-    this.__applyMiddleware(action, payload);
-
-    const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
-      reducer({
-        state: draft,
-        payload: payload,
-        dispatch: this.dispatch.bind(this),
-        query: this.query.bind(this),
-        mutate: this.mutate.bind(this),
-        invalidateQueries: this.invalidateQueries.bind(this),
-        memo: this.memo.bind(this),
-        trigger: this.trigger.bind(this)
-      });
-    });
+    this.__isDispatching = true;
+    this.__dispatchStack.push(action);
 
     try {
-      this._validateDeepState(this.schema, nextState);
-    } catch (error) {
-      throw new Error(`[Cami.js] Type validation failed for action ${action}: ${error.message}`);
-    }
+      if (typeof action !== 'string') {
+        throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+      }
 
-    const hasChanged = patches.length > 0;
-    if (hasChanged) {
-      Object.keys(nextState).forEach(key => {
-        this._state[key] = nextState[key];
+      const reducer = this.reducers[action];
+
+      if (!reducer) {
+        console.warn(`No reducer found for action ${action}`);
+        return;
+      }
+
+      this.__applyMiddleware(action, payload);
+
+      const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
+        reducer({
+          state: draft,
+          payload: payload,
+          dispatch: this.dispatch.bind(this),
+          query: this.query.bind(this),
+          mutate: this.mutate.bind(this),
+          invalidateQueries: this.invalidateQueries.bind(this),
+          memo: this.memo.bind(this),
+          trigger: this.trigger.bind(this)
+        });
       });
 
-      this._notifyPatchListeners(patches);
-      if (this.devTools) {
-        this.devTools.send(action, this._state);
+      try {
+        this._validateDeepState(this.schema, nextState);
+      } catch (error) {
+        throw new Error(`[Cami.js] Type validation failed for action ${action}: ${error.message}`);
       }
 
-      __trace('cami:store:state:change', `Changed store state via action: ${action}`, inversePatches, patches);
+      const hasChanged = patches.length > 0;
+      if (hasChanged) {
+        const stateHasChanged = !_deepEqual(this._state, nextState);
 
-      if (__config.events.isEnabled && typeof window !== 'undefined') {
-        const event = new CustomEvent('cami:store:state:change', {
-          detail: {
-            action: action,
-            patches: patches,
-            inversePatches: inversePatches
+        if (stateHasChanged) {
+          Object.keys(nextState).forEach(key => {
+            this._state[key] = nextState[key];
+          });
+
+          this._notifyPatchListeners(patches);
+          if (this.devTools) {
+            this.devTools.send(action, this._state);
           }
-        });
-        window.dispatchEvent(event);
-      }
-    }
 
-    return _deepClone(this._state);
+          __trace('cami:store:state:change', `Changed store state via action: ${action}`, inversePatches, patches);
+
+          if (__config.events.isEnabled && typeof window !== 'undefined') {
+            const event = new CustomEvent('cami:store:state:change', {
+              detail: {
+                action: action,
+                patches: patches,
+                inversePatches: inversePatches
+              }
+            });
+            window.dispatchEvent(event);
+          }
+        } else {
+          // __trace('cami:store:state:unchanged', `State unchanged after action: ${action}`);
+        }
+      }
+
+      return _deepClone(this._state);
+    } finally {
+      this.__dispatchStack.pop();
+      this.__isDispatching = false;
+    }
   }
 
   _notifyPatchListeners(patches) {
@@ -398,10 +435,7 @@ class ObservableStore extends Observable {
   }
 
   dispatch(action, payload) {
-    this.dispatchQueue.push({ action, payload });
-    if (!this.isDispatching) {
-      this._processDispatchQueue();
-    }
+    return this._dispatch(action, payload);
   }
 
   /**
@@ -599,7 +633,7 @@ class ObservableStore extends Observable {
 
     if (cachedData && !this._isStale(cachedData, staleTime)) {
       __trace(`query`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
-      return Promise.resolve(cachedData.data);
+      return this._handleQueryResult(queryName, cachedData.data, null, storeContext, { onSuccess, onSettled });
     }
 
     __trace(`query`, `Data is stale or not cached, fetching new data for: ${queryName}`);
@@ -609,33 +643,35 @@ class ObservableStore extends Observable {
       onFetch(storeContext);
     }
 
-    let resultData;
-    let resultError;
-
     return this._fetchWithRetry(() => queryFn(payload), retry, retryDelay)
       .then((data) => {
         this.queryCache.set(cacheKey, { data, timestamp: Date.now(), isStale: false });
-        resultData = data;
-        if (onSuccess) {
-          __trace(`query`, `Fetch success: ${queryName}`);
-          onSuccess({ ...storeContext, data: resultData });
-        }
-        return data;
+        return this._handleQueryResult(queryName, data, null, storeContext, { onSuccess, onSettled });
       })
       .catch((error) => {
-        resultError = error;
-        if (onError) {
-          __trace(`query`, `Fetch failed: ${queryName}`);
-          onError({ ...storeContext, error });
-        }
-        throw error;
-      })
-      .finally(() => {
-        if (onSettled) {
-          __trace(`query`, `Fetch settled: ${queryName}`);
-          onSettled({ ...storeContext, data: resultData || resultError });
-        }
+        return this._handleQueryResult(queryName, null, error, storeContext, { onError, onSettled });
       });
+  }
+
+  _handleQueryResult(queryName, data, error, storeContext, callbacks) {
+    const { onSuccess, onError, onSettled } = callbacks;
+    const context = { ...storeContext, data, error };
+
+    if (error) {
+      __trace(`query`, `Fetch failed: ${queryName}`);
+      if (onError) onError(context);
+    } else {
+      __trace(`query`, `Fetch success: ${queryName}`);
+      if (onSuccess) onSuccess(context);
+    }
+
+    if (onSettled) {
+      __trace(`query`, `Fetch settled: ${queryName}`);
+      onSettled(context);
+    }
+
+    if (error) throw error;
+    return data;
   }
 
   /**

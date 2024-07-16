@@ -13,49 +13,25 @@ const registrationStore = store({
   adapter: "memory"
 });
 
-registrationStore.defineAction('setEmail', ({ state, payload }) => {
-  state.email = payload;
-});
-
-registrationStore.defineAction('setPassword', ({ state, payload }) => {
-  state.password = payload;
-});
-
-registrationStore.defineAction('setEmailError', ({ state, payload }) => {
-  state.emailError = payload;
-});
-
-registrationStore.defineAction('setPasswordError', ({ state, payload }) => {
-  state.passwordError = payload;
-});
-
-registrationStore.defineAction('setEmailIsValid', ({ state, payload }) => {
-  state.emailIsValid = payload;
-});
-
-registrationStore.defineAction('setIsEmailAvailable', ({ state, payload }) => {
-  state.isEmailAvailable = payload;
-});
-
-registrationStore.defineAction('processEmailInput', ({ dispatch, query, payload }) => {
+registrationStore.defineAction('processEmailInput', ({ state, payload, query }) => {
   const { isEmailValid, emailError } = validateEmail(payload);
-  dispatch('setEmailError', emailError);
-  dispatch('setEmailIsValid', isEmailValid);
-  dispatch('setEmail', payload);
+  state.email = payload;
+  state.emailError = emailError;
+  state.emailIsValid = isEmailValid;
   query('checkEmailAvailability', payload);
 });
 
-registrationStore.defineAction('processPasswordInput', ({ dispatch, payload }) => {
+registrationStore.defineAction('processPasswordInput', ({ state, payload }) => {
   const { isValid } = validatePassword(payload);
-  dispatch('setPasswordError', isValid ? '' : 'Password must be at least 8 characters long.');
-  dispatch('setPassword', payload);
+  state.password = payload;
+  state.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
 });
 
 registrationStore.defineQuery('checkEmailAvailability', {
   queryKey: (email) => ['Email', email],
   queryFn: (email) => fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json()),
-  onSuccess: ({ dispatch, data }) => {
-    dispatch('setIsEmailAvailable', data.length === 0);
+  onSuccess: ({ state, data }) => {
+    state.isEmailAvailable = data.length === 0;
   },
   staleTime: 1000 * 60 * 5 // 5 minutes
 });

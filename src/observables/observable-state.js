@@ -13,6 +13,7 @@ import { __trace } from '../trace.js';
  */
 class DependencyTracker {
   static current = null;
+  static dependencyGraph = new Map();
 
   static track(effectFn) {
     const tracker = new DependencyTracker();
@@ -26,9 +27,60 @@ class DependencyTracker {
     this.dependencies = new Set();
   }
 
-  addDependency(store, property) {
-    console.log(`Tracking dependency: ${property}`);
-    this.dependencies.add({ store, property });
+  addDependency(observable) {
+    this.dependencies.add(observable);
+    if (!DependencyTracker.dependencyGraph.has(observable)) {
+      DependencyTracker.dependencyGraph.set(observable, new Set());
+    }
+    DependencyTracker.dependencyGraph.get(observable).add(this);
+  }
+
+  static detectCycles() {
+    const visited = new Set();
+    const recursionStack = new Set();
+    const cyclePath = [];
+
+    function dfs(node) {
+      visited.add(node);
+      recursionStack.add(node);
+      cyclePath.push(node);
+
+      const neighbors = DependencyTracker.dependencyGraph.get(node) || new Set();
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor)) {
+          if (dfs(neighbor)) return true;
+        } else if (recursionStack.has(neighbor)) {
+          // We've found a cycle, capture the cycle path
+          const cycleStart = cyclePath.indexOf(neighbor);
+          const cycle = cyclePath.slice(cycleStart);
+          console.warn(`Cyclic dependency detected: ${cycle.map(n => n.__name || 'unnamed').join(' -> ')}`);
+        }
+      }
+
+      recursionStack.delete(node);
+      cyclePath.pop();
+      return false;
+    }
+
+    for (const node of DependencyTracker.dependencyGraph.keys()) {
+      if (!visited.has(node)) {
+        try {
+          if (dfs(node)) return true;
+        } catch (error) {
+          if (error.message.startsWith('Cyclic dependency detected:')) {
+            console.warn(error.message);
+          } else {
+            throw error; // Re-throw other errors
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  static clearGraph() {
+    DependencyTracker.dependencyGraph.clear();
   }
 }
 
@@ -62,6 +114,8 @@ class ObservableState extends Observable {
     this.__pendingUpdates = [];
     this.__updateScheduled = false;
     this.__name = name;
+    this.__isUpdating = false;
+    this.__updateStack = [];
   }
 
   /**
@@ -85,9 +139,24 @@ class ObservableState extends Observable {
    * observable.value = 20;
    */
   set value(newValue) {
-    if (!_deepEqual(newValue, this.__value)) {
-      this.__value = newValue;
-      this.__notifyObservers();
+    if (this.__isUpdating) {
+      const cycle = [...this.__updateStack, this.__name].join(' -> ');
+      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
+      // Optionally, return here to prevent the update
+      // return;
+    }
+
+    this.__isUpdating = true;
+    this.__updateStack.push(this.__name);
+
+    try {
+      if (!_deepEqual(newValue, this.__value)) {
+        this.__value = newValue;
+        this.__notifyObservers();
+      }
+    } finally {
+      this.__updateStack.pop();
+      this.__isUpdating = false;
     }
   }
 
@@ -317,8 +386,23 @@ class ObservableState extends Observable {
    * observable.update(value => value + 1);
    */
   update(updater) {
-    this.__pendingUpdates.push(updater);
-    this.__scheduleupdate();
+    if (this.__isUpdating) {
+      const cycle = [...this.__updateStack, this.__name].join(' -> ');
+      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
+      // Optionally, return here to prevent the update
+      // return;
+    }
+
+    this.__isUpdating = true;
+    this.__updateStack.push(this.__name);
+
+    try {
+      this.__pendingUpdates.push(updater);
+      this.__scheduleupdate();
+    } finally {
+      this.__updateStack.pop();
+      this.__isUpdating = false;
+    }
   }
 
   __scheduleupdate() {
@@ -441,8 +525,20 @@ const effect = function(effectFn) {
   const _runEffect = () => {
     cleanup();
     DependencyTracker.current = tracker;
-    cleanup = effectFn() || (() => {});
-    DependencyTracker.current = null;
+    try {
+      cleanup = effectFn() || (() => {});
+    } catch (error) {
+      console.warn(error.message);
+      // Optionally, you can add more detailed logging here
+    } finally {
+      DependencyTracker.current = null;
+    }
+
+    try {
+      DependencyTracker.detectCycles();
+    } catch (error) {
+      console.warn(error.message);
+    }
   };
 
   if (typeof window !== 'undefined') {
@@ -464,6 +560,7 @@ const effect = function(effectFn) {
       subscription.unsubscribe();
     });
     cleanup();
+    DependencyTracker.clearGraph();
   };
 
   return dispose;
