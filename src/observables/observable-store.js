@@ -380,7 +380,7 @@ class ObservableStore extends Observable {
     }
 
     this.reducers[action] = (context) => {
-      const enhancedContext = {
+      const storeContext = {
         ...context,
         dispatch: this.dispatch.bind(this),
         query: this.query.bind(this),
@@ -388,8 +388,9 @@ class ObservableStore extends Observable {
         memo: this.memo.bind(this),
         trigger: this.trigger.bind(this),
         invalidateQueries: this.invalidateQueries.bind(this),
+        dispatchAsync: this.dispatchAsync.bind(this)
       };
-      return reducer(enhancedContext);
+      return reducer(storeContext);
     };
 
     this.actions[action] = (...args) => {
@@ -578,7 +579,8 @@ class ObservableStore extends Observable {
       memo: this.memo.bind(this),
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
-      invalidateQueries: this.invalidateQueries.bind(this)
+      invalidateQueries: this.invalidateQueries.bind(this),
+      dispatchAsync: this.dispatchAsync.bind(this)
     };
 
     __trace(`_executeQuery`, `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`);
@@ -825,7 +827,8 @@ class ObservableStore extends Observable {
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
       previousState,
-      invalidateQueries: this.invalidateQueries.bind(this)
+      invalidateQueries: this.invalidateQueries.bind(this),
+      dispatchAsync: this.dispatchAsync.bind(this)
     };
 
     let optimisticUpdate;
@@ -917,35 +920,30 @@ class ObservableStore extends Observable {
         const event = this.machines[machineName][eventName];
         const currentState = { ...state };
 
+        const storeContext = {
+          state,
+          payload,
+          dispatch: this.dispatch.bind(this),
+          query: this.query.bind(this),
+          mutate: this.mutate.bind(this),
+          trigger: this.trigger.bind(this),
+          memo: this.memo.bind(this),
+          dispatchAsync: this.dispatchAsync.bind(this)
+        };
+
         if (this.isValidTransition(event.from, currentState)) {
           const applyTransition = (to) => {
             this.validateToShape(event.from, to);
 
             // Execute onExit for the current state
-            this.executeHandler(event.onExit, {
-              state: currentState,
-              dispatch: this.dispatch,
-              query: this.query,
-              mutate: this.mutate,
-              trigger: this.trigger,
-              memo: this.memo,
-              payload
-            });
+            this.executeHandler(event.onExit, { ...storeContext, state: currentState });
 
             Object.entries(to).forEach(([key, value]) => {
               state[key] = value;
             });
 
             // Execute onEntry for the new state
-            this.executeHandler(event.onEntry, {
-              state,
-              dispatch: this.dispatch,
-              query: this.query,
-              mutate: this.mutate,
-              trigger: this.trigger,
-              memo: this.memo,
-              payload
-            });
+            this.executeHandler(event.onEntry, storeContext);
           };
 
           const newState = typeof event.to === 'function'
@@ -956,15 +954,9 @@ class ObservableStore extends Observable {
 
           // Execute onTransition
           this.executeHandler(event.onTransition, {
-            state,
-            dispatch: this.dispatch,
-            query: this.query,
-            mutate: this.mutate,
-            trigger: this.trigger,
-            memo: this.memo,
+            ...storeContext,
             from: currentState,
             to: newState,
-            payload,
             data: event.data
           });
         } else {
@@ -1042,7 +1034,8 @@ class ObservableStore extends Observable {
       trigger: this.trigger.bind(this),
       memo: this.memo.bind(this),
       query: this.query.bind(this),
-      mutate: this.mutate.bind(this)
+      mutate: this.mutate.bind(this),
+      dispatchAsync: this.dispatchAsync.bind(this)
     };
 
     const result = memoFn(storeContext);
