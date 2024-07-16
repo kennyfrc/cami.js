@@ -69,6 +69,7 @@ class ObservableStore extends Observable {
     this.machines = {};
     this.memos = {};
     this.memoCache = new Map();
+    this.thunks = {};
 
     // destructurable methods
     this.dispatch = this.dispatch.bind(this);
@@ -78,6 +79,7 @@ class ObservableStore extends Observable {
     this.trigger = this.trigger.bind(this);
     this.memo = this.memo.bind(this);
     this.invalidateQueries = this.invalidateQueries.bind(this);
+    this.dispatchAsync = this.dispatchAsync.bind(this);
 
     this._persistState = () => {
       if (this.storage) {
@@ -225,18 +227,6 @@ class ObservableStore extends Observable {
   }
 
   _dispatch(action, payload) {
-    if (typeof action === 'function') {
-      const context = {
-        state: deepFreeze(this._state),
-        dispatch: this._dispatch.bind(this),
-        trigger: this.trigger.bind(this),
-        query: this.query.bind(this),
-        mutate: this.mutate.bind(this),
-        invalidateQueries: this.invalidateQueries.bind(this)
-      };
-      return action(context);
-    }
-
     if (typeof action !== 'string') {
       throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
     }
@@ -250,7 +240,6 @@ class ObservableStore extends Observable {
 
     this.__applyMiddleware(action, payload);
 
-    const oldValue = this._state;
     const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
       reducer({
         state: draft,
@@ -260,8 +249,7 @@ class ObservableStore extends Observable {
         mutate: this.mutate.bind(this),
         invalidateQueries: this.invalidateQueries.bind(this),
         memo: this.memo.bind(this),
-        trigger: this.trigger.bind(this),
-        invalidateQueries: this.invalidateQueries.bind(this)
+        trigger: this.trigger.bind(this)
       });
     });
 
@@ -416,6 +404,46 @@ class ObservableStore extends Observable {
         this._processDispatchQueue();
       }
     });
+  }
+
+  /**
+   * @method defineThunk
+   * @param {string} thunkName - The name of the thunk
+   * @param {Function} asyncCallback - The async function to be executed
+   * @description Defines a new thunk for the store
+   */
+  defineThunk(thunkName, asyncCallback) {
+    if (this.thunks[thunkName]) {
+      throw new Error(`[Cami.js] Thunk '${thunkName}' is already defined.`);
+    }
+    this.thunks[thunkName] = asyncCallback;
+  }
+
+  /**
+   * @method dispatchAsync
+   * @param {string} thunkName - The name of the thunk to dispatch
+   * @param {*} payload - The payload for the thunk
+   * @returns {Promise} A promise that resolves with the result of the thunk
+   * @description Dispatches an async thunk
+   */
+  dispatchAsync(thunkName, payload) {
+    const thunk = this.thunks[thunkName];
+    if (!thunk) {
+      throw new Error(`[Cami.js] No thunk found for name: ${thunkName}`);
+    }
+
+    const context = {
+      state: deepFreeze(this._state),
+      dispatch: this.dispatch.bind(this),
+      dispatchAsync: this.dispatchAsync.bind(this),
+      trigger: this.trigger.bind(this),
+      query: this.query.bind(this),
+      mutate: this.mutate.bind(this),
+      invalidateQueries: this.invalidateQueries.bind(this),
+      payload: payload
+    };
+
+    return Promise.resolve(thunk(context, payload));
   }
 
   query(queryName, payload) {

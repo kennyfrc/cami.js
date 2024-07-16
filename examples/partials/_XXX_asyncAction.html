@@ -39,10 +39,12 @@
     state.error = payload;
   });
 
-  // Complex thunk to fetch user profile, posts, and latest post comments
-  const fetchUserProfile = (userId) => async ({ dispatch, state, query, mutate, invalidateQueries }) => {
+  // Define the fetchUserProfile thunk
+  userStore.defineThunk('fetchUserProfile', async ({ dispatch, payload }) => {
     dispatch('setLoading', true);
     dispatch('setError', null);
+
+    const userId = payload;
 
     try {
       // Fetch user data
@@ -57,24 +59,24 @@
       const posts = await postsResponse.json();
       dispatch('setPosts', posts);
 
+      let comments = [];
       // Fetch comments for the latest post
       if (posts.length > 0) {
         const latestPost = posts[0];
         const commentsResponse = await fetch(`https://jsonplaceholder.typicode.com/posts/${latestPost.id}/comments`);
         if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
-        const comments = await commentsResponse.json();
+        comments = await commentsResponse.json();
         dispatch('setLatestPostComments', comments);
       }
 
-      console.log('Fetched user profile:', { user, posts: posts.length, commentsOnLatestPost: state.latestPostComments.length });
-      return { user, posts, latestPostComments: state.latestPostComments };
+      return { user, posts, latestPostComments: comments };
     } catch (error) {
       dispatch('setError', error.message);
       throw error;
     } finally {
       dispatch('setLoading', false);
     }
-  };
+  });
 
   customElements.define('user-profile-component',
     class extends ReactiveElement {
@@ -82,10 +84,10 @@
 
       template() {
         const { user, posts, latestPostComments, loading, error } = userStore.state;
-        const { dispatch } = userStore;
+        const { dispatchAsync } = userStore;
 
         const handleFetch = () => {
-          dispatch(fetchUserProfile(this.userId))
+          dispatchAsync('fetchUserProfile', this.userId)
             .then(result => {
               console.log('Fetched user profile:', result);
               console.log('Updated store state:', userStore.state);
