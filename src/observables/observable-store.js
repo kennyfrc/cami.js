@@ -209,10 +209,9 @@ class ObservableStore extends Observable {
 
     const processNext = () => {
       if (this.dispatchQueue.length > 0) {
-        const { action, payload, resolve } = this.dispatchQueue.shift();
+        const { action, payload } = this.dispatchQueue.shift();
         try {
-          const result = this._dispatch(action, payload);
-          resolve(result);
+          this._dispatch(action, payload);
         } catch (error) {
           this.isDispatching = false;
           throw error;
@@ -399,12 +398,10 @@ class ObservableStore extends Observable {
   }
 
   dispatch(action, payload) {
-    return new Promise((resolve) => {
-      this.dispatchQueue.push({ action, payload, resolve });
-      if (!this.isDispatching) {
-        this._processDispatchQueue();
-      }
-    });
+    this.dispatchQueue.push({ action, payload });
+    if (!this.isDispatching) {
+      this._processDispatchQueue();
+    }
   }
 
   /**

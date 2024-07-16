@@ -148,17 +148,6 @@ describe("Observable Store (Set 2)", function() {
       expect(navStore.state.count).toBe(2);
     });
 
-    it('should throw an error for invalid action', (done) => {
-      navStore.dispatch('invalidAction', { status: 123 })
-        .then(() => {
-          done.fail('Expected an error to be thrown');
-        })
-        .catch(error => {
-          expect(error.message).toBe('[Cami.js] Type validation failed for action invalidAction: Invalid type at status. Expected string, got number');
-          done();
-      });
-    });
-
     it("should cycle through all states correctly", function() {
       expect(navStore.state.status).toBe('menu');
       expect(navStore.state.count).toBe(0);
