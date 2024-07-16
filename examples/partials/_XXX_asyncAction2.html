@@ -1,0 +1,117 @@
+<article>
+  <h1>User Profile Streamer</h1>
+  <user-profile-component></user-profile-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const userStore = store({
+    state: {
+      user: null,
+      posts: [],
+      latestPostComments: [],
+      loading: false,
+      error: null
+    },
+    name: "user-store"
+  });
+
+  // Action definitions remain the same
+  userStore.defineAction('setUser', ({ state, payload }) => {
+    state.user = payload;
+  });
+
+  userStore.defineAction('setPosts', ({ state, payload }) => {
+    state.posts = payload;
+  });
+
+  userStore.defineAction('setLatestPostComments', ({ state, payload }) => {
+    state.latestPostComments = payload;
+  });
+
+  userStore.defineAction('setLoading', ({ state, payload }) => {
+    state.loading = payload;
+  });
+
+  userStore.defineAction('setError', ({ state, payload }) => {
+    state.error = payload;
+  });
+
+  // Mock data generator
+  const mockDataGenerator = async function* () {
+    yield { type: 'user', data: { id: 1, name: 'John Doe', email: 'john@example.com', company: { name: 'ABC Corp' } } };
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    yield { type: 'posts', data: [{ id: 1, title: 'First post' }, { id: 2, title: 'Second post' }] };
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    yield { type: 'comments', data: [{ id: 1, body: 'Great post!' }, { id: 2, body: 'Interesting read.' }] };
+  };
+
+  // Define the streamUserProfile thunk
+  userStore.defineThunk('streamUserProfile', async ({ dispatch }) => {
+    dispatch('setLoading', true);
+    dispatch('setError', null);
+
+    try {
+      for await (const { type, data } of mockDataGenerator()) {
+        switch (type) {
+          case 'user':
+            dispatch('setUser', data);
+            break;
+          case 'posts':
+            dispatch('setPosts', data);
+            break;
+          case 'comments':
+            dispatch('setLatestPostComments', data);
+            break;
+        }
+        // You could add additional processing or checks here if needed
+        console.log(`Received ${type} data:`, data);
+      }
+    } catch (error) {
+      dispatch('setError', 'Error streaming data');
+      throw error;
+    } finally {
+      dispatch('setLoading', false);
+    }
+
+    return userStore.state;
+  });
+
+  customElements.define('user-profile-component',
+    class extends ReactiveElement {
+      template() {
+        const { user, posts, latestPostComments, loading, error } = userStore.state;
+        const { dispatchAsync } = userStore;
+
+        const handleStream = async () => {
+          try {
+            const result = await dispatchAsync('streamUserProfile');
+            console.log('Streamed user profile:', result);
+          } catch (error) {
+            console.error('Error in component:', error);
+          }
+        };
+
+        return html`
+          <button @click=${handleStream} ?disabled=${loading}>
+            ${loading ? 'Streaming...' : 'Stream User Profile'}
+          </button>
+          ${error ? html`<p style="color: red;">${error}</p>` : ''}
+          ${user ? html`
+            <h2>${user.name}</h2>
+            <p>Email: ${user.email}</p>
+            <p>Company: ${user.company.name}</p>
+            <h3>Posts: ${posts.length}</h3>
+            ${posts.length > 0 ? html`
+              <h4>Latest Post: ${posts[0].title}</h4>
+              <p>Comments: ${latestPostComments.length}</p>
+            ` : ''}
+          ` : ''}
+        `;
+      }
+    }
+  );
+</script>
