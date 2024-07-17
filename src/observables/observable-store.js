@@ -265,14 +265,13 @@ class ObservableStore extends Observable {
 
       if (!reducer) {
         console.warn(`No reducer found for action ${action}`);
-        return;
+        return _deepClone(this._state);
       }
 
       this.__applyMiddleware(action, payload);
 
-      let actionResult;
       const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
-        actionResult = reducer({
+        reducer({
           state: draft,
           payload: payload,
           dispatch: this.dispatch.bind(this),
@@ -282,7 +281,6 @@ class ObservableStore extends Observable {
           memo: this.memo.bind(this),
           trigger: this.trigger.bind(this)
         });
-        return actionResult === undefined ? draft : actionResult;
       });
 
       try {
@@ -320,7 +318,7 @@ class ObservableStore extends Observable {
         }
       }
 
-      return actionResult !== undefined ? actionResult : _deepClone(this._state);
+      return _deepClone(this._state);
     } finally {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
