@@ -1,13 +1,16 @@
 const { store } = cami;
 
+const initialState = {
+  user: null,
+  posts: [],
+  latestPostComments: [],
+  loading: false,
+  error: null,
+  notifications: []
+};
+
 const userStore = store({
-  state: {
-    user: null,
-    posts: [],
-    latestPostComments: [],
-    loading: false,
-    error: null
-  },
+  state: initialState,
   name: "user-store-test"
 });
 
@@ -31,9 +34,26 @@ userStore.defineAction('setError', ({ state, payload }) => {
   state.error = payload;
 });
 
-describe('Async Actions - Thunks', () => {
+userStore.defineAction('setNotifications', ({ state, payload }) => {
+  state.notifications = payload;
+});
+
+userStore.defineAction('addNotification', ({ state, payload }) => {
+  state.notifications.push(payload);
+});
+
+describe('Async Actions - Advanced Scenarios', () => {
+  beforeEach(() => {
+    userStore.dispatch('setUser', null);
+    userStore.dispatch('setPosts', []);
+    userStore.dispatch('setLatestPostComments', []);
+    userStore.dispatch('setLoading', false);
+    userStore.dispatch('setError', null);
+    userStore.dispatch('setNotifications', []);
+  });
+
   it('should define and dispatch a simple thunk', async () => {
-    userStore.defineThunk('simpleThunk', async ({ dispatch }) => {
+    userStore.defineAsyncAction('simpleThunk', async ({ dispatch }) => {
       dispatch('setLoading', true);
       await new Promise(resolve => setTimeout(resolve, 100));
       dispatch('setUser', { id: 1, name: 'John Doe' });
@@ -47,7 +67,7 @@ describe('Async Actions - Thunks', () => {
   });
 
   it('should handle errors in thunks', async () => {
-    userStore.defineThunk('errorThunk', async ({ dispatch }) => {
+    userStore.defineAsyncAction('errorThunk', async ({ dispatch }) => {
       dispatch('setLoading', true);
       try {
         throw new Error('Test error');
@@ -65,7 +85,7 @@ describe('Async Actions - Thunks', () => {
   });
 
   it('should handle thunks with parameters', async () => {
-    userStore.defineThunk('fetchUser', async ({ dispatch, payload }) => {
+    userStore.defineAsyncAction('fetchUser', async ({ dispatch, payload }) => {
       dispatch('setLoading', true);
       const userId = payload;
       const user = { id: userId, name: `User ${userId}` };
@@ -98,7 +118,7 @@ describe('Async Actions - Thunks', () => {
       return new Promise(resolve => setTimeout(() => resolve(data), delay));
     };
 
-    userStore.defineThunk('fetchUserProfile', async ({ dispatch, payload }) => {
+    userStore.defineAsyncAction('fetchUserProfile', async ({ dispatch, payload }) => {
       dispatch('setLoading', true);
       dispatch('setError', null);
 
@@ -143,5 +163,156 @@ describe('Async Actions - Thunks', () => {
       posts: mockData.posts,
       latestPostComments: mockData.comments
     });
+  });
+
+  it('should handle asynchronous API requests', async () => {
+    const mockApi = {
+      fetchUser: (id) => Promise.resolve({ id, name: `User ${id}` }),
+      fetchPosts: (userId) => Promise.resolve([{ id: 1, title: `Post by User ${userId}` }])
+    };
+
+    userStore.defineAsyncAction('fetchUserAndPosts', async ({ dispatch }, userId) => {
+      dispatch('setLoading', true);
+      try {
+        const user = await mockApi.fetchUser(userId);
+        dispatch('setUser', user);
+        const posts = await mockApi.fetchPosts(userId);
+        dispatch('setPosts', posts);
+        return { user, posts };
+      } catch (error) {
+        dispatch('setError', error.message);
+      } finally {
+        dispatch('setLoading', false);
+      }
+    });
+
+    const result = await userStore.dispatchAsync('fetchUserAndPosts', 1);
+
+    expect(userStore.state.loading).toBe(false);
+    expect(userStore.state.user).toEqual({ id: 1, name: 'User 1' });
+    expect(userStore.state.posts).toEqual([{ id: 1, title: 'Post by User 1' }]);
+    expect(result).toEqual({
+      user: { id: 1, name: 'User 1' },
+      posts: [{ id: 1, title: 'Post by User 1' }]
+    });
+  });
+
+  // Conditional Dispatch
+  it('should dispatch actions conditionally based on state', async () => {
+    userStore.defineAsyncAction('conditionalFetch', async ({ dispatch, state }) => {
+      if (!state.user) {
+        dispatch('setLoading', true);
+        try {
+          const user = await Promise.resolve({ id: 1, name: 'John Doe' });
+          dispatch('setUser', user);
+          dispatch('addNotification', 'User fetched successfully');
+        } catch (error) {
+          dispatch('setError', error.message);
+        } finally {
+          dispatch('setLoading', false);
+        }
+      } else {
+        dispatch('addNotification', 'User already loaded');
+      }
+    });
+
+    // First call should fetch the user
+    await userStore.dispatchAsync('conditionalFetch');
+    expect(userStore.state.user).toEqual({ id: 1, name: 'John Doe' });
+    expect(userStore.state.notifications).toContain('User fetched successfully');
+
+    // Second call should not fetch the user again
+    await userStore.dispatchAsync('conditionalFetch');
+    expect(userStore.state.notifications).toContain('User already loaded');
+  });
+
+  // Complex Action Sequences
+  it('should handle complex sequences of actions', async () => {
+    const mockApi = {
+      login: (token) => Promise.resolve({ userId: 1 }),
+      fetchUserProfile: (userId) => Promise.resolve({ id: userId, name: 'John Doe' }),
+      fetchUserPosts: (userId) => Promise.resolve([{ id: 1, title: 'First Post' }])
+    };
+
+    userStore.defineAsyncAction('loginAndFetchUserData', async ({ dispatch }, token) => {
+      dispatch('setLoading', true);
+      dispatch('setError', null);
+
+      try {
+        // Login
+        const authResult = await mockApi.login(token);
+        dispatch('addNotification', 'Login successful');
+
+        // Fetch user profile
+        const userProfile = await mockApi.fetchUserProfile(authResult.userId);
+        dispatch('setUser', userProfile);
+        dispatch('addNotification', 'User profile loaded');
+
+        // Fetch user posts
+        const userPosts = await mockApi.fetchUserPosts(authResult.userId);
+        dispatch('setPosts', userPosts);
+        dispatch('addNotification', 'User posts loaded');
+
+        return { user: userProfile, posts: userPosts };
+      } catch (error) {
+        dispatch('setError', error.message);
+        dispatch('addNotification', 'An error occurred during the process');
+      } finally {
+        dispatch('setLoading', false);
+      }
+    });
+
+    const mockToken = 'mock-auth-token';
+    const result = await userStore.dispatchAsync('loginAndFetchUserData', mockToken);
+
+    expect(userStore.state.loading).toBe(false);
+    expect(userStore.state.user).toEqual({ id: 1, name: 'John Doe' });
+    expect(userStore.state.posts).toEqual([{ id: 1, title: 'First Post' }]);
+    expect(userStore.state.notifications).toEqual([
+      'Login successful',
+      'User profile loaded',
+      'User posts loaded'
+    ]);
+    expect(userStore.state.error).toBeNull();
+    expect(result).toEqual({
+      user: { id: 1, name: 'John Doe' },
+      posts: [{ id: 1, title: 'First Post' }]
+    });
+  });
+
+  // Error handling in complex sequences
+  it('should handle errors in complex action sequences', async () => {
+    const mockApi = {
+      login: () => Promise.resolve({ token: 'abc123', userId: 1 }),
+      fetchUserProfile: () => Promise.reject(new Error('Failed to fetch user profile')),
+      fetchUserPosts: () => Promise.resolve([{ id: 1, title: 'First Post' }])
+    };
+
+    userStore.defineAsyncAction('loginWithErrorHandling', async ({ dispatch }) => {
+      dispatch('setLoading', true);
+      dispatch('setError', null);
+
+      try {
+        await mockApi.login();
+        dispatch('addNotification', 'Login successful');
+
+        await mockApi.fetchUserProfile(); // This will throw an error
+        dispatch('addNotification', 'User profile loaded'); // This should not be called
+      } catch (error) {
+        dispatch('setError', error.message);
+        dispatch('addNotification', 'Failed to load user profile');
+      } finally {
+        dispatch('setLoading', false);
+      }
+    });
+
+    await userStore.dispatchAsync('loginWithErrorHandling');
+
+    expect(userStore.state.loading).toBe(false);
+    expect(userStore.state.error).toBe('Failed to fetch user profile');
+    expect(userStore.state.notifications).toEqual([
+      'Login successful',
+      'Failed to load user profile'
+    ]);
   });
 });

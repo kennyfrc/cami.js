@@ -243,6 +243,10 @@ class ObservableStore extends Observable {
     processNext();
   }
 
+  dispatch(action, payload) {
+    return this._dispatch(action, payload);
+  }
+
   _dispatch(action, payload) {
     if (this.__isDispatching) {
       const cycle = [...this.__dispatchStack, action].join(' -> ');
@@ -266,8 +270,9 @@ class ObservableStore extends Observable {
 
       this.__applyMiddleware(action, payload);
 
+      let actionResult;
       const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
-        reducer({
+        actionResult = reducer({
           state: draft,
           payload: payload,
           dispatch: this.dispatch.bind(this),
@@ -277,6 +282,7 @@ class ObservableStore extends Observable {
           memo: this.memo.bind(this),
           trigger: this.trigger.bind(this)
         });
+        return actionResult === undefined ? draft : actionResult;
       });
 
       try {
@@ -311,12 +317,10 @@ class ObservableStore extends Observable {
             });
             window.dispatchEvent(event);
           }
-        } else {
-          // __trace('cami:store:state:unchanged', `State unchanged after action: ${action}`);
         }
       }
 
-      return _deepClone(this._state);
+      return actionResult !== undefined ? actionResult : _deepClone(this._state);
     } finally {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
@@ -434,17 +438,13 @@ class ObservableStore extends Observable {
     };
   }
 
-  dispatch(action, payload) {
-    return this._dispatch(action, payload);
-  }
-
   /**
-   * @method defineThunk
+   * @method defineAsyncAction
    * @param {string} thunkName - The name of the thunk
    * @param {Function} asyncCallback - The async function to be executed
    * @description Defines a new thunk for the store
    */
-  defineThunk(thunkName, asyncCallback) {
+  defineAsyncAction(thunkName, asyncCallback) {
     if (this.thunks[thunkName]) {
       throw new Error(`[Cami.js] Thunk '${thunkName}' is already defined.`);
     }

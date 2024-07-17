@@ -50,7 +50,7 @@
   };
 
   // Define the streamUserProfile thunk
-  userStore.defineThunk('streamUserProfile', async ({ dispatch }) => {
+  userStore.defineAsyncAction('streamUserProfile', async ({ dispatch }) => {
     dispatch('setLoading', true);
     dispatch('setError', null);
 

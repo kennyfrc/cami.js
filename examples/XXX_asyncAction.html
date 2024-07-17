@@ -48,7 +48,7 @@
   });
 
   // Define the fetchUserProfile thunk
-  userStore.defineThunk('fetchUserProfile', async ({ dispatch, payload }) => {
+  userStore.defineAsyncAction('fetchUserProfile', async ({ dispatch, payload }) => {
     dispatch('setLoading', true);
     dispatch('setError', null);
 
