@@ -176,8 +176,8 @@ class ObservableStore extends Observable {
   _createDeepSchema(state) {
     const inferType = (value) => {
       if (Array.isArray(value)) return 'array';
-      if (value === null) return 'maybeNull';
-      if (value === undefined) return 'maybeUndefined';
+      if (value === null) return 'null';
+      if (value === undefined) return 'undefined';
       if (typeof value === 'object') return this._createDeepSchema(value);
       return typeof value;
     };
@@ -204,10 +204,10 @@ class ObservableStore extends Observable {
         }
         this._validateDeepState(expectedType, actualValue, currentPath);
       } else {
-        if (expectedType === 'maybeNull') {
-          // Allow any type for maybeNull
-        } else if (expectedType === 'maybeUndefined') {
-          // Allow any type for maybeUndefined
+        if (expectedType === 'null') {
+          // Allow any type for null
+        } else if (expectedType === 'undefined') {
+          // Allow any type for undefined
         } else if (actualType !== expectedType) {
           throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected ${expectedType}, got ${actualType}`);
         }
@@ -217,8 +217,8 @@ class ObservableStore extends Observable {
 
   _inferType(value) {
     if (Array.isArray(value)) return 'array';
-    if (value === null) return 'maybeNull';
-    if (value === undefined) return 'maybeUndefined';
+    if (value === null) return 'null';
+    if (value === undefined) return 'undefined';
     return typeof value;
   }
 

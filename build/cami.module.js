@@ -2604,9 +2604,9 @@ var ObservableStore = class extends Observable {
       if (Array.isArray(value))
         return "array";
       if (value === null)
-        return "maybeNull";
+        return "null";
       if (value === void 0)
-        return "maybeUndefined";
+        return "undefined";
       if (typeof value === "object")
         return this._createDeepSchema(value);
       return typeof value;
@@ -2630,8 +2630,8 @@ var ObservableStore = class extends Observable {
         }
         this._validateDeepState(expectedType, actualValue, currentPath);
       } else {
-        if (expectedType === "maybeNull") {
-        } else if (expectedType === "maybeUndefined") {
+        if (expectedType === "null") {
+        } else if (expectedType === "undefined") {
         } else if (actualType !== expectedType) {
           throw new TypeError(`Invalid type at ${currentPath.join(".")}. Expected ${expectedType}, got ${actualType}`);
         }
@@ -2642,9 +2642,9 @@ var ObservableStore = class extends Observable {
     if (Array.isArray(value))
       return "array";
     if (value === null)
-      return "maybeNull";
+      return "null";
     if (value === void 0)
-      return "maybeUndefined";
+      return "undefined";
     return typeof value;
   }
   _processDispatchQueue() {
