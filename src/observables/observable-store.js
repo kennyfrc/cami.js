@@ -257,6 +257,15 @@ class ObservableStore extends Observable {
     this.__dispatchStack.push(action);
 
     try {
+      if (action === undefined) {
+        const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
+        if (currentAction) {
+          throw new Error(`[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`);
+        } else {
+          throw new Error(`[Cami.js] Attempted to dispatch undefined action in the global namespace.`);
+        }
+      }
+
       if (typeof action !== 'string') {
         throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
       }
