@@ -86,20 +86,6 @@ describe("Observable Store (Set 1)", function() {
       expect(appStore.list).toEqual(['item2']);
     });
 
-    it("should apply middleware to dispatched actions", async function() {
-      appStore = createStore();
-      const middlewareSpy = jasmine.createSpy('middleware').and.callFake(async (next) => {
-        await new Promise(resolve => setTimeout(resolve, 10)); // Simulate async operation
-      });
-      appStore.use(middlewareSpy);
-      appStore.defineAction('incrementWithMiddleware', ({ state }) => {
-        state.count += 1;
-      });
-      await appStore.dispatch('incrementWithMiddleware');
-      expect(middlewareSpy).toHaveBeenCalled();
-      expect(appStore.count).toBe(1);
-    });
-
     describe("Complex State Transformations", function() {
       let appStore;
 
@@ -129,6 +115,85 @@ describe("Observable Store (Set 1)", function() {
         expect(appStore.nested.value).toBe(25);
         expect(appStore.list).toEqual([0, 15, 0, 25]);
       });
-});
+    });
+  });
+
+  describe("Rollback Functionality", function() {
+    let appStore;
+    let createStore;
+
+    beforeEach(function() {
+      createStore = () => store({
+        state: { count: 0, nested: { value: 10 }, list: [] },
+        name: `test-store-${Date.now()}`,
+        localStorage: false
+      });
+      appStore = createStore();
+      appStore.defineAction('updateMultipleFields', ({ state, payload }) => {
+        state.count += payload.countIncrement;
+        state.nested.value += payload.nestedIncrement;
+        if (payload.shouldThrow) {
+          throw new Error("Action failed");
+        }
+        state.list.push(payload.newItem);
+      });
+    });
+
+    it("should rollback state changes when an action throws an error", function() {
+      const initialState = { ...appStore.state };
+
+      expect(() => {
+        appStore.dispatch('updateMultipleFields', {
+          countIncrement: 5,
+          nestedIncrement: 10,
+          newItem: 'test',
+          shouldThrow: true
+        });
+      }).toThrowError("Action failed");
+
+      expect(appStore.state).toEqual(initialState);
+    });
+
+    it("should maintain state consistency across multiple dispatches when an error occurs", function() {
+      appStore.dispatch('updateMultipleFields', {
+        countIncrement: 3,
+        nestedIncrement: 5,
+        newItem: 'item1',
+        shouldThrow: false
+      });
+
+      const intermediateState = { ...appStore.state };
+
+      expect(() => {
+        appStore.dispatch('updateMultipleFields', {
+          countIncrement: 2,
+          nestedIncrement: 7,
+          newItem: 'item2',
+          shouldThrow: true
+        });
+      }).toThrowError("Action failed");
+
+      expect(appStore.state).toEqual(intermediateState);
+    });
+
+    it("should handle nested action calls and rollback correctly", function() {
+      appStore.defineAction('nestedAction', ({ state, dispatch }) => {
+        state.count += 1;
+        dispatch('updateMultipleFields', {
+          countIncrement: 1,
+          nestedIncrement: 1,
+          newItem: 'nested',
+          shouldThrow: true
+        });
+      });
+
+      const initialState = { ...appStore.state };
+
+      expect(() => {
+        appStore.dispatch('nestedAction');
+      }).toThrowError("Action failed");
+
+      expect(appStore.state).toEqual(initialState);
+    });
   });
 });

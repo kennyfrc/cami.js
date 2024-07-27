@@ -27,11 +27,15 @@ registrationStore.defineAction('processPasswordInput', ({ state, payload }) => {
   state.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
 });
 
+registrationStore.defineAction('updateEmailAvailability', ({ state, payload }) => {
+  state.isEmailAvailable = payload;
+});
+
 registrationStore.defineQuery('checkEmailAvailability', {
   queryKey: (email) => ['Email', email],
   queryFn: (email) => fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json()),
-  onSuccess: ({ state, data }) => {
-    state.isEmailAvailable = data.length === 0;
+  onSuccess: ({ state, data, dispatch }) => {
+    dispatch('updateEmailAvailability', data.length === 0);
   },
   staleTime: 1000 * 60 * 5 // 5 minutes
 });

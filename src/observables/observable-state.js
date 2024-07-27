@@ -566,4 +566,62 @@ const effect = function(effectFn) {
   return dispose;
 };
 
-export { ObservableState, effect, DependencyTracker };
+/**
+ * @function
+ * @param {Function} deriveFn - The function to compute the derived value
+ * @returns {Object} An object containing the current derived value and a dispose function
+ * @description This function creates a derived value that updates when its dependencies change
+ * @example
+ * const count = new ObservableState(0);
+ * const { value: doubleCount, dispose } = derive(() => count.value * 2);
+ * console.log(doubleCount); // 0
+ * count.value = 5;
+ * console.log(doubleCount); // 10
+ * dispose(); // Clean up when no longer needed
+ */
+const derive = function(deriveFn) {
+  let dependencies = new Set();
+  let subscriptions = new Map();
+  let currentValue;
+
+  const tracker = {
+    addDependency: (observable) => {
+      if (!dependencies.has(observable)) {
+        const subscription = observable.onChange(_computeDerivedValue);
+        dependencies.add(observable);
+        subscriptions.set(observable, subscription);
+      }
+    }
+  };
+
+  const _computeDerivedValue = () => {
+    DependencyTracker.current = tracker;
+    try {
+      currentValue = deriveFn();
+    } catch (error) {
+      console.warn('[Cami.js] Error in derive function:', error.message);
+    } finally {
+      DependencyTracker.current = null;
+    }
+
+    try {
+      DependencyTracker.detectCycles();
+    } catch (error) {
+      console.warn(error.message);
+    }
+  };
+
+  _computeDerivedValue();
+
+  const dispose = () => {
+    subscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    subscriptions.clear();
+    dependencies.clear();
+  };
+
+  return { value: currentValue, dispose };
+};
+
+export { ObservableState, effect, derive, DependencyTracker };

@@ -51,7 +51,6 @@ class ObservableStore extends Observable {
 
     this.reducers = {};
     this.actions = {};
-    this.middlewares = [];
     this.devTools = this.__connectToDevTools();
     this.dispatchQueue = [];
     this.isDispatching = false;
@@ -70,6 +69,8 @@ class ObservableStore extends Observable {
     this.memos = {};
     this.memoCache = new Map();
     this.thunks = {};
+    this.beforeHooks = [];
+    this.afterHooks = [];
 
     // destructurable methods
     this.dispatch = this.dispatch.bind(this);
@@ -277,26 +278,22 @@ class ObservableStore extends Observable {
         return _deepClone(this._state);
       }
 
-      this.__applyMiddleware(action, payload);
+      this.__applyHooks('before', { action, payload, state: this._state });
 
       const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
-        reducer({
-          state: draft,
-          payload: payload,
-          dispatch: this.dispatch.bind(this),
-          query: this.query.bind(this),
-          mutate: this.mutate.bind(this),
-          invalidateQueries: this.invalidateQueries.bind(this),
-          memo: this.memo.bind(this),
-          trigger: this.trigger.bind(this)
+          reducer({
+            state: draft,
+            payload: payload,
+            dispatch: this.dispatch.bind(this),
+            query: this.query.bind(this),
+            mutate: this.mutate.bind(this),
+            invalidateQueries: this.invalidateQueries.bind(this),
+            memo: this.memo.bind(this),
+            trigger: this.trigger.bind(this)
+          });
         });
-      });
 
-      try {
-        this._validateDeepState(this.schema, nextState);
-      } catch (error) {
-        throw new Error(`[Cami.js] Type validation failed for action ${action}: ${error.message}`);
-      }
+      this.__applyHooks('after', { action, payload, state: nextState, previousState: this._state, patches, inversePatches, dispatch: this.dispatch.bind(this) });
 
       const hasChanged = patches.length > 0;
       if (hasChanged) {
@@ -308,6 +305,7 @@ class ObservableStore extends Observable {
           });
 
           this._notifyPatchListeners(patches);
+
           if (this.devTools) {
             this.devTools.send(action, this._state);
           }
@@ -328,9 +326,25 @@ class ObservableStore extends Observable {
       }
 
       return _deepClone(this._state);
+
     } finally {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
+    }
+  }
+
+  beforeHook(hook) {
+    this.beforeHooks.push(hook);
+  }
+
+  afterHook(hook) {
+    this.afterHooks.push(hook);
+  }
+
+  __applyHooks(type, context) {
+    const hooks = type === 'before' ? this.beforeHooks : this.afterHooks;
+    for (const hook of hooks) {
+      hook(context);
     }
   }
 
@@ -346,26 +360,6 @@ class ObservableStore extends Observable {
 
   /**
    * @private
-   * @method _applyMiddleware
-   * @param {string} action - The action type
-   * @param {...any} args - The arguments to pass to the action
-   * @returns {void}
-   * @description This method applies all registered middlewares to the given action and arguments.
-   */
-  __applyMiddleware(action, ...args) {
-    const context = {
-      state: deepFreeze(this._state),
-      action,
-      payload: args,
-    };
-
-    for (const middleware of this.middlewares) {
-      middleware(context);
-    }
-  }
-
-  /**
-   * @private
    * @method _connectToDevTools
    * @returns {Object|null} - Returns the devTools object if available, else null
    * @description This method connects the store to the Redux DevTools extension if it is available.
@@ -377,23 +371,6 @@ class ObservableStore extends Observable {
       return devTools;
     }
     return null;
-  }
-
-  /**
-   * @method use
-   * @memberof ObservableStore
-   * @param {Function} middleware - The middleware function to use
-   * @description This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.
-   * @example
-   * ```javascript
-   * const loggerMiddleware = (context) => {
-   *   console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
-   * };
-   * CartStore.use(loggerMiddleware);
-   * ```
-   */
-  use(middleware) {
-    this.middlewares.push(middleware);
   }
 
   /**
@@ -1416,8 +1393,7 @@ const validateState = (storedState, validationRules, context) => {
  * // Initialize or reset the store's state as needed
  * storeWithLocalStorage.reset();
  * ```
- */
-  const _storageEnhancer = (StoreClass) => {
+ */  const _storageEnhancer = (StoreClass) => {
     return (initialState, options) => {
       const storeName = options?.name || 'default-store';
       const shouldLoad = options?.load !== false;

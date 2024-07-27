@@ -65,12 +65,14 @@ var cami = (() => {
     ObservableState: () => ObservableState,
     ObservableStore: () => ObservableStore,
     ReactiveElement: () => ReactiveElement,
+    Type: () => Type,
     debug: () => debug,
     effect: () => effect,
     events: () => events,
     html: () => html,
     store: () => store,
-    svg: () => svg
+    svg: () => svg,
+    useValidationThunk: () => useValidationThunk
   });
 
   // src/html.js
@@ -2459,6 +2461,44 @@ var cami = (() => {
     };
     return dispose;
   };
+  var derive = function(deriveFn) {
+    let dependencies = /* @__PURE__ */ new Set();
+    let subscriptions = /* @__PURE__ */ new Map();
+    let currentValue;
+    const tracker = {
+      addDependency: (observable) => {
+        if (!dependencies.has(observable)) {
+          const subscription = observable.onChange(_computeDerivedValue);
+          dependencies.add(observable);
+          subscriptions.set(observable, subscription);
+        }
+      }
+    };
+    const _computeDerivedValue = () => {
+      DependencyTracker.current = tracker;
+      try {
+        currentValue = deriveFn();
+      } catch (error) {
+        console.warn("[Cami.js] Error in derive function:", error.message);
+      } finally {
+        DependencyTracker.current = null;
+      }
+      try {
+        DependencyTracker.detectCycles();
+      } catch (error) {
+        console.warn(error.message);
+      }
+    };
+    _computeDerivedValue();
+    const dispose = () => {
+      subscriptions.forEach((subscription) => {
+        subscription.unsubscribe();
+      });
+      subscriptions.clear();
+      dependencies.clear();
+    };
+    return { value: currentValue, dispose };
+  };
 
   // src/invariant.js
   var isProduction = function() {
@@ -2522,7 +2562,6 @@ var cami = (() => {
       this.schema = this._createDeepSchema(initialState);
       this.reducers = {};
       this.actions = {};
-      this.middlewares = [];
       this.devTools = this.__connectToDevTools();
       this.dispatchQueue = [];
       this.isDispatching = false;
@@ -2541,6 +2580,8 @@ var cami = (() => {
       this.memos = {};
       this.memoCache = /* @__PURE__ */ new Map();
       this.thunks = {};
+      this.beforeHooks = [];
+      this.afterHooks = [];
       this.dispatch = this.dispatch.bind(this);
       this.query = this.query.bind(this);
       this.mutate = this.mutate.bind(this);
@@ -2723,7 +2764,7 @@ var cami = (() => {
           console.warn(`No reducer found for action ${action}`);
           return _deepClone(this._state);
         }
-        this.__applyMiddleware(action, payload);
+        this.__applyHooks("before", { action, payload, state: this._state });
         const [nextState, patches, inversePatches] = produceWithPatches(this._state, (draft) => {
           reducer({
             state: draft,
@@ -2736,11 +2777,7 @@ var cami = (() => {
             trigger: this.trigger.bind(this)
           });
         });
-        try {
-          this._validateDeepState(this.schema, nextState);
-        } catch (error) {
-          throw new Error(`[Cami.js] Type validation failed for action ${action}: ${error.message}`);
-        }
+        this.__applyHooks("after", { action, payload, state: nextState, previousState: this._state, patches, inversePatches, dispatch: this.dispatch.bind(this) });
         const hasChanged = patches.length > 0;
         if (hasChanged) {
           const stateHasChanged = !_deepEqual(this._state, nextState);
@@ -2771,6 +2808,18 @@ var cami = (() => {
         this.__isDispatching = false;
       }
     }
+    beforeHook(hook) {
+      this.beforeHooks.push(hook);
+    }
+    afterHook(hook) {
+      this.afterHooks.push(hook);
+    }
+    __applyHooks(type, context) {
+      const hooks = type === "before" ? this.beforeHooks : this.afterHooks;
+      for (const hook of hooks) {
+        hook(context);
+      }
+    }
     _notifyPatchListeners(patches) {
       patches.forEach((patch) => {
         const key = patch.path[0];
@@ -2779,24 +2828,6 @@ var cami = (() => {
           listeners.forEach((callback) => callback(patch));
         }
       });
-    }
-    /**
-     * @private
-     * @method _applyMiddleware
-     * @param {string} action - The action type
-     * @param {...any} args - The arguments to pass to the action
-     * @returns {void}
-     * @description This method applies all registered middlewares to the given action and arguments.
-     */
-    __applyMiddleware(action, ...args) {
-      const context = {
-        state: deepFreeze(this._state),
-        action,
-        payload: args
-      };
-      for (const middleware of this.middlewares) {
-        middleware(context);
-      }
     }
     /**
      * @private
@@ -2811,22 +2842,6 @@ var cami = (() => {
         return devTools;
       }
       return null;
-    }
-    /**
-     * @method use
-     * @memberof ObservableStore
-     * @param {Function} middleware - The middleware function to use
-     * @description This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.
-     * @example
-     * ```javascript
-     * const loggerMiddleware = (context) => {
-     *   console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
-     * };
-     * CartStore.use(loggerMiddleware);
-     * ```
-     */
-    use(middleware) {
-      this.middlewares.push(middleware);
     }
     /**
      * @method register
@@ -3906,6 +3921,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
       this.onCreate();
       this.__unsubscribers = /* @__PURE__ */ new Map();
       this.effect = effect.bind(this);
+      this.derive = this.__derive.bind(this);
     }
     /**
      * @method
@@ -3948,6 +3964,21 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
     effect(effectFn) {
       const dispose = super.effect(effectFn);
       this.__unsubscribers.set(effectFn, dispose);
+    }
+    /**
+     * @method
+     * @description Creates a derived value that updates when its dependencies change.
+     * @param {Function} deriveFn - The function to compute the derived value
+     * @returns {any} The derived value
+     * @example
+     * // Assuming `this.count` is an ObservableProperty
+     * this.doubleCount = this.derive(() => this.count * 2);
+     * console.log(this.doubleCount); // If this.count is 5, this will log 10
+     */
+    __derive(deriveFn) {
+      const { value, dispose } = derive(deriveFn);
+      this.__unsubscribers.set(deriveFn, dispose);
+      return value;
     }
     /**
      * @method
@@ -4264,6 +4295,153 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
         render(template, this);
       }
     }
+  };
+
+  // src/types.js
+  var Type = {
+    String: "string",
+    Number: "number",
+    Boolean: "boolean",
+    BigInt: "bigint",
+    Symbol: "symbol",
+    Undefined: "undefined",
+    Null: "object",
+    Object: (schema) => ({ type: "object", schema }),
+    Array: (itemType) => ({ type: "array", itemType }),
+    Function: "function",
+    Sum: (...types) => ({ type: "sum", types }),
+    Product: (fields) => ({ type: "product", fields }),
+    Exponential: (inputType, outputType) => ({ type: "exponential", inputType, outputType }),
+    Any: { type: "any" },
+    Enum: (...values) => ({ type: "enum", values }),
+    Optional: (type) => ({ type: "optional", optional: type }),
+    Nullable: (type) => ({ type: "nullable", nullable: type }),
+    Refinement: (baseType, refinementFn) => ({ type: "refinement", baseType, refinementFn }),
+    Dependent: (baseType, dependencyFn) => ({ type: "dependent", baseType, dependencyFn }),
+    Map: (keyType, valueType) => ({ type: "map", keyType, valueType }),
+    Set: (itemType) => ({ type: "set", itemType }),
+    Date: { type: "date" },
+    RegExp: { type: "regexp" }
+  };
+  var useValidationThunk = (schema) => {
+    const typeValidators = {
+      string: (value, type, path) => {
+        if (typeof value !== type)
+          throw new Error(`Expected ${type}, got ${typeof value} at ${path.join(".")}`);
+      },
+      object: (value, type, path, fullState, validateType) => {
+        if (typeof value !== "object" || value === null)
+          throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
+        Object.entries(type.schema).forEach(([key, subType]) => {
+          if (!(key in value))
+            throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+          validateType(value[key], subType, [...path, key], fullState);
+        });
+      },
+      array: (value, type, path, fullState, validateType) => {
+        if (!Array.isArray(value))
+          throw new Error(`Expected array, got ${typeof value} at ${path.join(".")}`);
+        value.forEach((item, index) => {
+          try {
+            validateType(item, type.itemType, [...path, index], fullState);
+          } catch (error) {
+            throw new Error(`Invalid item at index ${index}: ${error.message}`);
+          }
+        });
+      },
+      any: () => {
+      },
+      enum: (value, type, path) => {
+        if (!type.values.includes(value))
+          throw new Error(`Expected one of ${type.values.join(", ")}, got ${value} at ${path.join(".")}`);
+      },
+      sum: (value, type, path, fullState, validateType) => {
+        const errors2 = [];
+        if (!type.types.some((subType) => {
+          try {
+            validateType(value, subType, path, fullState);
+            return true;
+          } catch (e) {
+            errors2.push(e.message);
+            return false;
+          }
+        })) {
+          throw new Error(`Sum type validation failed at ${path.join(".")}. Errors: ${errors2.join("; ")}`);
+        }
+      },
+      product: (value, type, path, fullState, validateType) => {
+        if (typeof value !== "object" || value === null)
+          throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
+        Object.entries(type.fields).forEach(([key, subType]) => {
+          if (!(key in value))
+            throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+          validateType(value[key], subType, [...path, key], fullState);
+        });
+      },
+      exponential: (value, type, path) => {
+        if (typeof value !== "function")
+          throw new Error(`Expected function, got ${typeof value} at ${path.join(".")}`);
+      },
+      optional: (value, type, path, fullState, validateType) => {
+        if (value !== void 0)
+          validateType(value, type.optional, path, fullState);
+      },
+      nullable: (value, type, path, fullState, validateType) => {
+        if (value !== null)
+          validateType(value, type.nullable, path, fullState);
+      },
+      refinement: (value, type, path, fullState, validateType) => {
+        validateType(value, type.baseType, path, fullState);
+        if (!type.refinementFn(value))
+          throw new Error(`Refinement check failed at ${path.join(".")}`);
+      },
+      dependent: (value, type, path, fullState, validateType) => {
+        validateType(value, type.baseType, path, fullState);
+        type.dependencyFn(value, fullState);
+      },
+      map: (value, type, path, fullState, validateType) => {
+        if (!(value instanceof Map))
+          throw new Error(`Expected Map, got ${typeof value} at ${path.join(".")}`);
+        value.forEach((val, key) => {
+          validateType(key, type.keyType, [...path, "key"], fullState);
+          validateType(val, type.valueType, [...path, "value"], fullState);
+        });
+      },
+      set: (value, type, path, fullState, validateType) => {
+        if (!(value instanceof Set))
+          throw new Error(`Expected Set, got ${typeof value} at ${path.join(".")}`);
+        value.forEach((item) => validateType(item, type.itemType, [...path, "item"], fullState));
+      },
+      date: (value, type, path) => {
+        if (!(value instanceof Date))
+          throw new Error(`Expected Date, got ${typeof value} at ${path.join(".")}`);
+      },
+      regexp: (value, type, path) => {
+        if (!(value instanceof RegExp))
+          throw new Error(`Expected RegExp, got ${typeof value} at ${path.join(".")}`);
+      },
+      number: (value, type, path) => {
+        if (typeof value !== "number")
+          throw new Error(`Expected number, got ${typeof value} at ${path.join(".")}`);
+      }
+    };
+    return ({ state }) => {
+      const validateType = (value, type, path = [], fullState) => {
+        if (value === void 0 && type.type !== "optional") {
+          throw new Error(`Missing required property at ${path.join(".")}`);
+        }
+        const validator = typeof type === "string" ? typeValidators[type] : typeValidators[type.type];
+        if (validator) {
+          validator(value, type, path, fullState, validateType);
+        }
+      };
+      Object.entries(schema).forEach(([key, type]) => {
+        if (!(key in state)) {
+          throw new Error(`Missing required property ${key} in state`);
+        }
+        validateType(state[key], type, [key], state);
+      });
+    };
   };
 
   // src/cami.js

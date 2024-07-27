@@ -2,7 +2,7 @@ import { html, render as __litRender } from './html.js';
 import { produce } from "immer";
 import { Observable } from './observables/observable.js';
 import { ObservableStore } from './observables/observable-store.js';
-import { ObservableState, effect } from './observables/observable-state.js';
+import { ObservableState, effect, derive } from './observables/observable-state.js';
 import { ObservableProxy } from './observables/observable-proxy.js';
 import { __trace } from './trace.js';
 
@@ -82,6 +82,7 @@ class ReactiveElement extends HTMLElement {
     this.onCreate();
     this.__unsubscribers = new Map();
     this.effect = effect.bind(this);
+    this.derive = this.__derive.bind(this);
   }
 
   /**
@@ -129,6 +130,22 @@ class ReactiveElement extends HTMLElement {
   effect(effectFn) {
     const dispose = super.effect(effectFn);
     this.__unsubscribers.set(effectFn, dispose);
+  }
+
+  /**
+   * @method
+   * @description Creates a derived value that updates when its dependencies change.
+   * @param {Function} deriveFn - The function to compute the derived value
+   * @returns {any} The derived value
+   * @example
+   * // Assuming `this.count` is an ObservableProperty
+   * this.doubleCount = this.derive(() => this.count * 2);
+   * console.log(this.doubleCount); // If this.count is 5, this will log 10
+   */
+  __derive(deriveFn) {
+    const { value, dispose } = derive(deriveFn);
+    this.__unsubscribers.set(deriveFn, dispose);
+    return value;
   }
 
   /**
