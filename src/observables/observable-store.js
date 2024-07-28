@@ -71,6 +71,7 @@ class ObservableStore extends Observable {
     this.thunks = {};
     this.beforeHooks = [];
     this.afterHooks = [];
+    this.specs = new Map();
 
     // destructurable methods
     this.dispatch = this.dispatch.bind(this);
@@ -272,10 +273,18 @@ class ObservableStore extends Observable {
       }
 
       const reducer = this.reducers[action];
+      const spec = this.specs?.get(action);
 
       if (!reducer) {
         console.warn(`No reducer found for action ${action}`);
         return _deepClone(this._state);
+      }
+
+      if (spec && spec.precondition) {
+        const isPreconditionMet = spec.precondition({ state: this._state, payload, action });
+        if (!isPreconditionMet) {
+          throw new Error(`Precondition not met for action ${action}`);
+        }
       }
 
       this.__applyHooks('before', { action, payload, state: this._state });
@@ -292,6 +301,13 @@ class ObservableStore extends Observable {
             trigger: this.trigger.bind(this)
           });
         });
+
+      if (spec && spec.postcondition) {
+        const isPostconditionMet = spec.postcondition({ state: nextState, payload, action });
+        if (!isPostconditionMet) {
+          throw new Error(`Postcondition not met for action ${action}`);
+        }
+      }
 
       this.__applyHooks('after', { action, payload, state: nextState, previousState: this._state, patches, inversePatches, dispatch: this.dispatch.bind(this) });
 
@@ -420,6 +436,13 @@ class ObservableStore extends Observable {
     this.actions[action] = (...args) => {
       return this.dispatch(action, ...args);
     };
+  }
+
+  defineSpec(actionName, spec) {
+    if (!this.specs) {
+      this.specs = new Map();
+    }
+    this.specs.set(actionName, spec);
   }
 
   /**
