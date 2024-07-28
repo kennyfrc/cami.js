@@ -1,4 +1,4 @@
-const { store, Type, useValidationThunk } = cami;
+const { store, Type, useValidationHook } = cami;
 
 describe("Hooks", function() {
   let appStore;
@@ -150,11 +150,11 @@ describe("Hooks", function() {
       })
     };
 
-    appStore.afterHook(useValidationThunk(schema));
+    appStore.afterHook(useValidationHook(schema));
 
     expect(() => appStore.dispatch('setUser', { name: 'John', age: 30, email: 'john@example.com' })).not.toThrow();
-    expect(() => appStore.dispatch('setUser', { name: 'Jane', age: 150, email: 'jane@example.com' })).toThrowError();
-    expect(() => appStore.dispatch('setUser', { name: 'Bob', age: 40, email: 'invalid-email' })).toThrowError();
+    expect(() => appStore.dispatch('setUser', { name: 'Jane', age: 150, email: 'jane@example.com' })).toThrowError(/Refinement predicate failed at user.age/);
+    expect(() => appStore.dispatch('setUser', { name: 'Bob', age: 40, email: 'invalid-email' })).toThrowError(/Refinement predicate failed at user.email/);
   });
 
   it("should validate array types", function() {
@@ -162,36 +162,36 @@ describe("Hooks", function() {
       items: Type.Array(Type.Number)
     };
 
-    appStore.afterHook(useValidationThunk(schema));
+    appStore.afterHook(useValidationHook(schema));
 
     expect(() => appStore.dispatch('addItem', 5)).not.toThrow();
     expect(() => appStore.dispatch('addItem', 10)).not.toThrow();
-    expect(() => appStore.dispatch('addItem', '15')).toThrowError('Invalid item at index 2: Expected number, got string at items.2');
+    expect(() => appStore.dispatch('addItem', '15')).toThrowError(/Expected number, got string at items.2/);
     expect(appStore.state.items).toEqual([5, 10]); // Ensure the invalid item wasn't added
   });
 
+  // Update the dependent types test
   it("should handle dependent types", function() {
     const schema = {
-      settings: Type.Dependent(
-        Type.Object({
-          theme: Type.String,
-          fontSize: Type.Number
-        }),
-        (value, state) => {
-          if (value.theme === 'large-print' && value.fontSize < 16) {
+      settings: Type.DependentRecord({
+        theme: Type.String,
+        fontSize: Type.Number,
+        validate: (fields) => {
+          if (fields.theme === 'large-print' && fields.fontSize < 16) {
             throw new Error('Font size must be at least 16 for large-print theme');
           }
         }
-      )
+      })
     };
 
-    appStore.afterHook(useValidationThunk(schema));
+    appStore.afterHook(useValidationHook(schema));
 
     expect(() => appStore.dispatch('updateSettings', { theme: 'default', fontSize: 12 })).not.toThrow();
     expect(() => appStore.dispatch('updateSettings', { theme: 'large-print', fontSize: 18 })).not.toThrow();
-    expect(() => appStore.dispatch('updateSettings', { theme: 'large-print', fontSize: 14 })).toThrowError();
+    expect(() => appStore.dispatch('updateSettings', { theme: 'large-print', fontSize: 14 })).toThrowError(/Font size must be at least 16 for large-print theme/);
   });
 
+  // Update the complex dependent types test
   it("should handle complex dependent types with team, subscription, and user interrelations", function() {
     const schema = {
       subscription: Type.Object({
@@ -199,20 +199,18 @@ describe("Hooks", function() {
         plan: Type.String,
         seats: Type.Number
       }),
-      settings: Type.Dependent(
-        Type.Object({
-          theme: Type.String,
-          fontSize: Type.Number
-        }),
-        (value, state) => {
-          if (state.subscription && state.subscription.plan === 'basic' && value.theme !== 'default') {
+      settings: Type.DependentRecord({
+        theme: Type.String,
+        fontSize: Type.Number,
+        validate: (fields, state) => {
+          if (state.subscription && state.subscription.plan === 'basic' && fields.theme !== 'default') {
             throw new Error('Custom themes are only available for premium subscriptions');
           }
         }
-      )
+      })
     };
 
-    appStore.afterHook(useValidationThunk(schema));
+    appStore.afterHook(useValidationHook(schema));
 
     appStore.dispatch('setSubscription', { id: 'sub1', plan: 'basic', seats: 5 });
     appStore.dispatch('updateSettings', { theme: 'default', fontSize: 14 });
@@ -220,45 +218,46 @@ describe("Hooks", function() {
     expect(() => appStore.dispatch('updateSettings', { theme: 'default', fontSize: 16 })).not.toThrow();
 
     expect(() => appStore.dispatch('updateSettings', { theme: 'dark', fontSize: 16 }))
-      .toThrowError('Custom themes are only available for premium subscriptions');
+      .toThrowError(/Custom themes are only available for premium subscriptions/);
 
     appStore.dispatch('setSubscription', { id: 'sub1', plan: 'premium', seats: 5 });
 
     expect(() => appStore.dispatch('updateSettings', { theme: 'dark', fontSize: 16 })).not.toThrow();
   });
 
+  // Update the user roles and permissions test
   it("should validate user roles and permissions", function() {
     const schema = {
-      user: Type.Dependent(
-        Type.Object({
-          id: Type.String,
-          name: Type.String,
-          role: Type.String,
-          permissions: Type.Array(Type.String)
-        }),
-        (value, state) => {
+      user: Type.DependentRecord({
+        id: Type.String,
+        name: Type.String,
+        role: Type.String,
+        permissions: Type.Array(Type.String),
+        validate: (fields) => {
           const rolePermissions = {
             admin: ['read', 'write', 'delete'],
             editor: ['read', 'write'],
             viewer: ['read']
           };
-          const allowedPermissions = rolePermissions[value.role] || [];
-          const invalidPermissions = value.permissions.filter(p => !allowedPermissions.includes(p));
+          const allowedPermissions = rolePermissions[fields.role] || [];
+          const invalidPermissions = fields.permissions.filter(p => !allowedPermissions.includes(p));
           if (invalidPermissions.length > 0) {
-            throw new Error(`Invalid permissions for role ${value.role}: ${invalidPermissions.join(', ')}`);
+            throw new Error(`Invalid permissions for role ${fields.role}: ${invalidPermissions.join(', ')}`);
           }
         }
-      )
+      })
     };
 
-    appStore.afterHook(useValidationThunk(schema));
+    appStore.afterHook(useValidationHook(schema));
 
     expect(() => appStore.dispatch('setUser', { id: 'user1', name: 'John Doe', role: 'admin', permissions: ['read', 'write', 'delete'] })).not.toThrow();
     expect(() => appStore.dispatch('setUser', { id: 'user2', name: 'Jane Doe', role: 'editor', permissions: ['read', 'write'] })).not.toThrow();
     expect(() => appStore.dispatch('setUser', { id: 'user3', name: 'Bob Smith', role: 'viewer', permissions: ['read'] })).not.toThrow();
-    expect(() => appStore.dispatch('setUser', { id: 'user4', name: 'Alice Johnson', role: 'editor', permissions: ['read', 'write', 'delete'] })).toThrowError();
+    expect(() => appStore.dispatch('setUser', { id: 'user4', name: 'Alice Johnson', role: 'editor', permissions: ['read', 'write', 'delete'] }))
+      .toThrowError(/Invalid permissions for role editor: delete/);
   });
 
+  // Update the subscription limits test
   it("should validate subscription limits", function() {
     const schema = {
       subscription: Type.Object({
@@ -266,27 +265,25 @@ describe("Hooks", function() {
         plan: Type.String,
         seats: Type.Number
       }),
-      team: Type.Dependent(
-        Type.Object({
-          id: Type.String,
-          name: Type.String,
-          memberIds: Type.Array(Type.String)
-        }),
-        (value, state) => {
+      team: Type.DependentRecord({
+        id: Type.String,
+        name: Type.String,
+        memberIds: Type.Array(Type.String),
+        validate: (fields, state) => {
           if (state.subscription) {
-            if (value.memberIds.length > state.subscription.seats) {
-              throw new Error(`Team size (${value.memberIds.length}) exceeds subscription seat limit (${state.subscription.seats})`);
+            if (fields.memberIds.length > state.subscription.seats) {
+              throw new Error(`Team size (${fields.memberIds.length}) exceeds subscription seat limit (${state.subscription.seats})`);
             }
           }
         }
-      )
+      })
     };
 
-    appStore.afterHook(useValidationThunk(schema));
+    appStore.afterHook(useValidationHook(schema));
 
     appStore.dispatch('setSubscription', { id: 'sub1', plan: 'basic', seats: 5 });
     expect(() => appStore.dispatch('setTeam', { id: 'team1', name: 'My Team', memberIds: ['user1', 'user2', 'user3'] })).not.toThrow();
     expect(() => appStore.dispatch('setTeam', { id: 'team1', name: 'My Team', memberIds: ['user1', 'user2', 'user3', 'user4', 'user5', 'user6'] }))
-      .toThrowError('Team size (6) exceeds subscription seat limit (5)');
+      .toThrowError(/Team size \(6\) exceeds subscription seat limit \(5\)/);
   });
 });

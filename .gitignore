@@ -181,6 +181,7 @@ out
 /examples/build
 
 package-lib.json
-src/scratch.js
+src/scratch*.js
 src/spike.js
-src/test.js
+src/test*.js
+src/assert.js

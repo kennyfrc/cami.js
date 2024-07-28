@@ -1,142 +1,224 @@
+import { _deepClone } from './utils.js';
+
 const Type = {
   String: 'string',
-  Number: 'number',
+  Float: 'float',
+  Number: 'float',
+  Integer: 'integer',
+  Natural: 'natural',
   Boolean: 'boolean',
   BigInt: 'bigint',
   Symbol: 'symbol',
-  Undefined: 'undefined',
-  Null: 'object',
-
+  Null: 'null',
   Object: (schema) => ({ type: 'object', schema }),
   Array: (itemType) => ({ type: 'array', itemType }),
-  Function: 'function',
-
   Sum: (...types) => ({ type: 'sum', types }),
-
   Product: (fields) => ({ type: 'product', fields }),
-
-  Exponential: (inputType, outputType) => ({ type: 'exponential', inputType, outputType }),
-
   Any: { type: 'any' },
   Enum: (...values) => ({ type: 'enum', values }),
   Optional: (type) => ({ type: 'optional', optional: type }),
-  Nullable: (type) => ({ type: 'nullable', nullable: type }),
-
   Refinement: (baseType, refinementFn) => ({ type: 'refinement', baseType, refinementFn }),
-  Dependent: (baseType, dependencyFn) => ({ type: 'dependent', baseType, dependencyFn }),
-
-  Map: (keyType, valueType) => ({ type: 'map', keyType, valueType }),
-  Set: (itemType) => ({ type: 'set', itemType }),
-
+  DependentPair: (fstType, sndTypeFn) => ({
+    type: 'dependentPair',
+    fstType,
+    sndTypeFn
+  }),
+  DependentRecord: (fields, validateFn) => ({
+    type: 'dependentRecord',
+    fields,
+    validateFn
+  }),
   Date: { type: 'date' },
-  RegExp: { type: 'regexp' },
+  Vect: (length, elemType) => ({ type: 'vect', length, elemType }),
+  Tree: (valueType) => ({ type: 'tree', valueType }),
+  RoseTree: (valueType) => ({ type: 'roseTree', valueType }),
+  Literal: (value) => ({ type: 'literal', value }),
 };
 
-const useValidationThunk = (schema) => {
-  const typeValidators = {
-    string: (value, type, path) => {
-      if (typeof value !== type) throw new Error(`Expected ${type}, got ${typeof value} at ${path.join('.')}`);
-    },
-    object: (value, type, path, fullState, validateType) => {
-      if (typeof value !== 'object' || value === null) throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
-      Object.entries(type.schema).forEach(([key, subType]) => {
-        if (!(key in value)) throw new Error(`Missing required property ${key} at ${path.join('.')}`);
-        validateType(value[key], subType, [...path, key], fullState);
-      });
-    },
-    array: (value, type, path, fullState, validateType) => {
-      if (!Array.isArray(value)) throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
-      value.forEach((item, index) => {
-        try {
-          validateType(item, type.itemType, [...path, index], fullState);
-        } catch (error) {
-          throw new Error(`Invalid item at index ${index}: ${error.message}`);
-        }
-      });
-    },
-    any: () => {},
-    enum: (value, type, path) => {
-      if (!type.values.includes(value)) throw new Error(`Expected one of ${type.values.join(', ')}, got ${value} at ${path.join('.')}`);
-    },
-    sum: (value, type, path, fullState, validateType) => {
-      const errors = [];
-      if (!type.types.some(subType => {
-        try {
-          validateType(value, subType, path, fullState);
-          return true;
-        } catch (e) {
-          errors.push(e.message);
-          return false;
-        }
-      })) {
-        throw new Error(`Sum type validation failed at ${path.join('.')}. Errors: ${errors.join('; ')}`);
+const typeValidators = {
+  string: (value, type, path) => {
+    if (typeof value !== type) throw new Error(`Expected ${type}, got ${typeof value} at ${path.join('.')}`);
+  },
+  object: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null) throw new Error(`Expected object, got ${value === null ? 'null' : typeof value} at ${path.join('.')}`);
+    Object.entries(type.schema).forEach(([key, subType]) => {
+      if (!(key in value)) throw new Error(`Missing required property ${key} at ${path.join('.')}`);
+      validateType(value[key], subType, [...path, key], rootState);
+    });
+  },
+  array: (value, type, path, rootState, validateType) => {
+    if (!Array.isArray(value)) throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
+    value.forEach((item, index) => {
+      try {
+        validateType(item, type.itemType, [...path, index], rootState);
+      } catch (error) {
+        throw new Error(`Invalid item at index ${index}: ${error.message}`);
       }
-    },
-    product: (value, type, path, fullState, validateType) => {
-      if (typeof value !== 'object' || value === null) throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
-      Object.entries(type.fields).forEach(([key, subType]) => {
-        if (!(key in value)) throw new Error(`Missing required property ${key} at ${path.join('.')}`);
-        validateType(value[key], subType, [...path, key], fullState);
-      });
-    },
-    exponential: (value, type, path) => {
-      if (typeof value !== 'function') throw new Error(`Expected function, got ${typeof value} at ${path.join('.')}`);
-    },
-    optional: (value, type, path, fullState, validateType) => {
-      if (value !== undefined) validateType(value, type.optional, path, fullState);
-    },
-    nullable: (value, type, path, fullState, validateType) => {
-      if (value !== null) validateType(value, type.nullable, path, fullState);
-    },
-    refinement: (value, type, path, fullState, validateType) => {
-      validateType(value, type.baseType, path, fullState);
-      if (!type.refinementFn(value)) throw new Error(`Refinement check failed at ${path.join('.')}`);
-    },
-    dependent: (value, type, path, fullState, validateType) => {
-      validateType(value, type.baseType, path, fullState);
-      type.dependencyFn(value, fullState);
-    },
-    map: (value, type, path, fullState, validateType) => {
-      if (!(value instanceof Map)) throw new Error(`Expected Map, got ${typeof value} at ${path.join('.')}`);
-      value.forEach((val, key) => {
-        validateType(key, type.keyType, [...path, 'key'], fullState);
-        validateType(val, type.valueType, [...path, 'value'], fullState);
-      });
-    },
-    set: (value, type, path, fullState, validateType) => {
-      if (!(value instanceof Set)) throw new Error(`Expected Set, got ${typeof value} at ${path.join('.')}`);
-      value.forEach(item => validateType(item, type.itemType, [...path, 'item'], fullState));
-    },
-    date: (value, type, path) => {
-      if (!(value instanceof Date)) throw new Error(`Expected Date, got ${typeof value} at ${path.join('.')}`);
-    },
-    regexp: (value, type, path) => {
-      if (!(value instanceof RegExp)) throw new Error(`Expected RegExp, got ${typeof value} at ${path.join('.')}`);
-    },
-    number: (value, type, path) => {
-      if (typeof value !== 'number') throw new Error(`Expected number, got ${typeof value} at ${path.join('.')}`);
-    },
-  };
-
-  return ({ state }) => {
-    const validateType = (value, type, path = [], fullState) => {
-      if (value === undefined && type.type !== 'optional') {
-        throw new Error(`Missing required property at ${path.join('.')}`);
+    });
+  },
+  any: () => {},
+  enum: (value, type, path) => {
+    if (!type.values.includes(value)) throw new Error(`Expected one of ${type.values.join(', ')}, got ${value} at ${path.join('.')}`);
+  },
+  sum: (value, type, path, rootState, validateType) => {
+    const errors = [];
+    if (!type.types.some(subType => {
+      try {
+        validateType(value, subType, path, rootState);
+        return true;
+      } catch (e) {
+        errors.push(e.message);
+        return false;
       }
+    })) {
+      throw new Error(`Sum type validation failed at ${path.join('.')}. Errors: ${errors.join('; ')}`);
+    }
+  },
+  product: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null) throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
+    Object.entries(type.fields).forEach(([key, subType]) => {
+      if (!(key in value)) throw new Error(`Missing required property ${key} at ${path.join('.')}`);
+      validateType(value[key], subType, [...path, key], rootState);
+    });
+  },
+  optional: (value, type, path, rootState, validateType) => {
+    if (value !== undefined) validateType(value, type.optional, path, rootState);
+  },
+  null: (value, type, path) => {
+    if (value !== null) throw new Error(`Expected null, got ${typeof value} at ${path.join('.')}`);
+  },
+  refinement: (value, type, path, rootState, validateType) => {
+    validateType(value, type.baseType, path, rootState);
+    if (!type.refinementFn(value, rootState)) {
+      throw new Error(`Refinement predicate failed at ${path.join('.')}`);
+    }
+  },
+  dependentPair: (value, type, path, rootState, validateType) => {
+    if (!Array.isArray(value) || value.length !== 2) {
+      throw new Error(`Expected dependent pair at ${path.join('.')}`);
+    }
+    validateType(value[0], type.fstType, [...path, 0], rootState);
+    const sndType = type.sndTypeFn(value[0]);
+    validateType(value[1], sndType, [...path, 1], rootState);
+  },
+  date: (value, type, path) => {
+    if (!(value instanceof Date)) throw new Error(`Expected Date, got ${typeof value} at ${path.join('.')}`);
+  },
+  float: (value, type, path) => {
+    if (typeof value !== 'number') {
+      throw new Error(`Expected float, got ${typeof value} at ${path.join('.')}`);
+    }
+    if (Number.isNaN(value)) {
+      throw new Error(`Expected float, got NaN at ${path.join('.')}`);
+    }
+  },
+  integer: (value, type, path) => {
+    if (!Number.isInteger(value)) {
+      throw new Error(`Expected integer, got ${typeof value === 'number' ? 'float' : typeof value} at ${path.join('.')}`);
+    }
+  },
+  natural: (value, type, path) => {
+    if (!Number.isInteger(value) || value < 0) {
+      throw new Error(`Expected natural number, got ${value} at ${path.join('.')}`);
+    }
+  },
+  vect: (value, type, path, rootState, validateType) => {
+    if (!Array.isArray(value) || value.length !== type.length) {
+      throw new Error(`Expected Vect of length ${type.length}, got ${value.length} at ${path.join('.')}`);
+    }
+    value.forEach((item, index) => {
+      validateType(item, type.elemType, [...path, index], rootState);
+    });
+  },
+  tree: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null)
+      throw new Error(`Expected tree, got ${typeof value} at ${path.join('.')}`);
+    if (!('value' in value))
+      throw new Error(`Invalid tree structure: missing 'value' at ${path.join('.')}`);
+    validateType(value.value, type.valueType, [...path, 'value'], rootState);
+    if ('left' in value) validateType(value.left, type, [...path, 'left'], rootState);
+    if ('right' in value) validateType(value.right, type, [...path, 'right'], rootState);
+  },
+  roseTree: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null)
+      throw new Error(`Expected rose tree, got ${typeof value} at ${path.join('.')}`);
+    if (!('value' in value) || !('children' in value))
+      throw new Error(`Invalid rose tree structure at ${path.join('.')}`);
+    validateType(value.value, type.valueType, [...path, 'value'], rootState);
+    if (!Array.isArray(value.children))
+      throw new Error(`Expected array of children, got ${typeof value.children} at ${path.join('.')}.children`);
+    value.children.forEach((child, index) => {
+      validateType(child, type, [...path, 'children', index], rootState);
+    });
+  },
+  dependentRecord: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null)
+      throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
 
-      const validator = typeof type === 'string' ? typeValidators[type] : typeValidators[type.type];
-      if (validator) {
-        validator(value, type, path, fullState, validateType);
-      }
-    };
+    Object.entries(type.fields).forEach(([key, fieldType]) => {
+      if (!(key in value))
+        throw new Error(`Missing required property ${key} at ${path.join('.')}`);
 
+      const resolvedType = typeof fieldType === 'function'
+        ? fieldType(value)
+        : fieldType;
+
+      validateType(value[key], resolvedType, [...path, key], rootState);
+    });
+
+    if (typeof type.validateFn === 'function') {
+      type.validateFn(value, rootState);
+    }
+  },
+  literal: (value, type, path) => {
+    if (value !== type.value) {
+      throw new Error(`Expected ${type.value}, got ${value} at ${path.join('.')}`);
+    }
+  },
+  boolean: (value, type, path) => {
+    if (typeof value !== 'boolean') throw new Error(`Expected boolean, got ${typeof value} at ${path.join('.')}`);
+  },
+  bigint: (value, type, path) => {
+    if (typeof value !== 'bigint') throw new Error(`Expected bigint, got ${typeof value} at ${path.join('.')}`);
+  },
+  symbol: (value, type, path) => {
+    if (typeof value !== 'symbol') throw new Error(`Expected symbol, got ${typeof value} at ${path.join('.')}`);
+  },
+};
+
+const validateType = (value, type, path = [], rootState = {}) => {
+  if (value === undefined && type.type !== 'optional') {
+    throw new Error(`Missing required property at ${path.join('.')}`);
+  }
+
+  const validator = typeof type === 'string' ? typeValidators[type] : typeValidators[type.type];
+  if (validator) {
+    validator(value, type, path, rootState, validateType);
+  } else {
+    throw new Error(`Unknown type ${JSON.stringify(type)} at ${path.join('.')}`);
+  }
+};
+
+const useValidationHook = (schema) => {
+  return (state) => {
+    const clonedState = _deepClone(state);
     Object.entries(schema).forEach(([key, type]) => {
-      if (!(key in state)) {
-        throw new Error(`Missing required property ${key} in state`);
-      }
-      validateType(state[key], type, [key], state);
+      validateType(clonedState.state[key], type, [key], clonedState.state);
     });
   };
 };
 
-export { Type, useValidationThunk };
+const useValidationThunk = (schema) => {
+  return (state) => {
+    const clonedState = _deepClone(state);
+    Object.entries(schema).forEach(([key, type]) => {
+      try {
+        validateType(clonedState[key], type, [key], clonedState);
+      } catch (error) {
+        throw error;
+      }
+    });
+  };
+};
+
+export { Type, useValidationThunk, useValidationHook, validateType };

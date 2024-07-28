@@ -17,6 +17,18 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
@@ -2511,9 +2523,271 @@ invariant.config = function(config) {
   }
 };
 
+// src/types.js
+var Type = {
+  String: "string",
+  Number: "number",
+  Boolean: "boolean",
+  BigInt: "bigint",
+  Symbol: "symbol",
+  Undefined: "undefined",
+  Null: "object",
+  Object: (schema) => ({ type: "object", schema }),
+  Array: (itemType) => ({ type: "array", itemType }),
+  Function: "function",
+  Sum: (...types) => ({ type: "sum", types }),
+  Product: (fields) => ({ type: "product", fields }),
+  Exponential: (inputType, outputType) => ({ type: "exponential", inputType, outputType }),
+  Any: { type: "any" },
+  Enum: (...values) => ({ type: "enum", values }),
+  Optional: (type) => ({ type: "optional", optional: type }),
+  Nullable: (type) => ({ type: "nullable", nullable: type }),
+  Refinement: (baseType, refinementFn) => ({ type: "refinement", baseType, refinementFn }),
+  DPair: (fstType, sndTypeFn) => ({ type: "dpair", fstType, sndTypeFn }),
+  DependentRecord: (fields) => ({ type: "dependentRecord", fields }),
+  Map: (keyType, valueType) => ({ type: "map", keyType, valueType }),
+  Set: (itemType) => ({ type: "set", itemType }),
+  Date: { type: "date" },
+  RegExp: { type: "regexp" },
+  Vect: (length, elemType) => ({ type: "vect", length, elemType }),
+  Lazy: (innerType) => ({ type: "lazy", innerType }),
+  Codata: (innerType) => ({ type: "codata", innerType }),
+  Fin: (n) => ({ type: "fin", n }),
+  List: (itemType) => ({ type: "list", itemType }),
+  Tree: (valueType) => ({ type: "tree", valueType }),
+  RoseTree: (valueType) => ({ type: "roseTree", valueType }),
+  ListZipper: (itemType) => ({ type: "listZipper", itemType }),
+  TreeZipper: (valueType) => ({ type: "treeZipper", valueType }),
+  RoseTreeZipper: (valueType) => ({ type: "roseTreeZipper", valueType }),
+  Literal: (value) => ({ type: "literal", value })
+};
+var typeValidators = {
+  string: (value, type, path) => {
+    if (typeof value !== type)
+      throw new Error(`Expected ${type}, got ${typeof value} at ${path.join(".")}`);
+  },
+  object: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
+    Object.entries(type.schema).forEach(([key, subType]) => {
+      if (!(key in value))
+        throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+      validateType2(value[key], subType, [...path, key], rootState);
+    });
+  },
+  array: (value, type, path, rootState, validateType2) => {
+    if (!Array.isArray(value))
+      throw new Error(`Expected array, got ${typeof value} at ${path.join(".")}`);
+    value.forEach((item, index) => {
+      try {
+        validateType2(item, type.itemType, [...path, index], rootState);
+      } catch (error) {
+        throw new Error(`Invalid item at index ${index}: ${error.message}`);
+      }
+    });
+  },
+  any: () => {
+  },
+  enum: (value, type, path) => {
+    if (!type.values.includes(value))
+      throw new Error(`Expected one of ${type.values.join(", ")}, got ${value} at ${path.join(".")}`);
+  },
+  sum: (value, type, path, rootState, validateType2) => {
+    const errors2 = [];
+    if (!type.types.some((subType) => {
+      try {
+        validateType2(value, subType, path, rootState);
+        return true;
+      } catch (e) {
+        errors2.push(e.message);
+        return false;
+      }
+    })) {
+      throw new Error(`Sum type validation failed at ${path.join(".")}. Errors: ${errors2.join("; ")}`);
+    }
+  },
+  product: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
+    Object.entries(type.fields).forEach(([key, subType]) => {
+      if (!(key in value))
+        throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+      validateType2(value[key], subType, [...path, key], rootState);
+    });
+  },
+  exponential: (value, type, path) => {
+    if (typeof value !== "function")
+      throw new Error(`Expected function, got ${typeof value} at ${path.join(".")}`);
+  },
+  optional: (value, type, path, rootState, validateType2) => {
+    if (value !== void 0)
+      validateType2(value, type.optional, path, rootState);
+  },
+  nullable: (value, type, path, rootState, validateType2) => {
+    if (value !== null)
+      validateType2(value, type.nullable, path, rootState);
+  },
+  refinement: (value, type, path, rootState, validateType2) => {
+    validateType2(value, type.baseType, path, rootState);
+    if (!type.refinementFn(value, rootState)) {
+      throw new Error(`Refinement predicate failed at ${path.join(".")}`);
+    }
+  },
+  dpair: (value, type, path, rootState, validateType2) => {
+    if (!Array.isArray(value) || value.length !== 2) {
+      throw new Error(`Expected dependent pair at ${path.join(".")}`);
+    }
+    validateType2(value[0], type.fstType, [...path, 0], rootState);
+    const sndType = type.sndTypeFn(value[0]);
+    validateType2(value[1], sndType, [...path, 1], rootState);
+  },
+  map: (value, type, path, rootState, validateType2) => {
+    if (!(value instanceof Map))
+      throw new Error(`Expected Map, got ${typeof value} at ${path.join(".")}`);
+    value.forEach((val, key) => {
+      validateType2(key, type.keyType, [...path, "key"], rootState);
+      validateType2(val, type.valueType, [...path, "value"], rootState);
+    });
+  },
+  set: (value, type, path, rootState, validateType2) => {
+    if (!(value instanceof Set))
+      throw new Error(`Expected Set, got ${typeof value} at ${path.join(".")}`);
+    value.forEach((item) => validateType2(item, type.itemType, [...path, "item"], rootState));
+  },
+  date: (value, type, path) => {
+    if (!(value instanceof Date))
+      throw new Error(`Expected Date, got ${typeof value} at ${path.join(".")}`);
+  },
+  regexp: (value, type, path) => {
+    if (!(value instanceof RegExp))
+      throw new Error(`Expected RegExp, got ${typeof value} at ${path.join(".")}`);
+  },
+  number: (value, type, path) => {
+    if (typeof value !== "number")
+      throw new Error(`Expected number, got ${typeof value} at ${path.join(".")}`);
+  },
+  vect: (value, type, path, rootState, validateType2) => {
+    if (!Array.isArray(value) || value.length !== type.length) {
+      throw new Error(`Expected Vect of length ${type.length}, got ${value.length} at ${path.join(".")}`);
+    }
+    value.forEach((item, index) => {
+      validateType2(item, type.elemType, [...path, index], rootState);
+    });
+  },
+  lazy: (value, type, path, rootState, validateType2) => {
+    if (typeof value === "function") {
+      validateType2(value(), type.innerType, path, rootState);
+    } else {
+      throw new Error(`Expected lazy value (function) at ${path.join(".")}`);
+    }
+  },
+  codata: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null) {
+      throw new Error(`Expected codata object at ${path.join(".")}`);
+    }
+    const firstKey = Object.keys(value)[0];
+    if (firstKey) {
+      validateType2(value[firstKey], type.innerType, [...path, firstKey], rootState);
+    }
+  },
+  fin: (value, type, path) => {
+    if (!Number.isInteger(value) || value < 0 || value >= type.n) {
+      throw new Error(`Expected Fin ${type.n}, got ${value} at ${path.join(".")}`);
+    }
+  },
+  list: (value, type, path, rootState, validateType2) => {
+    if (!Array.isArray(value))
+      throw new Error(`Expected list, got ${typeof value} at ${path.join(".")}`);
+    value.forEach((item, index) => {
+      validateType2(item, type.itemType, [...path, index], rootState);
+    });
+  },
+  tree: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected tree, got ${typeof value} at ${path.join(".")}`);
+    if (!("value" in value) || !("left" in value) || !("right" in value))
+      throw new Error(`Invalid tree structure at ${path.join(".")}`);
+    validateType2(value.value, type.valueType, [...path, "value"], rootState);
+    if (value.left)
+      validateType2(value.left, type, [...path, "left"], rootState);
+    if (value.right)
+      validateType2(value.right, type, [...path, "right"], rootState);
+  },
+  roseTree: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected rose tree, got ${typeof value} at ${path.join(".")}`);
+    if (!("value" in value) || !("children" in value))
+      throw new Error(`Invalid rose tree structure at ${path.join(".")}`);
+    validateType2(value.value, type.valueType, [...path, "value"], rootState);
+    if (!Array.isArray(value.children))
+      throw new Error(`Expected array of children, got ${typeof value.children} at ${path.join(".")}.children`);
+    value.children.forEach((child, index) => {
+      validateType2(child, type, [...path, "children", index], rootState);
+    });
+  },
+  listZipper: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected list zipper, got ${typeof value} at ${path.join(".")}`);
+    if (!("focus" in value) || !("left" in value) || !("right" in value))
+      throw new Error(`Invalid list zipper structure at ${path.join(".")}`);
+    validateType2(value.focus, type.itemType, [...path, "focus"], rootState);
+    if (!Array.isArray(value.left) || !Array.isArray(value.right))
+      throw new Error(`Expected arrays for left and right, got ${typeof value.left} and ${typeof value.right} at ${path.join(".")}`);
+    value.left.forEach((item, index) => validateType2(item, type.itemType, [...path, "left", index], rootState));
+    value.right.forEach((item, index) => validateType2(item, type.itemType, [...path, "right", index], rootState));
+  },
+  treeZipper: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected tree zipper, got ${typeof value} at ${path.join(".")}`);
+    if (!("focus" in value) || !("context" in value))
+      throw new Error(`Invalid tree zipper structure at ${path.join(".")}`);
+    validateType2(value.focus, Type.Tree(type.valueType), [...path, "focus"], rootState);
+    if (!Array.isArray(value.context))
+      throw new Error(`Expected array for context, got ${typeof value.context} at ${path.join(".")}.context`);
+  },
+  dependentRecord: (value, type, path, rootState, validateType2) => {
+    if (typeof value !== "object" || value === null)
+      throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
+    const _a = type.fields, { validate } = _a, dataFields = __objRest(_a, ["validate"]);
+    Object.entries(dataFields).forEach(([key, fieldType]) => {
+      if (!(key in value))
+        throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+      const resolvedType = typeof fieldType === "function" ? fieldType(value) : fieldType;
+      validateType2(value[key], resolvedType, [...path, key], rootState);
+    });
+    if (typeof validate === "function") {
+      validate(value, rootState);
+    }
+  },
+  literal: (value, type, path) => {
+    if (value !== type.value) {
+      throw new Error(`Expected ${type.value}, got ${value} at ${path.join(".")}`);
+    }
+  }
+};
+var validateType = (value, type, path = [], rootState = {}) => {
+  if (value === void 0 && type.type !== "optional") {
+    throw new Error(`Missing required property at ${path.join(".")}`);
+  }
+  const validator = typeof type === "string" ? typeValidators[type] : typeValidators[type.type];
+  if (validator) {
+    validator(value, type, path, rootState, validateType);
+  } else {
+    throw new Error(`Unknown type ${JSON.stringify(type)} at ${path.join(".")}`);
+  }
+};
+var useValidationHook = (schema) => {
+  return (state) => {
+    const clonedState = _deepClone(state);
+    Object.entries(schema).forEach(([key, type]) => {
+      validateType(clonedState.state[key], type, [key], clonedState.state);
+    });
+  };
+};
+
 // src/observables/observable-store.js
 enablePatches();
-var ObservableStore = class extends Observable {
+var ObservableStore = class _ObservableStore extends Observable {
   constructor(initialState) {
     if (typeof initialState !== "object" || initialState === null) {
       throw new TypeError("[Cami.js] initialState must be an object");
@@ -2574,6 +2848,105 @@ var ObservableStore = class extends Observable {
     });
     this.__isDispatching = false;
     this.__dispatchStack = [];
+  }
+  static fromSchema(schema) {
+    const initialState = {};
+    const schemaEntries = Object.entries(schema);
+    const getDefaultValue = (type) => {
+      if (typeof type === "string") {
+        switch (type) {
+          case "string":
+            return "";
+          case "number":
+            return 0;
+          case "boolean":
+            return false;
+          case "bigint":
+            return BigInt(0);
+          case "symbol":
+            return Symbol("");
+          case "undefined":
+            return void 0;
+          case "object":
+            return null;
+          case "function":
+            return () => {
+            };
+          default:
+            return null;
+        }
+      }
+      switch (type.type) {
+        case "optional":
+          return void 0;
+        case "nullable":
+          return null;
+        case "array":
+          return [];
+        case "object":
+          return {};
+        case "map":
+          return /* @__PURE__ */ new Map();
+        case "set":
+          return /* @__PURE__ */ new Set();
+        case "date":
+          return /* @__PURE__ */ new Date();
+        case "regexp":
+          return new RegExp("");
+        case "vect":
+          return Array(type.length).fill(getDefaultValue(type.elemType));
+        case "list":
+          return [];
+        case "tree":
+          return { value: getDefaultValue(type.valueType), left: null, right: null };
+        case "roseTree":
+          return { value: getDefaultValue(type.valueType), children: [] };
+        case "listZipper":
+          return { focus: getDefaultValue(type.itemType), left: [], right: [] };
+        case "treeZipper":
+          return { focus: getDefaultValue(Type.Tree(type.valueType)), context: [] };
+        case "enum":
+          return type.values[0];
+        case "sum":
+          return getDefaultValue(type.types[0]);
+        case "product":
+          return Object.fromEntries(
+            Object.entries(type.fields).map(([key, fieldType]) => [key, getDefaultValue(fieldType)])
+          );
+        case "dpair":
+          return [getDefaultValue(type.fstType), getDefaultValue(type.sndTypeFn(getDefaultValue(type.fstType)))];
+        case "dependentRecord":
+          return Object.fromEntries(
+            Object.entries(type.fields).map(([key, fieldType]) => {
+              const value = typeof fieldType === "function" ? getDefaultValue(fieldType({})) : getDefaultValue(fieldType);
+              return [key, value];
+            })
+          );
+        case "refinement":
+          return getDefaultValue(type.baseType);
+        case "literal":
+          return type.value;
+        case "lazy":
+          return () => getDefaultValue(type.innerType);
+        case "codata":
+          return {};
+        case "fin":
+          return 0;
+        case "any":
+          return null;
+        default:
+          return null;
+      }
+    };
+    schemaEntries.forEach(([key, type]) => {
+      initialState[key] = getDefaultValue(type);
+    });
+    return (options = {}) => {
+      const store2 = new _ObservableStore(initialState);
+      store2.schema = schema;
+      store2.afterHook(useValidationHook(schema));
+      return store2;
+    };
   }
   get state() {
     if (DependencyTracker.current) {
@@ -2784,7 +3157,11 @@ var ObservableStore = class extends Observable {
   __applyHooks(type, context) {
     const hooks = type === "before" ? this.beforeHooks : this.afterHooks;
     for (const hook of hooks) {
-      hook(context);
+      if (typeof hook === "function") {
+        hook(context);
+      } else {
+        console.warn(`Invalid hook: expected function, got ${typeof hook}`);
+      }
     }
   }
   _notifyPatchListeners(patches) {
@@ -3835,6 +4212,12 @@ var store = (config = {}) => {
   if (finalConfig.validationRules && !isValidValidationRules(finalConfig.validationRules)) {
     throw new Error(`Invalid validation rules structure for store ${finalConfig.name}.`);
   }
+  if (config.schema) {
+    const storeCreator = ObservableStore.fromSchema(config.schema);
+    const storeInstance2 = storeCreator(finalConfig);
+    storeInstances.set(finalConfig.name, storeInstance2);
+    return storeInstance2;
+  }
   const storageAdapter = new AdapterClass();
   const storeInstance = _storageEnhancer(ObservableStore)(finalConfig.state, __spreadProps(__spreadValues({}, finalConfig), {
     storageAdapter,
@@ -4264,153 +4647,6 @@ var ReactiveElement = class extends HTMLElement {
   }
 };
 
-// src/types.js
-var Type = {
-  String: "string",
-  Number: "number",
-  Boolean: "boolean",
-  BigInt: "bigint",
-  Symbol: "symbol",
-  Undefined: "undefined",
-  Null: "object",
-  Object: (schema) => ({ type: "object", schema }),
-  Array: (itemType) => ({ type: "array", itemType }),
-  Function: "function",
-  Sum: (...types) => ({ type: "sum", types }),
-  Product: (fields) => ({ type: "product", fields }),
-  Exponential: (inputType, outputType) => ({ type: "exponential", inputType, outputType }),
-  Any: { type: "any" },
-  Enum: (...values) => ({ type: "enum", values }),
-  Optional: (type) => ({ type: "optional", optional: type }),
-  Nullable: (type) => ({ type: "nullable", nullable: type }),
-  Refinement: (baseType, refinementFn) => ({ type: "refinement", baseType, refinementFn }),
-  Dependent: (baseType, dependencyFn) => ({ type: "dependent", baseType, dependencyFn }),
-  Map: (keyType, valueType) => ({ type: "map", keyType, valueType }),
-  Set: (itemType) => ({ type: "set", itemType }),
-  Date: { type: "date" },
-  RegExp: { type: "regexp" }
-};
-var useValidationThunk = (schema) => {
-  const typeValidators = {
-    string: (value, type, path) => {
-      if (typeof value !== type)
-        throw new Error(`Expected ${type}, got ${typeof value} at ${path.join(".")}`);
-    },
-    object: (value, type, path, fullState, validateType) => {
-      if (typeof value !== "object" || value === null)
-        throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
-      Object.entries(type.schema).forEach(([key, subType]) => {
-        if (!(key in value))
-          throw new Error(`Missing required property ${key} at ${path.join(".")}`);
-        validateType(value[key], subType, [...path, key], fullState);
-      });
-    },
-    array: (value, type, path, fullState, validateType) => {
-      if (!Array.isArray(value))
-        throw new Error(`Expected array, got ${typeof value} at ${path.join(".")}`);
-      value.forEach((item, index) => {
-        try {
-          validateType(item, type.itemType, [...path, index], fullState);
-        } catch (error) {
-          throw new Error(`Invalid item at index ${index}: ${error.message}`);
-        }
-      });
-    },
-    any: () => {
-    },
-    enum: (value, type, path) => {
-      if (!type.values.includes(value))
-        throw new Error(`Expected one of ${type.values.join(", ")}, got ${value} at ${path.join(".")}`);
-    },
-    sum: (value, type, path, fullState, validateType) => {
-      const errors2 = [];
-      if (!type.types.some((subType) => {
-        try {
-          validateType(value, subType, path, fullState);
-          return true;
-        } catch (e) {
-          errors2.push(e.message);
-          return false;
-        }
-      })) {
-        throw new Error(`Sum type validation failed at ${path.join(".")}. Errors: ${errors2.join("; ")}`);
-      }
-    },
-    product: (value, type, path, fullState, validateType) => {
-      if (typeof value !== "object" || value === null)
-        throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
-      Object.entries(type.fields).forEach(([key, subType]) => {
-        if (!(key in value))
-          throw new Error(`Missing required property ${key} at ${path.join(".")}`);
-        validateType(value[key], subType, [...path, key], fullState);
-      });
-    },
-    exponential: (value, type, path) => {
-      if (typeof value !== "function")
-        throw new Error(`Expected function, got ${typeof value} at ${path.join(".")}`);
-    },
-    optional: (value, type, path, fullState, validateType) => {
-      if (value !== void 0)
-        validateType(value, type.optional, path, fullState);
-    },
-    nullable: (value, type, path, fullState, validateType) => {
-      if (value !== null)
-        validateType(value, type.nullable, path, fullState);
-    },
-    refinement: (value, type, path, fullState, validateType) => {
-      validateType(value, type.baseType, path, fullState);
-      if (!type.refinementFn(value))
-        throw new Error(`Refinement check failed at ${path.join(".")}`);
-    },
-    dependent: (value, type, path, fullState, validateType) => {
-      validateType(value, type.baseType, path, fullState);
-      type.dependencyFn(value, fullState);
-    },
-    map: (value, type, path, fullState, validateType) => {
-      if (!(value instanceof Map))
-        throw new Error(`Expected Map, got ${typeof value} at ${path.join(".")}`);
-      value.forEach((val, key) => {
-        validateType(key, type.keyType, [...path, "key"], fullState);
-        validateType(val, type.valueType, [...path, "value"], fullState);
-      });
-    },
-    set: (value, type, path, fullState, validateType) => {
-      if (!(value instanceof Set))
-        throw new Error(`Expected Set, got ${typeof value} at ${path.join(".")}`);
-      value.forEach((item) => validateType(item, type.itemType, [...path, "item"], fullState));
-    },
-    date: (value, type, path) => {
-      if (!(value instanceof Date))
-        throw new Error(`Expected Date, got ${typeof value} at ${path.join(".")}`);
-    },
-    regexp: (value, type, path) => {
-      if (!(value instanceof RegExp))
-        throw new Error(`Expected RegExp, got ${typeof value} at ${path.join(".")}`);
-    },
-    number: (value, type, path) => {
-      if (typeof value !== "number")
-        throw new Error(`Expected number, got ${typeof value} at ${path.join(".")}`);
-    }
-  };
-  return ({ state }) => {
-    const validateType = (value, type, path = [], fullState) => {
-      if (value === void 0 && type.type !== "optional") {
-        throw new Error(`Missing required property at ${path.join(".")}`);
-      }
-      const validator = typeof type === "string" ? typeValidators[type] : typeValidators[type.type];
-      if (validator) {
-        validator(value, type, path, fullState, validateType);
-      }
-    };
-    Object.entries(schema).forEach(([key, type]) => {
-      if (!(key in state)) {
-        throw new Error(`Missing required property ${key} in state`);
-      }
-      validateType(state[key], type, [key], state);
-    });
-  };
-};
-
 // src/cami.js
 var { debug, events } = __config;
 export {
@@ -4425,7 +4661,7 @@ export {
   html,
   store,
   svg,
-  useValidationThunk
+  useValidationHook
 };
 /**
  * @license

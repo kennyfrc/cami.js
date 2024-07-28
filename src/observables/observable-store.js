@@ -5,6 +5,7 @@ import { _deepMerge, _deepClone, _deepEqual } from '../utils.js';
 import { __config } from '../config.js';
 import { __trace } from '../trace.js';
 import invariant from '../invariant.js';
+import { Type, useValidationHook } from '../types.js';
 enablePatches();
 
 /**
@@ -102,6 +103,77 @@ class ObservableStore extends Observable {
 
     this.__isDispatching = false;
     this.__dispatchStack = [];
+  }
+
+  static fromSchema(schema) {
+    const initialState = {};
+    const schemaEntries = Object.entries(schema);
+
+    const getDefaultValue = (type) => {
+      if (typeof type === 'string') {
+        switch (type) {
+          case 'string': return '';
+          case 'number': return 0;
+          case 'boolean': return false;
+          case 'bigint': return BigInt(0);
+          case 'symbol': return Symbol('');
+          case 'undefined': return undefined;
+          case 'object': return null;
+          case 'function': return () => {};
+          default: return null;
+        }
+      }
+
+      switch (type.type) {
+        case 'optional': return undefined;
+        case 'nullable': return null;
+        case 'array': return [];
+        case 'object': return {};
+        case 'map': return new Map();
+        case 'set': return new Set();
+        case 'date': return new Date();
+        case 'regexp': return new RegExp('');
+        case 'vect': return Array(type.length).fill(getDefaultValue(type.elemType));
+        case 'list': return [];
+        case 'tree': return { value: getDefaultValue(type.valueType), left: null, right: null };
+        case 'roseTree': return { value: getDefaultValue(type.valueType), children: [] };
+        case 'listZipper': return { focus: getDefaultValue(type.itemType), left: [], right: [] };
+        case 'treeZipper': return { focus: getDefaultValue(Type.Tree(type.valueType)), context: [] };
+        case 'enum': return type.values[0];
+        case 'sum': return getDefaultValue(type.types[0]);
+        case 'product':
+          return Object.fromEntries(
+            Object.entries(type.fields).map(([key, fieldType]) => [key, getDefaultValue(fieldType)])
+          );
+        case 'dpair': return [getDefaultValue(type.fstType), getDefaultValue(type.sndTypeFn(getDefaultValue(type.fstType)))];
+        case 'dependentRecord':
+          return Object.fromEntries(
+            Object.entries(type.fields).map(([key, fieldType]) => {
+              const value = typeof fieldType === 'function' ? getDefaultValue(fieldType({})) : getDefaultValue(fieldType);
+              return [key, value];
+            })
+          );
+        case 'refinement': return getDefaultValue(type.baseType);
+        case 'literal': return type.value;
+        case 'lazy': return () => getDefaultValue(type.innerType);
+        case 'codata': return {};
+        case 'fin': return 0;
+        case 'any': return null;
+        default: return null;
+      }
+    };
+
+    // Generate initial state from schema
+    schemaEntries.forEach(([key, type]) => {
+      initialState[key] = getDefaultValue(type);
+    });
+
+    return (options = {}) => {
+      const store = new ObservableStore(initialState);
+      store.schema = schema;
+      store.afterHook(useValidationHook(schema));
+      return store;
+    };
   }
 
   get state() {
@@ -344,7 +416,11 @@ class ObservableStore extends Observable {
   __applyHooks(type, context) {
     const hooks = type === 'before' ? this.beforeHooks : this.afterHooks;
     for (const hook of hooks) {
-      hook(context);
+      if (typeof hook === 'function') {
+        hook(context);
+      } else {
+        console.warn(`Invalid hook: expected function, got ${typeof hook}`);
+      }
     }
   }
 
@@ -1597,6 +1673,13 @@ const store = (config = {}) => {
 
   if (finalConfig.validationRules && !isValidValidationRules(finalConfig.validationRules)) {
     throw new Error(`Invalid validation rules structure for store ${finalConfig.name}.`);
+  }
+
+  if (config.schema) {
+    const storeCreator = ObservableStore.fromSchema(config.schema);
+    const storeInstance = storeCreator(finalConfig);
+    storeInstances.set(finalConfig.name, storeInstance);
+    return storeInstance;
   }
 
   const storageAdapter = new AdapterClass();

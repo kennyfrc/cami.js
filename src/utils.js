@@ -110,4 +110,70 @@ const _deepClone = (value) => {
   return clonedObj;
 };
 
-export { _deepEqual, _deepMerge, _deepClone };
+/**
+ * @function _deepStrictEqual
+ * @param {any} val1 - The first value to compare.
+ * @param {any} val2 - The second value to compare.
+ * @returns {boolean} True if the values are deeply and strictly equal, false otherwise.
+ * @description Compares two values for deep strict equality. This function checks if the two inputs are deeply equal using strict comparison (===) and type checking.
+ */
+const _deepStrictEqual = (val1, val2) => {
+  if (Object.is(val1, val2)) return true;
+
+  if (typeof val1 !== typeof val2) return false;
+
+  if (val1 === null || val2 === null) return false;
+
+  if (typeof val1 !== 'object') return false;
+
+  const isArray1 = Array.isArray(val1);
+  const isArray2 = Array.isArray(val2);
+
+  if (isArray1 !== isArray2) return false;
+
+  if (isArray1 && isArray2) {
+    if (val1.length !== val2.length) return false;
+    for (let i = 0; i < val1.length; i++) {
+      if (!_deepStrictEqual(val1[i], val2[i])) return false;
+    }
+    return true;
+  }
+
+  if (val1 instanceof Date && val2 instanceof Date) {
+    return val1.getTime() === val2.getTime();
+  }
+
+  if (val1 instanceof RegExp && val2 instanceof RegExp) {
+    return val1.toString() === val2.toString();
+  }
+
+  if (val1 instanceof Set && val2 instanceof Set) {
+    if (val1.size !== val2.size) return false;
+    for (const item of val1) {
+      if (!val2.has(item)) return false;
+    }
+    return true;
+  }
+
+  if (val1 instanceof Map && val2 instanceof Map) {
+    if (val1.size !== val2.size) return false;
+    for (const [key, value] of val1) {
+      if (!val2.has(key) || !_deepStrictEqual(value, val2.get(key))) return false;
+    }
+    return true;
+  }
+
+  const keys1 = Object.keys(val1);
+  const keys2 = Object.keys(val2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  for (const key of keys1) {
+    if (!Object.prototype.hasOwnProperty.call(val2, key)) return false;
+    if (!_deepStrictEqual(val1[key], val2[key])) return false;
+  }
+
+  return true;
+};
+
+export { _deepEqual, _deepMerge, _deepClone, _deepStrictEqual };
