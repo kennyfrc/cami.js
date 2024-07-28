@@ -303,7 +303,7 @@ class ObservableStore extends Observable {
         });
 
       if (spec && spec.postcondition) {
-        const isPostconditionMet = spec.postcondition({ state: nextState, payload, action });
+        const isPostconditionMet = spec.postcondition({ state: nextState, payload, action, previousState: _deepClone(this._state) });
         if (!isPostconditionMet) {
           throw new Error(`Postcondition not met for action ${action}`);
         }
