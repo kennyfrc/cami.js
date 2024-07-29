@@ -118,62 +118,6 @@ const typeValidators = {
     const sndType = type.sndTypeFn(value[0]);
     validateType(value[1], sndType, [...path, 1], rootState);
   },
-  dependentRecord: (value, type, path, rootState, validateType) => {
-    if (typeof value !== 'object' || value === null)
-      throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
-
-    Object.entries(type.fields).forEach(([key, fieldType]) => {
-      if (!(key in value))
-        throw new Error(`Missing required property ${key} at ${path.join('.')}`);
-
-      const resolvedType = typeof fieldType === 'function'
-        ? fieldType(value)
-        : fieldType;
-
-      validateType(value[key], resolvedType, [...path, key], rootState);
-    });
-
-    if (typeof type.validateFn === 'function') {
-      const result = type.validateFn(value);
-      if (result !== true) {
-        throw new Error(`Validation failed for dependent record at ${path.join('.')}: ${result}`);
-      }
-    }
-  },
-  dependentFunction: (value, type, path) => {
-    if (typeof value !== 'function') {
-      throw new Error(`Expected function, got ${typeof value} at ${path.join('.')}`);
-    }
-  },
-  dependentArray: (value, type, path, rootState, validateType) => {
-    if (!Array.isArray(value)) {
-      throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
-    }
-    const expectedLength = type.lengthFn(value);
-    if (value.length !== expectedLength) {
-      throw new Error(`Expected array of length ${expectedLength}, got ${value.length} at ${path.join('.')}`);
-    }
-    value.forEach((item, index) => {
-      const itemType = type.itemTypeFn(index, value);
-      validateType(item, itemType, [...path, index], rootState);
-    });
-  },
-  dependentSum: (value, type, path, rootState, validateType) => {
-    const discriminant = type.discriminantFn(value);
-    const possibleTypes = type.typesFn(discriminant);
-    const errors = [];
-    if (!possibleTypes.some(subType => {
-      try {
-        validateType(value, subType, path, rootState);
-        return true;
-      } catch (e) {
-        errors.push(e.message);
-        return false;
-      }
-    })) {
-      throw new Error(`Dependent sum type validation failed at ${path.join('.')}. Errors: ${errors.join('; ')}`);
-    }
-  },
   date: (value, type, path) => {
     if (!(value instanceof Date)) throw new Error(`Expected Date, got ${typeof value} at ${path.join('.')}`);
   },
@@ -223,6 +167,64 @@ const typeValidators = {
     value.children.forEach((child, index) => {
       validateType(child, type, [...path, 'children', index], rootState);
     });
+  },
+  dependentRecord: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null)
+      throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
+
+    Object.entries(type.fields).forEach(([key, fieldType]) => {
+      if (!(key in value))
+        throw new Error(`Missing required property ${key} at ${path.join('.')}`);
+
+      const resolvedType = typeof fieldType === 'function'
+        ? fieldType(value)
+        : fieldType;
+
+      validateType(value[key], resolvedType, [...path, key], rootState);
+    });
+
+    if (typeof type.validateFn === 'function') {
+      const result = type.validateFn(value, rootState);
+      if (result !== true) {
+        throw new Error(`Validation failed for dependent record at ${path.join('.')}: ${result}`);
+      }
+    }
+  },
+  dependentFunction: (value, type, path) => {
+    if (typeof value !== 'function') {
+      throw new Error(`Expected function, got ${typeof value} at ${path.join('.')}`);
+    }
+  },
+  dependentArray: (value, type, path, rootState, validateType) => {
+    if (!Array.isArray(value)) {
+      throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
+    }
+    const expectedLength = type.lengthFn(value);
+    if (value.length !== expectedLength) {
+      throw new Error(`Expected array of length ${expectedLength}, got ${value.length} at ${path.join('.')}`);
+    }
+    value.forEach((item, index) => {
+      const itemType = type.itemTypeFn(index, value);
+      validateType(item, itemType, [...path, index], rootState);
+    });
+  },
+  dependentSum: (value, type, path, rootState, validateType) => {
+    const discriminant = type.discriminantFn(value);
+    const possibleTypes = type.typesFn(discriminant);
+    const errors = [];
+
+    for (const subType of possibleTypes) {
+      try {
+        validateType(value, subType, path, rootState);
+        break;
+      } catch (e) {
+        errors.push(e.message);
+      }
+    }
+
+    if (possibleTypes.length === errors.length) {
+      throw new Error(`Dependent sum type validation failed at ${path.join('.')}. Errors: ${errors.join('; ')}`);
+    }
   },
   literal: (value, type, path) => {
     if (value !== type.value) {
