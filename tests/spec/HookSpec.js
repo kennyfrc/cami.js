@@ -1,4 +1,4 @@
-const { store, Type, useValidationHook } = cami;
+const { store, Type, useValidationThunk } = cami;
 
 describe("Hooks", function() {
   let appStore;
@@ -11,6 +11,7 @@ describe("Hooks", function() {
     });
 
     appStore.defineAction('incrementCount', ({ state, payload }) => {
+
       state.count += payload;
     });
 
@@ -143,14 +144,15 @@ describe("Hooks", function() {
 
   it("should validate complex object structures", function() {
     const schema = {
-      user: Type.Object({
+      user: Type.Product({
         name: Type.String,
-        age: Type.Refinement(Type.Number, (n) => n >= 0 && n <= 120),
+        age: Type.Refinement(Type.Float, (n) => n >= 0 && n <= 120),
         email: Type.Refinement(Type.String, (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))
       })
     };
 
-    appStore.afterHook(useValidationHook(schema));
+    const validate = useValidationThunk(schema);
+    appStore.afterHook(({ state }) => validate({ user: state.user }));
 
     expect(() => appStore.dispatch('setUser', { name: 'John', age: 30, email: 'john@example.com' })).not.toThrow();
     expect(() => appStore.dispatch('setUser', { name: 'Jane', age: 150, email: 'jane@example.com' })).toThrowError(/Refinement predicate failed at user.age/);
@@ -159,58 +161,59 @@ describe("Hooks", function() {
 
   it("should validate array types", function() {
     const schema = {
-      items: Type.Array(Type.Number)
+      items: Type.Array(Type.Float)
     };
 
-    appStore.afterHook(useValidationHook(schema));
+    const validate = useValidationThunk(schema);
+    appStore.afterHook(({ state }) => validate({ items: state.items }));
 
     expect(() => appStore.dispatch('addItem', 5)).not.toThrow();
     expect(() => appStore.dispatch('addItem', 10)).not.toThrow();
-    expect(() => appStore.dispatch('addItem', '15')).toThrowError(/Expected number, got string at items.2/);
+    expect(() => appStore.dispatch('addItem', '15')).toThrowError(/Expected float, got string at items.2/);
     expect(appStore.state.items).toEqual([5, 10]); // Ensure the invalid item wasn't added
   });
 
-  // Update the dependent types test
   it("should handle dependent types", function() {
     const schema = {
       settings: Type.DependentRecord({
         theme: Type.String,
-        fontSize: Type.Number,
-        validate: (fields) => {
-          if (fields.theme === 'large-print' && fields.fontSize < 16) {
-            throw new Error('Font size must be at least 16 for large-print theme');
-          }
+        fontSize: Type.Float
+      }, (fields) => {
+        if (fields.theme === 'large-print' && fields.fontSize < 16) {
+          return 'Font size must be at least 16 for large-print theme';
         }
+        return true;
       })
     };
 
-    appStore.afterHook(useValidationHook(schema));
+    const validate = useValidationThunk(schema);
+    appStore.afterHook(({ state }) => validate({ settings: state.settings }));
 
     expect(() => appStore.dispatch('updateSettings', { theme: 'default', fontSize: 12 })).not.toThrow();
     expect(() => appStore.dispatch('updateSettings', { theme: 'large-print', fontSize: 18 })).not.toThrow();
     expect(() => appStore.dispatch('updateSettings', { theme: 'large-print', fontSize: 14 })).toThrowError(/Font size must be at least 16 for large-print theme/);
   });
 
-  // Update the complex dependent types test
   it("should handle complex dependent types with team, subscription, and user interrelations", function() {
-    const schema = {
-      subscription: Type.Object({
+    const schema = Type.DependentRecord({
+      subscription: Type.Product({
         id: Type.String,
         plan: Type.String,
-        seats: Type.Number
+        seats: Type.Float
       }),
-      settings: Type.DependentRecord({
+      settings: Type.Product({
         theme: Type.String,
-        fontSize: Type.Number,
-        validate: (fields, state) => {
-          if (state.subscription && state.subscription.plan === 'basic' && fields.theme !== 'default') {
-            throw new Error('Custom themes are only available for premium subscriptions');
-          }
-        }
+        fontSize: Type.Float
       })
-    };
+    }, (value, rootState) => {
+      if (value.subscription && value.subscription.plan === 'basic' && value.settings.theme !== 'default') {
+        return 'Custom themes are only available for premium subscriptions';
+      }
+      return true;
+    });
 
-    appStore.afterHook(useValidationHook(schema));
+    const validate = useValidationThunk(schema);
+    appStore.afterHook(({ state }) => validate({ subscription: state.subscription, settings: state.settings }));
 
     appStore.dispatch('setSubscription', { id: 'sub1', plan: 'basic', seats: 5 });
     appStore.dispatch('updateSettings', { theme: 'default', fontSize: 14 });
@@ -225,30 +228,30 @@ describe("Hooks", function() {
     expect(() => appStore.dispatch('updateSettings', { theme: 'dark', fontSize: 16 })).not.toThrow();
   });
 
-  // Update the user roles and permissions test
   it("should validate user roles and permissions", function() {
     const schema = {
       user: Type.DependentRecord({
         id: Type.String,
         name: Type.String,
         role: Type.String,
-        permissions: Type.Array(Type.String),
-        validate: (fields) => {
-          const rolePermissions = {
-            admin: ['read', 'write', 'delete'],
-            editor: ['read', 'write'],
-            viewer: ['read']
-          };
-          const allowedPermissions = rolePermissions[fields.role] || [];
-          const invalidPermissions = fields.permissions.filter(p => !allowedPermissions.includes(p));
-          if (invalidPermissions.length > 0) {
-            throw new Error(`Invalid permissions for role ${fields.role}: ${invalidPermissions.join(', ')}`);
-          }
+        permissions: Type.Array(Type.String)
+      }, (fields) => {
+        const rolePermissions = {
+          admin: ['read', 'write', 'delete'],
+          editor: ['read', 'write'],
+          viewer: ['read']
+        };
+        const allowedPermissions = rolePermissions[fields.role] || [];
+        const invalidPermissions = fields.permissions.filter(p => !allowedPermissions.includes(p));
+        if (invalidPermissions.length > 0) {
+          return `Invalid permissions for role ${fields.role}: ${invalidPermissions.join(', ')}`;
         }
+        return true;
       })
     };
 
-    appStore.afterHook(useValidationHook(schema));
+    const validate = useValidationThunk(schema);
+    appStore.afterHook(({ state }) => validate({ user: state.user }));
 
     expect(() => appStore.dispatch('setUser', { id: 'user1', name: 'John Doe', role: 'admin', permissions: ['read', 'write', 'delete'] })).not.toThrow();
     expect(() => appStore.dispatch('setUser', { id: 'user2', name: 'Jane Doe', role: 'editor', permissions: ['read', 'write'] })).not.toThrow();
@@ -257,29 +260,29 @@ describe("Hooks", function() {
       .toThrowError(/Invalid permissions for role editor: delete/);
   });
 
-  // Update the subscription limits test
   it("should validate subscription limits", function() {
-    const schema = {
-      subscription: Type.Object({
+    const schema = Type.DependentRecord({
+      subscription: Type.Product({
         id: Type.String,
         plan: Type.String,
-        seats: Type.Number
+        seats: Type.Float
       }),
-      team: Type.DependentRecord({
+      team: Type.Product({
         id: Type.String,
         name: Type.String,
-        memberIds: Type.Array(Type.String),
-        validate: (fields, state) => {
-          if (state.subscription) {
-            if (fields.memberIds.length > state.subscription.seats) {
-              throw new Error(`Team size (${fields.memberIds.length}) exceeds subscription seat limit (${state.subscription.seats})`);
-            }
-          }
-        }
+        memberIds: Type.Array(Type.String)
       })
-    };
+    }, (value, rootState) => {
+      if (value.subscription && value.team) {
+        if (value.team.memberIds.length > value.subscription.seats) {
+          return `Team size (${value.team.memberIds.length}) exceeds subscription seat limit (${value.subscription.seats})`;
+        }
+      }
+      return true;
+    });
 
-    appStore.afterHook(useValidationHook(schema));
+    const validate = useValidationThunk(schema);
+    appStore.afterHook(({ state }) => validate({ subscription: state.subscription, team: state.team }));
 
     appStore.dispatch('setSubscription', { id: 'sub1', plan: 'basic', seats: 5 });
     expect(() => appStore.dispatch('setTeam', { id: 'team1', name: 'My Team', memberIds: ['user1', 'user2', 'user3'] })).not.toThrow();
