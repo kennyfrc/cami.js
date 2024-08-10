@@ -5,6 +5,7 @@ import { _deepMerge, _deepClone, _deepEqual } from '../utils.js';
 import { __config } from '../config.js';
 import { __trace } from '../trace.js';
 import invariant from '../invariant.js';
+import { validateType } from '../types.js';
 enablePatches();
 
 /**
@@ -35,19 +36,17 @@ enablePatches();
  * ```
  */
 class ObservableStore extends Observable {
-  constructor(initialState) {
-    if (typeof initialState !== 'object' || initialState === null) {
-      throw new TypeError('[Cami.js] initialState must be an object');
-    }
-
+  constructor(initialState, options = {}) {
     super(subscriber => {
       this.__subscriber = subscriber;
       return () => { this.__subscriber = null; };
     });
 
+    this.name = options.name || 'cami-store';
+    this.schema = options.schema || {};
+
     this._state = this._createProxy(createDraft(initialState));
     this.previousState = _deepClone(initialState);
-    this.schema = this._createDeepSchema(initialState);
 
     this.reducers = {};
     this.actions = {};
@@ -103,6 +102,8 @@ class ObservableStore extends Observable {
 
     this.__isDispatching = false;
     this.__dispatchStack = [];
+
+    this._validateState(this._state);
   }
 
   get state() {
@@ -341,6 +342,8 @@ class ObservableStore extends Observable {
         }
       }
 
+      this._validateState(this._state);
+
       return _deepClone(this._state);
 
     } finally {
@@ -408,7 +411,7 @@ class ObservableStore extends Observable {
    *   state.cartItems.push(cartItem);
    * });
    *
-   * CartStore.defineAction('remove', ({ state, product }) => { // Updated parameter format
+   * CartStore.defineAction('remove', (state, product) => {
    *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
    * });
    *
@@ -1015,16 +1018,14 @@ class ObservableStore extends Observable {
             data: event.data
           });
         } else {
+          const actual = {};
+          if (Array.isArray(event.from) && event.from.length > 0 && typeof event.from[0] === 'object') {
+            Object.keys(event.from[0]).forEach(key => {
+              actual[key] = currentState[key];
+            });
+          }
           __trace('cami:state-machine:ignored-transition',
-            `Ignored transition '${fullEventName}' event from the current state.\n\n`,
-            `Current state:\n\n${JSON.stringify(currentState)}\n\n`,
-            `The '${fullEventName}' event expected any of these 'from' states:\n`,
-            ...(Array.isArray(event.from)
-              ? event.from.map((validState, index) => `  ${index + 1}. ${JSON.stringify(validState)}`)
-              : [`  ${JSON.stringify(event.from)}`]
-            ),
-            "\n\nA key or element of the current state must match one of the 'from' states to trigger the state transition. If you intended to transition, either the 'from' state or current state is incorrect.\n"
-          );
+            `Ignored transition '${fullEventName}' event. Actual: ${JSON.stringify(actual)}. Expected: Any of ${JSON.stringify(event.from)}`);
         }
       });
     });
@@ -1188,6 +1189,16 @@ class ObservableStore extends Observable {
     if (typeof handler === 'function') {
       handler(context);
     }
+  }
+
+  _validateState(state) {
+    Object.entries(this.schema).forEach(([key, type]) => {
+      try {
+        validateType(state[key], type, [key], state);
+      } catch (error) {
+        throw new Error(`Validation error in ${this.name}: ${error.message}`);
+      }
+    });
   }
 }
 

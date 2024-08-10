@@ -1,4 +1,5 @@
 import { _deepClone } from './utils.js';
+import { Model } from './observables/observable-model.js';
 
 const Type = {
   String: 'string',
@@ -50,6 +51,11 @@ const Type = {
     discriminantFn,
     typesFn
   }),
+  Model: (name, properties) => new Model(name, properties),
+  Reference: (modelName) => ({
+    type: 'reference',
+    modelName
+  })
 };
 
 const typeValidators = {
@@ -65,13 +71,15 @@ const typeValidators = {
   },
   array: (value, type, path, rootState, validateType) => {
     if (!Array.isArray(value)) throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
-    value.forEach((item, index) => {
-      try {
-        validateType(item, type.itemType, [...path, index], rootState);
-      } catch (error) {
-        throw new Error(`Invalid item at index ${index}: ${error.message}`);
-      }
-    });
+    if (value.length > 0) {
+      value.forEach((item, index) => {
+        try {
+          validateType(item, type.itemType, [...path, index], rootState);
+        } catch (error) {
+          throw new Error(`Invalid item at index ${index}: ${error.message}`);
+        }
+      });
+    }
   },
   any: () => {},
   enum: (value, type, path) => {
@@ -88,7 +96,7 @@ const typeValidators = {
         return false;
       }
     })) {
-      throw new Error(`Sum type validation failed at ${path.join('.')}. Errors: ${errors.join('; ')}`);
+      throw new Error(`Sum type validation failed at ${path.join('.')}. Value: ${JSON.stringify(value)}. Errors: ${errors.join('; ')}`);
     }
   },
   product: (value, type, path, rootState, validateType) => {
@@ -99,7 +107,7 @@ const typeValidators = {
     });
   },
   optional: (value, type, path, rootState, validateType) => {
-    if (value !== undefined) validateType(value, type.optional, path, rootState);
+    if (value !== undefined && value !== null) validateType(value, type.optional, path, rootState);
   },
   null: (value, type, path) => {
     if (value !== null) throw new Error(`Expected null, got ${typeof value} at ${path.join('.')}`);
@@ -248,11 +256,38 @@ const typeValidators = {
   void: () => {
     // No validation needed for void type
   },
+  reference: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'number') {
+      throw new Error(`Expected reference ID (number), got ${typeof value} at ${path.join('.')}`);
+    }
+    // We don't validate the actual referenced object here, as it might not be loaded yet
+  },
+
+  model: (value, type, path, rootState, validateType) => {
+    if (typeof value !== 'object' || value === null) {
+      throw new Error(`Expected model object, got ${typeof value} at ${path.join('.')}`);
+    }
+    // Validate each field of the model
+    Object.entries(type.schema).forEach(([key, fieldType]) => {
+      if (!(key in value)) {
+        throw new Error(`Missing required property ${key} in model at ${path.join('.')}`);
+      }
+      validateType(value[key], fieldType, [...path, key], rootState);
+    });
+  }
 };
 
 const validateType = (value, type, path = [], rootState = {}) => {
+  if (value === null && type.type !== 'null' && type.type !== 'optional') {
+    throw new Error(`Expected non-null value, got null at ${path.join('.')}`);
+  }
+
   if (value === undefined && type.type !== 'optional') {
     throw new Error(`Missing required property at ${path.join('.')}`);
+  }
+
+  if (type instanceof Model) {
+    return typeValidators.model(value, type, path, rootState, validateType);
   }
 
   const validator = typeof type === 'string' ? typeValidators[type] : typeValidators[type.type];
