@@ -14,7 +14,7 @@ describe("RegistrationFormElement - In Memory Storage", () => {
 
     afterEach(() => {
       document.body.removeChild(regForm);
-      registrationStore.reset(); // Reset the store state after each test
+      // registrationStore.reset(); // Reset the store state after each test
     });
 
     it('should validate email input in real-time', async () => {

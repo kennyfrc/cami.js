@@ -108,29 +108,90 @@ class Model {
   }
 
   _validateState(state) {
+    const errors = [];
     Object.entries(this.schema).forEach(([key, type]) => {
-      try {
-        if (Array.isArray(state[key])) {
-          state[key].forEach((item, index) => {
-            this._validateItem(item, type.itemType, [key, index], state);
-          });
-        } else {
+      if (!(key in state)) {
+        const expectedType = this._getTypeString(type);
+        errors.push(`Missing property: ${key}\nExpected type: ${expectedType}`);
+      } else {
+        try {
           this._validateItem(state[key], type, [key], state);
+        } catch (error) {
+          errors.push(error.message);
         }
-      } catch (error) {
-        throw new Error(`Validation error in ${this.name}: ${error.message}`);
       }
     });
+
+    if (errors.length > 0) {
+      throw new Error(`Validation error in ${this.name}:\n\n${errors.join('\n\n')}`);
+    }
   }
 
   _validateItem(value, type, path, rootState) {
-    if (type.type === 'reference') {
-      if (typeof value !== 'number') {
-        throw new Error(`Expected reference ID (number), got ${typeof value} at ${path.join('.')}`);
+    try {
+      if (type.type === 'optional') {
+        if (value === undefined || value === null) {
+          return; // Optional field is allowed to be undefined or null
+        }
+        return this._validateItem(value, type.optional, path, rootState);
       }
-    } else {
-      validateType(value, type, path, rootState);
+
+      if (type.type === 'object' && typeof value === 'object') {
+        Object.entries(type.schema).forEach(([key, subType]) => {
+          if (subType.type !== 'optional' && !(key in value)) {
+            throw new Error(`Missing required property: ${[...path, key].join('.')}`);
+          }
+          if (key in value) {
+            this._validateItem(value[key], subType, [...path, key], rootState);
+          }
+        });
+      } else {
+        validateType(value, type, path, rootState);
+      }
+    } catch (error) {
+      const expectedType = this._getTypeString(type);
+      const actualType = this._getActualTypeString(value);
+      throw new Error(
+        `Property: ${path.join('.')}\n` +
+        `Error: ${error.message}`
+      );
     }
+  }
+
+  _getTypeString(type) {
+    if (typeof type === 'string') return type;
+    if (typeof type === 'object') {
+      if (type.type) {
+        if (type.type === 'object' && type.schema) {
+          return `Object(${Object.entries(type.schema).map(([k, v]) => `${k}: ${this._getTypeString(v)}`).join(', ')})`;
+        }
+        if (type.type === 'array' && type.itemType) {
+          return `Array(${this._getTypeString(type.itemType)})`;
+        }
+        if (type.type === 'enum' && type.values) {
+          return `Enum(${type.values.join(' | ')})`;
+        }
+        return type.type;
+      }
+      // Check for known Type constructors
+      for (const [key, value] of Object.entries(Type)) {
+        if (value === type || (typeof value === 'function' && type instanceof value)) {
+          return key;
+        }
+      }
+    }
+    return 'Unknown';
+  }
+
+  _getActualTypeString(value) {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'Array';
+    if (value instanceof Date) return 'Date';
+    if (typeof value === 'object') {
+      const constructor = value.constructor.name;
+      return constructor !== 'Object' ? constructor : 'object';
+    }
+    return typeof value;
   }
 }
 

@@ -67,10 +67,12 @@ var cami = (() => {
     ObservableStore: () => ObservableStore,
     ReactiveElement: () => ReactiveElement,
     Type: () => Type,
+    createIdbPromise: () => createIdbPromise,
     debug: () => debug,
     effect: () => effect,
     events: () => events,
     html: () => html,
+    persistToIdbThunk: () => persistToIdbThunk,
     store: () => store,
     svg: () => svg,
     useValidationHook: () => useValidationHook,
@@ -2603,28 +2605,91 @@ var cami = (() => {
       return modelStore;
     }
     _validateState(state) {
+      const errors2 = [];
       Object.entries(this.schema).forEach(([key, type]) => {
-        try {
-          if (Array.isArray(state[key])) {
-            state[key].forEach((item, index) => {
-              this._validateItem(item, type.itemType, [key, index], state);
-            });
-          } else {
+        if (!(key in state)) {
+          const expectedType = this._getTypeString(type);
+          errors2.push(`Missing property: ${key}
+Expected type: ${expectedType}`);
+        } else {
+          try {
             this._validateItem(state[key], type, [key], state);
+          } catch (error) {
+            errors2.push(error.message);
           }
-        } catch (error) {
-          throw new Error(`Validation error in ${this.name}: ${error.message}`);
         }
       });
+      if (errors2.length > 0) {
+        throw new Error(`Validation error in ${this.name}:
+
+${errors2.join("\n\n")}`);
+      }
     }
     _validateItem(value, type, path, rootState) {
-      if (type.type === "reference") {
-        if (typeof value !== "number") {
-          throw new Error(`Expected reference ID (number), got ${typeof value} at ${path.join(".")}`);
+      try {
+        if (type.type === "optional") {
+          if (value === void 0 || value === null) {
+            return;
+          }
+          return this._validateItem(value, type.optional, path, rootState);
         }
-      } else {
-        validateType(value, type, path, rootState);
+        if (type.type === "object" && typeof value === "object") {
+          Object.entries(type.schema).forEach(([key, subType]) => {
+            if (subType.type !== "optional" && !(key in value)) {
+              throw new Error(`Missing required property: ${[...path, key].join(".")}`);
+            }
+            if (key in value) {
+              this._validateItem(value[key], subType, [...path, key], rootState);
+            }
+          });
+        } else {
+          validateType(value, type, path, rootState);
+        }
+      } catch (error) {
+        const expectedType = this._getTypeString(type);
+        const actualType = this._getActualTypeString(value);
+        throw new Error(
+          `Property: ${path.join(".")}
+Error: ${error.message}`
+        );
       }
+    }
+    _getTypeString(type) {
+      if (typeof type === "string")
+        return type;
+      if (typeof type === "object") {
+        if (type.type) {
+          if (type.type === "object" && type.schema) {
+            return `Object(${Object.entries(type.schema).map(([k, v]) => `${k}: ${this._getTypeString(v)}`).join(", ")})`;
+          }
+          if (type.type === "array" && type.itemType) {
+            return `Array(${this._getTypeString(type.itemType)})`;
+          }
+          if (type.type === "enum" && type.values) {
+            return `Enum(${type.values.join(" | ")})`;
+          }
+          return type.type;
+        }
+        for (const [key, value] of Object.entries(Type)) {
+          if (value === type || typeof value === "function" && type instanceof value) {
+            return key;
+          }
+        }
+      }
+      return "Unknown";
+    }
+    _getActualTypeString(value) {
+      if (value === null)
+        return "null";
+      if (Array.isArray(value))
+        return "Array";
+      if (value instanceof Date)
+        return "Date";
+      if (typeof value === "object") {
+        const constructor = value.constructor.name;
+        return constructor !== "Object" ? constructor : "object";
+      }
+      return typeof value;
     }
   };
 
@@ -2742,8 +2807,10 @@ var cami = (() => {
       });
     },
     optional: (value, type, path, rootState, validateType2) => {
-      if (value !== void 0 && value !== null)
-        validateType2(value, type.optional, path, rootState);
+      if (value === void 0 || value === null) {
+        return null;
+      }
+      return validateType2(value, type.optional, path, rootState);
     },
     null: (value, type, path) => {
       if (value !== null)
@@ -2908,18 +2975,28 @@ var cami = (() => {
     }
   };
   var validateType = (value, type, path = [], rootState = {}) => {
-    if (value === null && type.type !== "null" && type.type !== "optional") {
-      throw new Error(`Expected non-null value, got null at ${path.join(".")}`);
+    if (type.type === "optional") {
+      if (value === void 0 || value === null) {
+        return;
+      }
+      return validateType(value, type.optional, path, rootState);
     }
-    if (value === void 0 && type.type !== "optional") {
+    if (value === void 0) {
       throw new Error(`Missing required property at ${path.join(".")}`);
+    }
+    if (value === null && type !== "null") {
+      throw new Error(`Expected non-null value, got null at ${path.join(".")}`);
     }
     if (type instanceof Model) {
       return typeValidators.model(value, type, path, rootState, validateType);
     }
     const validator = typeof type === "string" ? typeValidators[type] : typeValidators[type.type];
     if (validator) {
-      validator(value, type, path, rootState, validateType);
+      if (type.type === "optional") {
+        return validator(value, type, path, rootState, validateType);
+      } else {
+        validator(value, type, path, rootState, validateType);
+      }
     } else {
       throw new Error(`Unknown type ${JSON.stringify(type)} at ${path.join(".")}`);
     }
@@ -2998,21 +3075,6 @@ var cami = (() => {
       this.memo = this.memo.bind(this);
       this.invalidateQueries = this.invalidateQueries.bind(this);
       this.dispatchAsync = this.dispatchAsync.bind(this);
-      this._persistState = () => {
-        if (this.storage) {
-          const currentTime = /* @__PURE__ */ new Date();
-          const expiryTime = new Date(currentTime.getTime() + this.expiry);
-          this.storage.setItem(this.name, JSON.stringify(this._state));
-          this.storage.setItem(`${this.name}-expiry`, expiryTime.getTime().toString());
-        }
-      };
-      Object.keys(initialState).forEach((key) => {
-        if (typeof initialState[key] === "function") {
-          this.defineAction(key, initialState[key]);
-        } else {
-          this._state[key] = initialState[key];
-        }
-      });
       this.__isDispatching = false;
       this.__dispatchStack = [];
       this._validateState(this._state);
@@ -3281,7 +3343,7 @@ var cami = (() => {
      *   cartItems: [],
      * });
      *
-     * CartStore.defineAction('add', (state, product) => {
+     * CartStore.defineAction('add', ({ state, product }) => { // Updated parameter format
      *   const cartItem = { ...product, cartItemId: Date.now() };
      *   state.cartItems.push(cartItem);
      * });
@@ -3992,321 +4054,17 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
       }
     });
   };
-  var StorageInterface = {
-    getItem: (key) => {
-    },
-    setItem: (key, value) => {
-    },
-    removeItem: (key) => {
-    },
-    clear: () => {
-    }
-  };
-  var StorageValidator = class {
-    /**
-     * @method validateAdapter
-     * @memberof StorageValidator
-     * @param {Object} adapter - The storage adapter to validate.
-     * @throws {Error} If the adapter is missing required methods or has invalid method signatures.
-     */
-    static validateAdapter(adapter) {
-      const requiredMethods = Object.keys(StorageInterface);
-      const missingMethods = requiredMethods.filter((method) => {
-        return !(method in adapter) || typeof adapter[method] !== "function" || adapter[method].length !== StorageInterface[method].length;
-      });
-      if (missingMethods.length > 0) {
-        throw new Error(`Invalid storage adapter: missing or invalid methods: ${missingMethods.join(", ")}`);
-      }
-    }
-  };
-  var MemoryStorage = class {
-    constructor() {
-      this.storage = /* @__PURE__ */ new Map();
-      StorageValidator.validateAdapter(this);
-    }
-    /**
-     * @method getItem
-     * @memberof MemoryStorage
-     * @param {string} key - The key of the item to retrieve.
-     * @returns {string|null} The value associated with the key, or null if the key does not exist.
-     */
-    getItem(key) {
-      return this.storage.get(key) || null;
-    }
-    /**
-     * @method setItem
-     * @memberof MemoryStorage
-     * @param {string} key - The key of the item to set.
-     * @param {string} value - The value to set.
-     */
-    setItem(key, value) {
-      this.storage.set(key, value);
-    }
-    /**
-     * @method removeItem
-     * @memberof MemoryStorage
-     * @param {string} key - The key of the item to remove.
-     */
-    removeItem(key) {
-      this.storage.delete(key);
-    }
-    /**
-     * @method clear
-     * @memberof MemoryStorage
-     * @description Clears all items from the storage.
-     */
-    clear() {
-      this.storage.clear();
-    }
-  };
-  var LocalStorageAdapter = class {
-    constructor() {
-      StorageValidator.validateAdapter(this);
-    }
-    /**
-     * @method getItem
-     * @memberof LocalStorageAdapter
-     * @param {string} key - The key of the item to retrieve.
-     * @returns {string|null} The value associated with the key, or null if the key does not exist.
-     */
-    getItem(key) {
-      return localStorage.getItem(key);
-    }
-    /**
-     * @method setItem
-     * @memberof LocalStorageAdapter
-     * @param {string} key - The key of the item to set.
-     * @param {string} value - The value to set.
-     */
-    setItem(key, value) {
-      localStorage.setItem(key, value);
-    }
-    /**
-     * @method removeItem
-     * @memberof LocalStorageAdapter
-     * @param {string} key - The key of the item to remove.
-     */
-    removeItem(key) {
-      localStorage.removeItem(key);
-    }
-    /**
-     * @method clear
-     * @memberof LocalStorageAdapter
-     * @description Clears all items from the storage.
-     */
-    clear() {
-      localStorage.clear();
-    }
-  };
-  var isValidValidationRules = (rules) => {
-    if (!rules || typeof rules !== "object")
-      return false;
-    const hasPresence = "presence" in rules;
-    const hasServer = "server" in rules;
-    if (!hasPresence && !hasServer)
-      return false;
-    if (hasPresence) {
-      if (typeof rules.presence !== "object")
-        return false;
-      if ("keys" in rules.presence && !Array.isArray(rules.presence.keys))
-        return false;
-      if ("values" in rules.presence) {
-        if (!Array.isArray(rules.presence.values))
-          return false;
-        if (!rules.presence.values.every((v) => typeof v === "object"))
-          return false;
-      }
-    }
-    if (hasServer) {
-      if (typeof rules.server !== "object")
-        return false;
-      if (typeof rules.server.fetchFn !== "function")
-        return false;
-    }
-    return true;
-  };
-  var validateState = (storedState, validationRules, context) => {
-    const { type, name } = context;
-    if (!validationRules || !validationRules.presence) {
-      __trace(`cami:${type}`, `No validation rules specified for ${type} ${name}. Using initial state.`);
-      return false;
-    }
-    const { keys, values } = validationRules.presence;
-    if (keys) {
-      for (const key of keys) {
-        if (!(key in storedState)) {
-          __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`);
-          return false;
-        }
-      }
-    }
-    if (values) {
-      for (const valueObj of values) {
-        for (const [key, value] of Object.entries(valueObj)) {
-          if (storedState[key] !== value) {
-            __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${storedState[key]}.`);
-            return false;
-          }
-        }
-      }
-    }
-    __trace(`cami:${type}`, `No validation rules violated for ${type} ${name}.`);
-    return true;
-  };
-  var _storageEnhancer = (StoreClass) => {
-    return (initialState, options) => {
-      const storeName = (options == null ? void 0 : options.name) || "default-store";
-      const shouldLoad = (options == null ? void 0 : options.load) !== false;
-      const defaultExpiry = 24 * 60 * 60 * 1e3;
-      const expiry = (options == null ? void 0 : options.expiry) !== void 0 ? options.expiry : defaultExpiry;
-      const storage = options.storageAdapter;
-      const adapterType = options.adapterType;
-      const compareObjects = (obj1, obj2) => {
-        console.assert(obj1 !== null && obj2 !== null, "Both objects must be non-null");
-        console.assert(typeof obj1 === "object" && typeof obj2 === "object", "Both arguments must be objects");
-        const keys1 = Object.keys(obj1);
-        const keys2 = Object.keys(obj2);
-        console.assert(Array.isArray(keys1) && Array.isArray(keys2), "Object.keys should always return arrays");
-        if (keys1.length !== keys2.length) {
-          return false;
-        }
-        for (let key of keys1) {
-          console.assert(typeof key === "string", "Object keys should always be strings");
-          if (!(key in obj2)) {
-            return false;
-          }
-          if (typeof obj1[key] === "object" && obj1[key] !== null) {
-            if (typeof obj2[key] !== "object" || obj2[key] === null) {
-              return false;
-            }
-            if (!compareObjects(obj1[key], obj2[key])) {
-              return false;
-            }
-          }
-        }
-        return true;
-      };
-      const loadState = () => {
-        if (shouldLoad) {
-          const storedState = storage.getItem(storeName);
-          const storedExpiry = storage.getItem(`${storeName}-expiry`);
-          const currentTime = /* @__PURE__ */ new Date();
-          __trace("cami:storage", `Identified ${adapterType} storage: ${storeName}.`);
-          if (storedState && storedExpiry) {
-            const isExpired = currentTime.getTime() >= parseInt(storedExpiry, 10);
-            __trace("cami:storage", `Checked expiry status for ${adapterType} storage: ${isExpired ? "Has Expired" : "Still Valid"}`);
-            if (!isExpired) {
-              const loadedState = JSON.parse(storedState);
-              if (!compareObjects(initialState, loadedState)) {
-                __trace("cami:storage", `Stored state structure doesn't match initial state for ${storeName}. Resetting to initial state.`);
-                storage.setItem(storeName, JSON.stringify(initialState));
-                storage.setItem(`${storeName}-expiry`, (currentTime.getTime() + expiry).toString());
-                return initialState;
-              }
-              if (options.validationRules) {
-                if (!isValidValidationRules(options.validationRules)) {
-                  throw new Error(`Invalid validation rules structure for store ${storeName}.`);
-                }
-                if (!validateState(loadedState, options.validationRules, { type: "store", name: storeName })) {
-                  __trace("cami:storage", `Stored state failed validation for ${storeName}. Using initial state.`);
-                  return initialState;
-                }
-                if (options.validationRules && options.validationRules.server) {
-                  const { fetchFn, onFetch, onSuccess, onError, onSettled } = options.validationRules.server;
-                  if (onFetch)
-                    onFetch();
-                  __trace("cami:store", `Performing server-side validation for store ${storeName}.`);
-                  fetchFn().then((data) => {
-                    if (onSuccess)
-                      onSuccess(data);
-                    let shouldInvalidate = false;
-                    if (onSettled) {
-                      onSettled({
-                        data,
-                        // Changed from 'response' to 'data'
-                        state: loadedState,
-                        invalidate: () => {
-                          shouldInvalidate = true;
-                        }
-                      });
-                    }
-                    if (shouldInvalidate) {
-                      __trace("cami:store", `Server-side validation invalidated stored state for store ${storeName}. Using initial state.`);
-                      return initialState;
-                    }
-                  }).catch((error) => {
-                    if (onError)
-                      onError(error);
-                    __trace("cami:store", `Server-side validation failed for store ${storeName}. Using initial state.`, error);
-                    return initialState;
-                  });
-                }
-              } else {
-                __trace("cami:storage", `No validation rules defined for ${storeName}. Using stored state.`);
-              }
-              __trace("cami:storage", `Loaded state from ${adapterType} storage`);
-              return loadedState;
-            }
-          }
-        }
-        __trace("cami:storage", `Using initial state for ${adapterType} storage:`, initialState);
-        return initialState;
-      };
-      const initialLoadedState = loadState();
-      const store2 = new StoreClass(initialLoadedState);
-      store2.name = storeName;
-      store2.storage = storage;
-      store2.expiry = expiry;
-      store2._persistState = () => {
-        const currentTime = /* @__PURE__ */ new Date();
-        const expiryTime = new Date(currentTime.getTime() + expiry);
-        storage.setItem(storeName, JSON.stringify(store2.state));
-        storage.setItem(`${storeName}-expiry`, expiryTime.getTime().toString());
-      };
-      store2.reset = () => {
-        storage.removeItem(storeName);
-        storage.removeItem(`${storeName}-expiry`);
-        store2.state = store2._createProxy(createDraft(initialState));
-        __trace("cami:storage", `Reset store state of ${storeName} in ${adapterType} storage to:`, store2.state);
-        store2.__observers.forEach((observer) => observer.next(store2.state));
-        store2._persistState();
-      };
-      store2.subscribe((state) => {
-        store2._persistState();
-      });
-      return store2;
-    };
-  };
   var storeInstances = /* @__PURE__ */ new Map();
-  var ADAPTERS = {
-    memory: MemoryStorage,
-    localStorage: LocalStorageAdapter
-  };
   var store = (config = {}) => {
     const defaultConfig = {
       state: {},
-      adapter: "localStorage",
-      name: "cami-store",
-      expiry: 864e5,
-      // 24 hours
-      validationRules: null
+      name: "cami-store"
     };
     const finalConfig = __spreadValues(__spreadValues({}, defaultConfig), config);
     if (storeInstances.has(finalConfig.name)) {
       return storeInstances.get(finalConfig.name);
     }
-    const AdapterClass = ADAPTERS[finalConfig.adapter];
-    if (!AdapterClass) {
-      throw new Error(`Invalid adapter: ${finalConfig.adapter}. Available adapters are: ${Object.keys(ADAPTERS).join(", ")}`);
-    }
-    if (finalConfig.validationRules && !isValidValidationRules(finalConfig.validationRules)) {
-      throw new Error(`Invalid validation rules structure for store ${finalConfig.name}.`);
-    }
-    const storageAdapter = new AdapterClass();
-    const storeInstance = _storageEnhancer(ObservableStore)(finalConfig.state, __spreadProps(__spreadValues({}, finalConfig), {
-      storageAdapter,
-      adapterType: finalConfig.adapter
-    }));
+    const storeInstance = new ObservableStore(finalConfig.state, finalConfig);
     const methods = ["memo", "query", "trigger", "dispatch", "mutate"];
     methods.forEach((method) => {
       if (typeof storeInstance[method] !== "function") {
@@ -4730,6 +4488,218 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
       }
     }
   };
+
+  // src/storage/idb.js
+  function createIdbPromise({
+    name,
+    version,
+    storeName,
+    keyPath,
+    indexName
+  }) {
+    if (typeof name !== "string" || name.trim() === "") {
+      throw new Error("name must be a non-empty string");
+    }
+    if (!Number.isInteger(version) || version <= 0) {
+      throw new Error("version must be a positive integer");
+    }
+    if (typeof storeName !== "string" || storeName.trim() === "") {
+      throw new Error("storeName must be a non-empty string");
+    }
+    if (typeof keyPath !== "string" || keyPath.trim() === "") {
+      throw new Error("keyPath must be a non-empty string");
+    }
+    if (typeof indexName !== "string" || indexName.trim() === "") {
+      throw new Error("indexName must be a non-empty string");
+    }
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(name, version);
+      request.onerror = (event) => reject("IndexedDB error: " + event.target.error);
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        resolve({
+          getState: (..._0) => __async(this, [..._0], function* (options = {}) {
+            return new Promise((resolveQuery, rejectQuery) => {
+              const tx = db.transaction(storeName, "readonly");
+              const store2 = tx.objectStore(storeName);
+              let request2;
+              if (options.key) {
+                request2 = store2.get(options.key);
+              } else if (options.index && options.value) {
+                const index = store2.index(options.index);
+                request2 = index.getAll(options.value);
+              } else {
+                request2 = store2.getAll();
+              }
+              request2.onsuccess = (event2) => resolveQuery(event2.target.result);
+              request2.onerror = (event2) => rejectQuery(event2.target.error);
+            });
+          }),
+          transaction: (mode) => db.transaction(storeName, mode),
+          storeName
+          // Add this line to include the storeName
+        });
+      };
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (event.oldVersion < version) {
+          if (db.objectStoreNames.contains(storeName)) {
+            db.deleteObjectStore(storeName);
+          }
+        }
+        const store2 = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+        store2.createIndex(indexName, indexName, { unique: false });
+      };
+    });
+  }
+  function unproxify(obj) {
+    if (typeof obj !== "object" || obj === null) {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(unproxify);
+    }
+    const result = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = unproxify(obj[key]);
+      }
+    }
+    return result;
+  }
+  function updateDeep(obj, path, value) {
+    const [head, ...rest] = path;
+    if (rest.length === 0) {
+      return __spreadProps(__spreadValues({}, obj), { [head]: value });
+    }
+    return __spreadProps(__spreadValues({}, obj), {
+      [head]: updateDeep(obj[head] || {}, rest, value)
+    });
+  }
+  function persistToIdbThunk({
+    fromStateKey,
+    toIDBStore
+  }) {
+    return (_0) => __async(this, [_0], function* ({ action, patches }) {
+      if (!Array.isArray(patches)) {
+        throw new Error("patches must be an array");
+      }
+      return new Promise((resolve, reject) => {
+        const tx = toIDBStore.transaction("readwrite");
+        const store2 = tx.objectStore(toIDBStore.storeName);
+        const updates = [];
+        const relevantPatches = patches.filter((patch) => {
+          const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
+          return pathArray.join(".").startsWith(fromStateKey);
+        });
+        if (relevantPatches.length === 0) {
+          resolve();
+          return;
+        }
+        let state = null;
+        const getState = () => {
+          if (state === null) {
+            return new Promise((resolveState) => {
+              store2.getAll().onsuccess = (event) => {
+                state = event.target.result;
+                resolveState(state);
+              };
+            });
+          }
+          return Promise.resolve(state);
+        };
+        const applyPatches2 = () => __async(this, null, function* () {
+          for (const patch of relevantPatches) {
+            const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
+            const relativePath = pathArray.slice(fromStateKey.split(".").length);
+            state = yield getState();
+            switch (patch.op) {
+              case "add":
+              case "replace":
+                if (relativePath.length === 0) {
+                  updates.push(`replaced entire data array with ${patch.value.length} items`);
+                  state = unproxify(patch.value);
+                } else {
+                  const index = parseInt(relativePath[0], 10);
+                  if (isNaN(index)) {
+                    console.warn("Invalid index:", relativePath[0]);
+                    continue;
+                  }
+                  if (relativePath.length === 1) {
+                    updates.push(`${patch.op === "add" ? "added" : "replaced"} item at index ${index}`);
+                    state = [
+                      ...state.slice(0, index),
+                      unproxify(patch.value),
+                      ...state.slice(index + 1)
+                    ];
+                  } else {
+                    updates.push(`updated ${relativePath.join(".")} of item at index ${index}`);
+                    state = [
+                      ...state.slice(0, index),
+                      updateDeep(state[index], relativePath.slice(1), unproxify(patch.value)),
+                      ...state.slice(index + 1)
+                    ];
+                  }
+                }
+                break;
+              case "remove":
+                if (relativePath.length === 0) {
+                  updates.push("removed all items");
+                  state = [];
+                } else {
+                  const index = parseInt(relativePath[0], 10);
+                  if (isNaN(index)) {
+                    console.warn("Invalid index:", relativePath[0]);
+                    continue;
+                  }
+                  if (relativePath.length === 1) {
+                    updates.push(`removed item at index ${index}`);
+                    state = [...state.slice(0, index), ...state.slice(index + 1)];
+                  } else {
+                    updates.push(`removed ${relativePath.slice(1).join(".")} from item at index ${index}`);
+                    const newItem = __spreadValues({}, state[index]);
+                    let current2 = newItem;
+                    for (let i = 1; i < relativePath.length - 1; i++) {
+                      if (!current2[relativePath[i]])
+                        break;
+                      current2[relativePath[i]] = __spreadValues({}, current2[relativePath[i]]);
+                      current2 = current2[relativePath[i]];
+                    }
+                    delete current2[relativePath[relativePath.length - 1]];
+                    state = [
+                      ...state.slice(0, index),
+                      newItem,
+                      ...state.slice(index + 1)
+                    ];
+                  }
+                }
+                break;
+              default:
+                console.warn("Unsupported operation:", patch.op);
+            }
+          }
+          yield new Promise((resolveDelete) => {
+            const deleteRequest = store2.clear();
+            deleteRequest.onsuccess = resolveDelete;
+          });
+          for (const item of state) {
+            yield new Promise((resolvePut) => {
+              const putRequest = store2.put(item);
+              putRequest.onsuccess = resolvePut;
+            });
+          }
+        });
+        applyPatches2().then(() => {
+          tx.oncomplete = () => {
+            const updateSummary = updates.join(", ");
+            __trace(`indexdb:oncomplete`, `Mutated ${toIDBStore.storeName} object store with ${updateSummary}`);
+            resolve();
+          };
+        }).catch(reject);
+        tx.onerror = (event) => reject(event.target.error);
+      });
+    });
+  }
 
   // src/cami.js
   var { debug, events } = __config;

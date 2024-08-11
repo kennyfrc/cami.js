@@ -107,7 +107,10 @@ const typeValidators = {
     });
   },
   optional: (value, type, path, rootState, validateType) => {
-    if (value !== undefined && value !== null) validateType(value, type.optional, path, rootState);
+    if (value === undefined || value === null) {
+      return null;
+    }
+    return validateType(value, type.optional, path, rootState);
   },
   null: (value, type, path) => {
     if (value !== null) throw new Error(`Expected null, got ${typeof value} at ${path.join('.')}`);
@@ -278,12 +281,19 @@ const typeValidators = {
 };
 
 const validateType = (value, type, path = [], rootState = {}) => {
-  if (value === null && type.type !== 'null' && type.type !== 'optional') {
-    throw new Error(`Expected non-null value, got null at ${path.join('.')}`);
+  if (type.type === 'optional') {
+    if (value === undefined || value === null) {
+      return; // Optional field is allowed to be undefined or null
+    }
+    return validateType(value, type.optional, path, rootState);
   }
 
-  if (value === undefined && type.type !== 'optional') {
+  if (value === undefined) {
     throw new Error(`Missing required property at ${path.join('.')}`);
+  }
+
+  if (value === null && type !== 'null') {
+    throw new Error(`Expected non-null value, got null at ${path.join('.')}`);
   }
 
   if (type instanceof Model) {
@@ -292,7 +302,11 @@ const validateType = (value, type, path = [], rootState = {}) => {
 
   const validator = typeof type === 'string' ? typeValidators[type] : typeValidators[type.type];
   if (validator) {
-    validator(value, type, path, rootState, validateType);
+    if (type.type === 'optional') {
+      return validator(value, type, path, rootState, validateType);
+    } else {
+      validator(value, type, path, rootState, validateType);
+    }
   } else {
     throw new Error(`Unknown type ${JSON.stringify(type)} at ${path.join('.')}`);
   }

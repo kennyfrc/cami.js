@@ -24,7 +24,7 @@ describe('Querying the API & Mutating Data - BlogComponent', () => {
       blogElement.parentNode.removeChild(blogElement);
     }
     // Reset the store state
-    blogStore.reset();
+    // blogStore.reset();
   });
 
   it("should fetch data from the API", async function() {

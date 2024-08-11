@@ -21,9 +21,9 @@ describe("Observable Store (Set 1)", function() {
 
     it("should initialize with the given initial state", function() {
       appStore = createStore();
-      expect(appStore.count).toBe(0);
-      expect(appStore.nested.value).toBe(10);
-      expect(appStore.list).toEqual([]);
+      expect(appStore.getState().count).toBe(0);
+      expect(appStore.getState().nested.value).toBe(10);
+      expect(appStore.getState().list).toEqual([]);
     });
 
     it("should allow action registration and handle dispatch", function() {
@@ -32,9 +32,9 @@ describe("Observable Store (Set 1)", function() {
         state.count += payload || 1;
       });
       appStore.dispatch('increment');
-      expect(appStore.count).toBe(1);
+      expect(appStore.getState().count).toBe(1);
       appStore.dispatch('increment', 5);
-      expect(appStore.count).toBe(6);
+      expect(appStore.getState().count).toBe(6);
     });
 
     it("should handle multiple actions and their interactions", function() {
@@ -51,11 +51,11 @@ describe("Observable Store (Set 1)", function() {
 
       appStore.dispatch('increment');
       appStore.dispatch('increment');
-      expect(appStore.count).toBe(2);
+      expect(appStore.getState().count).toBe(2);
       appStore.dispatch('decrement');
-      expect(appStore.count).toBe(1);
+      expect(appStore.getState().count).toBe(1);
       appStore.dispatch('reset');
-      expect(appStore.count).toBe(0);
+      expect(appStore.getState().count).toBe(0);
     });
 
     it("should handle nested state updates", function() {
@@ -64,7 +64,7 @@ describe("Observable Store (Set 1)", function() {
         state.nested.value = payload;
       });
       appStore.dispatch('updateNested', 20);
-      expect(appStore.nested.value).toBe(20);
+      expect(appStore.getState().nested.value).toBe(20);
     });
 
     it("should handle array operations", function() {
@@ -81,9 +81,9 @@ describe("Observable Store (Set 1)", function() {
 
       appStore.dispatch('addItem', 'item1');
       appStore.dispatch('addItem', 'item2');
-      expect(appStore.list).toEqual(['item1', 'item2']);
+      expect(appStore.getState().list).toEqual(['item1', 'item2']);
       appStore.dispatch('removeItem', 'item1');
-      expect(appStore.list).toEqual(['item2']);
+      expect(appStore.getState().list).toEqual(['item2']);
     });
 
     describe("Complex State Transformations", function() {
@@ -100,9 +100,9 @@ describe("Observable Store (Set 1)", function() {
 
       it("should handle the first complex state transformation", function() {
         appStore.dispatch('complexUpdate', 5);
-        expect(appStore.count).toBe(0);
-        expect(appStore.nested.value).toBe(15);
-        expect(appStore.list).toEqual([0, 15]);
+        expect(appStore.getState().count).toBe(0);
+        expect(appStore.getState().nested.value).toBe(15);
+        expect(appStore.getState().list).toEqual([0, 15]);
       });
 
       it("should handle the second complex state transformation", function() {
@@ -111,9 +111,9 @@ describe("Observable Store (Set 1)", function() {
 
         // The actual test dispatch
         appStore.dispatch('complexUpdate', 10);
-        expect(appStore.count).toBe(0);
-        expect(appStore.nested.value).toBe(25);
-        expect(appStore.list).toEqual([0, 15, 0, 25]);
+        expect(appStore.getState().count).toBe(0);
+        expect(appStore.getState().nested.value).toBe(25);
+        expect(appStore.getState().list).toEqual([0, 15, 0, 25]);
       });
     });
   });

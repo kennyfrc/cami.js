@@ -56,6 +56,7 @@
   "type": "module",
   "unpkg": "build/cami.cdn.js",
   "dependencies": {
+    "idb": "^8.0.0",
     "immer": "^10.1.1"
   }
 }
