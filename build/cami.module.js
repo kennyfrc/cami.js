@@ -17,19 +17,6 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-var __restKey = (key) => typeof key === "symbol" ? key : key + "";
-var __objRest = (source, exclude) => {
-  var target = {};
-  for (var prop in source)
-    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
-      target[prop] = source[prop];
-  if (source != null && __getOwnPropSymbols)
-    for (var prop of __getOwnPropSymbols(source)) {
-      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
-        target[prop] = source[prop];
-    }
-  return target;
-};
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
@@ -4608,16 +4595,6 @@ function updateDeep(obj, path, value) {
       throw new Error(`Unsupported path type: ${type}`);
   }
 }
-function removeDeep(obj, path) {
-  const [head, ...rest] = path;
-  if (rest.length === 0) {
-    const _a = obj, { [head]: _ } = _a, newObj = __objRest(_a, [__restKey(head)]);
-    return newObj;
-  }
-  return __spreadProps(__spreadValues({}, obj), {
-    [head]: removeDeep(obj[head] || {}, rest)
-  });
-}
 function createIdbPromise({
   name,
   version,
@@ -4881,57 +4858,25 @@ function createLocalStorage({
     throw new Error("key must be a non-empty string");
   }
   return {
-    /**
-     * Retrieves data from localStorage based on the provided key.
-     * @returns {Promise<*>} A promise that resolves with the parsed data.
-     */
     getState: () => __async(this, null, function* () {
       return new Promise((resolve) => {
         const data = localStorage.getItem(key);
         resolve(data ? JSON.parse(data) : null);
       });
     }),
+    setState: (state) => __async(this, null, function* () {
+      return new Promise((resolve) => {
+        localStorage.setItem(key, JSON.stringify(state));
+        resolve();
+      });
+    }),
     key
   };
 }
-function persistToLocalStorageThunk({
-  fromStateKey,
-  toLocalStorage
-}) {
-  return (_0) => __async(this, [_0], function* ({ action, patches }) {
-    if (!Array.isArray(patches)) {
-      throw new Error("patches must be an array");
-    }
-    const relevantPatches = patches.filter((patch) => {
-      const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
-      return pathArray.join(".").startsWith(fromStateKey);
-    });
-    if (relevantPatches.length === 0) {
-      return;
-    }
-    const currentState = (yield toLocalStorage.getState()) || {};
-    let newState = __spreadValues({}, currentState);
-    const updateLogs = [];
-    for (const patch of relevantPatches) {
-      const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
-      const relativePath = pathArray.slice(fromStateKey.split(".").length);
-      switch (patch.op) {
-        case "add":
-        case "replace":
-          updateLogs.push(`updated ${relativePath.join(".")}`);
-          newState = updateDeep(newState, relativePath, unproxify(patch.value));
-          break;
-        case "remove":
-          updateLogs.push(`removed ${relativePath.join(".")}`);
-          newState = removeDeep(newState, relativePath);
-          break;
-        default:
-          console.warn("Unsupported operation:", patch.op);
-      }
-    }
-    localStorage.setItem(toLocalStorage.key, JSON.stringify(newState));
-    const updateLogsSummary = updateLogs.join(", ");
-    __trace(`localStorage:update`, `Updated ${toLocalStorage.key} with ${updateLogsSummary}`);
+function persistToLocalStorageThunk(toLocalStorage) {
+  return (_0) => __async(this, [_0], function* ({ action, state }) {
+    yield toLocalStorage.setState(state);
+    __trace(`localStorage:update`, `Updated ${toLocalStorage.key} with entire state`);
   });
 }
 

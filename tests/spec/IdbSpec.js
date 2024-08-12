@@ -69,7 +69,8 @@ describe("IndexedDB Adapter", function() {
 
   beforeEach(async function() {
     // Clear the todos before each test
-    await todoStore.dispatch('clearTodos');
+    todoStore.dispatch('clearTodos');
+    await todoIDB.getState(); // Wait for the state to be updated in IDB
   });
 
   afterAll(async function() {
@@ -83,7 +84,10 @@ describe("IndexedDB Adapter", function() {
   });
 
   it("should persist todo additions to IndexedDB", async function() {
-    await todoStore.dispatch('addTodo', { id: 1, title: "Test Todo", completed: false });
+    todoStore.dispatch('addTodo', { id: 1, title: "Test Todo", completed: false });
+
+    // Wait for the state to be updated in IDB
+    await todoIDB.getState();
 
     // Create a new store instance to test persistence
     const newTodoStore = TodoModel.create({
@@ -102,9 +106,12 @@ describe("IndexedDB Adapter", function() {
   });
 
   it("should handle todo removals in IndexedDB", async function() {
-    await todoStore.dispatch('addTodo', { id: 1, title: "Todo 1", completed: false });
-    await todoStore.dispatch('addTodo', { id: 2, title: "Todo 2", completed: false });
-    await todoStore.dispatch('removeTodo', { id: 1 });
+    todoStore.dispatch('addTodo', { id: 1, title: "Todo 1", completed: false });
+    todoStore.dispatch('addTodo', { id: 2, title: "Todo 2", completed: false });
+    todoStore.dispatch('removeTodo', { id: 1 });
+
+    // Wait for the state to be updated in IDB
+    await todoIDB.getState();
 
     // Create a new store instance to test persistence
     const newTodoStore = TodoModel.create({
@@ -123,8 +130,11 @@ describe("IndexedDB Adapter", function() {
   });
 
   it("should persist todo updates to IndexedDB", async function() {
-    await todoStore.dispatch('addTodo', { id: 1, title: "Original Title", completed: false });
-    await todoStore.dispatch('updateTodoTitle', { id: 1, title: "Updated Title" });
+    todoStore.dispatch('addTodo', { id: 1, title: "Original Title", completed: false });
+    todoStore.dispatch('updateTodoTitle', { id: 1, title: "Updated Title" });
+
+    // Wait for the state to be updated in IDB
+    await todoIDB.getState();
 
     // Create a new store instance to test persistence
     const newTodoStore = TodoModel.create({
@@ -143,10 +153,13 @@ describe("IndexedDB Adapter", function() {
   });
 
   it("should maintain state consistency across multiple operations", async function() {
-    await todoStore.dispatch('addTodo', { id: 1, title: "Todo 1", completed: false });
-    await todoStore.dispatch('addTodo', { id: 2, title: "Todo 2", completed: true });
-    await todoStore.dispatch('updateTodoTitle', { id: 1, title: "Updated Todo 1" });
-    await todoStore.dispatch('removeTodo', { id: 2 });
+    todoStore.dispatch('addTodo', { id: 1, title: "Todo 1", completed: false });
+    todoStore.dispatch('addTodo', { id: 2, title: "Todo 2", completed: true });
+    todoStore.dispatch('updateTodoTitle', { id: 1, title: "Updated Todo 1" });
+    todoStore.dispatch('removeTodo', { id: 2 });
+
+    // Wait for the state to be updated in IDB
+    await todoIDB.getState();
 
     // Create a new store instance to test persistence
     const newTodoStore = TodoModel.create({

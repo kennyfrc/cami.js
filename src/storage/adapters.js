@@ -361,10 +361,6 @@ export function createLocalStorage({
   }
 
   return {
-    /**
-     * Retrieves data from localStorage based on the provided key.
-     * @returns {Promise<*>} A promise that resolves with the parsed data.
-     */
     getState: async () => {
       return new Promise((resolve) => {
         const data = localStorage.getItem(key);
@@ -372,54 +368,20 @@ export function createLocalStorage({
       });
     },
 
+    setState: async (state) => {
+      return new Promise((resolve) => {
+        localStorage.setItem(key, JSON.stringify(state));
+        resolve();
+      });
+    },
+
     key: key,
   };
 }
 
-export function persistToLocalStorageThunk({
-  fromStateKey,
-  toLocalStorage
-}) {
-  return async ({ action, patches }) => {
-    if (!Array.isArray(patches)) {
-      throw new Error('patches must be an array');
-    }
-
-    const relevantPatches = patches.filter(patch => {
-      const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split('/').filter(Boolean);
-      return pathArray.join('.').startsWith(fromStateKey);
-    });
-
-    if (relevantPatches.length === 0) {
-      return;
-    }
-
-    const currentState = await toLocalStorage.getState() || {};
-    let newState = { ...currentState };
-
-    const updateLogs = [];
-
-    for (const patch of relevantPatches) {
-      const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split('/').filter(Boolean);
-      const relativePath = pathArray.slice(fromStateKey.split('.').length);
-
-      switch (patch.op) {
-        case 'add':
-        case 'replace':
-          updateLogs.push(`updated ${relativePath.join('.')}`);
-          newState = updateDeep(newState, relativePath, unproxify(patch.value));
-          break;
-        case 'remove':
-          updateLogs.push(`removed ${relativePath.join('.')}`);
-          newState = removeDeep(newState, relativePath);
-          break;
-        default:
-          console.warn('Unsupported operation:', patch.op);
-      }
-    }
-
-    localStorage.setItem(toLocalStorage.key, JSON.stringify(newState));
-    const updateLogsSummary = updateLogs.join(', ');
-    __trace(`localStorage:update`, `Updated ${toLocalStorage.key} with ${updateLogsSummary}`);
+export function persistToLocalStorageThunk(toLocalStorage) {
+  return async ({ action, state }) => {
+    await toLocalStorage.setState(state);
+    __trace(`localStorage:update`, `Updated ${toLocalStorage.key} with entire state`);
   };
 }

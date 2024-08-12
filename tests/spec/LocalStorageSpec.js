@@ -54,18 +54,13 @@ describe("LocalStorage Adapter", function() {
       },
     });
 
-    todoStore.afterHook(
-      persistToLocalStorageThunk({
-        fromStateKey: "todos",
-        toLocalStorage: todoLocalStorage,
-      })
-    );
+    todoStore.afterHook(persistToLocalStorageThunk(todoLocalStorage));
   });
 
   beforeEach(async function() {
     // Clear the todos before each test
     localStorage.clear();
-    await todoStore.dispatch('resetTodos');
+    todoStore.dispatch('resetTodos');
   });
 
   afterAll(function() {
@@ -76,8 +71,8 @@ describe("LocalStorage Adapter", function() {
   async function createNewTodoStore() {
     const storedState = await todoLocalStorage.getState();
     return TodoModel.create({
-      state: {
-        todos: Array.isArray(storedState) ? storedState : [],
+      state: storedState || {
+        todos: [],
         todoStatus: "idle",
         todoError: null,
         newTodoTitle: "",
@@ -87,7 +82,7 @@ describe("LocalStorage Adapter", function() {
   }
 
   it("should persist todo additions to localStorage", async function() {
-    await todoStore.dispatch('createTodoItem', { id: 1, title: "Test Todo", completed: false });
+    todoStore.dispatch('createTodoItem', { id: 1, title: "Test Todo", completed: false });
 
     const newTodoStore = await createNewTodoStore();
 
@@ -97,9 +92,9 @@ describe("LocalStorage Adapter", function() {
   });
 
   it("should handle todo removals in localStorage", async function() {
-    await todoStore.dispatch('createTodoItem', { id: 1, title: "Todo 1", completed: false });
-    await todoStore.dispatch('createTodoItem', { id: 2, title: "Todo 2", completed: false });
-    await todoStore.dispatch('deleteTodoItem', { id: 1 });
+    todoStore.dispatch('createTodoItem', { id: 1, title: "Todo 1", completed: false });
+    todoStore.dispatch('createTodoItem', { id: 2, title: "Todo 2", completed: false });
+    todoStore.dispatch('deleteTodoItem', { id: 1 });
 
     const newTodoStore = await createNewTodoStore();
 
@@ -109,8 +104,8 @@ describe("LocalStorage Adapter", function() {
   });
 
   it("should persist todo updates to localStorage", async function() {
-    await todoStore.dispatch('createTodoItem', { id: 1, title: "Original Title", completed: false });
-    await todoStore.dispatch('modifyTodoTitle', { id: 1, title: "Updated Title" });
+    todoStore.dispatch('createTodoItem', { id: 1, title: "Original Title", completed: false });
+    todoStore.dispatch('modifyTodoTitle', { id: 1, title: "Updated Title" });
 
     const newTodoStore = await createNewTodoStore();
 
@@ -120,10 +115,10 @@ describe("LocalStorage Adapter", function() {
   });
 
   it("should maintain state consistency across multiple operations", async function() {
-    await todoStore.dispatch('createTodoItem', { id: 1, title: "Todo 1", completed: false });
-    await todoStore.dispatch('createTodoItem', { id: 2, title: "Todo 2", completed: true });
-    await todoStore.dispatch('modifyTodoTitle', { id: 1, title: "Updated Todo 1" });
-    await todoStore.dispatch('deleteTodoItem', { id: 2 });
+    todoStore.dispatch('createTodoItem', { id: 1, title: "Todo 1", completed: false });
+    todoStore.dispatch('createTodoItem', { id: 2, title: "Todo 2", completed: true });
+    todoStore.dispatch('modifyTodoTitle', { id: 1, title: "Updated Todo 1" });
+    todoStore.dispatch('deleteTodoItem', { id: 2 });
 
     const newTodoStore = await createNewTodoStore();
 
