@@ -1,115 +1,166 @@
-const { store, indexedDBMiddleware } = cami;
+const { store, Type, createIdbPromise, persistToIdbThunk } = cami;
 
-describe("IndexedDB Middleware", function() {
-  let appStore;
-  let createStore;
+describe("IndexedDB Adapter", function() {
+  let TodoModel;
+  let todoIDB;
+  let todoStore;
 
-  beforeEach(function(done) {
-    createStore = async () => {
-      const newStore = store({
-        state: { count: 0, nested: { value: 10 }, list: [] },
-        name: `test-idb-store-${Date.now()}`,
-        middleware: [indexedDBMiddleware({ name: 'test-idb-store' })]
-      });
-      await newStore.loadInitialState();
-      return newStore;
-    };
-    createStore().then(store => {
-      appStore = store;
-      done();
+  beforeAll(async function() {
+    todoIDB = await createIdbPromise({
+      name: "TestTodoDB",
+      version: 1,
+      storeName: "testTodos",
+      keyPath: "id",
+      indexName: "id",
+    });
+
+    TodoModel = Type.Model("TodoModel", {
+      todos: Type.Array(
+        Type.Product({
+          id: Type.Integer,
+          title: Type.String,
+          completed: Type.Boolean,
+        })
+      ),
+      todoStatus: Type.Enum("idle", "pending", "success", "error"),
+      todoError: Type.Optional(Type.String),
+      newTodoTitle: Type.String,
+      editingTodoId: Type.Optional(Type.Integer),
+    });
+
+    todoStore = TodoModel.create({
+      state: {
+        todos: [],
+        todoStatus: "idle",
+        todoError: null,
+        newTodoTitle: "",
+        editingTodoId: null,
+      },
+      actions: {
+        addTodo: ({ state, payload }) => {
+          state.todos.push({
+            id: payload.id,
+            title: payload.title,
+            completed: payload.completed || false,
+          });
+        },
+        removeTodo: ({ state, payload }) => {
+          state.todos = state.todos.filter((todo) => todo.id !== payload.id);
+        },
+        updateTodoTitle: ({ state, payload }) => {
+          const todo = state.todos.find((todo) => todo.id === payload.id);
+          if (todo) {
+            todo.title = payload.title;
+          }
+        },
+        clearTodos: ({ state }) => {
+          state.todos = [];
+        },
+      },
+    });
+
+    todoStore.afterHook(
+      persistToIdbThunk({
+        fromStateKey: "todos",
+        toIDBStore: todoIDB,
+      })
+    );
+  });
+
+  beforeEach(async function() {
+    // Clear the todos before each test
+    await todoStore.dispatch('clearTodos');
+  });
+
+  afterAll(async function() {
+    // Clear the IndexedDB store after all tests
+    const tx = todoIDB.transaction("readwrite");
+    const store = tx.objectStore(todoIDB.storeName);
+    await new Promise((resolve) => {
+      const request = store.clear();
+      request.onsuccess = resolve;
     });
   });
 
-  it("should persist state changes to IndexedDB", async function() {
-    appStore.defineAction('increment', ({ state, payload }) => {
-      state.count += payload || 1;
-    });
-
-    await appStore.dispatch('increment', 5);
-    expect(appStore.state.count).toBe(5);
+  it("should persist todo additions to IndexedDB", async function() {
+    await todoStore.dispatch('addTodo', { id: 1, title: "Test Todo", completed: false });
 
     // Create a new store instance to test persistence
-    const newStore = await createStore();
-    await newStore.loadInitialState();
+    const newTodoStore = TodoModel.create({
+      state: {
+        todos: await todoIDB.getState() || [],
+        todoStatus: "idle",
+        todoError: null,
+        newTodoTitle: "",
+        editingTodoId: null,
+      },
+    });
 
-    expect(newStore.state.count).toBe(5);
+    expect(newTodoStore.getState().todos).toEqual([
+      { id: 1, title: "Test Todo", completed: false }
+    ]);
   });
 
-  it("should handle complex state updates in IndexedDB", async function() {
-    appStore.defineAction('complexUpdate', ({ state, payload }) => {
-      state.count *= 2;
-      state.nested.value += payload;
-      state.list = state.list.concat([state.count, state.nested.value]);
-    });
-
-    await appStore.dispatch('complexUpdate', 5);
-    expect(appStore.state.count).toBe(0);
-    expect(appStore.state.nested.value).toBe(15);
-    expect(appStore.state.list).toEqual([0, 15]);
+  it("should handle todo removals in IndexedDB", async function() {
+    await todoStore.dispatch('addTodo', { id: 1, title: "Todo 1", completed: false });
+    await todoStore.dispatch('addTodo', { id: 2, title: "Todo 2", completed: false });
+    await todoStore.dispatch('removeTodo', { id: 1 });
 
     // Create a new store instance to test persistence
-    const newStore = await createStore();
-    await newStore.loadInitialState();
+    const newTodoStore = TodoModel.create({
+      state: {
+        todos: await todoIDB.getState() || [],
+        todoStatus: "idle",
+        todoError: null,
+        newTodoTitle: "",
+        editingTodoId: null,
+      },
+    });
 
-    expect(newStore.state.count).toBe(0);
-    expect(newStore.state.nested.value).toBe(15);
-    expect(newStore.state.list).toEqual([0, 15]);
+    expect(newTodoStore.getState().todos).toEqual([
+      { id: 2, title: "Todo 2", completed: false }
+    ]);
   });
 
-  it("should maintain state consistency across multiple dispatches", async function() {
-    appStore.defineAction('updateMultipleFields', ({ state, payload }) => {
-      state.count += payload.countIncrement;
-      state.nested.value += payload.nestedIncrement;
-      state.list.push(payload.newItem);
-    });
-
-    await appStore.dispatch('updateMultipleFields', {
-      countIncrement: 3,
-      nestedIncrement: 5,
-      newItem: 'item1'
-    });
-
-    await appStore.dispatch('updateMultipleFields', {
-      countIncrement: 2,
-      nestedIncrement: 7,
-      newItem: 'item2'
-    });
+  it("should persist todo updates to IndexedDB", async function() {
+    await todoStore.dispatch('addTodo', { id: 1, title: "Original Title", completed: false });
+    await todoStore.dispatch('updateTodoTitle', { id: 1, title: "Updated Title" });
 
     // Create a new store instance to test persistence
-    const newStore = await createStore();
-    await newStore.loadInitialState();
+    const newTodoStore = TodoModel.create({
+      state: {
+        todos: await todoIDB.getState() || [],
+        todoStatus: "idle",
+        todoError: null,
+        newTodoTitle: "",
+        editingTodoId: null,
+      },
+    });
 
-    expect(newStore.state.count).toBe(5);
-    expect(newStore.state.nested.value).toBe(22);
-    expect(newStore.state.list).toEqual(['item1', 'item2']);
+    expect(newTodoStore.getState().todos).toEqual([
+      { id: 1, title: "Updated Title", completed: false }
+    ]);
   });
 
-  it("should handle rollback functionality with IndexedDB", async function() {
-    appStore.defineAction('updateWithPossibleError', ({ state, payload }) => {
-      state.count += payload.increment;
-      if (payload.shouldThrow) {
-        throw new Error("Action failed");
-      }
-      state.list.push(payload.newItem);
-    });
-
-    await appStore.dispatch('updateWithPossibleError', {
-      increment: 5,
-      newItem: 'success',
-      shouldThrow: false
-    });
-
-    await expect(appStore.dispatch('updateWithPossibleError', {
-      increment: 10,
-      newItem: 'failure',
-      shouldThrow: true
-    })).rejects.toThrow("Action failed");
+  it("should maintain state consistency across multiple operations", async function() {
+    await todoStore.dispatch('addTodo', { id: 1, title: "Todo 1", completed: false });
+    await todoStore.dispatch('addTodo', { id: 2, title: "Todo 2", completed: true });
+    await todoStore.dispatch('updateTodoTitle', { id: 1, title: "Updated Todo 1" });
+    await todoStore.dispatch('removeTodo', { id: 2 });
 
     // Create a new store instance to test persistence
-    const newStore = await createStore();
-    await newStore.loadInitialState();
+    const newTodoStore = TodoModel.create({
+      state: {
+        todos: await todoIDB.getState() || [],
+        todoStatus: "idle",
+        todoError: null,
+        newTodoTitle: "",
+        editingTodoId: null,
+      },
+    });
 
-    expect(newStore.state.count).toBe(5);
-    expect(newStore.state.list).toEqual(['success']);
+    expect(newTodoStore.getState().todos).toEqual([
+      { id: 1, title: "Updated Todo 1", completed: false }
+    ]);
   });
 });
