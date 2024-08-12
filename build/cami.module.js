@@ -17,6 +17,19 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __restKey = (key) => typeof key === "symbol" ? key : key + "";
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 var __publicField = (obj, key, value) => {
   __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   return value;
@@ -1982,19 +1995,62 @@ var _DependencyTracker = class _DependencyTracker {
     const visited = /* @__PURE__ */ new Set();
     const recursionStack = /* @__PURE__ */ new Set();
     const cyclePath = [];
+    const getNeighborType = (neighbor, visited2, recursionStack2) => {
+      if (!visited2.has(neighbor))
+        return "unvisited";
+      if (recursionStack2.has(neighbor))
+        return "cyclic";
+      return "visited";
+    };
+    const getNodeType = (node, visited2) => {
+      if (!visited2.has(node))
+        return "unvisited";
+      return "visited";
+    };
+    const processDependencyNode = (node, visited2) => {
+      const nodeType = getNodeType(node, visited2);
+      switch (nodeType) {
+        case "unvisited":
+          try {
+            if (dfs(node))
+              return "cycle-detected";
+          } catch (error) {
+            if (error.message.startsWith("Cyclic dependency detected:")) {
+              console.warn(error.message);
+              return "cycle-warned";
+            } else {
+              throw error;
+            }
+          }
+          return "processed";
+        case "visited":
+          return "skipped";
+        default:
+          console.warn(`Unexpected node type: ${nodeType}`);
+          return "unknown";
+      }
+    };
     function dfs(node) {
       visited.add(node);
       recursionStack.add(node);
       cyclePath.push(node);
       const neighbors = _DependencyTracker.dependencyGraph.get(node) || /* @__PURE__ */ new Set();
       for (const neighbor of neighbors) {
-        if (!visited.has(neighbor)) {
-          if (dfs(neighbor))
-            return true;
-        } else if (recursionStack.has(neighbor)) {
-          const cycleStart = cyclePath.indexOf(neighbor);
-          const cycle = cyclePath.slice(cycleStart);
-          console.warn(`Cyclic dependency detected: ${cycle.map((n) => n.__name || "unnamed").join(" -> ")}`);
+        const neighborType = getNeighborType(neighbor, visited, recursionStack);
+        switch (neighborType) {
+          case "unvisited":
+            if (dfs(neighbor))
+              return true;
+            break;
+          case "cyclic":
+            const cycleStart = cyclePath.indexOf(neighbor);
+            const cycle = cyclePath.slice(cycleStart);
+            console.warn(`Cyclic dependency detected: ${cycle.map((n) => n.__name || "unnamed").join(" -> ")}`);
+            break;
+          case "visited":
+            break;
+          default:
+            console.warn(`Unexpected neighbor type: ${neighborType}`);
         }
       }
       recursionStack.delete(node);
@@ -2002,17 +2058,19 @@ var _DependencyTracker = class _DependencyTracker {
       return false;
     }
     for (const node of _DependencyTracker.dependencyGraph.keys()) {
-      if (!visited.has(node)) {
-        try {
-          if (dfs(node))
-            return true;
-        } catch (error) {
-          if (error.message.startsWith("Cyclic dependency detected:")) {
-            console.warn(error.message);
-          } else {
-            throw error;
-          }
-        }
+      const result = processDependencyNode(node, visited);
+      switch (result) {
+        case "cycle-detected":
+          return true;
+        case "cycle-warned":
+        case "processed":
+        case "skipped":
+          break;
+        case "unknown":
+          console.warn(`Unknown result for node processing`);
+          break;
+        default:
+          console.warn(`Unexpected result: ${result}`);
       }
     }
     return false;
@@ -2519,7 +2577,7 @@ var Model = class {
   }
   create(config) {
     const { state, actions = {}, asyncActions = {}, machines = {}, queries = {}, mutations = {}, specs = {}, memos = {}, options = {} } = config;
-    this._validateState(state);
+    this.validateState(state);
     const modelStore = store(__spreadValues({
       state,
       name: this.name,
@@ -2528,13 +2586,13 @@ var Model = class {
     Object.entries(actions).forEach(([actionName, actionFn]) => {
       modelStore.defineAction(actionName, (context) => {
         actionFn(context);
-        this._validateState(context.state);
+        this.validateState(context.state);
       });
     });
     Object.entries(asyncActions).forEach(([thunkName, thunkFn]) => {
       modelStore.defineAsyncAction(thunkName, (context) => __async(this, null, function* () {
         yield thunkFn(context);
-        this._validateState(context.state);
+        this.validateState(context.state);
       }));
     });
     Object.entries(machines).forEach(([machineName, machineDefinition]) => {
@@ -2567,16 +2625,16 @@ var Model = class {
     });
     return modelStore;
   }
-  _validateState(state) {
+  validateState(state) {
     const errors2 = [];
     Object.entries(this.schema).forEach(([key, type]) => {
       if (!(key in state)) {
-        const expectedType = this._getTypeString(type);
+        const expectedType = this.__getExpectedTypeString(type);
         errors2.push(`Missing property: ${key}
 Expected type: ${expectedType}`);
       } else {
         try {
-          this._validateItem(state[key], type, [key], state);
+          this.validateItem(state[key], type, [key], state);
         } catch (error) {
           errors2.push(error.message);
         }
@@ -2588,71 +2646,115 @@ Expected type: ${expectedType}`);
 ${errors2.join("\n\n")}`);
     }
   }
-  _validateItem(value, type, path, rootState) {
+  validateItem(value, type, path, rootState) {
+    const getTypeCategory = (type2, value2) => {
+      if (type2.type === "optional")
+        return "optional";
+      if (type2.type === "object" && typeof value2 === "object")
+        return "object";
+      return "other";
+    };
     try {
-      if (type.type === "optional") {
-        if (value === void 0 || value === null) {
-          return;
-        }
-        return this._validateItem(value, type.optional, path, rootState);
-      }
-      if (type.type === "object" && typeof value === "object") {
-        Object.entries(type.schema).forEach(([key, subType]) => {
-          if (subType.type !== "optional" && !(key in value)) {
-            throw new Error(`Missing required property: ${[...path, key].join(".")}`);
-          }
-          if (key in value) {
-            this._validateItem(value[key], subType, [...path, key], rootState);
-          }
-        });
-      } else {
-        validateType(value, type, path, rootState);
+      const typeCategory = getTypeCategory(type, value);
+      switch (typeCategory) {
+        case "optional":
+          if (value === void 0 || value === null)
+            return;
+          return this.validateItem(value, type.optional, path, rootState);
+        case "object":
+          Object.entries(type.schema).forEach(([key, subType]) => {
+            if (subType.type !== "optional" && !(key in value)) {
+              throw new Error(`Missing required property: ${[...path, key].join(".")}`);
+            }
+            if (key in value) {
+              this.validateItem(value[key], subType, [...path, key], rootState);
+            }
+          });
+          break;
+        case "other":
+          validateType(value, type, path, rootState);
+          break;
+        default:
+          throw new Error(`Unexpected type category: ${typeCategory}`);
       }
     } catch (error) {
-      const expectedType = this._getTypeString(type);
-      const actualType = this._getActualTypeString(value);
+      const expectedType = this.__getExpectedTypeString(type);
+      const actualType = this.__getActualTypeString(value);
       throw new Error(
         `Property: ${path.join(".")}
 Error: ${error.message}`
       );
     }
   }
-  _getTypeString(type) {
-    if (typeof type === "string")
-      return type;
-    if (typeof type === "object") {
-      if (type.type) {
-        if (type.type === "object" && type.schema) {
-          return `Object(${Object.entries(type.schema).map(([k, v]) => `${k}: ${this._getTypeString(v)}`).join(", ")})`;
+  // Below are just helper functions to express types when there are validation errors
+  __getExpectedTypeString(type) {
+    const getTypeCategory = (type2) => {
+      if (typeof type2 === "string")
+        return "string";
+      if (typeof type2 === "object") {
+        if (type2.type) {
+          if (type2.type === "object" && type2.schema)
+            return "objectWithSchema";
+          if (type2.type === "array" && type2.itemType)
+            return "array";
+          if (type2.type === "enum" && type2.values)
+            return "enum";
+          return "simpleType";
         }
-        if (type.type === "array" && type.itemType) {
-          return `Array(${this._getTypeString(type.itemType)})`;
-        }
-        if (type.type === "enum" && type.values) {
-          return `Enum(${type.values.join(" | ")})`;
-        }
+        return "typeConstructor";
+      }
+      return "unknown";
+    };
+    const typeCategory = getTypeCategory(type);
+    switch (typeCategory) {
+      case "string":
+        return type;
+      case "objectWithSchema":
+        return `Object(${Object.entries(type.schema).map(([k, v]) => `${k}: ${this.__getExpectedTypeString(v)}`).join(", ")})`;
+      case "array":
+        return `Array(${this.__getExpectedTypeString(type.itemType)})`;
+      case "enum":
+        return `Enum(${type.values.join(" | ")})`;
+      case "simpleType":
         return type.type;
-      }
-      for (const [key, value] of Object.entries(Type)) {
-        if (value === type || typeof value === "function" && type instanceof value) {
-          return key;
+      case "typeConstructor":
+        for (const [key, value] of Object.entries(Type)) {
+          if (value === type || typeof value === "function" && type instanceof value) {
+            return key;
+          }
         }
-      }
+        return "Unknown";
+      case "unknown":
+      default:
+        return "Unknown";
     }
-    return "Unknown";
   }
-  _getActualTypeString(value) {
-    if (value === null)
-      return "null";
-    if (Array.isArray(value))
-      return "Array";
-    if (value instanceof Date)
-      return "Date";
-    if (typeof value === "object") {
-      const constructor = value.constructor.name;
-      return constructor !== "Object" ? constructor : "object";
+  __getActualTypeString(value) {
+    const getValueType = (value2) => {
+      if (value2 === null)
+        return "null";
+      if (Array.isArray(value2))
+        return "array";
+      if (value2 instanceof Date)
+        return "date";
+      if (typeof value2 === "object")
+        return "object";
+      return typeof value2;
+    };
+    const valueType = getValueType(value);
+    switch (valueType) {
+      case "null":
+        return "null";
+      case "array":
+        return "Array";
+      case "date":
+        return "Date";
+      case "object":
+        const constructor = value.constructor.name;
+        return constructor !== "Object" ? constructor : "object";
+      default:
+        return valueType;
     }
-    return typeof value;
   }
 };
 
@@ -4046,14 +4148,28 @@ var ObservableProxy = class {
     }
     return new Proxy(observable, {
       get: (target, property) => {
-        if (typeof target[property] === "function") {
-          return target[property].bind(target);
-        } else if (property in target) {
-          return _deepClone(target[property]);
-        } else if (typeof target.value[property] === "function") {
-          return (...args) => target.value[property](...args);
-        } else {
-          return _deepClone(target.value[property]);
+        const getPropertyType = (target2, property2) => {
+          if (typeof target2[property2] === "function")
+            return "targetFunction";
+          if (property2 in target2)
+            return "targetProperty";
+          if (typeof target2.value[property2] === "function")
+            return "valueFunction";
+          return "valueProperty";
+        };
+        const propertyType = getPropertyType(target, property);
+        switch (propertyType) {
+          case "targetFunction":
+            return target[property].bind(target);
+          case "targetProperty":
+            return _deepClone(target[property]);
+          case "valueFunction":
+            return (...args) => target.value[property](...args);
+          case "valueProperty":
+            return _deepClone(target.value[property]);
+          default:
+            console.warn(`Unexpected property type: ${propertyType}`);
+            return void 0;
         }
       },
       set: (target, property, value) => {
@@ -4452,7 +4568,56 @@ var ReactiveElement = class extends HTMLElement {
   }
 };
 
-// src/storage/idb.js
+// src/storage/adapters.js
+function unproxify(obj) {
+  const getType = (value) => {
+    if (typeof value !== "object" || value === null)
+      return "primitive";
+    if (Array.isArray(value))
+      return "array";
+    return "object";
+  };
+  switch (getType(obj)) {
+    case "primitive":
+      return obj;
+    case "array":
+      return obj.map(unproxify);
+    case "object":
+      const result = {};
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          result[key] = unproxify(obj[key]);
+        }
+      }
+      return result;
+    default:
+      throw new Error(`Unsupported type: ${getType(obj)}`);
+  }
+}
+function updateDeep(obj, path, value) {
+  const [head, ...rest] = path;
+  const type = rest.length === 0 ? "terminal" : "recursive";
+  switch (type) {
+    case "terminal":
+      return __spreadProps(__spreadValues({}, obj), { [head]: value });
+    case "recursive":
+      return __spreadProps(__spreadValues({}, obj), {
+        [head]: updateDeep(obj[head] || {}, rest, value)
+      });
+    default:
+      throw new Error(`Unsupported path type: ${type}`);
+  }
+}
+function removeDeep(obj, path) {
+  const [head, ...rest] = path;
+  if (rest.length === 0) {
+    const _a = obj, { [head]: _ } = _a, newObj = __objRest(_a, [__restKey(head)]);
+    return newObj;
+  }
+  return __spreadProps(__spreadValues({}, obj), {
+    [head]: removeDeep(obj[head] || {}, rest)
+  });
+}
 function createIdbPromise({
   name,
   version,
@@ -4481,62 +4646,122 @@ function createIdbPromise({
     request.onsuccess = (event) => {
       const db = event.target.result;
       resolve({
-        getState: (..._0) => __async(this, [..._0], function* (options = {}) {
+        /**
+         * Retrieves data from the IndexedDB store based on the provided options.
+         * @param {Object} [options={}] - Query options for retrieving data.
+         * @param {string} [options.type='all'] - The type of query to perform. Can be one of:
+         *   'key', 'index', 'all', 'range', 'cursor', 'count', 'keys', or 'unique'.
+         * @param {*} [options.key] - The key to retrieve when type is 'key'.
+         *   Example: { type: 'key', key: 123 }
+         * @param {string} [options.index] - The name of the index to use for 'index', 'range', 'cursor', 'count', 'keys', or 'unique' queries.
+         *   Example: { type: 'index', index: 'nameIndex', value: 'John' }
+         * @param {*} [options.value] - The value to search for in an index query.
+         *   Example: { type: 'index', index: 'ageIndex', value: 30 }
+         * @param {*} [options.lower] - The lower bound for a range query.
+         *   Example: { type: 'range', index: 'dateIndex', lower: '2023-01-01', upper: '2023-12-31' }
+         * @param {*} [options.upper] - The upper bound for a range query.
+         *   Example: { type: 'range', index: 'priceIndex', lower: 10, upper: 100 }
+         * @param {boolean} [options.lowerOpen] - Whether the lower bound is open in a range query.
+         *   Example: { type: 'range', index: 'scoreIndex', lower: 50, upper: 100, lowerOpen: true }
+         * @param {boolean} [options.upperOpen] - Whether the upper bound is open in a range query.
+         *   Example: { type: 'range', index: 'scoreIndex', lower: 50, upper: 100, upperOpen: true }
+         * @param {IDBKeyRange} [options.range] - The key range for cursor, count, or keys queries.
+         *   Example: { type: 'cursor', range: IDBKeyRange.bound(50, 100) }
+         * @param {IDBCursorDirection} [options.direction] - The direction for a cursor query.
+         *   Example: { type: 'cursor', range: IDBKeyRange.lowerBound(50), direction: 'prev' }
+         * @param {number} [options.limit] - The maximum number of results to return for a unique query.
+         *   Example: { type: 'unique', index: 'categoryIndex', limit: 5 }
+         * @returns {Promise<*>} A promise that resolves with the query results.
+         *
+         * Examples:
+         * - Get all records: { type: 'all' }
+         * - Count records: { type: 'count', range: IDBKeyRange.lowerBound(18) }
+         * - Get keys: { type: 'keys', index: 'dateIndex', range: IDBKeyRange.bound('2023-01-01', '2023-12-31') }
+         */
+        getState: (..._0) => __async(this, [..._0], function* (options = { type: "all" }) {
+          const buildIdbRequest = ({ store: store2, options: options2 }) => {
+            switch (options2.type) {
+              case "key":
+                if (typeof options2.key === "undefined") {
+                  throw new Error("Key must be provided for key-based query");
+                }
+                return store2.get(options2.key);
+              case "index":
+                if (typeof options2.index === "undefined" || typeof options2.value === "undefined") {
+                  throw new Error("Index and value must be provided for index-based query");
+                }
+                const index = store2.index(options2.index);
+                return index.getAll(options2.value);
+              case "all":
+                return store2.getAll();
+              case "range":
+                const range = IDBKeyRange.bound(options2.lower, options2.upper, options2.lowerOpen, options2.upperOpen);
+                return options2.index ? store2.index(options2.index).getAll(range) : store2.getAll(range);
+              case "cursor":
+                const cursorRequest = options2.index ? store2.index(options2.index).openCursor(options2.range, options2.direction) : store2.openCursor(options2.range, options2.direction);
+                return new Promise((resolve2, reject2) => {
+                  const results = [];
+                  cursorRequest.onsuccess = (event2) => {
+                    const cursor = event2.target.result;
+                    if (cursor) {
+                      results.push(cursor.value);
+                      cursor.continue();
+                    } else {
+                      resolve2(results);
+                    }
+                  };
+                  cursorRequest.onerror = reject2;
+                });
+              case "count":
+                return options2.index ? store2.index(options2.index).count(options2.range) : store2.count(options2.range);
+              case "keys":
+                return options2.index ? store2.index(options2.index).getAllKeys(options2.range) : store2.getAllKeys(options2.range);
+              case "unique":
+                if (!options2.index)
+                  throw new Error("Index must be specified for unique query");
+                return store2.index(options2.index).getAll(options2.range, options2.limit);
+              default:
+                throw new Error(`Unsupported query type: ${options2.type}`);
+            }
+          };
           return new Promise((resolveQuery, rejectQuery) => {
             const tx = db.transaction(storeName, "readonly");
             const store2 = tx.objectStore(storeName);
-            let request2;
-            if (options.key) {
-              request2 = store2.get(options.key);
-            } else if (options.index && options.value) {
-              const index = store2.index(options.index);
-              request2 = index.getAll(options.value);
-            } else {
-              request2 = store2.getAll();
-            }
+            const request2 = buildIdbRequest({ store: store2, options });
             request2.onsuccess = (event2) => resolveQuery(event2.target.result);
             request2.onerror = (event2) => rejectQuery(event2.target.error);
           });
         }),
         transaction: (mode) => db.transaction(storeName, mode),
         storeName
-        // Add this line to include the storeName
       });
     };
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      if (event.oldVersion < version) {
-        if (db.objectStoreNames.contains(storeName)) {
+      const oldVersion = event.oldVersion;
+      const upgradeType = (() => {
+        if (oldVersion === 0)
+          return "create";
+        if (oldVersion < version)
+          return "recreate";
+        return "update";
+      })();
+      switch (upgradeType) {
+        case "create":
+          const store2 = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+          store2.createIndex(indexName, indexName, { unique: false });
+          break;
+        case "recreate":
           db.deleteObjectStore(storeName);
-        }
+          upgradeActions.create();
+          break;
+        case "update":
+          console.log("Database is up to date");
+          break;
+        default:
+          throw new Error(`Unsupported upgrade type: ${upgradeType}`);
       }
-      const store2 = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
-      store2.createIndex(indexName, indexName, { unique: false });
     };
-  });
-}
-function unproxify(obj) {
-  if (typeof obj !== "object" || obj === null) {
-    return obj;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(unproxify);
-  }
-  const result = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      result[key] = unproxify(obj[key]);
-    }
-  }
-  return result;
-}
-function updateDeep(obj, path, value) {
-  const [head, ...rest] = path;
-  if (rest.length === 0) {
-    return __spreadProps(__spreadValues({}, obj), { [head]: value });
-  }
-  return __spreadProps(__spreadValues({}, obj), {
-    [head]: updateDeep(obj[head] || {}, rest, value)
   });
 }
 function persistToIdbThunk({
@@ -4550,7 +4775,7 @@ function persistToIdbThunk({
     return new Promise((resolve, reject) => {
       const tx = toIDBStore.transaction("readwrite");
       const store2 = tx.objectStore(toIDBStore.storeName);
-      const updates = [];
+      const updateLogs = [];
       const relevantPatches = patches.filter((patch) => {
         const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
         return pathArray.join(".").startsWith(fromStateKey);
@@ -4572,70 +4797,56 @@ function persistToIdbThunk({
         return Promise.resolve(state);
       };
       const applyPatches2 = () => __async(this, null, function* () {
+        const getOperationType = (patch, relativePath) => {
+          if (relativePath.length === 0)
+            return patch.op === "remove" ? "removeAll" : "replaceAll";
+          const index = parseInt(relativePath[0], 10);
+          if (isNaN(index))
+            return "invalid";
+          if (relativePath.length === 1)
+            return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
+          return "modifyNested";
+        };
         for (const patch of relevantPatches) {
           const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
           const relativePath = pathArray.slice(fromStateKey.split(".").length);
           state = yield getState();
-          switch (patch.op) {
-            case "add":
-            case "replace":
-              if (relativePath.length === 0) {
-                updates.push(`replaced entire data array with ${patch.value.length} items`);
-                state = unproxify(patch.value);
-              } else {
-                const index = parseInt(relativePath[0], 10);
-                if (isNaN(index)) {
-                  console.warn("Invalid index:", relativePath[0]);
-                  continue;
-                }
-                if (relativePath.length === 1) {
-                  updates.push(`${patch.op === "add" ? "added" : "replaced"} item at index ${index}`);
-                  state = [
-                    ...state.slice(0, index),
-                    unproxify(patch.value),
-                    ...state.slice(index + 1)
-                  ];
-                } else {
-                  updates.push(`updated ${relativePath.join(".")} of item at index ${index}`);
-                  state = [
-                    ...state.slice(0, index),
-                    updateDeep(state[index], relativePath.slice(1), unproxify(patch.value)),
-                    ...state.slice(index + 1)
-                  ];
-                }
-              }
+          const operationType = getOperationType(patch, relativePath);
+          const index = parseInt(relativePath[0], 10);
+          switch (operationType) {
+            case "replaceAll":
+              updateLogs.push(`replaced entire data array with ${patch.value.length} items`);
+              state = unproxify(patch.value);
               break;
-            case "remove":
-              if (relativePath.length === 0) {
-                updates.push("removed all items");
-                state = [];
-              } else {
-                const index = parseInt(relativePath[0], 10);
-                if (isNaN(index)) {
-                  console.warn("Invalid index:", relativePath[0]);
-                  continue;
-                }
-                if (relativePath.length === 1) {
-                  updates.push(`removed item at index ${index}`);
-                  state = [...state.slice(0, index), ...state.slice(index + 1)];
-                } else {
-                  updates.push(`removed ${relativePath.slice(1).join(".")} from item at index ${index}`);
-                  const newItem = __spreadValues({}, state[index]);
-                  let current2 = newItem;
-                  for (let i = 1; i < relativePath.length - 1; i++) {
-                    if (!current2[relativePath[i]])
-                      break;
-                    current2[relativePath[i]] = __spreadValues({}, current2[relativePath[i]]);
-                    current2 = current2[relativePath[i]];
-                  }
-                  delete current2[relativePath[relativePath.length - 1]];
-                  state = [
-                    ...state.slice(0, index),
-                    newItem,
-                    ...state.slice(index + 1)
-                  ];
-                }
-              }
+            case "removeAll":
+              updateLogs.push("removed all items");
+              state = [];
+              break;
+            case "modifyAtIndex":
+              updateLogs.push(`${patch.op === "add" ? "added" : "replaced"} item at index ${index}`);
+              state = [
+                ...state.slice(0, index),
+                unproxify(patch.value),
+                ...state.slice(index + 1)
+              ];
+              break;
+            case "removeAtIndex":
+              updateLogs.push(`removed item at index ${index}`);
+              state = [
+                ...state.slice(0, index),
+                ...state.slice(index + 1)
+              ];
+              break;
+            case "modifyNested":
+              updateLogs.push(`updated ${relativePath.join(".")} of item at index ${index}`);
+              state = [
+                ...state.slice(0, index),
+                updateDeep(state[index], relativePath.slice(1), unproxify(patch.value)),
+                ...state.slice(index + 1)
+              ];
+              break;
+            case "invalid":
+              console.warn("Invalid index:", relativePath[0]);
               break;
             default:
               console.warn("Unsupported operation:", patch.op);
@@ -4654,13 +4865,73 @@ function persistToIdbThunk({
       });
       applyPatches2().then(() => {
         tx.oncomplete = () => {
-          const updateSummary = updates.join(", ");
-          __trace(`indexdb:oncomplete`, `Mutated ${toIDBStore.storeName} object store with ${updateSummary}`);
+          const updateLogsSummary = updateLogs.join(", ");
+          __trace(`indexdb:oncomplete`, `Mutated ${toIDBStore.storeName} object store with ${updateLogsSummary}`);
           resolve();
         };
       }).catch(reject);
       tx.onerror = (event) => reject(event.target.error);
     });
+  });
+}
+function createLocalStorage({
+  key
+}) {
+  if (typeof key !== "string" || key.trim() === "") {
+    throw new Error("key must be a non-empty string");
+  }
+  return {
+    /**
+     * Retrieves data from localStorage based on the provided key.
+     * @returns {Promise<*>} A promise that resolves with the parsed data.
+     */
+    getState: () => __async(this, null, function* () {
+      return new Promise((resolve) => {
+        const data = localStorage.getItem(key);
+        resolve(data ? JSON.parse(data) : null);
+      });
+    }),
+    key
+  };
+}
+function persistToLocalStorageThunk({
+  fromStateKey,
+  toLocalStorage
+}) {
+  return (_0) => __async(this, [_0], function* ({ action, patches }) {
+    if (!Array.isArray(patches)) {
+      throw new Error("patches must be an array");
+    }
+    const relevantPatches = patches.filter((patch) => {
+      const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
+      return pathArray.join(".").startsWith(fromStateKey);
+    });
+    if (relevantPatches.length === 0) {
+      return;
+    }
+    const currentState = (yield toLocalStorage.getState()) || {};
+    let newState = __spreadValues({}, currentState);
+    const updateLogs = [];
+    for (const patch of relevantPatches) {
+      const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
+      const relativePath = pathArray.slice(fromStateKey.split(".").length);
+      switch (patch.op) {
+        case "add":
+        case "replace":
+          updateLogs.push(`updated ${relativePath.join(".")}`);
+          newState = updateDeep(newState, relativePath, unproxify(patch.value));
+          break;
+        case "remove":
+          updateLogs.push(`removed ${relativePath.join(".")}`);
+          newState = removeDeep(newState, relativePath);
+          break;
+        default:
+          console.warn("Unsupported operation:", patch.op);
+      }
+    }
+    localStorage.setItem(toLocalStorage.key, JSON.stringify(newState));
+    const updateLogsSummary = updateLogs.join(", ");
+    __trace(`localStorage:update`, `Updated ${toLocalStorage.key} with ${updateLogsSummary}`);
   });
 }
 
@@ -4674,11 +4945,13 @@ export {
   ReactiveElement,
   Type,
   createIdbPromise,
+  createLocalStorage,
   debug,
   effect,
   events,
   html,
   persistToIdbThunk,
+  persistToLocalStorageThunk,
   store,
   svg,
   useValidationHook,

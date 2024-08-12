@@ -40,6 +40,43 @@ class DependencyTracker {
     const recursionStack = new Set();
     const cyclePath = [];
 
+    const getNeighborType = (neighbor, visited, recursionStack) => {
+      if (!visited.has(neighbor)) return 'unvisited';
+      if (recursionStack.has(neighbor)) return 'cyclic';
+      return 'visited';
+    };
+
+    const getNodeType = (node, visited) => {
+      if (!visited.has(node)) return 'unvisited';
+      return 'visited';
+    };
+
+    const processDependencyNode = (node, visited) => {
+      const nodeType = getNodeType(node, visited);
+
+      switch (nodeType) {
+        case 'unvisited':
+          try {
+            if (dfs(node)) return 'cycle-detected';
+          } catch (error) {
+            if (error.message.startsWith('Cyclic dependency detected:')) {
+              console.warn(error.message);
+              return 'cycle-warned';
+            } else {
+              throw error; // Re-throw other errors
+            }
+          }
+          return 'processed';
+
+        case 'visited':
+          return 'skipped';
+
+        default:
+          console.warn(`Unexpected node type: ${nodeType}`);
+          return 'unknown';
+      }
+    };
+
     function dfs(node) {
       visited.add(node);
       recursionStack.add(node);
@@ -47,13 +84,23 @@ class DependencyTracker {
 
       const neighbors = DependencyTracker.dependencyGraph.get(node) || new Set();
       for (const neighbor of neighbors) {
-        if (!visited.has(neighbor)) {
-          if (dfs(neighbor)) return true;
-        } else if (recursionStack.has(neighbor)) {
-          // We've found a cycle, capture the cycle path
-          const cycleStart = cyclePath.indexOf(neighbor);
-          const cycle = cyclePath.slice(cycleStart);
-          console.warn(`Cyclic dependency detected: ${cycle.map(n => n.__name || 'unnamed').join(' -> ')}`);
+        const neighborType = getNeighborType(neighbor, visited, recursionStack);
+
+        switch (neighborType) {
+          case 'unvisited':
+            if (dfs(neighbor)) return true;
+            break;
+          case 'cyclic':
+            // We've found a cycle, capture the cycle path
+            const cycleStart = cyclePath.indexOf(neighbor);
+            const cycle = cyclePath.slice(cycleStart);
+            console.warn(`Cyclic dependency detected: ${cycle.map(n => n.__name || 'unnamed').join(' -> ')}`);
+            break;
+          case 'visited':
+            // Do nothing for already visited nodes that are not in the recursion stack
+            break;
+          default:
+            console.warn(`Unexpected neighbor type: ${neighborType}`);
         }
       }
 
@@ -62,17 +109,21 @@ class DependencyTracker {
       return false;
     }
 
+    // Main loop
     for (const node of DependencyTracker.dependencyGraph.keys()) {
-      if (!visited.has(node)) {
-        try {
-          if (dfs(node)) return true;
-        } catch (error) {
-          if (error.message.startsWith('Cyclic dependency detected:')) {
-            console.warn(error.message);
-          } else {
-            throw error; // Re-throw other errors
-          }
-        }
+      const result = processDependencyNode(node, visited);
+      switch (result) {
+        case 'cycle-detected':
+          return true;
+        case 'cycle-warned':
+        case 'processed':
+        case 'skipped':
+          break;
+        case 'unknown':
+          console.warn(`Unknown result for node processing`);
+          break;
+        default:
+          console.warn(`Unexpected result: ${result}`);
       }
     }
 

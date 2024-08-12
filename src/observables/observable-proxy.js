@@ -14,14 +14,46 @@ class ObservableProxy {
 
     return new Proxy(observable, {
       get: (target, property) => {
-        if (typeof target[property] === 'function') {
-          return target[property].bind(target);
-        } else if (property in target) {
-          return _deepClone(target[property]);
-        } else if (typeof target.value[property] === 'function') {
-          return (...args) => target.value[property](...args);
-        } else {
-          return _deepClone(target.value[property]);
+        const getPropertyType = (target, property) => {
+          if (typeof target[property] === 'function') return 'targetFunction';
+          if (property in target) return 'targetProperty';
+          if (typeof target.value[property] === 'function') return 'valueFunction';
+          return 'valueProperty';
+        };
+
+        const propertyType = getPropertyType(target, property);
+
+        switch (propertyType) {
+          case 'targetFunction':
+            // If the property is a function on the target (ObservableState instance),
+            // we bind it to the target to ensure correct 'this' context when called.
+            // This allows methods on ObservableState to be called correctly.
+            return target[property].bind(target);
+
+          case 'targetProperty':
+            // If the property exists directly on the target (ObservableState instance),
+            // we return a deep clone of it. This prevents accidental mutations of
+            // internal ObservableState properties.
+            return _deepClone(target[property]);
+
+          case 'valueFunction':
+            // If the property is a function on the target's value (the actual data),
+            // we return a new function that calls the original function with the correct context.
+            // This allows methods on the stored data to be called while maintaining reactivity.
+            return (...args) => target.value[property](...args);
+
+          case 'valueProperty':
+            // If the property is on the target's value (the actual data),
+            // we return a deep clone of it. This ensures that nested objects and arrays
+            // can be safely modified without affecting the original data until explicitly updated.
+            return _deepClone(target.value[property]);
+
+          default:
+            // If we encounter an unexpected property type, we log a warning and return undefined.
+            // This helps with debugging if the getPropertyType function is modified or if
+            // there's an unexpected scenario we haven't accounted for.
+            console.warn(`Unexpected property type: ${propertyType}`);
+            return undefined;
         }
       },
       set: (target, property, value) => {
