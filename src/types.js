@@ -12,7 +12,11 @@ const Type = {
   Symbol: 'symbol',
   Null: 'null',
   Object: (schema) => ({ type: 'object', schema }),
-  Array: (itemType) => ({ type: 'array', itemType }),
+  Array: (itemType, options = {}) => ({
+    type: 'array',
+    itemType,
+    allowEmpty: options.allowEmpty !== false // Default to true
+  }),
   Sum: (...types) => ({ type: 'sum', types }),
   Product: (fields) => ({ type: 'product', fields }),
   Any: { type: 'any' },
@@ -70,16 +74,31 @@ const typeValidators = {
     });
   },
   array: (value, type, path, rootState, validateType) => {
-    if (!Array.isArray(value)) throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
-    if (value.length > 0) {
-      value.forEach((item, index) => {
-        try {
-          validateType(item, type.itemType, [...path, index], rootState);
-        } catch (error) {
-          throw new Error(`Invalid item at index ${index}: ${error.message}`);
-        }
-      });
+    if (!Array.isArray(value)) {
+      throw new Error(`Expected array, got ${typeof value} at ${path.join('.')}`);
     }
+
+    // If the array is empty, it's valid
+    if (value.length === 0) {
+      return;
+    }
+
+    value.forEach((item, index) => {
+      if (item === undefined || item === null) {
+        // If the item type is optional, this is valid
+        if (type.itemType.type === 'optional') {
+          return;
+        }
+        throw new Error(`Unexpected ${item === null ? 'null' : 'undefined'} value at index ${index} at ${path.join('.')}`);
+      }
+
+      try {
+        const itemTypeToValidate = type.itemType.type === 'optional' ? type.itemType.optional : type.itemType;
+        validateType(item, itemTypeToValidate, [...path, index], rootState);
+      } catch (error) {
+        throw new Error(`Invalid item at index ${index}: ${error.message}`);
+      }
+    });
   },
   any: () => {},
   enum: (value, type, path) => {
@@ -100,10 +119,23 @@ const typeValidators = {
     }
   },
   product: (value, type, path, rootState, validateType) => {
-    if (typeof value !== 'object' || value === null) throw new Error(`Expected object, got ${typeof value} at ${path.join('.')}`);
-    Object.entries(type.fields).forEach(([key, subType]) => {
-      if (!(key in value)) throw new Error(`Missing required property ${key} at ${path.join('.')}`);
-      validateType(value[key], subType, [...path, key], rootState);
+    if (typeof value !== 'object' || value === null) {
+      throw new Error(`Expected object for Product type, got ${typeof value} at ${path.join('.')}`);
+    }
+
+    // Validate each field defined in the Product type
+    Object.entries(type.fields).forEach(([key, fieldType]) => {
+      // Check if the field exists in the value object
+      if (!(key in value)) {
+        // If the field is optional, it's okay if it's missing
+        if (fieldType.type === 'optional') {
+          return;
+        }
+        throw new Error(`Missing required field "${key}" in Product type at ${path.join('.')}`);
+      }
+
+      // Validate the field
+      validateType(value[key], fieldType, [...path, key], rootState, key);
     });
   },
   optional: (value, type, path, rootState, validateType) => {
@@ -275,40 +307,55 @@ const typeValidators = {
       if (!(key in value)) {
         throw new Error(`Missing required property ${key} in model at ${path.join('.')}`);
       }
-      validateType(value[key], fieldType, [...path, key], rootState);
+      validateType(value[key], fieldType, [...path, key], rootState, key);
     });
   }
 };
 
-const validateType = (value, type, path = [], rootState = {}) => {
+const validateType = (value, type, path = [], rootState = {}, currentKey = '') => {
+  if (type === undefined) {
+    throw new Error(`Invalid type definition for key "${currentKey}" at ${path.join('.')}`);
+  }
+
+  // Handle optional types
   if (type.type === 'optional') {
     if (value === undefined || value === null) {
       return; // Optional field is allowed to be undefined or null
     }
-    return validateType(value, type.optional, path, rootState);
+    return validateType(value, type.optional, path, rootState, currentKey);
   }
 
+  // Check for undefined required fields
   if (value === undefined) {
-    throw new Error(`Missing required property at ${path.join('.')}`);
+    throw new Error(`Missing required property "${currentKey}" at ${path.join('.')}`);
   }
 
+  // Handle null values
   if (value === null && type !== 'null') {
-    throw new Error(`Expected non-null value, got null at ${path.join('.')}`);
+    throw new Error(`Expected non-null value for "${currentKey}", got null at ${path.join('.')}`);
   }
 
+  // Handle Model instances
   if (type instanceof Model) {
-    return typeValidators.model(value, type, path, rootState, validateType);
+    return typeValidators.model(value, type, path, rootState, (v, t, p, r, k) => validateType(v, t, p, r, k));
   }
 
-  const validator = typeof type === 'string' ? typeValidators[type] : typeValidators[type.type];
-  if (validator) {
-    if (type.type === 'optional') {
-      return validator(value, type, path, rootState, validateType);
+  // Handle primitive types
+  if (typeof type === 'string') {
+    const validator = typeValidators[type];
+    if (validator) {
+      return validator(value, type, path, rootState, (v, t, p, r, k) => validateType(v, t, p, r, k));
     } else {
-      validator(value, type, path, rootState, validateType);
+      throw new Error(`Unknown primitive type ${type} for "${currentKey}" at ${path.join('.')}`);
     }
+  }
+
+  // Handle complex types (including Product)
+  const validator = typeValidators[type.type];
+  if (validator) {
+    return validator(value, type, path, rootState, (v, t, p, r, k) => validateType(v, t, p, r, k));
   } else {
-    throw new Error(`Unknown type ${JSON.stringify(type)} at ${path.join('.')}`);
+    throw new Error(`Unknown type ${JSON.stringify(type)} for "${currentKey}" at ${path.join('.')}`);
   }
 };
 
@@ -328,16 +375,15 @@ const useValidationHook = (schema) => {
 const useValidationThunk = (schema) => {
   return (state) => {
     const clonedState = _deepClone(state);
-    if (schema.type === 'dependentRecord') {
-      validateType(clonedState, schema, [], clonedState);
+    if (schema.type === 'product') {
+      try {
+        validateType(clonedState, schema, [], clonedState, 'root');
+      } catch (error) {
+        console.error('Validation error:', error);
+        throw error;
+      }
     } else {
-      Object.entries(schema).forEach(([key, type]) => {
-        try {
-          validateType(clonedState[key], type, [key], clonedState);
-        } catch (error) {
-          throw error;
-        }
-      });
+      throw new Error('Root schema must be a Product type');
     }
   };
 };
