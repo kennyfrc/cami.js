@@ -352,36 +352,66 @@ export function persistToIdbThunk({
   };
 }
 
+const VERSION_KEY_PREFIX = '__cami_ls_version_';
+
 export function createLocalStorage({
-  key,
+  name,
+  version,
 }) {
-  // Guard clause
-  if (typeof key !== 'string' || key.trim() === '') {
-    throw new Error('key must be a non-empty string');
+  // Guard clauses
+  if (typeof name !== 'string' || name.trim() === '') {
+    throw new Error('name must be a non-empty string');
+  }
+  if (!Number.isInteger(version) || version <= 0) {
+    throw new Error('version must be a positive integer');
+  }
+
+  const versionKey = `${VERSION_KEY_PREFIX}${name}`;
+
+  const checkVersion = () => {
+    const storedVersion = localStorage.getItem(versionKey);
+    if (storedVersion === null) {
+      localStorage.setItem(versionKey, version.toString());
+      return 'create';
+    }
+    if (parseInt(storedVersion, 10) < version) {
+      localStorage.setItem(versionKey, version.toString());
+      return 'update';
+    }
+    return 'current';
+  };
+
+  const versionStatus = checkVersion();
+  if (versionStatus === 'update') {
+    localStorage.removeItem(name);
+    __trace(`localStorage:version`, `Updated ${name} from version ${localStorage.getItem(versionKey)} to ${version}`);
+  } else if (versionStatus === 'create') {
+    __trace(`localStorage:version`, `Created ${name} with version ${version}`);
   }
 
   return {
     getState: async () => {
       return new Promise((resolve) => {
-        const data = localStorage.getItem(key);
+        const data = localStorage.getItem(name);
         resolve(data ? JSON.parse(data) : null);
       });
     },
 
     setState: async (state) => {
       return new Promise((resolve) => {
-        localStorage.setItem(key, JSON.stringify(state));
+        localStorage.setItem(name, JSON.stringify(state));
         resolve();
       });
     },
 
-    key: key,
+    name,
+    version,
   };
 }
 
 export function persistToLocalStorageThunk(toLocalStorage) {
   return async ({ action, state }) => {
     await toLocalStorage.setState(state);
-    __trace(`localStorage:update`, `Updated ${toLocalStorage.key} with entire state`);
+    __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
   };
 }

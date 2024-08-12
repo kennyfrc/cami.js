@@ -7,8 +7,10 @@ describe("LocalStorage Adapter", function() {
   const localStorageKey = 'test-todo-local-storage';
 
   beforeAll(function() {
-    todoLocalStorage = createLocalStorage({ key: localStorageKey });
-
+    todoLocalStorage = createLocalStorage({
+      name: localStorageKey,
+      version: 1,
+    });
     TodoModel = Type.Model("TodoModel", {
       todos: Type.Array(
         Type.Product({

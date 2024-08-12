@@ -638,7 +638,7 @@ const derive = function(deriveFn) {
   const tracker = {
     addDependency: (observable) => {
       if (!dependencies.has(observable)) {
-        const subscription = observable.onChange(_computeDerivedValue);
+        const subscription = observable.onValue(_computeDerivedValue)
         dependencies.add(observable);
         subscriptions.set(observable, subscription);
       }

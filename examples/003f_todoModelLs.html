@@ -26,7 +26,10 @@
   } = cami;
   cami.debug.enable();
 
-  const todoLocalStorage = createLocalStorage({ key: "TodoLocalStorage" });
+  const todoLocalStorage = createLocalStorage({
+    name: "TodoLocalStorage",
+    version: 1,
+  });
 
   const TodoModel = Type.Model("TodoModel", {
     todos: Type.Array(
