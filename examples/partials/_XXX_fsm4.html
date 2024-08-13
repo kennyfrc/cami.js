@@ -2,7 +2,10 @@
   <h1>Interactive Button State Machine</h1>
   <button-component></button-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, store } = cami;
@@ -10,58 +13,59 @@
 
   const buttonStore = store({
     state: {
-      status: 'unlocked',
-      interaction: 'default'
+      status: "unlocked",
+      interaction: "default",
     },
-    name: "button-store"
+    name: "button-store",
   });
 
-  buttonStore.defineMachine('button', {
+  buttonStore.defineMachine("button", {
     mouse_enter: {
       from: [
-        { status: 'unlocked', interaction: 'default' },
-        { status: 'locked', interaction: 'default' }
+        { status: "unlocked", interaction: "default" },
+        { status: "locked", interaction: "default" },
       ],
       to: ({ state }) => ({
         status: state.status,
-        interaction: state.status === 'unlocked' ? 'hovered' : 'locked_hovered'
-      })
+        interaction: state.status === "unlocked" ? "hovered" : "locked_hovered",
+      }),
     },
     mouse_leave: {
       from: [
-        { status: 'unlocked', interaction: 'hovered' },
-        { status: 'unlocked', interaction: 'pressed' },
-        { status: 'locked', interaction: 'locked_hovered' },
-        { status: 'locked', interaction: 'locked_pressed' }
+        { status: "unlocked", interaction: "hovered" },
+        { status: "unlocked", interaction: "pressed" },
+        { status: "locked", interaction: "locked_hovered" },
+        { status: "locked", interaction: "locked_pressed" },
       ],
       to: ({ state }) => ({
         status: state.status,
-        interaction: 'default'
-      })
+        interaction: "default",
+      }),
     },
     mouse_down: {
       from: [
-        { status: 'unlocked', interaction: 'hovered' },
-        { status: 'locked', interaction: 'locked_hovered' }
+        { status: "unlocked", interaction: "hovered" },
+        { status: "locked", interaction: "locked_hovered" },
       ],
       to: ({ state }) => ({
         status: state.status,
-        interaction: state.status === 'unlocked' ? 'pressed' : 'locked_pressed'
-      })
+        interaction: state.status === "unlocked" ? "pressed" : "locked_pressed",
+      }),
     },
     mouse_up: {
       from: [
-        { status: 'unlocked', interaction: 'pressed' },
-        { status: 'locked', interaction: 'locked_pressed' }
+        { status: "unlocked", interaction: "pressed" },
+        { status: "locked", interaction: "locked_pressed" },
       ],
       to: ({ state }) => ({
-        status: state.status === 'unlocked' ? 'locked' : 'unlocked',
-        interaction: state.status === 'unlocked' ? 'locked_hovered' : 'hovered'
-      })
-    }
+        status: state.status === "unlocked" ? "locked" : "unlocked",
+        interaction: state.status === "unlocked" ? "locked_hovered" : "hovered",
+      }),
+    },
   });
 
-  customElements.define('button-component',
+  customElements.define(
+    "button-component",
     class extends ReactiveElement {
       template() {
         const { status, interaction } = buttonStore.state;
@@ -87,23 +91,25 @@
               color: white;
               border-color: darkred;
             }
-            .hovered, .locked_hovered {
+            .hovered,
+            .locked_hovered {
               transform: scale(1.05);
-              box-shadow: 0 0 10px rgba(0,0,0,0.2);
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             }
-            .pressed, .locked_pressed {
+            .pressed,
+            .locked_pressed {
               transform: scale(0.95);
-              box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+              box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
             }
           </style>
           <button
             class="button ${status} ${interaction}"
-            @mouseenter=${() => trigger('button:mouse_enter')}
-            @mouseleave=${() => trigger('button:mouse_leave')}
-            @mousedown=${() => trigger('button:mouse_down')}
-            @mouseup=${() => trigger('button:mouse_up')}
+            @mouseenter=${() => trigger("button:mouse_enter")}
+            @mouseleave=${() => trigger("button:mouse_leave")}
+            @mousedown=${() => trigger("button:mouse_down")}
+            @mouseup=${() => trigger("button:mouse_up")}
           >
-            ${status === 'unlocked' ? 'Lock' : 'Unlock'} (${interaction})
+            ${status === "unlocked" ? "Lock" : "Unlock"} (${interaction})
           </button>
         `;
       }

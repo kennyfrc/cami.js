@@ -4925,9 +4925,11 @@ function createLocalStorage({
   };
 }
 function persistToLocalStorageThunk(toLocalStorage) {
-  return (_0) => __async(this, [_0], function* ({ action, state }) {
-    yield toLocalStorage.setState(state);
-    __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
+  return (_0) => __async(this, [_0], function* ({ action, state, previousState }) {
+    if (state !== previousState) {
+      yield toLocalStorage.setState(state);
+      __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
+    }
   });
 }
 

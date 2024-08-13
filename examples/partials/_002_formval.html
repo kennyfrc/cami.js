@@ -3,9 +3,15 @@
   <form-component></form-component>
 </article>
 <small>
-<p>Try entering an email that is already taken, such as trevinowanda@example.net (mock email)</p>
+  <p>
+    Try entering an email that is already taken, such as
+    trevinowanda@example.net (mock email)
+  </p>
 </small>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -15,12 +21,12 @@
   const FormModel = model("FormModel", {
     store: "form-store",
     state: {
-      email: '',
-      password: '',
-      emailError: '',
-      passwordError: '',
+      email: "",
+      password: "",
+      emailError: "",
+      passwordError: "",
       emailIsValid: null,
-      isEmailAvailable: null
+      isEmailAvailable: null,
     },
     actions: {
       setEmail: ({ state, payload }) => {
@@ -41,13 +47,15 @@
       setIsEmailAvailable: ({ state, payload }) => {
         state.isEmailAvailable = payload;
         // debugger;
-      }
+      },
     },
     queries: {
       queryEmail: {
-        queryKey: (email) => ['Email', email],
+        queryKey: (email) => ["Email", email],
         queryFn: (email) => {
-          return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json());
+          return fetch(`https://api.camijs.com/users?email=${email}`).then(
+            (res) => res.json()
+          );
         },
         onSuccess: ({ state, payload, actions, response }) => {
           if (response.length > 0) {
@@ -56,14 +64,16 @@
             actions.setIsEmailAvailable(true);
           }
         },
-        staleTime: 1000 * 60 * 5
-      }
-    }
+        staleTime: 1000 * 60 * 5,
+      },
+    },
   });
 
   class FormElement extends ReactiveElement {
     processEmailInput(e) {
-      const { isEmailValid, emailError, email } = this.validateEmail(e.target.value);
+      const { isEmailValid, emailError, email } = this.validateEmail(
+        e.target.value
+      );
       FormModel.setEmailError(emailError);
       FormModel.setEmailIsValid(isEmailValid);
       FormModel.setEmail(email);
@@ -72,22 +82,24 @@
 
     processPasswordInput(e) {
       const { isValid, password } = this.validatePassword(e.target.value);
-      FormModel.setPasswordError(isValid ? '' : 'Password must be at least 8 characters long.');
+      FormModel.setPasswordError(
+        isValid ? "" : "Password must be at least 8 characters long."
+      );
       FormModel.setPassword(password);
     }
 
     validateEmail(email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      let emailError = '';
+      let emailError = "";
       let isEmailValid = null;
-      if (email === '') {
-        emailError = '';
+      if (email === "") {
+        emailError = "";
         isEmailValid = null;
       } else if (!emailRegex.test(email)) {
-        emailError = 'Please enter a valid email address.';
+        emailError = "Please enter a valid email address.";
         isEmailValid = false;
       } else {
-        emailError = '';
+        emailError = "";
         isEmailValid = true;
       }
       return { isEmailValid, emailError, email };
@@ -95,7 +107,7 @@
 
     validatePassword(password) {
       let isValid = false;
-      if (password === '') {
+      if (password === "") {
         isValid = null;
       } else if (password?.length >= 8) {
         isValid = true;
@@ -104,9 +116,12 @@
     }
 
     getEmailInputState() {
-      if (FormModel.email === '') {
-        return '';
-      } else if (FormModel.emailIsValid && FormModel.isEmailAvailable === true) {
+      if (FormModel.email === "") {
+        return "";
+      } else if (
+        FormModel.emailIsValid &&
+        FormModel.isEmailAvailable === true
+      ) {
         return false;
       } else {
         return true;
@@ -114,9 +129,9 @@
     }
 
     getPasswordInputState() {
-      if (FormModel.password === '') {
-        return '';
-      } else if (FormModel.passwordError === '') {
+      if (FormModel.password === "") {
+        return "";
+      } else if (FormModel.passwordError === "") {
         return false;
       } else {
         return true;
@@ -128,26 +143,44 @@
         <form action="/submit" method="POST">
           <label>
             Email:
-            <input type="email"
+            <input
+              type="email"
               aria-invalid=${this.getEmailInputState()}
               @input=${(e) => this.processEmailInput(e)}
-              value=${FormModel.email}>
-            <span>${FormModel.isEmailAvailable === false && FormModel.emailError === '' ? 'Email is already taken.' : ''}</span>
+              value=${FormModel.email}
+            />
+            <span
+              >${FormModel.isEmailAvailable === false &&
+              FormModel.emailError === ""
+                ? "Email is already taken."
+                : ""}</span
+            >
             <span>${FormModel.emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password"
+            <input
+              type="password"
               @input=${(e) => this.processPasswordInput(e)}
               value=${FormModel.password}
-              aria-invalid=${this.getPasswordInputState()}>
+              aria-invalid=${this.getPasswordInputState()}
+            />
             <span>${FormModel.passwordError}</span>
           </label>
-          <input type="submit" value="Submit" style="opacity: ${FormModel.emailError !== '' || FormModel.passwordError !== '' || FormModel.email === '' || FormModel.password === '' ? '0.5' : '1'}">
+          <input
+            type="submit"
+            value="Submit"
+            style="opacity: ${FormModel.emailError !== "" ||
+            FormModel.passwordError !== "" ||
+            FormModel.email === "" ||
+            FormModel.password === ""
+              ? "0.5"
+              : "1"}"
+          />
         </form>
       `;
     }
   }
 
-  customElements.define('form-component', FormElement);
+  customElements.define("form-component", FormElement);
 </script>

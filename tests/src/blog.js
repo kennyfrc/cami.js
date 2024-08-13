@@ -4,59 +4,61 @@ const blogStore = store({
   state: {
     posts: [],
     loading: false,
-    error: null
+    error: null,
   },
-  name: "blog-store"
+  name: "blog-store",
 });
 
-blogStore.defineAction('setPosts', ({ state, payload }) => {
+blogStore.defineAction("setPosts", ({ state, payload }) => {
   state.posts = payload;
   state.loading = false;
 });
 
-blogStore.defineAction('setError', ({ state, payload }) => {
+blogStore.defineAction("setError", ({ state, payload }) => {
   state.error = payload;
   state.loading = false;
 });
 
-blogStore.defineAction('pushPost', ({ state, payload }) => {
+blogStore.defineAction("pushPost", ({ state, payload }) => {
   state.posts.push(payload);
 });
 
-blogStore.defineQuery('fetchPosts', {
-  queryKey: ['posts'],
-  queryFn: () => fetch("https://api.camijs.com/posts").then(res => res.json()),
+blogStore.defineQuery("fetchPosts", {
+  queryKey: ["posts"],
+  queryFn: () =>
+    fetch("https://api.camijs.com/posts").then((res) => res.json()),
   onSuccess: ({ dispatch, data }) => {
-    dispatch('setPosts', data);
+    dispatch("setPosts", data);
   },
   onError: ({ dispatch, data }) => {
-    dispatch('setError', data.message);
-  }
+    dispatch("setError", data.message);
+  },
 });
 
-blogStore.defineMutation('createPost', {
+blogStore.defineMutation("createPost", {
   mutationFn: (payload) => {
     return fetch("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(payload),
       headers: {
-        "Content-type": "application/json; charset=UTF-8"
-      }
-    }).then(res => res.json());
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    }).then((res) => res.json());
   },
   onMutate: ({ dispatch, payload }) => {
     const post = { ...payload, id: Date.now() };
-    dispatch('pushPost', post);
+    dispatch("pushPost", post);
   },
   onSuccess: ({ invalidateQueries }) => {
-    invalidateQueries({ queryKey: ['posts'] });
+    invalidateQueries({ queryKey: ["posts"] });
   },
   onError: ({ dispatch, previousState }) => {
-    dispatch('setPosts', previousState.posts);
-  }
+    dispatch("setPosts", previousState.posts);
+  },
 });
 
-customElements.define('blog-component',
+customElements.define(
+  "blog-component",
   class extends ReactiveElement {
     template() {
       const { loading, error, posts } = blogStore.state;
@@ -67,9 +69,12 @@ customElements.define('blog-component',
 
       return html`
         <ul>
-          ${posts.map(post => html`<li>${post.title}</li>`)}
+          ${posts.map((post) => html`<li>${post.title}</li>`)}
         </ul>
-        <button @click=${() => mutate('createPost', { title: 'New Post', content: 'Content' })}>
+        <button
+          @click=${() =>
+            mutate("createPost", { title: "New Post", content: "Content" })}
+        >
           Add New Post
         </button>
       `;

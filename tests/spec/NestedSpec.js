@@ -1,118 +1,124 @@
-describe('Objects are Observable - UserFormElement', () => {
+describe("Objects are Observable - UserFormElement", () => {
   let userFormElement;
 
   beforeEach(async () => {
-    userFormElement = document.createElement('nested-form-component');
+    userFormElement = document.createElement("nested-form-component");
     document.body.appendChild(userFormElement);
-    await window.customElements.whenDefined('nested-form-component');
+    await window.customElements.whenDefined("nested-form-component");
     await userFormElement.updateComplete;
-    await new Promise(resolve => setTimeout(resolve,50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   });
 
   afterEach(() => {
     document.body.removeChild(userFormElement);
   });
 
-  it('should initialize with default user data', () => {
-    expect(userFormElement.user.name).toBe('Kenn');
+  it("should initialize with default user data", () => {
+    expect(userFormElement.user.name).toBe("Kenn");
     expect(userFormElement.user.age).toBe(34);
-    expect(userFormElement.user.email).toBe('kenn@example.com');
+    expect(userFormElement.user.email).toBe("kenn@example.com");
     const nameInput = userFormElement.querySelector('input[type="text"]');
-    expect(nameInput.value).toBe('Kenn');
+    expect(nameInput.value).toBe("Kenn");
   });
 
-  it('should update user data and input field when input changes', async () => {
+  it("should update user data and input field when input changes", async () => {
     const inputElement = userFormElement.querySelector('input[type="text"]');
-    inputElement.value = 'New Name';
-    inputElement.dispatchEvent(new Event('input'));
+    inputElement.value = "New Name";
+    inputElement.dispatchEvent(new Event("input"));
     await userFormElement.updateComplete;
-    expect(userFormElement.user.name).toBe('New Name');
-    expect(inputElement.value).toBe('New Name');
+    expect(userFormElement.user.name).toBe("New Name");
+    expect(inputElement.value).toBe("New Name");
   });
 
-  it('should reset user data and input field when reset button is clicked', async () => {
+  it("should reset user data and input field when reset button is clicked", async () => {
     const inputElement = userFormElement.querySelector('input[type="text"]');
-    inputElement.value = 'New Name';
-    inputElement.dispatchEvent(new Event('input'));
-    const resetButton = userFormElement.querySelector('button');
-    resetButton.dispatchEvent(new Event('click'));
+    inputElement.value = "New Name";
+    inputElement.dispatchEvent(new Event("input"));
+    const resetButton = userFormElement.querySelector("button");
+    resetButton.dispatchEvent(new Event("click"));
     await userFormElement.updateComplete;
-    expect(userFormElement.user.name).toBe('Kenn');
-    expect(inputElement.value).toBe('Kenn');
+    expect(userFormElement.user.name).toBe("Kenn");
+    expect(inputElement.value).toBe("Kenn");
     expect(userFormElement.user.age).toBe(34);
-    expect(userFormElement.user.email).toBe('kenn@example.com');
+    expect(userFormElement.user.email).toBe("kenn@example.com");
   });
 
-  it('should assign new user data correctly', async () => {
-    userFormElement.user.assign({ name: 'New Name', age: 35, email: 'new@example.com' });
+  it("should assign new user data correctly", async () => {
+    userFormElement.user.assign({
+      name: "New Name",
+      age: 35,
+      email: "new@example.com",
+    });
     await userFormElement.updateComplete;
-    expect(userFormElement.user.name).toBe('New Name');
+    expect(userFormElement.user.name).toBe("New Name");
     expect(userFormElement.user.age).toBe(35);
-    expect(userFormElement.user.email).toBe('new@example.com');
+    expect(userFormElement.user.email).toBe("new@example.com");
     const nameInput = userFormElement.querySelector('input[type="text"]');
-    expect(nameInput.value).toBe('New Name');
+    expect(nameInput.value).toBe("New Name");
   });
 
-  it('should set new user name correctly', async () => {
-    userFormElement.user.set('name', 'New Name');
+  it("should set new user name correctly", async () => {
+    userFormElement.user.set("name", "New Name");
     await userFormElement.updateComplete;
-    expect(userFormElement.user.name).toBe('New Name');
+    expect(userFormElement.user.name).toBe("New Name");
     const nameInput = userFormElement.querySelector('input[type="text"]');
-    expect(nameInput.value).toBe('New Name');
+    expect(nameInput.value).toBe("New Name");
   });
 
-  it('should delete user name correctly', async () => {
-    userFormElement.user.set('name', 'New Name');
+  it("should delete user name correctly", async () => {
+    userFormElement.user.set("name", "New Name");
     await userFormElement.updateComplete;
-    userFormElement.user.delete('name');
+    userFormElement.user.delete("name");
     await userFormElement.updateComplete;
     expect(userFormElement.user.name).toBeUndefined();
     const nameInput = userFormElement.querySelector('input[type="text"]');
-    expect(nameInput.value).toBe('undefined');
+    expect(nameInput.value).toBe("undefined");
   });
 
-  it('should set new user name correctly', async () => {
-    userFormElement.user.set('name', 'New Name');
+  it("should set new user name correctly", async () => {
+    userFormElement.user.set("name", "New Name");
     await userFormElement.updateComplete;
-    expect(userFormElement.user.name).toBe('New Name');
+    expect(userFormElement.user.name).toBe("New Name");
     const nameInput = userFormElement.querySelector('input[type="text"]');
-    expect(nameInput.value).toBe('New Name');
+    expect(nameInput.value).toBe("New Name");
   });
 
-  it('should clear user data correctly', async () => {
-    userFormElement.user.set('name', 'New Name');
+  it("should clear user data correctly", async () => {
+    userFormElement.user.set("name", "New Name");
     userFormElement.user.clear();
     await userFormElement.updateComplete;
     const nameInput = userFormElement.querySelector('input[type="text"]');
-    expect(nameInput.value).toBe('undefined');
+    expect(nameInput.value).toBe("undefined");
   });
 
-  it('should set new user data correctly', async () => {
-    userFormElement.user.set('address.street', 'New Street');
+  it("should set new user data correctly", async () => {
+    userFormElement.user.set("address.street", "New Street");
     await userFormElement.updateComplete;
     const streetInput = userFormElement.querySelector('input[name="street"]');
-    expect(streetInput.value).toBe('New Street');
+    expect(streetInput.value).toBe("New Street");
   });
 
-  it('should delete user data correctly', async () => {
-    userFormElement.user.delete('address.street');
+  it("should delete user data correctly", async () => {
+    userFormElement.user.delete("address.street");
     await userFormElement.updateComplete;
     const streetInput = userFormElement.querySelector('input[name="street"]');
-    expect(streetInput.value).toBe('undefined');
+    expect(streetInput.value).toBe("undefined");
   });
 
-  it('should add new user data correctly', async () => {
-    userFormElement.user.set('address.postcode', '12345');
+  it("should add new user data correctly", async () => {
+    userFormElement.user.set("address.postcode", "12345");
     await userFormElement.updateComplete;
-    const postcodeInput = userFormElement.querySelector('input[name="postcode"]');
-    expect(postcodeInput.value).toBe('12345');
+    const postcodeInput = userFormElement.querySelector(
+      'input[name="postcode"]'
+    );
+    expect(postcodeInput.value).toBe("12345");
   });
 
-  it('should clear user data correctly', async () => {
-    userFormElement.user.set('name', 'New Name');
+  it("should clear user data correctly", async () => {
+    userFormElement.user.set("name", "New Name");
     userFormElement.user.clear();
     await userFormElement.updateComplete;
     const nameInput = userFormElement.querySelector('input[name="name"]');
-    expect(nameInput.value).toBe('undefined');
+    expect(nameInput.value).toBe("undefined");
   });
 });

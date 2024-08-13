@@ -1,8 +1,8 @@
-import { Observable } from './observable.js';
-import { produce } from 'immer';
-import { _deepEqual } from '../utils.js';
-import { __config } from '../config.js';
-import { __trace } from '../trace.js';
+import { Observable } from "./observable.js";
+import { produce } from "immer";
+import { _deepEqual } from "../utils.js";
+import { __config } from "../config.js";
+import { __trace } from "../trace.js";
 
 /**
  * @private
@@ -41,39 +41,39 @@ class DependencyTracker {
     const cyclePath = [];
 
     const getNeighborType = (neighbor, visited, recursionStack) => {
-      if (!visited.has(neighbor)) return 'unvisited';
-      if (recursionStack.has(neighbor)) return 'cyclic';
-      return 'visited';
+      if (!visited.has(neighbor)) return "unvisited";
+      if (recursionStack.has(neighbor)) return "cyclic";
+      return "visited";
     };
 
     const getNodeType = (node, visited) => {
-      if (!visited.has(node)) return 'unvisited';
-      return 'visited';
+      if (!visited.has(node)) return "unvisited";
+      return "visited";
     };
 
     const processDependencyNode = (node, visited) => {
       const nodeType = getNodeType(node, visited);
 
       switch (nodeType) {
-        case 'unvisited':
+        case "unvisited":
           try {
-            if (dfs(node)) return 'cycle-detected';
+            if (dfs(node)) return "cycle-detected";
           } catch (error) {
-            if (error.message.startsWith('Cyclic dependency detected:')) {
+            if (error.message.startsWith("Cyclic dependency detected:")) {
               console.warn(error.message);
-              return 'cycle-warned';
+              return "cycle-warned";
             } else {
               throw error; // Re-throw other errors
             }
           }
-          return 'processed';
+          return "processed";
 
-        case 'visited':
-          return 'skipped';
+        case "visited":
+          return "skipped";
 
         default:
           console.warn(`Unexpected node type: ${nodeType}`);
-          return 'unknown';
+          return "unknown";
       }
     };
 
@@ -82,21 +82,26 @@ class DependencyTracker {
       recursionStack.add(node);
       cyclePath.push(node);
 
-      const neighbors = DependencyTracker.dependencyGraph.get(node) || new Set();
+      const neighbors =
+        DependencyTracker.dependencyGraph.get(node) || new Set();
       for (const neighbor of neighbors) {
         const neighborType = getNeighborType(neighbor, visited, recursionStack);
 
         switch (neighborType) {
-          case 'unvisited':
+          case "unvisited":
             if (dfs(neighbor)) return true;
             break;
-          case 'cyclic':
+          case "cyclic":
             // We've found a cycle, capture the cycle path
             const cycleStart = cyclePath.indexOf(neighbor);
             const cycle = cyclePath.slice(cycleStart);
-            console.warn(`Cyclic dependency detected: ${cycle.map(n => n.__name || 'unnamed').join(' -> ')}`);
+            console.warn(
+              `Cyclic dependency detected: ${cycle
+                .map((n) => n.__name || "unnamed")
+                .join(" -> ")}`
+            );
             break;
-          case 'visited':
+          case "visited":
             // Do nothing for already visited nodes that are not in the recursion stack
             break;
           default:
@@ -113,13 +118,13 @@ class DependencyTracker {
     for (const node of DependencyTracker.dependencyGraph.keys()) {
       const result = processDependencyNode(node, visited);
       switch (result) {
-        case 'cycle-detected':
+        case "cycle-detected":
           return true;
-        case 'cycle-warned':
-        case 'processed':
-        case 'skipped':
+        case "cycle-warned":
+        case "processed":
+        case "skipped":
           break;
-        case 'unknown':
+        case "unknown":
           console.warn(`Unknown result for node processing`);
           break;
         default:
@@ -154,14 +159,18 @@ class ObservableState extends Observable {
    * @example
    * const observable = new ObservableState(10);
    */
-  constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
+  constructor(
+    initialValue = null,
+    subscriber = null,
+    { last = false, name = null } = {}
+  ) {
     super();
     if (last) {
       this.__lastObserver = subscriber;
     } else {
       this.__observers.push(subscriber);
     }
-    this.__value = produce(initialValue, draft => {});
+    this.__value = produce(initialValue, (draft) => {});
     this.__pendingUpdates = [];
     this.__updateScheduled = false;
     this.__name = name;
@@ -191,7 +200,7 @@ class ObservableState extends Observable {
    */
   set value(newValue) {
     if (this.__isUpdating) {
-      const cycle = [...this.__updateStack, this.__name].join(' -> ');
+      const cycle = [...this.__updateStack, this.__name].join(" -> ");
       console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
       // Optionally, return here to prevent the update
       // return;
@@ -219,10 +228,10 @@ class ObservableState extends Observable {
    * observable.assign({ key: 'value' });
    */
   assign(obj) {
-    if (typeof this.__value !== 'object' || this.__value === null) {
-      throw new Error('[Cami.js] Observable value is not an object');
+    if (typeof this.__value !== "object" || this.__value === null) {
+      throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update(value => Object.assign(value, obj));
+    this.update((value) => Object.assign(value, obj));
   }
 
   /**
@@ -235,11 +244,11 @@ class ObservableState extends Observable {
    * observable.set('key.subkey', 'new value');
    */
   set(key, value) {
-    if (typeof this.__value !== 'object' || this.__value === null) {
-      throw new Error('[Cami.js] Observable value is not an object');
+    if (typeof this.__value !== "object" || this.__value === null) {
+      throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update(state => {
-      const keys = key.split('.');
+    this.update((state) => {
+      const keys = key.split(".");
       let current = state;
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
@@ -257,11 +266,11 @@ class ObservableState extends Observable {
    * observable.delete('key.subkey');
    */
   delete(key) {
-    if (typeof this.__value !== 'object' || this.__value === null) {
-      throw new Error('[Cami.js] Observable value is not an object');
+    if (typeof this.__value !== "object" || this.__value === null) {
+      throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update(state => {
-      const keys = key.split('.');
+    this.update((state) => {
+      const keys = key.split(".");
       let current = state;
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
@@ -289,9 +298,9 @@ class ObservableState extends Observable {
    */
   push(...elements) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.push(...elements);
     });
   }
@@ -304,9 +313,9 @@ class ObservableState extends Observable {
    */
   pop() {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.pop();
     });
   }
@@ -319,9 +328,9 @@ class ObservableState extends Observable {
    */
   shift() {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.shift();
     });
   }
@@ -337,9 +346,9 @@ class ObservableState extends Observable {
    */
   splice(start, deleteCount, ...items) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(arr => {
+    this.update((arr) => {
       arr.splice(start, deleteCount, ...items);
     });
   }
@@ -353,9 +362,9 @@ class ObservableState extends Observable {
    */
   unshift(...elements) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.unshift(...elements);
     });
   }
@@ -368,9 +377,9 @@ class ObservableState extends Observable {
    */
   reverse() {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.reverse();
     });
   }
@@ -384,9 +393,9 @@ class ObservableState extends Observable {
    */
   sort(compareFunction) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.sort(compareFunction);
     });
   }
@@ -402,9 +411,9 @@ class ObservableState extends Observable {
    */
   fill(value, start = 0, end = this.__value.length) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(arr => {
+    this.update((arr) => {
       arr.fill(value, start, end);
     });
   }
@@ -420,9 +429,9 @@ class ObservableState extends Observable {
    */
   copyWithin(target, start, end = this.__value.length) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(arr => {
+    this.update((arr) => {
       arr.copyWithin(target, start, end);
     });
   }
@@ -438,7 +447,7 @@ class ObservableState extends Observable {
    */
   update(updater) {
     if (this.__isUpdating) {
-      const cycle = [...this.__updateStack, this.__name].join(' -> ');
+      const cycle = [...this.__updateStack, this.__name].join(" -> ");
       console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
       // Optionally, return here to prevent the update
       // return;
@@ -474,8 +483,8 @@ class ObservableState extends Observable {
    */
   __notifyObservers() {
     const observersWithLast = [...this.__observers, this.__lastObserver];
-    observersWithLast.forEach(observer => {
-      if (observer && typeof observer === 'function') {
+    observersWithLast.forEach((observer) => {
+      if (observer && typeof observer === "function") {
         observer(this.__value);
       } else if (observer && observer.next) {
         observer.next(this.__value);
@@ -493,7 +502,12 @@ class ObservableState extends Observable {
     let oldValue = this.__value;
     while (this.__pendingUpdates.length > 0) {
       const updater = this.__pendingUpdates.shift();
-      if ((typeof this.__value === 'object' && this.__value !== null && this.__value.constructor === Object) || Array.isArray(this.__value)) {
+      if (
+        (typeof this.__value === "object" &&
+          this.__value !== null &&
+          this.__value.constructor === Object) ||
+        Array.isArray(this.__value)
+      ) {
         this.__value = produce(this.__value, updater);
       } else {
         this.__value = updater(this.__value);
@@ -502,18 +516,18 @@ class ObservableState extends Observable {
     if (!_deepEqual(oldValue, this.__value)) {
       this.__notifyObservers();
 
-      if (__config.events.isEnabled && typeof window !== 'undefined') {
-        const event = new CustomEvent('cami:elem:state:change', {
+      if (__config.events.isEnabled && typeof window !== "undefined") {
+        const event = new CustomEvent("cami:elem:state:change", {
           detail: {
             name: this.__name,
             oldValue: oldValue,
-            newValue: this.__value
-          }
+            newValue: this.__value,
+          },
         });
         window.dispatchEvent(event);
       }
 
-      __trace('cami:elem:state:change', this.__name, oldValue, this.__value);
+      __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
     }
     this.__updateScheduled = false;
   }
@@ -525,8 +539,8 @@ class ObservableState extends Observable {
    * observable.complete();
    */
   complete() {
-    this.__observers.forEach(observer => {
-      if (observer && typeof observer.complete === 'function') {
+    this.__observers.forEach((observer) => {
+      if (observer && typeof observer.complete === "function") {
         observer.complete();
       }
     });
@@ -542,7 +556,7 @@ class ObservableState extends Observable {
  * // Assuming `effectFn` is a function that is called when the observable changes
  * const effectFunction = effect(effectFn);
  */
-const effect = function(effectFn) {
+const effect = function (effectFn) {
   let cleanup = () => {};
   let dependencies = new Set();
   let subscriptions = new Map();
@@ -561,7 +575,7 @@ const effect = function(effectFn) {
         dependencies.add(observable);
         subscriptions.set(observable, subscription);
       }
-    }
+    },
   };
 
   /**
@@ -592,7 +606,7 @@ const effect = function(effectFn) {
     }
   };
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     requestAnimationFrame(_runEffect);
   } else {
     queueMicrotask(_runEffect);
@@ -630,7 +644,7 @@ const effect = function(effectFn) {
  * console.log(doubleCount); // 10
  * dispose(); // Clean up when no longer needed
  */
-const derive = function(deriveFn) {
+const derive = function (deriveFn) {
   let dependencies = new Set();
   let subscriptions = new Map();
   let currentValue;
@@ -638,11 +652,11 @@ const derive = function(deriveFn) {
   const tracker = {
     addDependency: (observable) => {
       if (!dependencies.has(observable)) {
-        const subscription = observable.onValue(_computeDerivedValue)
+        const subscription = observable.onValue(_computeDerivedValue);
         dependencies.add(observable);
         subscriptions.set(observable, subscription);
       }
-    }
+    },
   };
 
   const _computeDerivedValue = () => {
@@ -650,7 +664,7 @@ const derive = function(deriveFn) {
     try {
       currentValue = deriveFn();
     } catch (error) {
-      console.warn('[Cami.js] Error in derive function:', error.message);
+      console.warn("[Cami.js] Error in derive function:", error.message);
     } finally {
       DependencyTracker.current = null;
     }

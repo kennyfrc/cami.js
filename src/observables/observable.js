@@ -19,13 +19,13 @@ class Subscriber {
    * @param {Observer|Function} observer - The observer object or function.
    */
   constructor(observer) {
-    if (typeof observer === 'function') {
+    if (typeof observer === "function") {
       this.observer = { next: observer };
     } else {
       this.observer = observer;
     }
     this.teardowns = [];
-    if (typeof AbortController !== 'undefined') {
+    if (typeof AbortController !== "undefined") {
       this.controller = new AbortController();
       this.signal = this.controller.signal;
     }
@@ -97,9 +97,11 @@ class Subscriber {
       if (this.controller) {
         this.controller.abort();
       }
-      this.teardowns.forEach(teardown => {
-        if (typeof teardown !== 'function') {
-          throw new Error('[Cami.js] Teardown must be a function. Please implement a teardown function in your subscriber.');
+      this.teardowns.forEach((teardown) => {
+        if (typeof teardown !== "function") {
+          throw new Error(
+            "[Cami.js] Teardown must be a function. Please implement a teardown function in your subscriber."
+          );
         }
         teardown();
       });
@@ -140,16 +142,18 @@ class Observable {
   subscribe(observerOrNext = () => {}, error = () => {}, complete = () => {}) {
     let observer;
 
-    if (typeof observerOrNext === 'function') {
+    if (typeof observerOrNext === "function") {
       observer = {
         next: observerOrNext,
         error,
         complete,
       };
-    } else if (typeof observerOrNext === 'object') {
+    } else if (typeof observerOrNext === "object") {
       observer = observerOrNext;
     } else {
-      throw new Error('[Cami.js] First argument to subscribe must be a next callback or an observer object');
+      throw new Error(
+        "[Cami.js] First argument to subscribe must be a next callback or an observer object"
+      );
     }
 
     const subscriber = new Subscriber(observer);
@@ -161,7 +165,7 @@ class Observable {
       if (subscriber.error) {
         subscriber.error(error);
       } else {
-        console.error('[Cami.js] Error in Subscriber:', error);
+        console.error("[Cami.js] Error in Subscriber:", error);
       }
       return;
     }
@@ -185,7 +189,7 @@ class Observable {
    * observable.next('Hello, world!');
    */
   next(value) {
-    this.__observers.forEach(observer => {
+    this.__observers.forEach((observer) => {
       observer.next(value);
     });
   }
@@ -199,7 +203,7 @@ class Observable {
    * observable.error(new Error('Something went wrong'));
    */
   error(error) {
-    this.__observers.forEach(observer => {
+    this.__observers.forEach((observer) => {
       observer.error(error);
     });
   }
@@ -212,7 +216,7 @@ class Observable {
    * observable.complete();
    */
   complete() {
-    this.__observers.forEach(observer => {
+    this.__observers.forEach((observer) => {
       observer.complete();
     });
   }
@@ -228,7 +232,7 @@ class Observable {
    */
   onValue(callbackFn) {
     return this.subscribe({
-      next: callbackFn
+      next: callbackFn,
     });
   }
 
@@ -243,7 +247,7 @@ class Observable {
    */
   onError(callbackFn) {
     return this.subscribe({
-      error: callbackFn
+      error: callbackFn,
     });
   }
 
@@ -258,7 +262,7 @@ class Observable {
    */
   onEnd(callbackFn) {
     return this.subscribe({
-      complete: callbackFn
+      complete: callbackFn,
     });
   }
 
@@ -275,17 +279,17 @@ class Observable {
   [Symbol.asyncIterator]() {
     let observer;
     let resolve;
-    let promise = new Promise(r => (resolve = r));
+    let promise = new Promise((r) => (resolve = r));
 
     observer = {
-      next: value => {
+      next: (value) => {
         resolve({ value, done: false });
-        promise = new Promise(r => (resolve = r));
+        promise = new Promise((r) => (resolve = r));
       },
       complete: () => {
         resolve({ done: true });
       },
-      error: err => {
+      error: (err) => {
         throw err;
       },
     };

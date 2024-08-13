@@ -2,7 +2,10 @@
   <h1>Toast Component Demo</h1>
   <toast-demo></toast-demo>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, model } = cami;
@@ -11,7 +14,7 @@
   const ToastModel = model("ToastModel", {
     store: "toast-store",
     state: {
-      toasts: []
+      toasts: [],
     },
     actions: {
       addToast: ({ state, payload }) => {
@@ -19,41 +22,69 @@
         state.toasts.push({ ...payload, id });
 
         if (payload.duration !== Infinity) {
-          setTimeout(() => ToastModel.dispatch('removeToast', id), payload.duration || 4000);
+          setTimeout(
+            () => ToastModel.dispatch("removeToast", id),
+            payload.duration || 4000
+          );
         }
       },
       removeToast: ({ state, payload: id }) => {
-        state.toasts = state.toasts.filter(toast => toast.id !== id);
-      }
-    }
+        state.toasts = state.toasts.filter((toast) => toast.id !== id);
+      },
+    },
   });
 
   const toast = {
     message: (message, options = {}) => {
-      ToastModel.dispatch('addToast', { message, type: 'default', ...options });
+      ToastModel.dispatch("addToast", { message, type: "default", ...options });
     },
     success: (message, options = {}) => {
-      ToastModel.dispatch('addToast', { message, type: 'success', icon: '✅', ...options });
+      ToastModel.dispatch("addToast", {
+        message,
+        type: "success",
+        icon: "✅",
+        ...options,
+      });
     },
     error: (message, options = {}) => {
-      ToastModel.dispatch('addToast', { message, type: 'error', icon: '❌', ...options });
+      ToastModel.dispatch("addToast", {
+        message,
+        type: "error",
+        icon: "❌",
+        ...options,
+      });
     },
     info: (message, options = {}) => {
-      ToastModel.dispatch('addToast', { message, type: 'info', icon: 'ℹ️', ...options });
+      ToastModel.dispatch("addToast", {
+        message,
+        type: "info",
+        icon: "ℹ️",
+        ...options,
+      });
     },
     warning: (message, options = {}) => {
-      ToastModel.dispatch('addToast', { message, type: 'warning', icon: '⚠️', ...options });
+      ToastModel.dispatch("addToast", {
+        message,
+        type: "warning",
+        icon: "⚠️",
+        ...options,
+      });
     },
   };
 
   class ToastDemoElement extends ReactiveElement {
     handleFormSubmit(e) {
       e.preventDefault();
-      const message = this.querySelector('#toast-message').value;
-      const type = this.querySelector('#toast-type').value;
-      const duration = parseInt(this.querySelector('#toast-duration').value, 10);
+      const message = this.querySelector("#toast-message").value;
+      const type = this.querySelector("#toast-type").value;
+      const duration = parseInt(
+        this.querySelector("#toast-duration").value,
+        10
+      );
 
-      toast[type] ? toast[type](message, { duration: duration }) : toast.message(message, { type: type, duration: duration });
+      toast[type]
+        ? toast[type](message, { duration: duration })
+        : toast.message(message, { type: type, duration: duration });
 
       e.target.reset();
     }
@@ -63,25 +94,38 @@
 
       return html`
         <div class="demo-buttons">
-          <button @click=${() => toast.success('Success message')}>Success Toast</button>
-          <button @click=${() => toast.error('Error message')}>Error Toast</button>
-          <button @click=${() => toast.info('Info message')}>Info Toast</button>
-          <button @click=${() => toast.warning('Warning message')}>Warning Toast</button>
+          <button @click=${() => toast.success("Success message")}>
+            Success Toast
+          </button>
+          <button @click=${() => toast.error("Error message")}>
+            Error Toast
+          </button>
+          <button @click=${() => toast.info("Info message")}>Info Toast</button>
+          <button @click=${() => toast.warning("Warning message")}>
+            Warning Toast
+          </button>
         </div>
 
-        <form @submit=${(e) => {
-          e.preventDefault();
-          const message = this.querySelector('#toast-message').value;
-          const type = this.querySelector('#toast-type').value;
-          const duration = parseInt(this.querySelector('#toast-duration').value, 10);
+        <form
+          @submit=${(e) => {
+            e.preventDefault();
+            const message = this.querySelector("#toast-message").value;
+            const type = this.querySelector("#toast-type").value;
+            const duration = parseInt(
+              this.querySelector("#toast-duration").value,
+              10
+            );
 
-          toast[type] ? toast[type](message, { duration: duration }) : toast.message(message, { type: type, duration: duration });
+            toast[type]
+              ? toast[type](message, { duration: duration })
+              : toast.message(message, { type: type, duration: duration });
 
-          e.target.reset();
-        }}>
+            e.target.reset();
+          }}
+        >
           <label>
             Message:
-            <input type="text" id="toast-message" required>
+            <input type="text" id="toast-message" required />
           </label>
           <label>
             Type:
@@ -95,29 +139,48 @@
           </label>
           <label>
             Duration (ms):
-            <input type="number" id="toast-duration" value="4000" min="1000" step="1000">
+            <input
+              type="number"
+              id="toast-duration"
+              value="4000"
+              min="1000"
+              step="1000"
+            />
           </label>
           <button type="submit">Show Custom Toast</button>
         </form>
 
         <div id="toaster-container">
           <div class="toaster">
-            ${toasts.map(toast => html`
-              <div id="toast-${toast.id}" class="toast toast-enter" data-type="${toast.type}">
-                <div class="toast-content">
-                  ${toast.icon ? html`<div class="toast-icon">${toast.icon}</div>` : ''}
-                  <div class="toast-message">${toast.message}</div>
+            ${toasts.map(
+              (toast) => html`
+                <div
+                  id="toast-${toast.id}"
+                  class="toast toast-enter"
+                  data-type="${toast.type}"
+                >
+                  <div class="toast-content">
+                    ${toast.icon
+                      ? html`<div class="toast-icon">${toast.icon}</div>`
+                      : ""}
+                    <div class="toast-message">${toast.message}</div>
+                  </div>
+                  <button
+                    class="toast-close"
+                    @click=${() => ToastModel.dispatch("removeToast", toast.id)}
+                  >
+                    ×
+                  </button>
                 </div>
-                <button class="toast-close" @click=${() => ToastModel.dispatch('removeToast', toast.id)}>×</button>
-              </div>
-            `)}
+              `
+            )}
           </div>
         </div>
       `;
     }
   }
 
-  customElements.define('toast-demo', ToastDemoElement);
+  customElements.define("toast-demo", ToastDemoElement);
 </script>
 <style>
   .toaster {
@@ -199,9 +262,9 @@
     }
   }
   .toast-enter {
-    animation: slideIn 0.150s ease-out;
+    animation: slideIn 0.15s ease-out;
   }
   .toast-exit {
-    animation: slideOut 0.150s ease-out;
+    animation: slideOut 0.15s ease-out;
   }
 </style>

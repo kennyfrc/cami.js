@@ -8,23 +8,23 @@
 <script type="module">
   const { html, ReactiveElement } = cami;
 
-class ProductElement extends ReactiveElement {
-  price = 10;
-  amount = 2;
+  class ProductElement extends ReactiveElement {
+    price = 10;
+    amount = 2;
 
-  get total() {
-    console.log("Computing total...");
-    return this.price * this.amount;
+    get total() {
+      console.log("Computing total...");
+      return this.price * this.amount;
+    }
+
+    template() {
+      return html`
+        <div>Price: ${this.price}</div>
+        <div>Amount: ${this.amount}</div>
+        <div>Total: ${this.total}</div>
+      `;
+    }
   }
 
-  template() {
-    return html`
-      <div>Price: ${this.price}</div>
-      <div>Amount: ${this.amount}</div>
-      <div>Total: ${this.total}</div>
-    `;
-  }
-}
-
-customElements.define('product-element', ProductElement);
+  customElements.define("product-element", ProductElement);
 </script>

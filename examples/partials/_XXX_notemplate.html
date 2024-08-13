@@ -4,22 +4,25 @@
     <p>halo!!</p>
   </hello-world>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement } = cami;
 
   class HelloWorldElement extends ReactiveElement {
     onConnect() {
-      const paragraph = this.querySelector('p')
-      paragraph.addEventListener('mouseover', () => {
-        paragraph.style.color = 'blue';
+      const paragraph = this.querySelector("p");
+      paragraph.addEventListener("mouseover", () => {
+        paragraph.style.color = "blue";
       });
-      paragraph.addEventListener('mouseout', () => {
-        paragraph.style.color = '';
+      paragraph.addEventListener("mouseout", () => {
+        paragraph.style.color = "";
       });
     }
   }
 
-  customElements.define('hello-world', HelloWorldElement);
+  customElements.define("hello-world", HelloWorldElement);
 </script>

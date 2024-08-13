@@ -4,29 +4,32 @@
     <button id="toggleNav">Toggle Navigation</button>
     <button id="invalidateNav">Invalidate Navigation</button>
     <p>Current Navigation Status: <span id="navStatus"></span></p>
-    <p id="errorMessage" style="color: red;"></p>
+    <p id="errorMessage" style="color: red"></p>
   </div>
 </main>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { store, effect } = cami;
-  cami.debug.enable()
+  cami.debug.enable();
 
   const appStore = store({
     state: {
       navigation: {
-        status: 'menu'
-      }
+        status: "menu",
+      },
     },
-    name: 'navigation-store'
+    name: "navigation-store",
   });
 
-  appStore.action('NAV_FSM:TOGGLE', ({ state }) => {
+  appStore.action("NAV_FSM:TOGGLE", ({ state }) => {
     const transitions = {
-      'menu': 'settings',
-      'settings': 'profile',
-      'profile': 'menu'
+      menu: "settings",
+      settings: "profile",
+      profile: "menu",
     };
 
     console.log(state.navigation.status);
@@ -35,35 +38,37 @@
   });
 
   // Action that attempts to set an invalid type
-  appStore.action('NAV_FSM:INVALIDATE', ({ state }) => {
+  appStore.action("NAV_FSM:INVALIDATE", ({ state }) => {
     // This should trigger a type error because we're trying to set a number instead of a string
     state.navigation.status = 123;
   });
 
   effect(() => {
-    console.log('Navigation status changed:', appStore.state.navigation.status);
-    document.getElementById('navStatus').textContent = appStore.state.navigation.status;
+    console.log("Navigation status changed:", appStore.state.navigation.status);
+    document.getElementById("navStatus").textContent =
+      appStore.state.navigation.status;
   });
 
-  document.getElementById('toggleNav').addEventListener('click', () => {
+  document.getElementById("toggleNav").addEventListener("click", () => {
     try {
-      appStore.dispatch('NAV_FSM:TOGGLE');
+      appStore.dispatch("NAV_FSM:TOGGLE");
     } catch (error) {
       handleError(error);
     }
   });
 
-  document.getElementById('invalidateNav').addEventListener('click', () => {
+  document.getElementById("invalidateNav").addEventListener("click", () => {
     try {
-      appStore.dispatch('NAV_FSM:INVALIDATE');
+      appStore.dispatch("NAV_FSM:INVALIDATE");
     } catch (error) {
       handleError(error);
     }
   });
 
   function handleError(error) {
-    console.error('Caught error:', error.message);
-    document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
+    console.error("Caught error:", error.message);
+    document.getElementById("errorMessage").textContent =
+      "Error: " + error.message;
     // Optionally, stop the interval to prevent further actions
     clearInterval(intervalId);
   }
@@ -71,7 +76,7 @@
   // Attempt to trigger the bug by rapidly changing the navigation status
   const intervalId = setInterval(() => {
     try {
-      appStore.dispatch('NAV_FSM:TOGGLE');
+      appStore.dispatch("NAV_FSM:TOGGLE");
     } catch (error) {
       handleError(error);
     }

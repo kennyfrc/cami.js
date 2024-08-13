@@ -2,7 +2,10 @@
   <h1>User Profile Fetcher</h1>
   <user-profile-component></user-profile-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, store } = cami;
@@ -14,105 +17,120 @@
       posts: [],
       latestPostComments: [],
       loading: false,
-      error: null
+      error: null,
     },
-    name: "user-store"
+    name: "user-store",
   });
 
-  userStore.defineAction('setUser', ({ state, payload }) => {
+  userStore.defineAction("setUser", ({ state, payload }) => {
     state.user = payload;
   });
 
-  userStore.defineAction('setPosts', ({ state, payload }) => {
+  userStore.defineAction("setPosts", ({ state, payload }) => {
     state.posts = payload;
   });
 
-  userStore.defineAction('setLatestPostComments', ({ state, payload }) => {
+  userStore.defineAction("setLatestPostComments", ({ state, payload }) => {
     state.latestPostComments = payload;
   });
 
-  userStore.defineAction('setLoading', ({ state, payload }) => {
+  userStore.defineAction("setLoading", ({ state, payload }) => {
     state.loading = payload;
   });
 
-  userStore.defineAction('setError', ({ state, payload }) => {
+  userStore.defineAction("setError", ({ state, payload }) => {
     state.error = payload;
   });
 
   // Define the fetchUserProfile thunk
-  userStore.defineAsyncAction('fetchUserProfile', async ({ dispatch, payload }) => {
-    dispatch('setLoading', true);
-    dispatch('setError', null);
+  userStore.defineAsyncAction(
+    "fetchUserProfile",
+    async ({ dispatch, payload }) => {
+      dispatch("setLoading", true);
+      dispatch("setError", null);
 
-    const userId = payload;
+      const userId = payload;
 
-    try {
-      // Fetch user data
-      const userResponse = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}`);
-      if (!userResponse.ok) throw new Error('Failed to fetch user');
-      const user = await userResponse.json();
-      dispatch('setUser', user);
+      try {
+        // Fetch user data
+        const userResponse = await fetch(
+          `https://jsonplaceholder.typicode.com/users/${userId}`
+        );
+        if (!userResponse.ok) throw new Error("Failed to fetch user");
+        const user = await userResponse.json();
+        dispatch("setUser", user);
 
-      // Fetch user's posts
-      const postsResponse = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}/posts`);
-      if (!postsResponse.ok) throw new Error('Failed to fetch posts');
-      const posts = await postsResponse.json();
-      dispatch('setPosts', posts);
+        // Fetch user's posts
+        const postsResponse = await fetch(
+          `https://jsonplaceholder.typicode.com/users/${userId}/posts`
+        );
+        if (!postsResponse.ok) throw new Error("Failed to fetch posts");
+        const posts = await postsResponse.json();
+        dispatch("setPosts", posts);
 
-      let comments = [];
-      // Fetch comments for the latest post
-      if (posts.length > 0) {
-        const latestPost = posts[0];
-        const commentsResponse = await fetch(`https://jsonplaceholder.typicode.com/posts/${latestPost.id}/comments`);
-        if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
-        comments = await commentsResponse.json();
-        dispatch('setLatestPostComments', comments);
+        let comments = [];
+        // Fetch comments for the latest post
+        if (posts.length > 0) {
+          const latestPost = posts[0];
+          const commentsResponse = await fetch(
+            `https://jsonplaceholder.typicode.com/posts/${latestPost.id}/comments`
+          );
+          if (!commentsResponse.ok) throw new Error("Failed to fetch comments");
+          comments = await commentsResponse.json();
+          dispatch("setLatestPostComments", comments);
+        }
+
+        return { user, posts, latestPostComments: comments };
+      } catch (error) {
+        dispatch("setError", error.message);
+        throw error;
+      } finally {
+        dispatch("setLoading", false);
       }
-
-      return { user, posts, latestPostComments: comments };
-    } catch (error) {
-      dispatch('setError', error.message);
-      throw error;
-    } finally {
-      dispatch('setLoading', false);
     }
-  });
+  );
 
-  customElements.define('user-profile-component',
+  customElements.define(
+    "user-profile-component",
     class extends ReactiveElement {
       userId = 1;
 
       template() {
-        const { user, posts, latestPostComments, loading, error } = userStore.state;
+        const { user, posts, latestPostComments, loading, error } =
+          userStore.state;
         const { dispatchAsync } = userStore;
 
         const handleFetch = () => {
-          dispatchAsync('fetchUserProfile', this.userId)
-            .then(result => {
-              console.log('Fetched user profile:', result);
-              console.log('Updated store state:', userStore.state);
+          dispatchAsync("fetchUserProfile", this.userId)
+            .then((result) => {
+              console.log("Fetched user profile:", result);
+              console.log("Updated store state:", userStore.state);
             })
-            .catch(error => {
-              console.error('Error in component:', error);
+            .catch((error) => {
+              console.error("Error in component:", error);
             });
-          this.userId = this.userId % 10 + 1; // Cycle through user IDs 1-10
+          this.userId = (this.userId % 10) + 1; // Cycle through user IDs 1-10
         };
 
         return html`
           <button @click=${handleFetch} ?disabled=${loading}>
-            ${loading ? 'Fetching...' : 'Fetch Next User Profile'}
+            ${loading ? "Fetching..." : "Fetch Next User Profile"}
           </button>
-          ${error ? html`<p style="color: red;">${error}</p>` : ''}
-          ${user ? html`
-            <h2>${user.name}</h2>
-            <p>Email: ${user.email}</p>
-            <p>Company: ${user.company.name}</p>
-            <h3>Posts: ${posts.length}</h3>
-            ${posts.length > 0 ? html`
-              <h4>Latest Post: ${posts[0].title}</h4>
-              <p>Comments: ${latestPostComments.length}</p>
-            ` : ''}
-          ` : ''}
+          ${error ? html`<p style="color: red;">${error}</p>` : ""}
+          ${user
+            ? html`
+                <h2>${user.name}</h2>
+                <p>Email: ${user.email}</p>
+                <p>Company: ${user.company.name}</p>
+                <h3>Posts: ${posts.length}</h3>
+                ${posts.length > 0
+                  ? html`
+                      <h4>Latest Post: ${posts[0].title}</h4>
+                      <p>Comments: ${latestPostComments.length}</p>
+                    `
+                  : ""}
+              `
+            : ""}
         `;
       }
     }

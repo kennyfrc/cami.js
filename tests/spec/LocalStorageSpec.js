@@ -1,12 +1,12 @@
 const { store, Type, createLocalStorage, persistToLocalStorageThunk } = cami;
 
-describe("LocalStorage Adapter", function() {
+describe("LocalStorage Adapter", function () {
   let TodoModel;
   let todoLocalStorage;
   let todoStore;
-  const localStorageKey = 'test-todo-local-storage';
+  const localStorageKey = "test-todo-local-storage";
 
-  beforeAll(function() {
+  beforeAll(function () {
     todoLocalStorage = createLocalStorage({
       name: localStorageKey,
       version: 1,
@@ -59,13 +59,13 @@ describe("LocalStorage Adapter", function() {
     todoStore.afterHook(persistToLocalStorageThunk(todoLocalStorage));
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     // Clear the todos before each test
     localStorage.clear();
-    todoStore.dispatch('resetTodos');
+    todoStore.dispatch("resetTodos");
   });
 
-  afterAll(function() {
+  afterAll(function () {
     // Clear the localStorage after all tests
     localStorage.clear();
   });
@@ -83,49 +83,73 @@ describe("LocalStorage Adapter", function() {
     });
   }
 
-  it("should persist todo additions to localStorage", async function() {
-    todoStore.dispatch('createTodoItem', { id: 1, title: "Test Todo", completed: false });
+  it("should persist todo additions to localStorage", async function () {
+    todoStore.dispatch("createTodoItem", {
+      id: 1,
+      title: "Test Todo",
+      completed: false,
+    });
 
     const newTodoStore = await createNewTodoStore();
 
     expect(newTodoStore.getState().todos).toEqual([
-      { id: 1, title: "Test Todo", completed: false }
+      { id: 1, title: "Test Todo", completed: false },
     ]);
   });
 
-  it("should handle todo removals in localStorage", async function() {
-    todoStore.dispatch('createTodoItem', { id: 1, title: "Todo 1", completed: false });
-    todoStore.dispatch('createTodoItem', { id: 2, title: "Todo 2", completed: false });
-    todoStore.dispatch('deleteTodoItem', { id: 1 });
+  it("should handle todo removals in localStorage", async function () {
+    todoStore.dispatch("createTodoItem", {
+      id: 1,
+      title: "Todo 1",
+      completed: false,
+    });
+    todoStore.dispatch("createTodoItem", {
+      id: 2,
+      title: "Todo 2",
+      completed: false,
+    });
+    todoStore.dispatch("deleteTodoItem", { id: 1 });
 
     const newTodoStore = await createNewTodoStore();
 
     expect(newTodoStore.getState().todos).toEqual([
-      { id: 2, title: "Todo 2", completed: false }
+      { id: 2, title: "Todo 2", completed: false },
     ]);
   });
 
-  it("should persist todo updates to localStorage", async function() {
-    todoStore.dispatch('createTodoItem', { id: 1, title: "Original Title", completed: false });
-    todoStore.dispatch('modifyTodoTitle', { id: 1, title: "Updated Title" });
+  it("should persist todo updates to localStorage", async function () {
+    todoStore.dispatch("createTodoItem", {
+      id: 1,
+      title: "Original Title",
+      completed: false,
+    });
+    todoStore.dispatch("modifyTodoTitle", { id: 1, title: "Updated Title" });
 
     const newTodoStore = await createNewTodoStore();
 
     expect(newTodoStore.getState().todos).toEqual([
-      { id: 1, title: "Updated Title", completed: false }
+      { id: 1, title: "Updated Title", completed: false },
     ]);
   });
 
-  it("should maintain state consistency across multiple operations", async function() {
-    todoStore.dispatch('createTodoItem', { id: 1, title: "Todo 1", completed: false });
-    todoStore.dispatch('createTodoItem', { id: 2, title: "Todo 2", completed: true });
-    todoStore.dispatch('modifyTodoTitle', { id: 1, title: "Updated Todo 1" });
-    todoStore.dispatch('deleteTodoItem', { id: 2 });
+  it("should maintain state consistency across multiple operations", async function () {
+    todoStore.dispatch("createTodoItem", {
+      id: 1,
+      title: "Todo 1",
+      completed: false,
+    });
+    todoStore.dispatch("createTodoItem", {
+      id: 2,
+      title: "Todo 2",
+      completed: true,
+    });
+    todoStore.dispatch("modifyTodoTitle", { id: 1, title: "Updated Todo 1" });
+    todoStore.dispatch("deleteTodoItem", { id: 2 });
 
     const newTodoStore = await createNewTodoStore();
 
     expect(newTodoStore.getState().todos).toEqual([
-      { id: 1, title: "Updated Todo 1", completed: false }
+      { id: 1, title: "Updated Todo 1", completed: false },
     ]);
   });
 });

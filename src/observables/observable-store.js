@@ -1,11 +1,21 @@
-import { Observable } from './observable.js';
-import { DependencyTracker } from './observable-state.js'
-import { current, createDraft, finishDraft, original, produce, produceWithPatches, applyPatches, enablePatches, freeze } from 'immer';
-import { _deepMerge, _deepClone, _deepEqual } from '../utils.js';
-import { __config } from '../config.js';
-import { __trace } from '../trace.js';
-import invariant from '../invariant.js';
-import { validateType } from '../types.js';
+import { Observable } from "./observable.js";
+import { DependencyTracker } from "./observable-state.js";
+import {
+  current,
+  createDraft,
+  finishDraft,
+  original,
+  produce,
+  produceWithPatches,
+  applyPatches,
+  enablePatches,
+  freeze,
+} from "immer";
+import { _deepMerge, _deepClone, _deepEqual } from "../utils.js";
+import { __config } from "../config.js";
+import { __trace } from "../trace.js";
+import invariant from "../invariant.js";
+import { validateType } from "../types.js";
 enablePatches();
 
 /**
@@ -37,12 +47,14 @@ enablePatches();
  */
 class ObservableStore extends Observable {
   constructor(initialState, options = {}) {
-    super(subscriber => {
+    super((subscriber) => {
       this.__subscriber = subscriber;
-      return () => { this.__subscriber = null; };
+      return () => {
+        this.__subscriber = null;
+      };
     });
 
-    this.name = options.name || 'cami-store';
+    this.name = options.name || "cami-store";
     this.schema = options.schema || {};
 
     this._state = this._createProxy(createDraft(initialState));
@@ -117,12 +129,12 @@ class ObservableStore extends Observable {
         }
         this._notifyObservers();
         return true;
-      }
+      },
     });
   }
 
   _reProxy() {
-    Object.keys(this._state).forEach(key => {
+    Object.keys(this._state).forEach((key) => {
       if (!(key in this)) {
         Object.defineProperty(this, key, {
           get: () => this._state[key],
@@ -131,7 +143,7 @@ class ObservableStore extends Observable {
             this._notifyObservers();
           },
           enumerable: true,
-          configurable: true
+          configurable: true,
         });
       }
     });
@@ -140,8 +152,8 @@ class ObservableStore extends Observable {
   _notifyObservers() {
     if (!_deepEqual(this._state, this.previousState)) {
       this.memoCache.clear();
-      this.__observers.forEach(observer => observer.next(this._state));
-      if (this.__subscriber && typeof this.__subscriber.next === 'function') {
+      this.__observers.forEach((observer) => observer.next(this._state));
+      if (this.__subscriber && typeof this.__subscriber.next === "function") {
         this.__subscriber.next(this._state);
       }
       this.previousState = _deepClone(this._state);
@@ -149,8 +161,8 @@ class ObservableStore extends Observable {
       // Notify dependencies
       const dependencies = DependencyTracker.dependencyGraph.get(this);
       if (dependencies) {
-        dependencies.forEach(dep => {
-          if (typeof dep.update === 'function') {
+        dependencies.forEach((dep) => {
+          if (typeof dep.update === "function") {
             dep.update();
           }
         });
@@ -160,10 +172,10 @@ class ObservableStore extends Observable {
 
   _createDeepSchema(state) {
     const inferType = (value) => {
-      if (Array.isArray(value)) return 'array';
-      if (value === null) return 'null';
-      if (value === undefined) return 'undefined';
-      if (typeof value === 'object') return this._createDeepSchema(value);
+      if (Array.isArray(value)) return "array";
+      if (value === null) return "null";
+      if (value === undefined) return "undefined";
+      if (typeof value === "object") return this._createDeepSchema(value);
       return typeof value;
     };
 
@@ -174,36 +186,44 @@ class ObservableStore extends Observable {
   }
 
   _validateDeepState(schema, state, path = []) {
-    Object.keys(schema).forEach(key => {
+    Object.keys(schema).forEach((key) => {
       const expectedType = schema[key];
       const actualValue = state[key];
       const currentPath = [...path, key];
 
       const actualType = this._inferType(actualValue);
-      if (actualType === 'function') {
+      if (actualType === "function") {
       }
 
-      if (typeof expectedType === 'object' && expectedType !== null) {
-        if (typeof actualValue !== 'object' || actualValue === null) {
-          throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected object, got ${typeof actualValue}`);
+      if (typeof expectedType === "object" && expectedType !== null) {
+        if (typeof actualValue !== "object" || actualValue === null) {
+          throw new TypeError(
+            `Invalid type at ${currentPath.join(
+              "."
+            )}. Expected object, got ${typeof actualValue}`
+          );
         }
         this._validateDeepState(expectedType, actualValue, currentPath);
       } else {
-        if (expectedType === 'null') {
+        if (expectedType === "null") {
           // Allow any type for null
-        } else if (expectedType === 'undefined') {
+        } else if (expectedType === "undefined") {
           // Allow any type for undefined
         } else if (actualType !== expectedType) {
-          throw new TypeError(`Invalid type at ${currentPath.join('.')}. Expected ${expectedType}, got ${actualType}`);
+          throw new TypeError(
+            `Invalid type at ${currentPath.join(
+              "."
+            )}. Expected ${expectedType}, got ${actualType}`
+          );
         }
       }
     });
   }
 
   _inferType(value) {
-    if (Array.isArray(value)) return 'array';
-    if (value === null) return 'null';
-    if (value === undefined) return 'undefined';
+    if (Array.isArray(value)) return "array";
+    if (value === null) return "null";
+    if (value === undefined) return "undefined";
     return typeof value;
   }
 
@@ -234,7 +254,7 @@ class ObservableStore extends Observable {
 
   _dispatch(action, payload) {
     if (this.__isDispatching) {
-      const cycle = [...this.__dispatchStack, action].join(' -> ');
+      const cycle = [...this.__dispatchStack, action].join(" -> ");
       console.warn(`[Cami.js] Cyclic dispatch detected: ${cycle}`);
     }
 
@@ -243,16 +263,23 @@ class ObservableStore extends Observable {
 
     try {
       if (action === undefined) {
-        const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
+        const currentAction =
+          this.__dispatchStack[this.__dispatchStack.length - 2];
         if (currentAction) {
-          throw new Error(`[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`);
+          throw new Error(
+            `[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`
+          );
         } else {
-          throw new Error(`[Cami.js] Attempted to dispatch undefined action in the global namespace.`);
+          throw new Error(
+            `[Cami.js] Attempted to dispatch undefined action in the global namespace.`
+          );
         }
       }
 
-      if (typeof action !== 'string') {
-        throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+      if (typeof action !== "string") {
+        throw new Error(
+          `[Cami.js] Action type must be a string. Got: ${typeof action}`
+        );
       }
 
       const reducer = this.reducers[action];
@@ -264,15 +291,21 @@ class ObservableStore extends Observable {
       }
 
       if (spec && spec.precondition) {
-        const isPreconditionMet = spec.precondition({ state: this._state, payload, action });
+        const isPreconditionMet = spec.precondition({
+          state: this._state,
+          payload,
+          action,
+        });
         if (!isPreconditionMet) {
           throw new Error(`Precondition not met for action ${action}`);
         }
       }
 
-      this.__applyHooks('before', { action, payload, state: this._state });
+      this.__applyHooks("before", { action, payload, state: this._state });
 
-      const [nextState, patches, inversePatches] = produceWithPatches(this._state, draft => {
+      const [nextState, patches, inversePatches] = produceWithPatches(
+        this._state,
+        (draft) => {
           reducer({
             state: draft,
             payload: payload,
@@ -281,25 +314,39 @@ class ObservableStore extends Observable {
             mutate: this.mutate.bind(this),
             invalidateQueries: this.invalidateQueries.bind(this),
             memo: this.memo.bind(this),
-            trigger: this.trigger.bind(this)
+            trigger: this.trigger.bind(this),
           });
-        });
+        }
+      );
 
       if (spec && spec.postcondition) {
-        const isPostconditionMet = spec.postcondition({ state: nextState, payload, action, previousState: _deepClone(this._state) });
+        const isPostconditionMet = spec.postcondition({
+          state: nextState,
+          payload,
+          action,
+          previousState: _deepClone(this._state),
+        });
         if (!isPostconditionMet) {
           throw new Error(`Postcondition not met for action ${action}`);
         }
       }
 
-      this.__applyHooks('after', { action, payload, state: nextState, previousState: this._state, patches, inversePatches, dispatch: this.dispatch.bind(this) });
+      this.__applyHooks("after", {
+        action,
+        payload,
+        state: nextState,
+        previousState: this._state,
+        patches,
+        inversePatches,
+        dispatch: this.dispatch.bind(this),
+      });
 
       const hasChanged = patches.length > 0;
       if (hasChanged) {
         const stateHasChanged = !_deepEqual(this._state, nextState);
 
         if (stateHasChanged) {
-          Object.keys(nextState).forEach(key => {
+          Object.keys(nextState).forEach((key) => {
             this._state[key] = nextState[key];
           });
 
@@ -309,15 +356,20 @@ class ObservableStore extends Observable {
             this.devTools.send(action, this._state);
           }
 
-          __trace('cami:store:state:change', `Changed store state via action: ${action}`, inversePatches, patches);
+          __trace(
+            "cami:store:state:change",
+            `Changed store state via action: ${action}`,
+            inversePatches,
+            patches
+          );
 
-          if (__config.events.isEnabled && typeof window !== 'undefined') {
-            const event = new CustomEvent('cami:store:state:change', {
+          if (__config.events.isEnabled && typeof window !== "undefined") {
+            const event = new CustomEvent("cami:store:state:change", {
               detail: {
                 action: action,
                 patches: patches,
-                inversePatches: inversePatches
-              }
+                inversePatches: inversePatches,
+              },
             });
             window.dispatchEvent(event);
           }
@@ -327,7 +379,6 @@ class ObservableStore extends Observable {
       this._validateState(this._state);
 
       return _deepClone(this._state);
-
     } finally {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
@@ -343,18 +394,18 @@ class ObservableStore extends Observable {
   }
 
   __applyHooks(type, context) {
-    const hooks = type === 'before' ? this.beforeHooks : this.afterHooks;
+    const hooks = type === "before" ? this.beforeHooks : this.afterHooks;
     for (const hook of hooks) {
       hook(context);
     }
   }
 
   _notifyPatchListeners(patches) {
-    patches.forEach(patch => {
+    patches.forEach((patch) => {
       const key = patch.path[0];
       const listeners = this.patchListeners.get(key);
       if (listeners) {
-        listeners.forEach(callback => callback(patch));
+        listeners.forEach((callback) => callback(patch));
       }
     });
   }
@@ -366,8 +417,11 @@ class ObservableStore extends Observable {
    * @description This method connects the store to the Redux DevTools extension if it is available.
    */
   __connectToDevTools() {
-    if (typeof window !== 'undefined' && window['__REDUX_DEVTOOLS_EXTENSION__']) {
-      const devTools = window['__REDUX_DEVTOOLS_EXTENSION__'].connect();
+    if (
+      typeof window !== "undefined" &&
+      window["__REDUX_DEVTOOLS_EXTENSION__"]
+    ) {
+      const devTools = window["__REDUX_DEVTOOLS_EXTENSION__"].connect();
       devTools.init(this._state);
       return devTools;
     }
@@ -413,7 +467,7 @@ class ObservableStore extends Observable {
         memo: this.memo.bind(this),
         trigger: this.trigger.bind(this),
         invalidateQueries: this.invalidateQueries.bind(this),
-        dispatchAsync: this.dispatchAsync.bind(this)
+        dispatchAsync: this.dispatchAsync.bind(this),
       };
       return reducer(storeContext);
     };
@@ -464,7 +518,7 @@ class ObservableStore extends Observable {
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
       invalidateQueries: this.invalidateQueries.bind(this),
-      payload: payload
+      payload: payload,
     };
 
     try {
@@ -504,10 +558,10 @@ class ObservableStore extends Observable {
   }
 
   defineMemo(memoName, memoFn) {
-    if (typeof memoName !== 'string') {
-      throw new Error('Memo name must be a string');
+    if (typeof memoName !== "string") {
+      throw new Error("Memo name must be a string");
     }
-    if (typeof memoFn !== 'function') {
+    if (typeof memoFn !== "function") {
       throw new Error(`Memo '${memoName}' must be a function`);
     }
     this.memos[memoName] = memoFn;
@@ -554,10 +608,10 @@ class ObservableStore extends Observable {
    */
   applyPatch(patches) {
     this._state = applyPatches(this._state, patches);
-    this.__observers.forEach(observer => observer.next(this._state));
+    this.__observers.forEach((observer) => observer.next(this._state));
   }
 
- /**
+  /**
    * @method query
    * @memberof ObservableStore
    * @param {string} queryName - The name of the query to register.
@@ -595,7 +649,9 @@ class ObservableStore extends Observable {
    */
   defineQuery(queryName, config) {
     if (this.queryFunctions.has(queryName)) {
-      throw new Error(`[Cami.js] Query with name ${queryName} has already been defined.`);
+      throw new Error(
+        `[Cami.js] Query with name ${queryName} has already been defined.`
+      );
     }
 
     this.queryFunctions.set(queryName, config);
@@ -603,9 +659,24 @@ class ObservableStore extends Observable {
   }
 
   _executeQuery(queryName, payload, query) {
-    const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
+    const {
+      queryFn,
+      queryKey,
+      staleTime,
+      retry,
+      retryDelay,
+      onFetch,
+      onSuccess,
+      onError,
+      onSettled,
+    } = query;
 
-    const cacheKey = typeof queryKey === 'function' ? queryKey(payload).join(':') : Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
+    const cacheKey =
+      typeof queryKey === "function"
+        ? queryKey(payload).join(":")
+        : Array.isArray(queryKey)
+        ? queryKey.join(":")
+        : queryKey;
 
     const cachedData = this.queryCache.get(cacheKey);
 
@@ -618,17 +689,32 @@ class ObservableStore extends Observable {
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
       invalidateQueries: this.invalidateQueries.bind(this),
-      dispatchAsync: this.dispatchAsync.bind(this)
+      dispatchAsync: this.dispatchAsync.bind(this),
     };
 
-    __trace(`_executeQuery`, `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`);
+    __trace(
+      `_executeQuery`,
+      `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`
+    );
 
     if (cachedData && !this._isStale(cachedData, staleTime)) {
-      __trace(`query`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
-      return this._handleQueryResult(queryName, cachedData.data, null, storeContext, { onSuccess, onSettled });
+      __trace(
+        `query`,
+        `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`
+      );
+      return this._handleQueryResult(
+        queryName,
+        cachedData.data,
+        null,
+        storeContext,
+        { onSuccess, onSettled }
+      );
     }
 
-    __trace(`query`, `Data is stale or not cached, fetching new data for: ${queryName}`);
+    __trace(
+      `query`,
+      `Data is stale or not cached, fetching new data for: ${queryName}`
+    );
 
     if (onFetch) {
       __trace(`query`, `onFetch callback invoked for: ${queryName}`);
@@ -637,11 +723,21 @@ class ObservableStore extends Observable {
 
     return this._fetchWithRetry(() => queryFn(payload), retry, retryDelay)
       .then((data) => {
-        this.queryCache.set(cacheKey, { data, timestamp: Date.now(), isStale: false });
-        return this._handleQueryResult(queryName, data, null, storeContext, { onSuccess, onSettled });
+        this.queryCache.set(cacheKey, {
+          data,
+          timestamp: Date.now(),
+          isStale: false,
+        });
+        return this._handleQueryResult(queryName, data, null, storeContext, {
+          onSuccess,
+          onSettled,
+        });
       })
       .catch((error) => {
-        return this._handleQueryResult(queryName, null, error, storeContext, { onError, onSettled });
+        return this._handleQueryResult(queryName, null, error, storeContext, {
+          onError,
+          onSettled,
+        });
       });
   }
 
@@ -677,51 +773,61 @@ class ObservableStore extends Observable {
    */
   invalidateQueries({ queryKey, predicate }) {
     if (!queryKey && !predicate) {
-      throw new Error(`[Cami.js] invalidateQueries expects either a queryKey or a predicate.`);
+      throw new Error(
+        `[Cami.js] invalidateQueries expects either a queryKey or a predicate.`
+      );
     }
 
-    const queriesToInvalidate = Array.from(this.queryFunctions.keys()).filter(queryName => {
-      if (queryKey) {
-        const storedQueryKey = this.queryFunctions.get(queryName).queryKey;
+    const queriesToInvalidate = Array.from(this.queryFunctions.keys()).filter(
+      (queryName) => {
+        if (queryKey) {
+          const storedQueryKey = this.queryFunctions.get(queryName).queryKey;
 
-        if (typeof storedQueryKey === 'function') {
-          // If storedQueryKey is a function, we need to call it and compare the result
-          // Pass an empty object as default argument to prevent destructuring errors
-          try {
-            const generatedKey = storedQueryKey({});
-            return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
-          } catch (error) {
-            __trace(`invalidateQueries`, `Error generating key for ${queryName}: ${error.message}`);
-            return false;
+          if (typeof storedQueryKey === "function") {
+            // If storedQueryKey is a function, we need to call it and compare the result
+            // Pass an empty object as default argument to prevent destructuring errors
+            try {
+              const generatedKey = storedQueryKey({});
+              return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
+            } catch (error) {
+              __trace(
+                `invalidateQueries`,
+                `Error generating key for ${queryName}: ${error.message}`
+              );
+              return false;
+            }
+          } else if (Array.isArray(storedQueryKey)) {
+            return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
+          } else {
+            return storedQueryKey === queryKey[0];
           }
-        } else if (Array.isArray(storedQueryKey)) {
-          return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
-        } else {
-          return storedQueryKey === queryKey[0];
         }
+
+        if (predicate) {
+          return predicate(this.queryFunctions.get(queryName));
+        }
+
+        return false;
       }
+    );
 
-      if (predicate) {
-        return predicate(this.queryFunctions.get(queryName));
-      }
-
-      return false;
-    });
-
-    queriesToInvalidate.forEach(queryName => {
+    queriesToInvalidate.forEach((queryName) => {
       const query = this.queryFunctions.get(queryName);
       if (!query) return;
 
       let cacheKey;
-      if (typeof query.queryKey === 'function') {
-        cacheKey = query.queryKey().join(':');
+      if (typeof query.queryKey === "function") {
+        cacheKey = query.queryKey().join(":");
       } else if (Array.isArray(query.queryKey)) {
-        cacheKey = query.queryKey.join(':');
+        cacheKey = query.queryKey.join(":");
       } else {
         cacheKey = query.queryKey;
       }
 
-      __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`);
+      __trace(
+        `invalidateQueries`,
+        `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`
+      );
 
       // Instead of deleting, mark as stale and reset timestamp
       if (this.queryCache.has(cacheKey)) {
@@ -738,12 +844,15 @@ class ObservableStore extends Observable {
       }
 
       if (this.focusHandlers.has(queryName)) {
-        window.removeEventListener('focus', this.focusHandlers.get(queryName));
+        window.removeEventListener("focus", this.focusHandlers.get(queryName));
         this.focusHandlers.delete(queryName);
       }
 
       if (this.reconnectHandlers.has(queryName)) {
-        window.removeEventListener('online', this.reconnectHandlers.get(queryName));
+        window.removeEventListener(
+          "online",
+          this.reconnectHandlers.get(queryName)
+        );
         this.reconnectHandlers.delete(queryName);
       }
 
@@ -773,8 +882,13 @@ class ObservableStore extends Observable {
       return queryFnWithContext().catch((error) => {
         if (attempts < retry) {
           attempts++;
-          const delay = typeof retryDelay === 'function' ? retryDelay(attempts) : retryDelay;
-          return new Promise((resolve) => setTimeout(resolve, delay)).then(executeFetch);
+          const delay =
+            typeof retryDelay === "function"
+              ? retryDelay(attempts)
+              : retryDelay;
+          return new Promise((resolve) => setTimeout(resolve, delay)).then(
+            executeFetch
+          );
         }
         throw error;
       });
@@ -794,17 +908,21 @@ class ObservableStore extends Observable {
   _isStale(cachedData, staleTime) {
     const currentTime = Date.now();
     const timeSinceLastUpdate = currentTime - cachedData.timestamp;
-    const isDataStale = !cachedData.timestamp || timeSinceLastUpdate > staleTime;
+    const isDataStale =
+      !cachedData.timestamp || timeSinceLastUpdate > staleTime;
     const isManuallyInvalidated = cachedData.isStale === true;
 
-    __trace(`_isStale`, `
+    __trace(
+      `_isStale`,
+      `
       isDataStale: ${isDataStale}
       isManuallyInvalidated: ${isManuallyInvalidated}
       Current Time: ${currentTime}
       Data Timestamp: ${cachedData.timestamp}
       Time Since Last Update: ${timeSinceLastUpdate}ms
       Stale Time: ${staleTime}ms
-    `);
+    `
+    );
 
     return isDataStale || isManuallyInvalidated;
   }
@@ -846,11 +964,14 @@ class ObservableStore extends Observable {
    */
   defineMutation(mutationName, config) {
     if (this.mutationFunctions.has(mutationName)) {
-      throw new Error(`[Cami.js] Mutation with name ${mutationName} is already registered.`);
+      throw new Error(
+        `[Cami.js] Mutation with name ${mutationName} is already registered.`
+      );
     }
 
     this.mutationFunctions.set(mutationName, config);
-    this.mutations[mutationName] = (...args) => this.mutate(mutationName, ...args);
+    this.mutations[mutationName] = (...args) =>
+      this.mutate(mutationName, ...args);
   }
 
   _executeMutation(mutationName, payload, mutation) {
@@ -868,7 +989,7 @@ class ObservableStore extends Observable {
       mutate: this.mutate.bind(this),
       previousState,
       invalidateQueries: this.invalidateQueries.bind(this),
-      dispatchAsync: this.dispatchAsync.bind(this)
+      dispatchAsync: this.dispatchAsync.bind(this),
     };
 
     let optimisticUpdate;
@@ -880,14 +1001,14 @@ class ObservableStore extends Observable {
     let error;
 
     return Promise.resolve(mutationFn(payload))
-      .then(data => {
+      .then((data) => {
         result = data;
         if (onSuccess) {
           onSuccess({ ...storeContext, data });
         }
         return data;
       })
-      .catch(err => {
+      .catch((err) => {
         error = err;
         if (onError) {
           onError({ ...storeContext, error: err });
@@ -912,32 +1033,41 @@ class ObservableStore extends Observable {
    */
   defineMachine(machineName, machineDefinition) {
     const validateMachine = (machine) => {
-      if (typeof machine !== 'object' || machine === null) {
-        throw new Error('Machine definition must be an object');
+      if (typeof machine !== "object" || machine === null) {
+        throw new Error("Machine definition must be an object");
       }
 
       Object.entries(machine).forEach(([eventName, event]) => {
-        if (typeof event !== 'object' || event === null) {
+        if (typeof event !== "object" || event === null) {
           throw new Error(`Event '${eventName}' must be an object`);
         }
 
-        if (!event.to || (typeof event.to !== 'function' && typeof event.to !== 'object')) {
-          throw new Error(`Event '${eventName}' must have a 'to' property that is an object or a function returning an object`);
+        if (
+          !event.to ||
+          (typeof event.to !== "function" && typeof event.to !== "object")
+        ) {
+          throw new Error(
+            `Event '${eventName}' must have a 'to' property that is an object or a function returning an object`
+          );
         }
 
-        if (event.guard && typeof event.guard !== 'function') {
+        if (event.guard && typeof event.guard !== "function") {
           throw new Error(`Guard for event '${eventName}' must be a function`);
         }
 
-        if (event.onTransition && typeof event.onTransition !== 'function') {
-          throw new Error(`onTransition for event '${eventName}' must be a function`);
+        if (event.onTransition && typeof event.onTransition !== "function") {
+          throw new Error(
+            `onTransition for event '${eventName}' must be a function`
+          );
         }
 
-        if (event.onEntry && typeof event.onEntry !== 'function') {
-          throw new Error(`onEntry for event '${eventName}' must be a function`);
+        if (event.onEntry && typeof event.onEntry !== "function") {
+          throw new Error(
+            `onEntry for event '${eventName}' must be a function`
+          );
         }
 
-        if (event.onExit && typeof event.onExit !== 'function') {
+        if (event.onExit && typeof event.onExit !== "function") {
           throw new Error(`onExit for event '${eventName}' must be a function`);
         }
       });
@@ -951,10 +1081,13 @@ class ObservableStore extends Observable {
     }
 
     // Merge the new definition with the existing one
-    this.machines[machineName] = { ...this.machines[machineName], ...machineDefinition };
+    this.machines[machineName] = {
+      ...this.machines[machineName],
+      ...machineDefinition,
+    };
 
     // Define actions for the new or updated events
-    Object.keys(machineDefinition).forEach(eventName => {
+    Object.keys(machineDefinition).forEach((eventName) => {
       const fullEventName = `${machineName}:${eventName}`;
       this.defineAction(fullEventName, ({ state, payload }) => {
         const event = this.machines[machineName][eventName];
@@ -968,7 +1101,7 @@ class ObservableStore extends Observable {
           mutate: this.mutate.bind(this),
           trigger: this.trigger.bind(this),
           memo: this.memo.bind(this),
-          dispatchAsync: this.dispatchAsync.bind(this)
+          dispatchAsync: this.dispatchAsync.bind(this),
         };
 
         if (this.isValidTransition(event.from, currentState)) {
@@ -976,7 +1109,10 @@ class ObservableStore extends Observable {
             this.validateToShape(event.from, to);
 
             // Execute onExit for the current state
-            this.executeHandler(event.onExit, { ...storeContext, state: currentState });
+            this.executeHandler(event.onExit, {
+              ...storeContext,
+              state: currentState,
+            });
 
             Object.entries(to).forEach(([key, value]) => {
               state[key] = value;
@@ -986,9 +1122,10 @@ class ObservableStore extends Observable {
             this.executeHandler(event.onEntry, storeContext);
           };
 
-          const newState = typeof event.to === 'function'
-            ? event.to({ state: currentState, payload })
-            : event.to;
+          const newState =
+            typeof event.to === "function"
+              ? event.to({ state: currentState, payload })
+              : event.to;
 
           applyTransition(newState);
 
@@ -997,17 +1134,25 @@ class ObservableStore extends Observable {
             ...storeContext,
             from: currentState,
             to: newState,
-            data: event.data
+            data: event.data,
           });
         } else {
           const actual = {};
-          if (Array.isArray(event.from) && event.from.length > 0 && typeof event.from[0] === 'object') {
-            Object.keys(event.from[0]).forEach(key => {
+          if (
+            Array.isArray(event.from) &&
+            event.from.length > 0 &&
+            typeof event.from[0] === "object"
+          ) {
+            Object.keys(event.from[0]).forEach((key) => {
               actual[key] = currentState[key];
             });
           }
-          __trace('cami:state-machine:ignored-transition',
-            `Ignored transition '${fullEventName}' event. Actual: ${JSON.stringify(actual)}. Expected: Any of ${JSON.stringify(event.from)}`);
+          __trace(
+            "cami:state-machine:ignored-transition",
+            `Ignored transition '${fullEventName}' event. Actual: ${JSON.stringify(
+              actual
+            )}. Expected: Any of ${JSON.stringify(event.from)}`
+          );
         }
       });
     });
@@ -1021,13 +1166,14 @@ class ObservableStore extends Observable {
    * @description Triggers a state machine event
    */
   trigger(fullEventName, payload) {
-    const [machineName, eventName] = fullEventName.split(':');
+    const [machineName, eventName] = fullEventName.split(":");
     if (!this.machines[machineName] || !this.machines[machineName][eventName]) {
-      throw new Error(`Event '${fullEventName}' not found in any state machine.`);
+      throw new Error(
+        `Event '${fullEventName}' not found in any state machine.`
+      );
     }
     return this.dispatch(fullEventName, payload);
   }
-
 
   /**
    * @method memo
@@ -1062,7 +1208,7 @@ class ObservableStore extends Observable {
       get: (target, prop) => {
         dependencies.add(prop);
         return target[prop];
-      }
+      },
     });
 
     const storeContext = {
@@ -1073,7 +1219,7 @@ class ObservableStore extends Observable {
       memo: this.memo.bind(this),
       query: this.query.bind(this),
       mutate: this.mutate.bind(this),
-      dispatchAsync: this.dispatchAsync.bind(this)
+      dispatchAsync: this.dispatchAsync.bind(this),
     };
 
     const result = memoFn(storeContext);
@@ -1083,8 +1229,8 @@ class ObservableStore extends Observable {
   }
 
   _areDependenciesUnchanged(dependencies) {
-    return Array.from(dependencies).every(dep =>
-      this._state[dep] === this.previousState[dep]
+    return Array.from(dependencies).every(
+      (dep) => this._state[dep] === this.previousState[dep]
     );
   }
 
@@ -1095,7 +1241,7 @@ class ObservableStore extends Observable {
     }
 
     const checkState = (fromState, currentStateSlice) => {
-      if (typeof fromState !== 'object' || fromState === null) {
+      if (typeof fromState !== "object" || fromState === null) {
         return fromState === currentStateSlice;
       }
       return Object.entries(fromState).every(([key, value]) => {
@@ -1105,7 +1251,7 @@ class ObservableStore extends Observable {
         if (Array.isArray(value)) {
           return value.includes(currentStateSlice[key]);
         }
-        if (typeof value === 'object' && value !== null) {
+        if (typeof value === "object" && value !== null) {
           return checkState(value, currentStateSlice[key]);
         }
         return currentStateSlice[key] === value;
@@ -1113,7 +1259,7 @@ class ObservableStore extends Observable {
     };
 
     if (Array.isArray(from)) {
-      return from.some(state => checkState(state, currentState));
+      return from.some((state) => checkState(state, currentState));
     }
     return checkState(from, currentState);
   }
@@ -1124,12 +1270,12 @@ class ObservableStore extends Observable {
     }
 
     const getShapeDescription = (obj) => {
-      if (typeof obj !== 'object' || obj === null) {
+      if (typeof obj !== "object" || obj === null) {
         return typeof obj;
       }
 
       return Object.entries(obj).reduce((acc, [key, value]) => {
-        if (typeof value === 'object' && value !== null) {
+        if (typeof value === "object" && value !== null) {
           acc[key] = getShapeDescription(value);
         } else if (Array.isArray(value)) {
           acc[key] = `Array<${typeof value[0]}>`;
@@ -1140,35 +1286,56 @@ class ObservableStore extends Observable {
       }, {});
     };
 
-    const findMismatchedKeys = (expected, actual, prefix = '') => {
+    const findMismatchedKeys = (expected, actual, prefix = "") => {
       const mismatched = [];
-      Object.keys(expected).forEach(key => {
+      Object.keys(expected).forEach((key) => {
         const fullKey = prefix ? `${prefix}.${key}` : key;
         if (!(key in actual)) {
           mismatched.push(`${fullKey} (missing)`);
         } else if (typeof expected[key] !== typeof actual[key]) {
-          mismatched.push(`${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`);
-        } else if (typeof expected[key] === 'object' && expected[key] !== null) {
-          mismatched.push(...findMismatchedKeys(expected[key], actual[key], fullKey));
+          mismatched.push(
+            `${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[
+              key
+            ]})`
+          );
+        } else if (
+          typeof expected[key] === "object" &&
+          expected[key] !== null
+        ) {
+          mismatched.push(
+            ...findMismatchedKeys(expected[key], actual[key], fullKey)
+          );
         }
       });
       return mismatched;
     };
 
     const fromShape = Array.isArray(from) ? from[0] : from;
-    if (typeof to !== 'object' || to === null) {
+    if (typeof to !== "object" || to === null) {
       const expectedShape = getShapeDescription(fromShape);
-      throw new Error(`Invalid 'to' state: must be an object.\n\nExpected key-value pairs:\n${JSON.stringify(expectedShape, null, 2)}`);
+      throw new Error(
+        `Invalid 'to' state: must be an object.\n\nExpected key-value pairs:\n${JSON.stringify(
+          expectedShape,
+          null,
+          2
+        )}`
+      );
     }
     const mismatchedKeys = findMismatchedKeys(fromShape, to);
     if (mismatchedKeys.length > 0) {
       const expectedShape = getShapeDescription(fromShape);
-      throw new Error(`Invalid 'to' state shape.\n\nExpected key-value pairs:\n${JSON.stringify(expectedShape, null, 2)}\n\nMismatched keys: ${mismatchedKeys.join(', ')}`);
+      throw new Error(
+        `Invalid 'to' state shape.\n\nExpected key-value pairs:\n${JSON.stringify(
+          expectedShape,
+          null,
+          2
+        )}\n\nMismatched keys: ${mismatchedKeys.join(", ")}`
+      );
     }
   }
 
   executeHandler(handler, context) {
-    if (typeof handler === 'function') {
+    if (typeof handler === "function") {
       handler(context);
     }
   }
@@ -1185,24 +1352,31 @@ class ObservableStore extends Observable {
 }
 
 const deepFreeze = (value, deep = true) => {
-  if (typeof value !== 'object' || value === null) {
+  if (typeof value !== "object" || value === null) {
     return value; // Return primitives as-is
   }
   return new Proxy(freeze(value, true), {
     set(target, prop, val) {
-      throw new Error(`Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`);
+      throw new Error(
+        `Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`
+      );
     },
     deleteProperty(target, prop) {
-      throw new Error(`Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`);
-    }
+      throw new Error(
+        `Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`
+      );
+    },
   });
-}
+};
 
 const validateState = (storedState, validationRules, context) => {
   const { type, name } = context;
 
   if (!validationRules || !validationRules.presence) {
-    __trace(`cami:${type}`, `No validation rules specified for ${type} ${name}. Using initial state.`);
+    __trace(
+      `cami:${type}`,
+      `No validation rules specified for ${type} ${name}. Using initial state.`
+    );
     return false; // Invalidate by default if no rules are defined
   }
 
@@ -1211,7 +1385,12 @@ const validateState = (storedState, validationRules, context) => {
   if (keys) {
     for (const key of keys) {
       if (!(key in storedState)) {
-        __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`);
+        __trace(
+          `cami:${type}`,
+          `${
+            type.charAt(0).toUpperCase() + type.slice(1)
+          } Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`
+        );
         return false;
       }
     }
@@ -1221,7 +1400,14 @@ const validateState = (storedState, validationRules, context) => {
     for (const valueObj of values) {
       for (const [key, value] of Object.entries(valueObj)) {
         if (storedState[key] !== value) {
-          __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${storedState[key]}.`);
+          __trace(
+            `cami:${type}`,
+            `${
+              type.charAt(0).toUpperCase() + type.slice(1)
+            } Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${
+              storedState[key]
+            }.`
+          );
           return false;
         }
       }
@@ -1237,7 +1423,7 @@ const storeInstances = new Map();
 const store = (config = {}) => {
   const defaultConfig = {
     state: {},
-    name: 'cami-store',
+    name: "cami-store",
   };
 
   const finalConfig = { ...defaultConfig, ...config };
@@ -1248,9 +1434,9 @@ const store = (config = {}) => {
 
   const storeInstance = new ObservableStore(finalConfig.state, finalConfig);
 
-  const methods = ['memo', 'query', 'trigger', 'dispatch', 'mutate'];
-  methods.forEach(method => {
-    if (typeof storeInstance[method] !== 'function') {
+  const methods = ["memo", "query", "trigger", "dispatch", "mutate"];
+  methods.forEach((method) => {
+    if (typeof storeInstance[method] !== "function") {
       console.warn(`Method ${method} is not available on the store instance.`);
     }
   });

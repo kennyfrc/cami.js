@@ -1,10 +1,14 @@
-import { html, render as __litRender } from './html.js';
+import { html, render as __litRender } from "./html.js";
 import { produce } from "immer";
-import { Observable } from './observables/observable.js';
-import { ObservableStore } from './observables/observable-store.js';
-import { ObservableState, effect, derive } from './observables/observable-state.js';
-import { ObservableProxy } from './observables/observable-proxy.js';
-import { __trace } from './trace.js';
+import { Observable } from "./observables/observable.js";
+import { ObservableStore } from "./observables/observable-store.js";
+import {
+  ObservableState,
+  effect,
+  derive,
+} from "./observables/observable-state.js";
+import { ObservableProxy } from "./observables/observable-proxy.js";
+import { __trace } from "./trace.js";
 
 /**
  * @typedef ObservableProperty
@@ -100,15 +104,25 @@ class ReactiveElement extends HTMLElement {
     Object.entries(attributes).forEach(([attrName, parseFn]) => {
       // Retrieve the attribute value and apply the transformation function if provided
       let attrValue = this.getAttribute(attrName);
-      const transformFn = typeof parseFn === 'function' ? parseFn : (v) => v;
+      const transformFn = typeof parseFn === "function" ? parseFn : (v) => v;
       attrValue = produce(attrValue, transformFn);
 
       // Create an ObservableProperty or ObservableProxy for the attribute
       const observable = this.__observable(attrValue, attrName);
       if (this.__isObjectOrArray(observable.value)) {
-        this.__createObservablePropertyForObjOrArr(this, attrName, observable, true);
+        this.__createObservablePropertyForObjOrArr(
+          this,
+          attrName,
+          observable,
+          true
+        );
       } else {
-        this.__createObservablePropertyForPrimitive(this, attrName, observable, true);
+        this.__createObservablePropertyForPrimitive(
+          this,
+          attrName,
+          observable,
+          true
+        );
       }
     });
   }
@@ -158,7 +172,6 @@ class ReactiveElement extends HTMLElement {
     // Default implementation does nothing.
     // Subclasses can override this to add initialization logic.
   }
-
 
   /**
    * @method
@@ -211,7 +224,7 @@ class ReactiveElement extends HTMLElement {
    */
   disconnectedCallback() {
     this.onDisconnect();
-    this.__unsubscribers.forEach(unsubscribe => unsubscribe());
+    this.__unsubscribers.forEach((unsubscribe) => unsubscribe());
   }
 
   /**
@@ -310,7 +323,9 @@ class ReactiveElement extends HTMLElement {
    * @returns {boolean} True if the value is an object or an array, false otherwise.
    */
   __isObjectOrArray(value) {
-    return value !== null && (typeof value === 'object' || Array.isArray(value));
+    return (
+      value !== null && (typeof value === "object" || Array.isArray(value))
+    );
   }
 
   /**
@@ -324,20 +339,27 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  __createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
+  __createObservablePropertyForObjOrArr(
+    context,
+    key,
+    observable,
+    isAttribute = false
+  ) {
     if (!(observable instanceof ObservableState)) {
-      throw new TypeError('Expected observable to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observable to be an instance of ObservableState"
+      );
     }
 
     const proxy = this.__observableProxy(observable);
     Object.defineProperty(context, key, {
       get: () => proxy,
-      set: newValue => {
+      set: (newValue) => {
         observable.update(() => newValue);
         if (isAttribute) {
           this.setAttribute(key, newValue);
         }
-      }
+      },
     });
   }
 
@@ -357,19 +379,26 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  __createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
+  __createObservablePropertyForPrimitive(
+    context,
+    key,
+    observable,
+    isAttribute = false
+  ) {
     if (!(observable instanceof ObservableState)) {
-      throw new TypeError('Expected observable to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observable to be an instance of ObservableState"
+      );
     }
 
     Object.defineProperty(context, key, {
       get: () => observable.value,
-      set: newValue => {
+      set: (newValue) => {
         observable.update(() => newValue);
         if (isAttribute) {
           this.setAttribute(key, newValue);
         }
-      }
+      },
     });
   }
 
@@ -394,8 +423,8 @@ class ReactiveElement extends HTMLElement {
    */
   __setup(config) {
     if (config.infer === true) {
-      Object.keys(this).forEach(key => {
-        if (typeof this[key] !== 'function' && !key.startsWith('__')) {
+      Object.keys(this).forEach((key) => {
+        if (typeof this[key] !== "function" && !key.startsWith("__")) {
           if (this[key] instanceof Observable) {
             return;
           } else {
@@ -403,11 +432,15 @@ class ReactiveElement extends HTMLElement {
             if (this.__isObjectOrArray(observable.value)) {
               this.__createObservablePropertyForObjOrArr(this, key, observable);
             } else {
-              this.__createObservablePropertyForPrimitive(this, key, observable);
+              this.__createObservablePropertyForPrimitive(
+                this,
+                key,
+                observable
+              );
             }
           }
         }
-      })
+      });
     }
   }
 
@@ -423,7 +456,9 @@ class ReactiveElement extends HTMLElement {
   __observable(initialValue, _name) {
     if (!this.__isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
-      throw new Error(`[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`);
+      throw new Error(
+        `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
+      );
     }
 
     const observable = new ObservableState(initialValue, null, { name: _name });
@@ -440,11 +475,13 @@ class ReactiveElement extends HTMLElement {
    * @returns {boolean} True if the value is of an allowed type, false otherwise
    */
   __isAllowedType(value) {
-    const allowedTypes = ['number', 'string', 'boolean', 'object', 'undefined'];
+    const allowedTypes = ["number", "string", "boolean", "object", "undefined"];
     const valueType = typeof value;
 
-    if (valueType === 'object') {
-      return value === null || Array.isArray(value) || this.__isPlainObject(value);
+    if (valueType === "object") {
+      return (
+        value === null || Array.isArray(value) || this.__isPlainObject(value)
+      );
     }
 
     return allowedTypes.includes(valueType);
@@ -458,7 +495,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {boolean} True if the value is a plain object, false otherwise
    */
   __isPlainObject(value) {
-    if (Object.prototype.toString.call(value) !== '[object Object]') {
+    if (Object.prototype.toString.call(value) !== "[object Object]") {
       return false;
     }
 
@@ -466,8 +503,7 @@ class ReactiveElement extends HTMLElement {
     return prototype === null || prototype === Object.prototype;
   }
 
-
- /**
+  /**
    * @private
    * @method
    * @description Registers an observable state to the list of unsubscribers
@@ -476,12 +512,14 @@ class ReactiveElement extends HTMLElement {
    */
   __registerObservables(observableState) {
     if (!(observableState instanceof ObservableState)) {
-      throw new TypeError('Expected observableState to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observableState to be an instance of ObservableState"
+      );
     }
 
     // Only effects have a dispose method
     this.__unsubscribers.set(observableState, () => {
-      if (typeof observableState.dispose === 'function') {
+      if (typeof observableState.dispose === "function") {
         observableState.dispose();
       }
     });
@@ -493,7 +531,7 @@ class ReactiveElement extends HTMLElement {
    * @returns {void}
    */
   render() {
-    if (typeof this.template === 'function') {
+    if (typeof this.template === "function") {
       const template = this.template();
       __litRender(template, this);
     }
@@ -501,4 +539,3 @@ class ReactiveElement extends HTMLElement {
 }
 
 export { ReactiveElement };
-

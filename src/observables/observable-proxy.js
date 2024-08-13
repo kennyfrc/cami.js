@@ -1,5 +1,5 @@
-import { ObservableState } from './observable-state.js';
-import { _deepClone } from '../utils.js';
+import { ObservableState } from "./observable-state.js";
+import { _deepClone } from "../utils.js";
 
 /**
  * @typedef ObservableProxy
@@ -9,40 +9,43 @@ import { _deepClone } from '../utils.js';
 class ObservableProxy {
   constructor(observable) {
     if (!(observable instanceof ObservableState)) {
-      throw new TypeError('Expected observable to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observable to be an instance of ObservableState"
+      );
     }
 
     return new Proxy(observable, {
       get: (target, property) => {
         const getPropertyType = (target, property) => {
-          if (typeof target[property] === 'function') return 'targetFunction';
-          if (property in target) return 'targetProperty';
-          if (typeof target.value[property] === 'function') return 'valueFunction';
-          return 'valueProperty';
+          if (typeof target[property] === "function") return "targetFunction";
+          if (property in target) return "targetProperty";
+          if (typeof target.value[property] === "function")
+            return "valueFunction";
+          return "valueProperty";
         };
 
         const propertyType = getPropertyType(target, property);
 
         switch (propertyType) {
-          case 'targetFunction':
+          case "targetFunction":
             // If the property is a function on the target (ObservableState instance),
             // we bind it to the target to ensure correct 'this' context when called.
             // This allows methods on ObservableState to be called correctly.
             return target[property].bind(target);
 
-          case 'targetProperty':
+          case "targetProperty":
             // If the property exists directly on the target (ObservableState instance),
             // we return a deep clone of it. This prevents accidental mutations of
             // internal ObservableState properties.
             return _deepClone(target[property]);
 
-          case 'valueFunction':
+          case "valueFunction":
             // If the property is a function on the target's value (the actual data),
             // we return a new function that calls the original function with the correct context.
             // This allows methods on the stored data to be called while maintaining reactivity.
             return (...args) => target.value[property](...args);
 
-          case 'valueProperty':
+          case "valueProperty":
             // If the property is on the target's value (the actual data),
             // we return a deep clone of it. This ensures that nested objects and arrays
             // can be safely modified without affecting the original data until explicitly updated.
@@ -60,7 +63,7 @@ class ObservableProxy {
         target[property] = value;
         target.update(() => target.value);
         return true;
-      }
+      },
     });
   }
 }

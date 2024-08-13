@@ -2,7 +2,10 @@
   <h1>Label Updates from Input Forms (Nested Observable)</h1>
   <simple-input-component></simple-input-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, store } = cami;
@@ -11,45 +14,45 @@
   const userFormStore = store({
     state: {
       user: {
-        name: 'Kenn',
+        name: "Kenn",
         age: 34,
         contact: {
-          email: 'kenn@example.com',
+          email: "kenn@example.com",
           social: {
-            twitter: '@kennExample',
-            linkedin: 'kennexample'
-          }
-        }
-      }
+            twitter: "@kennExample",
+            linkedin: "kennexample",
+          },
+        },
+      },
     },
-    name: "user-form-store"
+    name: "user-form-store",
   });
 
-  userFormStore.defineAction('updateUser', ({ state, payload }) => {
+  userFormStore.defineAction("updateUser", ({ state, payload }) => {
     // transforms data model
     const transforms = {
       name: (value) => value.trim(),
       age: (value) => parseInt(value),
       email: (value) => value.trim().toLowerCase(),
-      twitter: (value) => value.startsWith('@') ? value : `@${value}`,
-      linkedin: (value) => value.trim()
+      twitter: (value) => (value.startsWith("@") ? value : `@${value}`),
+      linkedin: (value) => value.trim(),
     };
 
     // apply transforms to payload and update state
-    Object.keys(payload).forEach(key => {
+    Object.keys(payload).forEach((key) => {
       const transform = transforms[key];
       if (transform) {
         const value = transform(payload[key]);
         switch (key) {
-          case 'name':
-          case 'age':
+          case "name":
+          case "age":
             state.user[key] = value;
             break;
-          case 'email':
+          case "email":
             state.user.contact.email = value;
             break;
-          case 'twitter':
-          case 'linkedin':
+          case "twitter":
+          case "linkedin":
             state.user.contact.social[key] = value;
             break;
         }
@@ -57,55 +60,76 @@
     });
   });
 
-  userFormStore.defineAction('resetUser', ({ state }) => {
+  userFormStore.defineAction("resetUser", ({ state }) => {
     state.user = {
-      name: 'Kenn',
+      name: "Kenn",
       age: 34,
       contact: {
-        email: 'kenn@example.com',
+        email: "kenn@example.com",
         social: {
-          twitter: '@kennExample',
-          linkedin: 'kennexample'
-        }
-      }
+          twitter: "@kennExample",
+          linkedin: "kennexample",
+        },
+      },
     };
   });
 
-  customElements.define('simple-input-component',
+  customElements.define(
+    "simple-input-component",
     class extends ReactiveElement {
       template() {
         const { user } = userFormStore.state;
         const { dispatch } = userFormStore;
 
         const handleInput = (event, key) => {
-          dispatch('updateUser', { [key]: event.target.value });
+          dispatch("updateUser", { [key]: event.target.value });
         };
 
         const resetForm = () => {
-          dispatch('resetUser');
+          dispatch("resetUser");
         };
 
         return html`
           <form>
             <label>
               Name: ${user.name}
-              <input type="text" .value=${user.name} @input=${(e) => handleInput(e, 'name')} />
+              <input
+                type="text"
+                .value=${user.name}
+                @input=${(e) => handleInput(e, "name")}
+              />
             </label>
             <label>
               Age: ${user.age}
-              <input type="number" .value=${user.age} @input=${(e) => handleInput(e, 'age')} />
+              <input
+                type="number"
+                .value=${user.age}
+                @input=${(e) => handleInput(e, "age")}
+              />
             </label>
             <label>
               Email: ${user.contact.email}
-              <input type="email" .value=${user.contact.email} @input=${(e) => handleInput(e, 'email')} />
+              <input
+                type="email"
+                .value=${user.contact.email}
+                @input=${(e) => handleInput(e, "email")}
+              />
             </label>
             <label>
               Twitter: ${user.contact.social.twitter}
-              <input type="text" .value=${user.contact.social.twitter} @input=${(e) => handleInput(e, 'twitter')} />
+              <input
+                type="text"
+                .value=${user.contact.social.twitter}
+                @input=${(e) => handleInput(e, "twitter")}
+              />
             </label>
             <label>
               LinkedIn: ${user.contact.social.linkedin}
-              <input type="text" .value=${user.contact.social.linkedin} @input=${(e) => handleInput(e, 'linkedin')} />
+              <input
+                type="text"
+                .value=${user.contact.social.linkedin}
+                @input=${(e) => handleInput(e, "linkedin")}
+              />
             </label>
             <button type="button" @click=${resetForm}>Reset</button>
           </form>

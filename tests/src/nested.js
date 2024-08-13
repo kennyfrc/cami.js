@@ -4,14 +4,14 @@ class UserFormElement extends ReactiveElement {
   user = {};
 
   onConnect() {
-    this.initialUser =  {
-      name: 'Kenn',
+    this.initialUser = {
+      name: "Kenn",
       age: 34,
-      email: 'kenn@example.com',
+      email: "kenn@example.com",
       address: {
-        postcode: '12345',
-        street: '123 Main St'
-      }
+        postcode: "12345",
+        street: "123 Main St",
+      },
     };
     this.user.assign(this.initialUser);
   }
@@ -33,24 +33,46 @@ class UserFormElement extends ReactiveElement {
       <form>
         <label>
           Name: ${this.user.name}
-          <input type="text" name="name" .value=${this.user.name} @input=${(e) => this.handleInput(e, 'name')} />
+          <input
+            type="text"
+            name="name"
+            .value=${this.user.name}
+            @input=${(e) => this.handleInput(e, "name")}
+          />
         </label>
         <label>
           Age: ${this.user.age}
-          <input type="number" .value=${this.user.age} @input=${(e) => this.handleInput(e, 'age')} />
+          <input
+            type="number"
+            .value=${this.user.age}
+            @input=${(e) => this.handleInput(e, "age")}
+          />
         </label>
         <label>
           Email: ${this.user.email}
-          <input type="email" .value=${this.user.email} @input=${(e) => this.handleInput(e, 'email')} />
+          <input
+            type="email"
+            .value=${this.user.email}
+            @input=${(e) => this.handleInput(e, "email")}
+          />
         </label>
         <label>
-          Postcode: ${this.user.address ? this.user.address.postcode : ''}
-          <input type="text" name="postcode" .value=${this.user.address ? this.user.address.postcode : '' } @input=${(e) => this.handleInput(e, 'address.postcode')} />
+          Postcode: ${this.user.address ? this.user.address.postcode : ""}
+          <input
+            type="text"
+            name="postcode"
+            .value=${this.user.address ? this.user.address.postcode : ""}
+            @input=${(e) => this.handleInput(e, "address.postcode")}
+          />
         </label>
         <label>
-          Street: ${this.user.address ? this.user.address.street : ''}
-          <input type="text" name="street" .value=${this.user.address ? this.user.address.street : ''}
-          @input=${(e) => this.handleInput(e, 'address.street')} />
+          Street: ${this.user.address ? this.user.address.street : ""}
+          <input
+            type="text"
+            name="street"
+            .value=${this.user.address ? this.user.address.street : ""}
+            @input=${(e) => this.handleInput(e, "address.street")}
+          />
         </label>
         <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
       </form>
@@ -58,4 +80,4 @@ class UserFormElement extends ReactiveElement {
   }
 }
 
-customElements.define('nested-form-component', UserFormElement);
+customElements.define("nested-form-component", UserFormElement);

@@ -3,9 +3,15 @@
   <form-component></form-component>
 </article>
 <small>
-<p>Try entering an email that is already taken, such as trevinowanda@example.net (mock email)</p>
+  <p>
+    Try entering an email that is already taken, such as
+    trevinowanda@example.net (mock email)
+  </p>
 </small>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, store } = cami;
@@ -13,93 +19,102 @@
 
   const formStore = store({
     state: {
-      email: '',
-      password: '',
-      emailError: '',
-      passwordError: '',
+      email: "",
+      password: "",
+      emailError: "",
+      passwordError: "",
       emailIsValid: false,
-      isEmailAvailable: false
+      isEmailAvailable: false,
     },
-    name: "form-store"
+    name: "form-store",
   });
 
-  formStore.defineAction('setEmail', ({ state, payload }) => {
+  formStore.defineAction("setEmail", ({ state, payload }) => {
     state.email = payload;
   });
 
-  formStore.defineAction('setPassword', ({ state, payload }) => {
+  formStore.defineAction("setPassword", ({ state, payload }) => {
     state.password = payload;
   });
 
-  formStore.defineAction('setEmailError', ({ state, payload }) => {
+  formStore.defineAction("setEmailError", ({ state, payload }) => {
     state.emailError = payload;
   });
 
-  formStore.defineAction('setPasswordError', ({ state, payload }) => {
+  formStore.defineAction("setPasswordError", ({ state, payload }) => {
     state.passwordError = payload;
   });
 
-  formStore.defineAction('setEmailIsValid', ({ state, payload }) => {
+  formStore.defineAction("setEmailIsValid", ({ state, payload }) => {
     state.emailIsValid = payload;
   });
 
-  formStore.defineAction('setIsEmailAvailable', ({ state, payload }) => {
+  formStore.defineAction("setIsEmailAvailable", ({ state, payload }) => {
     state.isEmailAvailable = payload;
   });
 
-  formStore.defineAction('processEmailInput', ({ dispatch, query, payload }) => {
-    const { isEmailValid, emailError } = validateEmail(payload);
-    dispatch('setEmailError', emailError);
-    dispatch('setEmailIsValid', isEmailValid);
-    dispatch('setEmail', payload);
-    query('fetchEmail', { email: payload });
-  });
+  formStore.defineAction(
+    "processEmailInput",
+    ({ dispatch, query, payload }) => {
+      const { isEmailValid, emailError } = validateEmail(payload);
+      dispatch("setEmailError", emailError);
+      dispatch("setEmailIsValid", isEmailValid);
+      dispatch("setEmail", payload);
+      query("fetchEmail", { email: payload });
+    }
+  );
 
-  formStore.defineAction('processPasswordInput', ({ dispatch, payload }) => {
+  formStore.defineAction("processPasswordInput", ({ dispatch, payload }) => {
     const { isValid } = validatePassword(payload);
-    dispatch('setPasswordError', isValid ? '' : 'Password must be at least 8 characters long.');
-    dispatch('setPassword', payload);
+    dispatch(
+      "setPasswordError",
+      isValid ? "" : "Password must be at least 8 characters long."
+    );
+    dispatch("setPassword", payload);
   });
 
-  formStore.defineQuery('fetchEmail', {
-    queryKey: (payload) => ['Email', payload.email],
+  formStore.defineQuery("fetchEmail", {
+    queryKey: (payload) => ["Email", payload.email],
     queryFn: (payload) => {
-      return fetch(`https://api.camijs.com/users?email=${payload.email}`).then(res => res.json());
+      return fetch(`https://api.camijs.com/users?email=${payload.email}`).then(
+        (res) => res.json()
+      );
     },
     onSuccess: ({ dispatch, data }) => {
-      dispatch('setIsEmailAvailable', data.length === 0);
+      dispatch("setIsEmailAvailable", data.length === 0);
     },
-    staleTime: 1000 * 60 * 5
+    staleTime: 1000 * 60 * 5,
   });
 
-  formStore.defineMemo('getEmailInputState', ({ state }) => {
-    if (state.email === '') {
-      return '';
+  formStore.defineMemo("getEmailInputState", ({ state }) => {
+    if (state.email === "") {
+      return "";
     }
-    const isValidAndAvailable = state.emailIsValid && state.isEmailAvailable === true;
+    const isValidAndAvailable =
+      state.emailIsValid && state.isEmailAvailable === true;
     return isValidAndAvailable ? false : true;
   });
 
-  formStore.defineMemo('getPasswordInputState', ({ state }) => {
-    if (state.password === '') {
-      return '';
+  formStore.defineMemo("getPasswordInputState", ({ state }) => {
+    if (state.password === "") {
+      return "";
     }
-    const isPasswordValid = state.passwordError === '';
+    const isPasswordValid = state.passwordError === "";
     return isPasswordValid ? false : true;
   });
 
   function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    let emailError = '';
+    let emailError = "";
     let isEmailValid = null;
-    if (email === '') {
-      emailError = '';
+    if (email === "") {
+      emailError = "";
       isEmailValid = null;
     } else if (!emailRegex.test(email)) {
-      emailError = 'Please enter a valid email address.';
+      emailError = "Please enter a valid email address.";
       isEmailValid = false;
     } else {
-      emailError = '';
+      emailError = "";
       isEmailValid = true;
     }
     return { isEmailValid, emailError };
@@ -107,7 +122,7 @@
 
   function validatePassword(password) {
     let isValid = false;
-    if (password === '') {
+    if (password === "") {
       isValid = null;
     } else if (password?.length >= 8) {
       isValid = true;
@@ -117,35 +132,59 @@
 
   class FormElement extends ReactiveElement {
     template() {
-      const { email, password, emailError, passwordError, emailIsValid, isEmailAvailable } = formStore.state;
+      const {
+        email,
+        password,
+        emailError,
+        passwordError,
+        emailIsValid,
+        isEmailAvailable,
+      } = formStore.state;
       const { dispatch } = formStore;
-      const getEmailInputState = formStore.memo('getEmailInputState');
-      const getPasswordInputState = formStore.memo('getPasswordInputState');
+      const getEmailInputState = formStore.memo("getEmailInputState");
+      const getPasswordInputState = formStore.memo("getPasswordInputState");
 
       return html`
         <form action="/submit" method="POST">
           <label>
             Email:
-            <input type="email"
+            <input
+              type="email"
               aria-invalid=${getEmailInputState}
-              @input=${(e) => dispatch('processEmailInput', e.target.value)}
-              value=${email}>
-            <span>${isEmailAvailable === false && emailError === '' ? 'Email is already taken.' : ''}</span>
+              @input=${(e) => dispatch("processEmailInput", e.target.value)}
+              value=${email}
+            />
+            <span
+              >${isEmailAvailable === false && emailError === ""
+                ? "Email is already taken."
+                : ""}</span
+            >
             <span>${emailError}</span>
           </label>
           <label>
             Password:
-            <input type="password"
-              @input=${(e) => dispatch('processPasswordInput', e.target.value)}
+            <input
+              type="password"
+              @input=${(e) => dispatch("processPasswordInput", e.target.value)}
               value=${password}
-              aria-invalid=${getPasswordInputState}>
+              aria-invalid=${getPasswordInputState}
+            />
             <span>${passwordError}</span>
           </label>
-          <input type="submit" value="Submit" style="opacity: ${emailError !== '' || passwordError !== '' || email === '' || password === '' ? '0.5' : '1'}">
+          <input
+            type="submit"
+            value="Submit"
+            style="opacity: ${emailError !== "" ||
+            passwordError !== "" ||
+            email === "" ||
+            password === ""
+              ? "0.5"
+              : "1"}"
+          />
         </form>
       `;
     }
   }
 
-  customElements.define('form-component', FormElement);
+  customElements.define("form-component", FormElement);
 </script>

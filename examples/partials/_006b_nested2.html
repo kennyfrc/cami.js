@@ -2,7 +2,10 @@
   <h1>User Update Page (Nested Observable)</h1>
   <nested-observable-element></nested-observable-element>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -13,64 +16,70 @@
     store: "user-store",
     state: {
       user: {
-        name: 'John',
+        name: "John",
         age: 30,
         address: {
-          street: '123 Main St',
-          city: 'Anytown',
-          country: 'USA',
-          postalCode: '12345',
+          street: "123 Main St",
+          city: "Anytown",
+          country: "USA",
+          postalCode: "12345",
           coordinates: {
-            lat: '40.7128',
-            long: '74.0060'
-          }
-        }
-      }
+            lat: "40.7128",
+            long: "74.0060",
+          },
+        },
+      },
     },
     actions: {
       changeUser: ({ state }) => {
         const john = {
-          name: 'John',
+          name: "John",
           age: 30,
           address: {
-            street: '123 Main St',
-            city: 'Anytown',
-            country: 'USA',
-            postalCode: '12345',
+            street: "123 Main St",
+            city: "Anytown",
+            country: "USA",
+            postalCode: "12345",
             coordinates: {
-              lat: '40.7128',
-              long: '74.0060'
-            }
-          }
+              lat: "40.7128",
+              long: "74.0060",
+            },
+          },
         };
 
         const jane = {
-          name: 'Jane',
+          name: "Jane",
           age: 31,
           address: {
-            street: '456 Elm St',
-            city: 'Othertown',
-            country: 'Canada',
-            postalCode: '67890',
+            street: "456 Elm St",
+            city: "Othertown",
+            country: "Canada",
+            postalCode: "67890",
             coordinates: {
-              lat: '51.5074',
-              long: '0.1278'
-            }
-          }
+              lat: "51.5074",
+              long: "0.1278",
+            },
+          },
         };
 
-        state.user = (state.user.name === 'John') ? jane : john;
+        state.user = state.user.name === "John" ? jane : john;
       },
       changeName: ({ state }) => {
-        state.user.name = (state.user.name === 'John') ? 'Jane' : 'John';
+        state.user.name = state.user.name === "John" ? "Jane" : "John";
       },
       changeStreet: ({ state }) => {
-        state.user.address.street = (state.user.address.street === '123 Main St') ? '456 Elm St' : '123 Main St';
+        state.user.address.street =
+          state.user.address.street === "123 Main St"
+            ? "456 Elm St"
+            : "123 Main St";
       },
       changeLat: ({ state }) => {
-        state.user.address.coordinates.lat = (state.user.address.coordinates.lat === '40.7128') ? '51.5074' : '40.7128';
-      }
-    }
+        state.user.address.coordinates.lat =
+          state.user.address.coordinates.lat === "40.7128"
+            ? "51.5074"
+            : "40.7128";
+      },
+    },
   });
 
   class NestedObservableElement extends ReactiveElement {
@@ -81,13 +90,13 @@
         <div>Name: ${user.name}</div>
         <div>Street: ${user.address.street}</div>
         <div>Latitude: ${user.address.coordinates.lat}</div>
-        <button @click=${() => dispatch('changeUser')}>Change User</button>
-        <button @click=${() => dispatch('changeName')}>Change Name</button>
-        <button @click=${() => dispatch('changeStreet')}>Change Street</button>
-        <button @click=${() => dispatch('changeLat')}>Change Latitude</button>
+        <button @click=${() => dispatch("changeUser")}>Change User</button>
+        <button @click=${() => dispatch("changeName")}>Change Name</button>
+        <button @click=${() => dispatch("changeStreet")}>Change Street</button>
+        <button @click=${() => dispatch("changeLat")}>Change Latitude</button>
       `;
     }
   }
 
-  customElements.define('nested-observable-element', NestedObservableElement);
+  customElements.define("nested-observable-element", NestedObservableElement);
 </script>

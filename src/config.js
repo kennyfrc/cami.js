@@ -7,19 +7,29 @@
 const __config = {
   events: {
     __state: true,
-    get isEnabled() { return this.__state; },
-    enable: function() { this.__state = true; },
-    disable: function() { this.__state = false; }
+    get isEnabled() {
+      return this.__state;
+    },
+    enable: function () {
+      this.__state = true;
+    },
+    disable: function () {
+      this.__state = false;
+    },
   },
   debug: {
     __state: false,
-    get isEnabled() { return this.__state; },
-    enable: function() {
-      console.log('Cami.js debug mode enabled');
+    get isEnabled() {
+      return this.__state;
+    },
+    enable: function () {
+      console.log("Cami.js debug mode enabled");
       this.__state = true;
     },
-    disable: function() { this.__state = false; }
-  }
+    disable: function () {
+      this.__state = false;
+    },
+  },
 };
 
 export { __config };

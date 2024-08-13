@@ -32,7 +32,9 @@ const themeSwitcher = {
 
   // Preferred color scheme
   get preferredColorScheme() {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   },
 
   // Init switchers
@@ -56,7 +58,9 @@ const themeSwitcher = {
   // Set scheme
   set scheme(scheme) {
     if (scheme == "auto") {
-      this.preferredColorScheme == "dark" ? (this._scheme = "dark") : (this._scheme = "light");
+      this.preferredColorScheme == "dark"
+        ? (this._scheme = "dark")
+        : (this._scheme = "light");
     } else if (scheme == "dark" || scheme == "light") {
       this._scheme = scheme;
     }
@@ -71,7 +75,9 @@ const themeSwitcher = {
 
   // Apply scheme
   applyScheme() {
-    document.querySelector("html").setAttribute(this.rootAttribute, this.scheme);
+    document
+      .querySelector("html")
+      .setAttribute(this.rootAttribute, this.scheme);
   },
 
   // Store scheme to local storage
