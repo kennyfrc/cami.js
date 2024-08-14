@@ -62,8 +62,8 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     await userStore.dispatchAsync("simpleThunk");
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.user).toEqual({ id: 1, name: "John Doe" });
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().user).toEqual({ id: 1, name: "John Doe" });
   });
 
   it("should handle errors in thunks", async () => {
@@ -80,8 +80,8 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     await userStore.dispatchAsync("errorThunk");
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.error).toBe("Test error");
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().error).toBe("Test error");
   });
 
   it("should handle thunks with parameters", async () => {
@@ -96,8 +96,8 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     const result = await userStore.dispatchAsync("fetchUser", 5);
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.user).toEqual({ id: 5, name: "User 5" });
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().user).toEqual({ id: 5, name: "User 5" });
     expect(result).toEqual({ id: 5, name: "User 5" });
   });
 
@@ -163,7 +163,7 @@ describe("Async Actions - Advanced Scenarios", () => {
           return {
             user,
             posts,
-            latestPostComments: userStore.state.latestPostComments,
+            latestPostComments: userStore.getState().latestPostComments,
           };
         } catch (error) {
           console.error("Error in fetchUserProfile:", error);
@@ -177,13 +177,13 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     const result = await userStore.dispatchAsync("fetchUserProfile", 1);
 
-    console.log("Final state:", userStore.state);
+    console.log("Final state:", userStore.getState());
     console.log("Result:", result);
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.user).toEqual(mockData.user);
-    expect(userStore.state.posts).toEqual(mockData.posts);
-    expect(userStore.state.latestPostComments).toEqual(mockData.comments);
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().user).toEqual(mockData.user);
+    expect(userStore.getState().posts).toEqual(mockData.posts);
+    expect(userStore.getState().latestPostComments).toEqual(mockData.comments);
     expect(result).toEqual({
       user: mockData.user,
       posts: mockData.posts,
@@ -218,9 +218,9 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     const result = await userStore.dispatchAsync("fetchUserAndPosts", 1);
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.user).toEqual({ id: 1, name: "User 1" });
-    expect(userStore.state.posts).toEqual([{ id: 1, title: "Post by User 1" }]);
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().user).toEqual({ id: 1, name: "User 1" });
+    expect(userStore.getState().posts).toEqual([{ id: 1, title: "Post by User 1" }]);
     expect(result).toEqual({
       user: { id: 1, name: "User 1" },
       posts: [{ id: 1, title: "Post by User 1" }],
@@ -251,14 +251,14 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     // First call should fetch the user
     await userStore.dispatchAsync("conditionalFetch");
-    expect(userStore.state.user).toEqual({ id: 1, name: "John Doe" });
-    expect(userStore.state.notifications).toContain(
+    expect(userStore.getState().user).toEqual({ id: 1, name: "John Doe" });
+    expect(userStore.getState().notifications).toContain(
       "User fetched successfully"
     );
 
     // Second call should not fetch the user again
     await userStore.dispatchAsync("conditionalFetch");
-    expect(userStore.state.notifications).toContain("User already loaded");
+    expect(userStore.getState().notifications).toContain("User already loaded");
   });
 
   // Complex Action Sequences
@@ -308,15 +308,15 @@ describe("Async Actions - Advanced Scenarios", () => {
       mockToken
     );
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.user).toEqual({ id: 1, name: "John Doe" });
-    expect(userStore.state.posts).toEqual([{ id: 1, title: "First Post" }]);
-    expect(userStore.state.notifications).toEqual([
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().user).toEqual({ id: 1, name: "John Doe" });
+    expect(userStore.getState().posts).toEqual([{ id: 1, title: "First Post" }]);
+    expect(userStore.getState().notifications).toEqual([
       "Login successful",
       "User profile loaded",
       "User posts loaded",
     ]);
-    expect(userStore.state.error).toBe(null);
+    expect(userStore.getState().error).toBe(null);
     expect(result).toEqual({
       user: { id: 1, name: "John Doe" },
       posts: [{ id: 1, title: "First Post" }],
@@ -355,9 +355,9 @@ describe("Async Actions - Advanced Scenarios", () => {
 
     await userStore.dispatchAsync("loginWithErrorHandling");
 
-    expect(userStore.state.loading).toBe(false);
-    expect(userStore.state.error).toBe("Failed to fetch user profile");
-    expect(userStore.state.notifications).toEqual([
+    expect(userStore.getState().loading).toBe(false);
+    expect(userStore.getState().error).toBe("Failed to fetch user profile");
+    expect(userStore.getState().notifications).toEqual([
       "Login successful",
       "Failed to load user profile",
     ]);

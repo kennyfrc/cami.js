@@ -33,7 +33,7 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
 
   it("should fetch data from the API", async function () {
     await blogStore.query("fetchPosts");
-    expect(blogStore.state.posts).toEqual([{ id: 1, title: "Test Post" }]);
+    expect(blogStore.getState().posts).toEqual([{ id: 1, title: "Test Post" }]);
   });
 
   it("should optimistically add a post", async function () {
@@ -52,7 +52,7 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
 
     await blogStore.mutate("createPost", newPost);
 
-    expect(blogStore.state.posts).toContain(optimisticPost);
+    expect(blogStore.getState().posts).toContain(optimisticPost);
     expect(fetchSpy).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),

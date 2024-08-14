@@ -50,33 +50,33 @@ describe("Observable Model", function () {
 
     it("should initialize with the given initial state", function () {
       const cartModel = createCartModel("cart1");
-      expect(cartModel.state.items).toEqual([]);
-      expect(cartModel.state.total).toBe(0);
+      expect(cartModel.getState().items).toEqual([]);
+      expect(cartModel.getState().total).toBe(0);
     });
 
     it("should handle action dispatch", function () {
       const cartModel = createCartModel("cart2");
       cartModel.dispatch("addItem", { id: 1, name: "Test Item", price: 10 });
-      expect(cartModel.state.items.length).toBe(1);
-      expect(cartModel.state.total).toBe(10);
+      expect(cartModel.getState().items.length).toBe(1);
+      expect(cartModel.getState().total).toBe(10);
     });
 
     it("should handle multiple actions", function () {
       const cartModel = createCartModel("cart3");
       cartModel.dispatch("addItem", { id: 1, name: "Item 1", price: 10 });
       cartModel.dispatch("addItem", { id: 2, name: "Item 2", price: 20 });
-      expect(cartModel.state.items.length).toBe(2);
-      expect(cartModel.state.total).toBe(30);
+      expect(cartModel.getState().items.length).toBe(2);
+      expect(cartModel.getState().total).toBe(30);
       cartModel.dispatch("removeItem", 1);
-      expect(cartModel.state.items.length).toBe(1);
-      expect(cartModel.state.total).toBe(20);
+      expect(cartModel.getState().items.length).toBe(1);
+      expect(cartModel.getState().total).toBe(20);
     });
 
     it("should handle async actions", async function () {
       const cartModel = createCartModel("cart4");
       await cartModel.dispatchAsync("fetchItems");
-      expect(cartModel.state.items.length).toBe(1);
-      expect(cartModel.state.total).toBe(10);
+      expect(cartModel.getState().items.length).toBe(1);
+      expect(cartModel.getState().total).toBe(10);
     });
 
     it("should compute memos correctly", function () {
@@ -278,11 +278,11 @@ describe("Observable Model", function () {
       cartModel.dispatch("addItemToCart", { id: 1, name: "Item 1", price: 10 });
       userModel.dispatch("assignCart", "cart6");
 
-      expect(userModel.state.id).toBe(1);
-      expect(userModel.state.name).toBe("John Doe");
-      expect(userModel.state.cart).toBe("cart6");
-      expect(cartModel.state.items.length).toBe(1);
-      expect(cartModel.state.total).toBe(10);
+      expect(userModel.getState().id).toBe(1);
+      expect(userModel.getState().name).toBe("John Doe");
+      expect(userModel.getState().cart).toBe("cart6");
+      expect(cartModel.getState().items.length).toBe(1);
+      expect(cartModel.getState().total).toBe(10);
     });
 
     it("should maintain separate states for different models", function () {
@@ -292,8 +292,8 @@ describe("Observable Model", function () {
       userModel.dispatch("setUser", { id: 1, name: "John Doe" });
       cartModel.dispatch("addItemToCart", { id: 1, name: "Item 1", price: 10 });
 
-      expect(userModel.state).toEqual({ id: 1, name: "John Doe", cart: null });
-      expect(cartModel.state).toEqual({
+      expect(userModel.getState()).toEqual({ id: 1, name: "John Doe", cart: null });
+      expect(cartModel.getState()).toEqual({
         items: [{ id: 1, name: "Item 1", price: 10 }],
         total: 10,
       });
@@ -366,29 +366,29 @@ describe("Observable Model", function () {
 
       // Counter actions should work
       counterModel.dispatch("increment");
-      expect(counterModel.state.count).toBe(1);
+      expect(counterModel.getState().count).toBe(1);
 
       // Theme actions should work
       themeModel.dispatch("setDark");
-      expect(themeModel.state.isDark).toBe(true);
+      expect(themeModel.getState().isDark).toBe(true);
 
       // Root model should not have access to counter or theme actions
       rootModel.dispatch("increment");
       rootModel.dispatch("setDark");
       // The root model's state should remain unchanged
-      expect(rootModel.state.counter.count).toBe(0);
-      expect(rootModel.state.theme.isDark).toBe(false);
+      expect(rootModel.getState().counter.count).toBe(0);
+      expect(rootModel.getState().theme.isDark).toBe(false);
 
       // Root model should have access to its own actions
       rootModel.dispatch("resetAll");
-      expect(rootModel.state.counter.count).toBe(0);
-      expect(rootModel.state.theme.isDark).toBe(false);
+      expect(rootModel.getState().counter.count).toBe(0);
+      expect(rootModel.getState().theme.isDark).toBe(false);
 
       // Changes in individual models should not affect the root model
       counterModel.dispatch("increment");
       themeModel.dispatch("setDark");
-      expect(rootModel.state.counter.count).toBe(0);
-      expect(rootModel.state.theme.isDark).toBe(false);
+      expect(rootModel.getState().counter.count).toBe(0);
+      expect(rootModel.getState().theme.isDark).toBe(false);
     });
   });
 });

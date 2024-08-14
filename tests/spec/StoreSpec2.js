@@ -103,44 +103,44 @@ describe("Observable Store (Set 2)", function () {
 
   describe("Navigation Store", function () {
     it("should initialize with the correct initial state", function () {
-      expect(navStore.state.navigation.sidebar).toBe("chat");
-      expect(navStore.state.navigation.center).toBe("documents");
-      expect(navStore.state.count).toBe(0);
+      expect(navStore.getState().navigation.sidebar).toBe("chat");
+      expect(navStore.getState().navigation.center).toBe("documents");
+      expect(navStore.getState().count).toBe(0);
     });
 
     it("should handle updateNavigation action correctly", function () {
       navStore.dispatch("updateNavigation", { sidebar: "settings" });
-      expect(navStore.state.navigation.sidebar).toBe("settings");
-      expect(navStore.state.navigation.center).toBe("documents");
-      expect(navStore.state.count).toBe(0);
+      expect(navStore.getState().navigation.sidebar).toBe("settings");
+      expect(navStore.getState().navigation.center).toBe("documents");
+      expect(navStore.getState().count).toBe(0);
     });
   });
 
   describe("Post Store", function () {
     it("should initialize with the correct initial state", function () {
-      expect(postStore.state.list).toEqual([]);
-      expect(postStore.state.loading).toBe(false);
-      expect(postStore.state.error).toBe(null);
+      expect(postStore.getState().list).toEqual([]);
+      expect(postStore.getState().loading).toBe(false);
+      expect(postStore.getState().error).toBe(null);
     });
 
     it("should handle setList action correctly", function () {
       const newList = [{ id: 1, title: "Test Post" }];
       postStore.dispatch("setList", newList);
-      expect(postStore.state.list).toEqual(newList);
+      expect(postStore.getState().list).toEqual(newList);
     });
 
     it("should handle create mutation", async function () {
       const newPost = { title: "New Test Post" };
       await postStore.mutate("createPost", newPost);
-      expect(postStore.state.list.length).toBe(1);
-      expect(postStore.state.list[0].title).toEqual(newPost.title);
+      expect(postStore.getState().list.length).toBe(1);
+      expect(postStore.getState().list[0].title).toEqual(newPost.title);
     });
 
     it("should handle delete mutation", async function () {
       const initialPost = { id: 1, title: "Test Post" };
       postStore.dispatch("setList", [initialPost]);
       await postStore.mutate("deletePost", { id: 1 });
-      expect(postStore.state.list.length).toBe(0);
+      expect(postStore.getState().list.length).toBe(0);
     });
 
     it("should handle concurrent mutations", async function () {
@@ -153,17 +153,17 @@ describe("Observable Store (Set 2)", function () {
         postStore.mutate("deletePost", { id: 1 })
       ]);
 
-      expect(postStore.state.list.length).toBe(2);
-      expect(postStore.state.list[0].title).toEqual("Post 1");
-      expect(postStore.state.list[1].title).toEqual("Post 2");
+      expect(postStore.getState().list.length).toBe(2);
+      expect(postStore.getState().list[0].title).toEqual("Post 1");
+      expect(postStore.getState().list[1].title).toEqual("Post 2");
     });
   });
 
   describe("Partial Updates with Type Checking", function () {
     it("should allow partial updates to navigation state", function () {
       navStore.dispatch("updateNavigation", { sidebar: "settings" });
-      expect(navStore.state.navigation.sidebar).toBe("settings");
-      expect(navStore.state.navigation.center).toBe("documents");
+      expect(navStore.getState().navigation.sidebar).toBe("settings");
+      expect(navStore.getState().navigation.center).toBe("documents");
     });
 
     it("should throw an error when updating with incorrect type", function () {
@@ -175,10 +175,10 @@ describe("Observable Store (Set 2)", function () {
     it("should allow adding a new post with partial data", function () {
       const newPost = { id: 1, title: "Partial Post" };
       postStore.dispatch("addPost", newPost);
-      expect(postStore.state.list.length).toBe(1);
-      expect(postStore.state.list[0].id).toBe(newPost.id);
-      expect(postStore.state.list[0].title).toBe(newPost.title);
-      expect(postStore.state.list[0].content).toBe(undefined);
+      expect(postStore.getState().list.length).toBe(1);
+      expect(postStore.getState().list[0].id).toBe(newPost.id);
+      expect(postStore.getState().list[0].title).toBe(newPost.title);
+      expect(postStore.getState().list[0].content).toBe(undefined);
     });
 
     it("should throw an error when adding a post with incorrect data type", function () {
@@ -200,7 +200,7 @@ describe("Observable Store (Set 2)", function () {
       });
 
       postStore.dispatch("updatePost", { id: 1, title: "Updated Post" });
-      expect(postStore.state.list[0]).toEqual({
+      expect(postStore.getState().list[0]).toEqual({
         id: 1,
         title: "Updated Post",
         content: "Some content"
@@ -210,11 +210,11 @@ describe("Observable Store (Set 2)", function () {
     it("should maintain type checking for optional fields", function () {
       const postWithoutContent = { id: 2, title: "No Content Post" };
       postStore.dispatch("addPost", postWithoutContent);
-      expect(postStore.state.list[0].content).toBe(undefined);
+      expect(postStore.getState().list[0].content).toBe(undefined);
 
       const postWithContent = { id: 3, title: "With Content", content: "Some content" };
       postStore.dispatch("addPost", postWithContent);
-      expect(postStore.state.list[1].content).toBe("Some content");
+      expect(postStore.getState().list[1].content).toBe("Some content");
     });
 
     it("should throw an error when violating schema in afterHook", function () {

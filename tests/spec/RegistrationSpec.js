@@ -43,7 +43,7 @@ describe("RegistrationFormElement - In Memory Storage", () => {
       emailInput.value = "test@example.com";
       emailInput.dispatchEvent(new Event("input"));
       await regForm.updateComplete;
-      expect(registrationStore.state.email).toBe("test@example.com");
+      expect(registrationStore.getState().email).toBe("test@example.com");
     });
 
     it("should update store state when password input changes", async () => {
@@ -51,7 +51,7 @@ describe("RegistrationFormElement - In Memory Storage", () => {
       passwordInput.value = "validpassword";
       passwordInput.dispatchEvent(new Event("input"));
       await regForm.updateComplete;
-      expect(registrationStore.state.password).toBe("validpassword");
+      expect(registrationStore.getState().password).toBe("validpassword");
     });
   });
 });
