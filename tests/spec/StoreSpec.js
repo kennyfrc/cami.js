@@ -142,7 +142,7 @@ describe("Observable Store (Set 1)", function () {
     });
 
     it("should rollback state changes when an action throws an error", function () {
-      const initialState = { ...appStore.state };
+      const initialState = JSON.parse(JSON.stringify(appStore.state));
 
       expect(() => {
         appStore.dispatch("updateMultipleFields", {
@@ -151,7 +151,7 @@ describe("Observable Store (Set 1)", function () {
           newItem: "test",
           shouldThrow: true,
         });
-      }).toThrowError("Action failed");
+      }).toThrow("Action failed");
 
       expect(appStore.state).toEqual(initialState);
     });
@@ -164,7 +164,7 @@ describe("Observable Store (Set 1)", function () {
         shouldThrow: false,
       });
 
-      const intermediateState = { ...appStore.state };
+      const intermediateState = JSON.parse(JSON.stringify(appStore.state));
 
       expect(() => {
         appStore.dispatch("updateMultipleFields", {
@@ -173,7 +173,7 @@ describe("Observable Store (Set 1)", function () {
           newItem: "item2",
           shouldThrow: true,
         });
-      }).toThrowError("Action failed");
+      }).toThrow("Action failed");
 
       expect(appStore.state).toEqual(intermediateState);
     });
@@ -189,11 +189,11 @@ describe("Observable Store (Set 1)", function () {
         });
       });
 
-      const initialState = { ...appStore.state };
+      const initialState = JSON.parse(JSON.stringify(appStore.state));
 
       expect(() => {
         appStore.dispatch("nestedAction");
-      }).toThrowError("Action failed");
+      }).toThrow("Action failed");
 
       expect(appStore.state).toEqual(initialState);
     });

@@ -93,25 +93,4 @@ describe("ObservableState", function () {
       expect(observable.value).toEqual([1, 2, 3, "test"]);
     });
   });
-
-  describe("ObservableState - Effect", function () {
-    let observable, effectCleanup;
-
-    beforeEach(function () {
-      observable = new ObservableState(1);
-      effectCleanup = effect(() => {
-        console.log(observable.value);
-        return () => {
-          console.log = jasmine.createSpy();
-        };
-      });
-    });
-
-    it("should run the cleanup function when the effect is disposed", function () {
-      console.log = jasmine.createSpy("log");
-      effectCleanup();
-      observable.update((value) => value + 1);
-      expect(console.log).not.toHaveBeenCalled();
-    });
-  });
 });

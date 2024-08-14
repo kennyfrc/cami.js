@@ -70,7 +70,7 @@ describe("Objects are Observable - UserFormElement", () => {
     await userFormElement.updateComplete;
     userFormElement.user.delete("name");
     await userFormElement.updateComplete;
-    expect(userFormElement.user.name).toBeUndefined();
+    expect(userFormElement.user.name).toBe(undefined);
     const nameInput = userFormElement.querySelector('input[type="text"]');
     expect(nameInput.value).toBe("undefined");
   });
@@ -87,7 +87,7 @@ describe("Objects are Observable - UserFormElement", () => {
     userFormElement.user.set("name", "New Name");
     userFormElement.user.clear();
     await userFormElement.updateComplete;
-    const nameInput = userFormElement.querySelector('input[type="text"]');
+    const nameInput = userFormElement.querySelector('input[name="name"]');
     expect(nameInput.value).toBe("undefined");
   });
 

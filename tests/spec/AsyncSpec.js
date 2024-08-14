@@ -316,7 +316,7 @@ describe("Async Actions - Advanced Scenarios", () => {
       "User profile loaded",
       "User posts loaded",
     ]);
-    expect(userStore.state.error).toBeNull();
+    expect(userStore.state.error).toBe(null);
     expect(result).toEqual({
       user: { id: 1, name: "John Doe" },
       posts: [{ id: 1, title: "First Post" }],

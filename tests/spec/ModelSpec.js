@@ -174,13 +174,11 @@ describe("Observable Model", function () {
                 }).then((res) => res.json());
               },
               onMutate: ({ state, payload, dispatch }) => {
-                return { optimisticId: payload.id };
+                dispatch("addPost", payload);
               },
               onSuccess: ({ state, dispatch, data, context }) => {
-                dispatch("addPost", data || context.payload);
               },
               onError: ({ dispatch, context }) => {
-                // No need to remove the post as it wasn't added
               },
             },
             deletePost: {
@@ -206,10 +204,9 @@ describe("Observable Model", function () {
     it("should handle queries", async function () {
       const postModel = createPostModel("posts1");
       await postModel.query("fetchPosts");
-      expect(postModel.state.list.length).toBeGreaterThan(0);
-      expect(postModel.state.loading).toBe(false);
+      expect(postModel.getState().list.length > 0).toBe(true);
+      expect(postModel.getState().loading).toBe(false);
     });
-
     it("should handle mutations", async function () {
       const postModel = createPostModel("posts2");
       const newPost = {
@@ -218,14 +215,13 @@ describe("Observable Model", function () {
         body: "This is a test post",
       };
       await postModel.mutate("createPost", newPost);
-      expect(postModel.state.list.some((post) => post.id === newPost.id)).toBe(
-        true
-      );
+
+      const postExists = postModel.getState().list.some((post) => post.id === newPost.id);
+      expect(postExists).toBe(true);
 
       await postModel.mutate("deletePost", newPost);
-      expect(postModel.state.list.some((post) => post.id === newPost.id)).toBe(
-        false
-      );
+      const postDeleted = !postModel.getState().list.some((post) => post.id === newPost.id);
+      expect(postDeleted).toBe(true);
     });
   });
 

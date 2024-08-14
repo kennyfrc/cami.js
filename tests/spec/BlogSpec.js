@@ -2,9 +2,11 @@ import { blogStore } from "../src/blog.js";
 
 describe("Querying the API & Mutating Data - BlogComponent", () => {
   let blogElement;
+  let fetchSpy;
 
   beforeEach(async function () {
-    spyOn(window, "fetch").and.returnValue(
+    fetchSpy = spyOn(window, "fetch");
+    fetchSpy.and.returnValue(
       Promise.resolve({
         json: () => Promise.resolve([{ id: 1, title: "Test Post" }]),
       })
@@ -40,20 +42,18 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
       body: "This is a new post.",
       userId: 1,
     };
-    const optimisticPost = { ...newPost, id: jasmine.any(Number) };
+    const optimisticPost = { ...newPost, id: expect.any(Number) };
 
-    window.fetch.and.returnValue(
+    fetchSpy.and.returnValue(
       Promise.resolve({
-        json: () => Promise.resolve(newPost),
+        json: () => Promise.resolve({ ...newPost, id: 2 }),
       })
     );
 
     await blogStore.mutate("createPost", newPost);
 
-    expect(blogStore.state.posts).toContain(
-      jasmine.objectContaining(optimisticPost)
-    );
-    expect(window.fetch).toHaveBeenCalledWith("https://api.camijs.com/posts", {
+    expect(blogStore.state.posts).toContain(optimisticPost);
+    expect(fetchSpy).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),
       headers: {

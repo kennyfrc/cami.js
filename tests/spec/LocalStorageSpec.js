@@ -6,7 +6,7 @@ describe("LocalStorage Adapter", function () {
   let todoStore;
   const localStorageKey = "test-todo-local-storage";
 
-  beforeAll(function () {
+  beforeAll(async function () {
     todoLocalStorage = createLocalStorage({
       name: localStorageKey,
       version: 1,
@@ -60,13 +60,11 @@ describe("LocalStorage Adapter", function () {
   });
 
   beforeEach(async function () {
-    // Clear the todos before each test
     localStorage.clear();
-    todoStore.dispatch("resetTodos");
+    await todoStore.dispatch("resetTodos");
   });
 
   afterAll(function () {
-    // Clear the localStorage after all tests
     localStorage.clear();
   });
 
@@ -83,8 +81,16 @@ describe("LocalStorage Adapter", function () {
     });
   }
 
+  function deepEqual(a, b) {
+    if (a === b) return true;
+    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+    const keysA = Object.keys(a), keysB = Object.keys(b);
+    if (keysA.length !== keysB.length) return false;
+    return keysA.every(key => deepEqual(a[key], b[key]));
+  }
+
   it("should persist todo additions to localStorage", async function () {
-    todoStore.dispatch("createTodoItem", {
+    await todoStore.dispatch("createTodoItem", {
       id: 1,
       title: "Test Todo",
       completed: false,
@@ -92,64 +98,64 @@ describe("LocalStorage Adapter", function () {
 
     const newTodoStore = await createNewTodoStore();
 
-    expect(newTodoStore.getState().todos).toEqual([
+    expect(deepEqual(newTodoStore.getState().todos, [
       { id: 1, title: "Test Todo", completed: false },
-    ]);
+    ])).toBe(true);
   });
 
   it("should handle todo removals in localStorage", async function () {
-    todoStore.dispatch("createTodoItem", {
+    await todoStore.dispatch("createTodoItem", {
       id: 1,
       title: "Todo 1",
       completed: false,
     });
-    todoStore.dispatch("createTodoItem", {
+    await todoStore.dispatch("createTodoItem", {
       id: 2,
       title: "Todo 2",
       completed: false,
     });
-    todoStore.dispatch("deleteTodoItem", { id: 1 });
+    await todoStore.dispatch("deleteTodoItem", { id: 1 });
 
     const newTodoStore = await createNewTodoStore();
 
-    expect(newTodoStore.getState().todos).toEqual([
+    expect(deepEqual(newTodoStore.getState().todos, [
       { id: 2, title: "Todo 2", completed: false },
-    ]);
+    ])).toBe(true);
   });
 
   it("should persist todo updates to localStorage", async function () {
-    todoStore.dispatch("createTodoItem", {
+    await todoStore.dispatch("createTodoItem", {
       id: 1,
       title: "Original Title",
       completed: false,
     });
-    todoStore.dispatch("modifyTodoTitle", { id: 1, title: "Updated Title" });
+    await todoStore.dispatch("modifyTodoTitle", { id: 1, title: "Updated Title" });
 
     const newTodoStore = await createNewTodoStore();
 
-    expect(newTodoStore.getState().todos).toEqual([
+    expect(deepEqual(newTodoStore.getState().todos, [
       { id: 1, title: "Updated Title", completed: false },
-    ]);
+    ])).toBe(true);
   });
 
   it("should maintain state consistency across multiple operations", async function () {
-    todoStore.dispatch("createTodoItem", {
+    await todoStore.dispatch("createTodoItem", {
       id: 1,
       title: "Todo 1",
       completed: false,
     });
-    todoStore.dispatch("createTodoItem", {
+    await todoStore.dispatch("createTodoItem", {
       id: 2,
       title: "Todo 2",
       completed: true,
     });
-    todoStore.dispatch("modifyTodoTitle", { id: 1, title: "Updated Todo 1" });
-    todoStore.dispatch("deleteTodoItem", { id: 2 });
+    await todoStore.dispatch("modifyTodoTitle", { id: 1, title: "Updated Todo 1" });
+    await todoStore.dispatch("deleteTodoItem", { id: 2 });
 
     const newTodoStore = await createNewTodoStore();
 
-    expect(newTodoStore.getState().todos).toEqual([
+    expect(deepEqual(newTodoStore.getState().todos, [
       { id: 1, title: "Updated Todo 1", completed: false },
-    ]);
+    ])).toBe(true);
   });
 });
