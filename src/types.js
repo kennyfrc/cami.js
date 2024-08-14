@@ -1,4 +1,4 @@
-import { _deepClone } from "./utils.js";
+import { _deepClone, _deepMerge } from "./utils.js";
 import { Model } from "./observables/observable-model.js";
 
 const Type = {
@@ -166,16 +166,34 @@ const typeValidators = {
       );
     }
 
+    // Get the existing object from the rootState
+    let existingObject = path.reduce((obj, key) => obj[key], rootState);
+    if (existingObject === undefined) {
+      existingObject = {};
+    }
+
+    // Merge the new value with the existing object
+    const mergedValue = _deepMerge({}, existingObject, value);
+
     // Validate each field defined in the Product type
     Object.entries(type.fields).forEach(([key, fieldType]) => {
-      // Check if the field exists in the value object
-      if (key in value) {
+      if (key in mergedValue) {
         // Validate the field
-        validateType(value[key], fieldType, [...path, key], rootState, key);
+        validateType(mergedValue[key], fieldType, [...path, key], rootState, key);
       }
-      // If the field is not in the 'value' object, we don't throw an error
-      // This allows partial updates
     });
+
+    // Update the rootState with the merged value
+    let currentObj = rootState;
+    for (let i = 0; i < path.length - 1; i++) {
+      if (currentObj[path[i]] === undefined) {
+        currentObj[path[i]] = {};
+      }
+      currentObj = currentObj[path[i]];
+    }
+    currentObj[path[path.length - 1]] = mergedValue;
+
+    return mergedValue;
   },
   optional: (value, type, path, rootState, validateType) => {
     if (value === undefined || value === null) {

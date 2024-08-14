@@ -1075,84 +1075,32 @@ class ObservableStore extends Observable {
 
     validateMachine(machineDefinition);
 
-    // Create or update the machine
-    if (!this.machines[machineName]) {
-      this.machines[machineName] = {};
-    }
+    this.machines[machineName] = machineDefinition;
 
-    // Merge the new definition with the existing one
-    this.machines[machineName] = {
-      ...this.machines[machineName],
-      ...machineDefinition,
-    };
-
-    // Define actions for the new or updated events
-    Object.keys(machineDefinition).forEach((eventName) => {
+    // Create reducers for each state machine action
+    Object.entries(machineDefinition).forEach(([eventName, event]) => {
       const fullEventName = `${machineName}:${eventName}`;
       this.defineAction(fullEventName, ({ state, payload }) => {
-        const event = this.machines[machineName][eventName];
-        const currentState = { ...state };
+        if (this.isValidTransition(event.from, state)) {
+          const newState = typeof event.to === "function"
+            ? event.to({ state, payload })
+            : event.to;
 
-        const storeContext = {
-          state,
-          payload,
-          dispatch: this.dispatch.bind(this),
-          query: this.query.bind(this),
-          mutate: this.mutate.bind(this),
-          trigger: this.trigger.bind(this),
-          memo: this.memo.bind(this),
-          dispatchAsync: this.dispatchAsync.bind(this),
-        };
-
-        if (this.isValidTransition(event.from, currentState)) {
-          const applyTransition = (to) => {
-            this.validateToShape(event.from, to);
-
-            // Execute onExit for the current state
-            this.executeHandler(event.onExit, {
-              ...storeContext,
-              state: currentState,
-            });
-
-            Object.entries(to).forEach(([key, value]) => {
+          // Apply the new state
+          Object.entries(newState).forEach(([key, value]) => {
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+              state[key] = { ...state[key], ...value };
+            } else {
               state[key] = value;
-            });
-
-            // Execute onEntry for the new state
-            this.executeHandler(event.onEntry, storeContext);
-          };
-
-          const newState =
-            typeof event.to === "function"
-              ? event.to({ state: currentState, payload })
-              : event.to;
-
-          applyTransition(newState);
-
-          // Execute onTransition
-          this.executeHandler(event.onTransition, {
-            ...storeContext,
-            from: currentState,
-            to: newState,
-            data: event.data,
+            }
           });
-        } else {
-          const actual = {};
-          if (
-            Array.isArray(event.from) &&
-            event.from.length > 0 &&
-            typeof event.from[0] === "object"
-          ) {
-            Object.keys(event.from[0]).forEach((key) => {
-              actual[key] = currentState[key];
-            });
+
+          // Execute onEntry
+          if (event.onEntry) {
+            event.onEntry({ state, previousState: this._state, payload });
           }
-          __trace(
-            "cami:state-machine:ignored-transition",
-            `Ignored transition '${fullEventName}' event. Actual: ${JSON.stringify(
-              actual
-            )}. Expected: Any of ${JSON.stringify(event.from)}`
-          );
+        } else {
+          console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
         }
       });
     });
@@ -1160,7 +1108,7 @@ class ObservableStore extends Observable {
 
   /**
    * @method trigger
-   * @param {string} fullEventName - The full name of the event to trigger (machineName/eventName)
+   * @param {string} fullEventName - The full name of the event to trigger (machineName:eventName)
    * @param {*} payload - The payload for the event
    * @returns {Promise} A promise that resolves when the event is processed
    * @description Triggers a state machine event
@@ -1172,7 +1120,29 @@ class ObservableStore extends Observable {
         `Event '${fullEventName}' not found in any state machine.`
       );
     }
-    return this.dispatch(fullEventName, payload);
+
+    const event = this.machines[machineName][eventName];
+    const currentState = { ...this._state };
+
+    // Execute onExit
+    if (event.onExit) {
+      event.onExit({ state: currentState, payload });
+    }
+
+    // Dispatch the action
+    this.dispatch(fullEventName, payload);
+
+    // Execute onTransition
+    if (event.onTransition) {
+      event.onTransition({
+        from: currentState,
+        to: this._state,
+        payload,
+        data: event.data,
+      });
+    }
+
+    return Promise.resolve(this._state);
   }
 
   /**
@@ -1345,6 +1315,10 @@ class ObservableStore extends Observable {
   _validateState(state) {
     Object.entries(this.schema).forEach(([key, type]) => {
       try {
+        if (type.type === "optional" && (state[key] === undefined || state[key] === null)) {
+          // Skip validation for undefined or null optional fields
+          return;
+        }
         validateType(state[key], type, [key], state);
       } catch (error) {
         throw new Error(`Validation error in ${this.name}: ${error.message}`);

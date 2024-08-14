@@ -373,8 +373,10 @@ describe("Observable Model", function () {
       expect(themeModel.getState().isDark).toBe(true);
 
       // Root model should not have access to counter or theme actions
-      rootModel.dispatch("increment");
-      rootModel.dispatch("setDark");
+      // Instead of dispatching, we should check that these actions don't exist
+      expect(() => rootModel.dispatch("increment")).toThrow();
+      expect(() => rootModel.dispatch("setDark")).toThrow();
+
       // The root model's state should remain unchanged
       expect(rootModel.getState().counter.count).toBe(0);
       expect(rootModel.getState().theme.isDark).toBe(false);
