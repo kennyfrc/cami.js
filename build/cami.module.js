@@ -2971,15 +2971,9 @@ var typeValidators = {
       );
     }
     Object.entries(type.fields).forEach(([key, fieldType]) => {
-      if (!(key in value)) {
-        if (fieldType.type === "optional") {
-          return;
-        }
-        throw new Error(
-          `Missing required field "${key}" in Product type at ${path.join(".")}`
-        );
+      if (key in value) {
+        validateType2(value[key], fieldType, [...path, key], rootState, key);
       }
-      validateType2(value[key], fieldType, [...path, key], rootState, key);
     });
   },
   optional: (value, type, path, rootState, validateType2) => {
@@ -4385,7 +4379,7 @@ var ObservableStore = class extends Observable {
           mismatched.push(
             `${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`
           );
-        } else if (typeof expected[key] === "object" && expected[key] !== null) {
+        } else if (typeof expected[key] === "object" && expected[key] !== null && typeof actual[key] === "object" && actual[key] !== null) {
           mismatched.push(
             ...findMismatchedKeys(expected[key], actual[key], fullKey)
           );
@@ -4407,7 +4401,7 @@ ${JSON.stringify(
         )}`
       );
     }
-    const mismatchedKeys = findMismatchedKeys(fromShape, to);
+    const mismatchedKeys = findMismatchedKeys(to, fromShape);
     if (mismatchedKeys.length > 0) {
       const expectedShape = getShapeDescription(fromShape);
       throw new Error(

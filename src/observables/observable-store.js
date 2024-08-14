@@ -1300,7 +1300,9 @@ class ObservableStore extends Observable {
           );
         } else if (
           typeof expected[key] === "object" &&
-          expected[key] !== null
+          expected[key] !== null &&
+          typeof actual[key] === "object" &&
+          actual[key] !== null
         ) {
           mismatched.push(
             ...findMismatchedKeys(expected[key], actual[key], fullKey)
@@ -1321,7 +1323,7 @@ class ObservableStore extends Observable {
         )}`
       );
     }
-    const mismatchedKeys = findMismatchedKeys(fromShape, to);
+    const mismatchedKeys = findMismatchedKeys(to, fromShape);
     if (mismatchedKeys.length > 0) {
       const expectedShape = getShapeDescription(fromShape);
       throw new Error(

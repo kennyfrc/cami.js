@@ -1,4 +1,4 @@
-const { store } = cami;
+const { store, Type, useValidationThunk } = cami;
 
 describe("Observable Store (Set 2)", function () {
   let navStore;
@@ -8,22 +8,47 @@ describe("Observable Store (Set 2)", function () {
   beforeEach(() => {
     uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    const navStoreSchema = Type.Product({
+      navigation: Type.Product({
+        sidebar: Type.String,
+        center: Type.String
+      }),
+      count: Type.Integer
+    });
+
     navStore = store({
       state: {
-        status: "menu",
+        navigation: {
+          sidebar: "chat",
+          center: "documents"
+        },
         count: 0,
       },
       name: `nav-store-${uniqueId}`,
     });
 
-    navStore.defineAction("toggle", ({ state }) => {
-      const transitions = {
-        menu: "settings",
-        settings: "profile",
-        profile: "menu",
-      };
-      state.status = transitions[state.status];
+    navStore.afterHook(({ state, previousState }) => {
+      if (state !== previousState) {
+        useValidationThunk(navStoreSchema)(state);
+      }
+    });
+
+    navStore.defineAction("updateNavigation", ({ state, payload }) => {
+      Object.assign(state.navigation, payload);
+    });
+
+    navStore.defineAction("incrementCount", ({ state }) => {
       state.count += 1;
+    });
+
+    const postStoreSchema = Type.Product({
+      list: Type.Array(Type.Product({
+        id: Type.Integer,
+        title: Type.String,
+        content: Type.Optional(Type.String)
+      })),
+      loading: Type.Boolean,
+      error: Type.Optional(Type.String)
     });
 
     postStore = store({
@@ -33,6 +58,12 @@ describe("Observable Store (Set 2)", function () {
         error: null,
       },
       name: `post-store-${uniqueId}`,
+    });
+
+    postStore.afterHook(({ state, previousState }) => {
+      if (state !== previousState) {
+        useValidationThunk(postStoreSchema)(state);
+      }
     });
 
     postStore.defineAction("setList", ({ state, payload }) => {
@@ -72,18 +103,16 @@ describe("Observable Store (Set 2)", function () {
 
   describe("Navigation Store", function () {
     it("should initialize with the correct initial state", function () {
-      expect(navStore.state.status).toBe("menu");
+      expect(navStore.state.navigation.sidebar).toBe("chat");
+      expect(navStore.state.navigation.center).toBe("documents");
       expect(navStore.state.count).toBe(0);
     });
 
-    it("should handle toggle action correctly", function () {
-      navStore.dispatch("toggle");
-      expect(navStore.state.status).toBe("settings");
-      expect(navStore.state.count).toBe(1);
-
-      navStore.dispatch("toggle");
-      expect(navStore.state.status).toBe("profile");
-      expect(navStore.state.count).toBe(2);
+    it("should handle updateNavigation action correctly", function () {
+      navStore.dispatch("updateNavigation", { sidebar: "settings" });
+      expect(navStore.state.navigation.sidebar).toBe("settings");
+      expect(navStore.state.navigation.center).toBe("documents");
+      expect(navStore.state.count).toBe(0);
     });
   });
 
@@ -127,6 +156,75 @@ describe("Observable Store (Set 2)", function () {
       expect(postStore.state.list.length).toBe(2);
       expect(postStore.state.list[0].title).toEqual("Post 1");
       expect(postStore.state.list[1].title).toEqual("Post 2");
+    });
+  });
+
+  describe("Partial Updates with Type Checking", function () {
+    it("should allow partial updates to navigation state", function () {
+      navStore.dispatch("updateNavigation", { sidebar: "settings" });
+      expect(navStore.state.navigation.sidebar).toBe("settings");
+      expect(navStore.state.navigation.center).toBe("documents");
+    });
+
+    it("should throw an error when updating with incorrect type", function () {
+      expect(() => {
+        navStore.dispatch("updateNavigation", { sidebar: 123 });
+      }).toThrow();
+    });
+
+    it("should allow adding a new post with partial data", function () {
+      const newPost = { id: 1, title: "Partial Post" };
+      postStore.dispatch("addPost", newPost);
+      expect(postStore.state.list.length).toBe(1);
+      expect(postStore.state.list[0].id).toBe(newPost.id);
+      expect(postStore.state.list[0].title).toBe(newPost.title);
+      expect(postStore.state.list[0].content).toBe(undefined);
+    });
+
+    it("should throw an error when adding a post with incorrect data type", function () {
+      const invalidPost = { id: "not a number", title: 123 };
+      expect(() => {
+        postStore.dispatch("addPost", invalidPost);
+      }).toThrow();
+    });
+
+    it("should allow updating an existing post partially", function () {
+      const initialPost = { id: 1, title: "Initial Post", content: "Some content" };
+      postStore.dispatch("addPost", initialPost);
+
+      postStore.defineAction("updatePost", ({ state, payload }) => {
+        const postIndex = state.list.findIndex(post => post.id === payload.id);
+        if (postIndex !== -1) {
+          Object.assign(state.list[postIndex], payload);
+        }
+      });
+
+      postStore.dispatch("updatePost", { id: 1, title: "Updated Post" });
+      expect(postStore.state.list[0]).toEqual({
+        id: 1,
+        title: "Updated Post",
+        content: "Some content"
+      });
+    });
+
+    it("should maintain type checking for optional fields", function () {
+      const postWithoutContent = { id: 2, title: "No Content Post" };
+      postStore.dispatch("addPost", postWithoutContent);
+      expect(postStore.state.list[0].content).toBe(undefined);
+
+      const postWithContent = { id: 3, title: "With Content", content: "Some content" };
+      postStore.dispatch("addPost", postWithContent);
+      expect(postStore.state.list[1].content).toBe("Some content");
+    });
+
+    it("should throw an error when violating schema in afterHook", function () {
+      expect(() => {
+        navStore.dispatch("updateNavigation", { sidebar: 123 });
+      }).toThrow();
+
+      expect(() => {
+        postStore.dispatch("addPost", { id: "not a number", title: "Invalid Post" });
+      }).toThrow();
     });
   });
 });

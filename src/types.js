@@ -169,18 +169,12 @@ const typeValidators = {
     // Validate each field defined in the Product type
     Object.entries(type.fields).forEach(([key, fieldType]) => {
       // Check if the field exists in the value object
-      if (!(key in value)) {
-        // If the field is optional, it's okay if it's missing
-        if (fieldType.type === "optional") {
-          return;
-        }
-        throw new Error(
-          `Missing required field "${key}" in Product type at ${path.join(".")}`
-        );
+      if (key in value) {
+        // Validate the field
+        validateType(value[key], fieldType, [...path, key], rootState, key);
       }
-
-      // Validate the field
-      validateType(value[key], fieldType, [...path, key], rootState, key);
+      // If the field is not in the 'value' object, we don't throw an error
+      // This allows partial updates
     });
   },
   optional: (value, type, path, rootState, validateType) => {
