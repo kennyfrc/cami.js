@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
 <main class="container">
   <h1>Navigation State Machine</h1>
   <div id="app">
@@ -15,23 +22,26 @@
     <p>Error: <span id="errorMessage"></span></p>
   </div>
 </main>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { store, slice, effect } = cami;
-  cami.debug.enable()
+  cami.debug.enable();
 
   const navigationSlice = slice("Navigation", {
     state: {
-      status: 'menu',
-      count: 0
+      status: "menu",
+      count: 0,
     },
     actions: {
       toggle: ({ state, payload }) => {
         const transitions = {
-          'menu': 'settings',
-          'settings': 'profile',
-          'profile': 'menu'
+          menu: "settings",
+          settings: "profile",
+          profile: "menu",
         };
 
         state.status = transitions[state.status];
@@ -39,38 +49,40 @@
       },
       invalidAction: ({ state }) => {
         state.status = 123;
-      }
-    }
+      },
+    },
   });
 
   effect(() => {
     try {
       const { status, count } = navigationSlice;
-      console.log('Navigation status changed:', status);
-      console.log('Toggle count:', count);
-      document.getElementById('navStatus').textContent = `${status} (${count})`;
-      document.getElementById('errorMessage').textContent = '';
+      console.log("Navigation status changed:", status);
+      console.log("Toggle count:", count);
+      document.getElementById("navStatus").textContent = `${status} (${count})`;
+      document.getElementById("errorMessage").textContent = "";
     } catch (error) {
-      console.error('Error caught in effect:', error.message);
-      document.getElementById('errorMessage').textContent = error.message;
+      console.error("Error caught in effect:", error.message);
+      document.getElementById("errorMessage").textContent = error.message;
     }
   });
 
-  document.getElementById('toggleNav').addEventListener('click', () => {
+  document.getElementById("toggleNav").addEventListener("click", () => {
     navigationSlice.toggle();
   });
 
-  document.getElementById('triggerInvalidAction').addEventListener('click', () => {
-    try {
-      navigationSlice.invalidAction();
-    } catch (error) {
-      console.error('Error caught:', error.message);
-      document.getElementById('errorMessage').textContent = error.message;
+  document
+    .getElementById("triggerInvalidAction")
+    .addEventListener("click", () => {
+      try {
+        navigationSlice.invalidAction();
+      } catch (error) {
+        console.error("Error caught:", error.message);
+        document.getElementById("errorMessage").textContent = error.message;
 
-      // Stop all intervals
-      for (let i = 1; i < 9999; i++) window.clearInterval(i);
-    }
-  });
+        // Stop all intervals
+        for (let i = 1; i < 9999; i++) window.clearInterval(i);
+      }
+    });
 
   const toggleInterval = setInterval(() => {
     navigationSlice.toggle();
@@ -80,12 +92,12 @@
     try {
       navigationSlice.invalidAction();
     } catch (error) {
-      console.error('Error caught in interval:', error.message);
-      document.getElementById('errorMessage').textContent = error.message;
+      console.error("Error caught in interval:", error.message);
+      document.getElementById("errorMessage").textContent = error.message;
 
       for (let i = 1; i < 9999; i++) window.clearInterval(i);
     }
   }, 5000);
 </script>
-</body>
+  </body>
 </html>

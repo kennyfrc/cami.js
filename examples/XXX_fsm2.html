@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
 <article>
   <h1>Traffic Light Simulator</h1>
   <traffic-light-component></traffic-light-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, store } = cami;
@@ -18,24 +28,24 @@
 
   const trafficLightStore = store({
     state: {
-      mainLight: 'red',
-      pedestrianSignal: 'walk'
+      mainLight: "red",
+      pedestrianSignal: "walk",
     },
-    name: "traffic-light-store-fsm2"
+    name: "traffic-light-store-fsm2",
   });
 
-  trafficLightStore.defineMachine('traffic-light', {
+  trafficLightStore.defineMachine("traffic-light", {
     change: {
       from: [
-        { mainLight: 'red', pedestrianSignal: 'walk' },
-        { mainLight: 'green', pedestrianSignal: 'stop' },
-        { mainLight: 'yellow', pedestrianSignal: 'stop' }
+        { mainLight: "red", pedestrianSignal: "walk" },
+        { mainLight: "green", pedestrianSignal: "stop" },
+        { mainLight: "yellow", pedestrianSignal: "stop" },
       ],
       to: ({ state }) => {
         const transitions = {
-          red: { mainLight: 'green', pedestrianSignal: 'stop' },
-          green: { mainLight: 'yellow', pedestrianSignal: 'stop' },
-          yellow: { mainLight: 'red', pedestrianSignal: 'walk' }
+          red: { mainLight: "green", pedestrianSignal: "stop" },
+          green: { mainLight: "yellow", pedestrianSignal: "stop" },
+          yellow: { mainLight: "red", pedestrianSignal: "walk" },
         };
         return transitions[state.mainLight];
       },
@@ -43,30 +53,33 @@
         console.log(`Entered state ${ctx.state.mainLight}`);
       },
       onTransition: (ctx) => {
-        console.log(`Transitioned from ${ctx.from.mainLight} to ${ctx.to.mainLight}`);
+        console.log(
+          `Transitioned from ${ctx.from.mainLight} to ${ctx.to.mainLight}`
+        );
       },
       onExit: (ctx) => {
         console.log(`Exited state ${ctx.state.mainLight}`);
-      }
+      },
     },
     emergency: {
       from: [
-        { mainLight: 'green', pedestrianSignal: 'stop' },
-        { mainLight: 'yellow', pedestrianSignal: 'stop' }
+        { mainLight: "green", pedestrianSignal: "stop" },
+        { mainLight: "yellow", pedestrianSignal: "stop" },
       ],
-      to: { mainLight: 'red', pedestrianSignal: 'walk' },
-      guard: ({ payload }) => payload && payload.isEmergency
-    }
+      to: { mainLight: "red", pedestrianSignal: "walk" },
+      guard: ({ payload }) => payload && payload.isEmergency,
+    },
   });
 
-  customElements.define('traffic-light-component',
+  customElements.define(
+    "traffic-light-component",
     class extends ReactiveElement {
       intervalId;
 
       connectedCallback() {
         super.connectedCallback();
         this.intervalId = setInterval(() => {
-          trafficLightStore.trigger('traffic-light:change');
+          trafficLightStore.trigger("traffic-light:change");
         }, 2000);
       }
 
@@ -80,17 +93,28 @@
         const { trigger } = trafficLightStore;
 
         return html`
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            <div style="width: 100px; height: 100px; border-radius: 50%; background-color: ${mainLight};"></div>
+          <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 20px;"
+          >
+            <div
+              style="width: 100px; height: 100px; border-radius: 50%; background-color: ${mainLight};"
+            ></div>
             <p>Current light: ${mainLight}</p>
             <p>Pedestrian signal: ${pedestrianSignal}</p>
-            <button @click=${() => trigger('traffic-light:change')}>Force Change</button>
-            <button @click=${() => trigger('traffic-light:emergency', { isEmergency: true })}>Emergency Stop</button>
+            <button @click=${() => trigger("traffic-light:change")}>
+              Force Change
+            </button>
+            <button
+              @click=${() =>
+                trigger("traffic-light:emergency", { isEmergency: true })}
+            >
+              Emergency Stop
+            </button>
           </div>
         `;
       }
     }
   );
 </script>
-</body>
+  </body>
 </html>

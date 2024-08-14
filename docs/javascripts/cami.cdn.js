@@ -109,7 +109,10 @@ var cami = (() => {
   var DYNAMIC_TAG_NAME = 3;
   var commentEndRegex = /-->/g;
   var comment2EndRegex = />/g;
-  var tagEndRegex = new RegExp(`>|${SPACE_CHAR}(?:(${NAME_CHAR}+)(${SPACE_CHAR}*=${SPACE_CHAR}*(?:${ATTR_VALUE_CHAR}|("|')|))|$)`, "g");
+  var tagEndRegex = new RegExp(
+    `>|${SPACE_CHAR}(?:(${NAME_CHAR}+)(${SPACE_CHAR}*=${SPACE_CHAR}*(?:${ATTR_VALUE_CHAR}|("|')|))|$)`,
+    "g"
+  );
   var ENTIRE_MATCH = 0;
   var ATTRIBUTE_NAME = 1;
   var SPACES_AND_EQUALS = 2;
@@ -307,7 +310,12 @@ var cami = (() => {
       }
     }
     if (currentDirective !== void 0) {
-      value = resolveDirective(part, currentDirective._$resolve(part, value.values), currentDirective, attributeIndex);
+      value = resolveDirective(
+        part,
+        currentDirective._$resolve(part, value.values),
+        currentDirective,
+        attributeIndex
+      );
     }
     return value;
   }
@@ -330,7 +338,10 @@ var cami = (() => {
     // DocumentFragment and we don't want to hold onto it with an instance field.
     _clone(options) {
       var _a;
-      const { el: { content }, parts } = this._$template;
+      const {
+        el: { content },
+        parts
+      } = this._$template;
       const fragment = ((_a = options == null ? void 0 : options.creationScope) != null ? _a : d).importNode(content, true);
       walker.currentNode = fragment;
       let node = walker.nextNode();
@@ -343,7 +354,13 @@ var cami = (() => {
           if (templatePart.type === CHILD_PART) {
             part = new ChildPart(node, node.nextSibling, this, options);
           } else if (templatePart.type === ATTRIBUTE_PART) {
-            part = new templatePart.ctor(node, templatePart.name, templatePart.strings, this, options);
+            part = new templatePart.ctor(
+              node,
+              templatePart.name,
+              templatePart.strings,
+              this,
+              options
+            );
           } else if (templatePart.type === ELEMENT_PART) {
             part = new ElementPart(node, this, options);
           }
@@ -452,7 +469,10 @@ var cami = (() => {
       }
     }
     _insert(node) {
-      return wrap(wrap(this._$startNode).parentNode).insertBefore(node, this._$endNode);
+      return wrap(wrap(this._$startNode).parentNode).insertBefore(
+        node,
+        this._$endNode
+      );
     }
     _commitNode(value) {
       if (this._$committedValue !== value) {
@@ -474,7 +494,10 @@ var cami = (() => {
     _commitTemplateResult(result) {
       var _a;
       const { values, ["_$camiType$"]: type } = result;
-      const template = typeof type === "number" ? this._$getTemplate(result) : (type.el === void 0 && (type.el = Template.createElement(trustFromTemplateString(type.h, type.h[0]), this.options)), type);
+      const template = typeof type === "number" ? this._$getTemplate(result) : (type.el === void 0 && (type.el = Template.createElement(
+        trustFromTemplateString(type.h, type.h[0]),
+        this.options
+      )), type);
       if (((_a = this._$committedValue) == null ? void 0 : _a._$template) === template) {
         this._$committedValue._update(values);
       } else {
@@ -504,7 +527,14 @@ var cami = (() => {
       let itemPart;
       for (const item of value) {
         if (partIndex === itemParts.length) {
-          itemParts.push(itemPart = new _ChildPart(this._insert(createMarker()), this._insert(createMarker()), this, this.options));
+          itemParts.push(
+            itemPart = new _ChildPart(
+              this._insert(createMarker()),
+              this._insert(createMarker()),
+              this,
+              this.options
+            )
+          );
         } else {
           itemPart = itemParts[partIndex];
         }
@@ -712,7 +742,12 @@ var cami = (() => {
     let part = partOwnerNode["_$camiPart$"];
     if (part === void 0) {
       const endNode = (_b = options == null ? void 0 : options.renderBefore) != null ? _b : null;
-      partOwnerNode["_$camiPart$"] = part = new ChildPart(container.insertBefore(createMarker(), endNode), endNode, void 0, options != null ? options : {});
+      partOwnerNode["_$camiPart$"] = part = new ChildPart(
+        container.insertBefore(createMarker(), endNode),
+        endNode,
+        void 0,
+        options != null ? options : {}
+      );
     }
     part._$setValue(value);
     return part;
@@ -1713,7 +1748,9 @@ var cami = (() => {
         }
         this.teardowns.forEach((teardown) => {
           if (typeof teardown !== "function") {
-            throw new Error("[Cami.js] Teardown must be a function. Please implement a teardown function in your subscriber.");
+            throw new Error(
+              "[Cami.js] Teardown must be a function. Please implement a teardown function in your subscriber."
+            );
           }
           teardown();
         });
@@ -1760,7 +1797,9 @@ var cami = (() => {
       } else if (typeof observerOrNext === "object") {
         observer = observerOrNext;
       } else {
-        throw new Error("[Cami.js] First argument to subscribe must be a next callback or an observer object");
+        throw new Error(
+          "[Cami.js] First argument to subscribe must be a next callback or an observer object"
+        );
       }
       const subscriber = new Subscriber(observer);
       let teardown = () => {
@@ -1983,15 +2022,33 @@ var cami = (() => {
     if (__config.debug.isEnabled) {
       const formattedMessages = messages.join("\n");
       if (functionName === "cami:elem:state:change") {
-        console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", `Changed property state: ${messages[0]}`);
+        console.groupCollapsed(
+          `%c[${functionName}]`,
+          "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
+          `Changed property state: ${messages[0]}`
+        );
         console.log(`oldValue:`, messages[1]);
         console.log(`newValue:`, messages[2]);
       } else if (functionName === "cami:store:state:change") {
-        console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", `Changed store state: ${messages[0]}`);
-        console.log(`oldValue of ${messages[1][0].path.join(".")}:`, messages[1][0].value);
-        console.log(`newValue of ${messages[2][0].path.join(".")}:`, messages[2][0].value);
+        console.groupCollapsed(
+          `%c[${functionName}]`,
+          "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
+          `Changed store state: ${messages[0]}`
+        );
+        console.log(
+          `oldValue of ${messages[1][0].path.join(".")}:`,
+          messages[1][0].value
+        );
+        console.log(
+          `newValue of ${messages[2][0].path.join(".")}:`,
+          messages[2][0].value
+        );
       } else {
-        console.groupCollapsed(`%c[${functionName}]`, "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;", formattedMessages);
+        console.groupCollapsed(
+          `%c[${functionName}]`,
+          "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
+          formattedMessages
+        );
       }
       console.trace();
       console.groupEnd();
@@ -2071,7 +2128,9 @@ var cami = (() => {
             case "cyclic":
               const cycleStart = cyclePath.indexOf(neighbor);
               const cycle = cyclePath.slice(cycleStart);
-              console.warn(`Cyclic dependency detected: ${cycle.map((n) => n.__name || "unnamed").join(" -> ")}`);
+              console.warn(
+                `Cyclic dependency detected: ${cycle.map((n) => n.__name || "unnamed").join(" -> ")}`
+              );
               break;
             case "visited":
               break;
@@ -2602,7 +2661,17 @@ var cami = (() => {
       this.schema = properties;
     }
     create(config) {
-      const { state, actions = {}, asyncActions = {}, machines = {}, queries = {}, mutations = {}, specs = {}, memos = {}, options = {} } = config;
+      const {
+        state,
+        actions = {},
+        asyncActions = {},
+        machines = {},
+        queries = {},
+        mutations = {},
+        specs = {},
+        memos = {},
+        options = {}
+      } = config;
       this.validateState(state);
       const modelStore = store(__spreadValues({
         state,
@@ -2667,9 +2736,11 @@ Expected type: ${expectedType}`);
         }
       });
       if (errors2.length > 0) {
-        throw new Error(`Validation error in ${this.name}:
+        throw new Error(
+          `Validation error in ${this.name}:
 
-${errors2.join("\n\n")}`);
+${errors2.join("\n\n")}`
+        );
       }
     }
     validateItem(value, type, path, rootState) {
@@ -2690,7 +2761,9 @@ ${errors2.join("\n\n")}`);
           case "object":
             Object.entries(type.schema).forEach(([key, subType]) => {
               if (subType.type !== "optional" && !(key in value)) {
-                throw new Error(`Missing required property: ${[...path, key].join(".")}`);
+                throw new Error(
+                  `Missing required property: ${[...path, key].join(".")}`
+                );
               }
               if (key in value) {
                 this.validateItem(value[key], subType, [...path, key], rootState);
@@ -2807,7 +2880,11 @@ Error: ${error.message}`
     Any: { type: "any" },
     Enum: (...values) => ({ type: "enum", values }),
     Optional: (type) => ({ type: "optional", optional: type }),
-    Refinement: (baseType, refinementFn) => ({ type: "refinement", baseType, refinementFn }),
+    Refinement: (baseType, refinementFn) => ({
+      type: "refinement",
+      baseType,
+      refinementFn
+    }),
     DependentPair: (fstType, sndTypeFn) => ({
       type: "dependentPair",
       fstType,
@@ -2823,7 +2900,11 @@ Error: ${error.message}`
     Tree: (valueType) => ({ type: "tree", valueType }),
     RoseTree: (valueType) => ({ type: "roseTree", valueType }),
     Literal: (value) => ({ type: "literal", value }),
-    Function: (paramTypes, returnType) => ({ type: "function", paramTypes, returnType }),
+    Function: (paramTypes, returnType) => ({
+      type: "function",
+      paramTypes,
+      returnType
+    }),
     Void: { type: "void" },
     DependentFunction: (paramTypes, returnTypeFn) => ({
       type: "dependentFunction",
@@ -2849,20 +2930,28 @@ Error: ${error.message}`
   var typeValidators = {
     string: (value, type, path) => {
       if (typeof value !== type)
-        throw new Error(`Expected ${type}, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected ${type}, got ${typeof value} at ${path.join(".")}`
+        );
     },
     object: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null)
-        throw new Error(`Expected object, got ${value === null ? "null" : typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected object, got ${value === null ? "null" : typeof value} at ${path.join(".")}`
+        );
       Object.entries(type.schema).forEach(([key, subType]) => {
         if (!(key in value))
-          throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+          throw new Error(
+            `Missing required property ${key} at ${path.join(".")}`
+          );
         validateType2(value[key], subType, [...path, key], rootState);
       });
     },
     array: (value, type, path, rootState, validateType2) => {
       if (!Array.isArray(value)) {
-        throw new Error(`Expected array, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected array, got ${typeof value} at ${path.join(".")}`
+        );
       }
       if (value.length === 0) {
         return;
@@ -2872,7 +2961,9 @@ Error: ${error.message}`
           if (type.itemType.type === "optional") {
             return;
           }
-          throw new Error(`Unexpected ${item === null ? "null" : "undefined"} value at index ${index} at ${path.join(".")}`);
+          throw new Error(
+            `Unexpected ${item === null ? "null" : "undefined"} value at index ${index} at ${path.join(".")}`
+          );
         }
         try {
           const itemTypeToValidate = type.itemType.type === "optional" ? type.itemType.optional : type.itemType;
@@ -2886,7 +2977,11 @@ Error: ${error.message}`
     },
     enum: (value, type, path) => {
       if (!type.values.includes(value))
-        throw new Error(`Expected one of ${type.values.join(", ")}, got ${value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected one of ${type.values.join(", ")}, got ${value} at ${path.join(
+            "."
+          )}`
+        );
     },
     sum: (value, type, path, rootState, validateType2) => {
       const errors2 = [];
@@ -2899,19 +2994,29 @@ Error: ${error.message}`
           return false;
         }
       })) {
-        throw new Error(`Sum type validation failed at ${path.join(".")}. Value: ${JSON.stringify(value)}. Errors: ${errors2.join("; ")}`);
+        throw new Error(
+          `Sum type validation failed at ${path.join(
+            "."
+          )}. Value: ${JSON.stringify(value)}. Errors: ${errors2.join("; ")}`
+        );
       }
     },
     product: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null) {
-        throw new Error(`Expected object for Product type, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected object for Product type, got ${typeof value} at ${path.join(
+            "."
+          )}`
+        );
       }
       Object.entries(type.fields).forEach(([key, fieldType]) => {
         if (!(key in value)) {
           if (fieldType.type === "optional") {
             return;
           }
-          throw new Error(`Missing required field "${key}" in Product type at ${path.join(".")}`);
+          throw new Error(
+            `Missing required field "${key}" in Product type at ${path.join(".")}`
+          );
         }
         validateType2(value[key], fieldType, [...path, key], rootState, key);
       });
@@ -2924,7 +3029,9 @@ Error: ${error.message}`
     },
     null: (value, type, path) => {
       if (value !== null)
-        throw new Error(`Expected null, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected null, got ${typeof value} at ${path.join(".")}`
+        );
     },
     refinement: (value, type, path, rootState, validateType2) => {
       validateType2(value, type.baseType, path, rootState);
@@ -2942,11 +3049,15 @@ Error: ${error.message}`
     },
     date: (value, type, path) => {
       if (!(value instanceof Date))
-        throw new Error(`Expected Date, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected Date, got ${typeof value} at ${path.join(".")}`
+        );
     },
     float: (value, type, path) => {
       if (typeof value !== "number") {
-        throw new Error(`Expected float, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected float, got ${typeof value} at ${path.join(".")}`
+        );
       }
       if (Number.isNaN(value)) {
         throw new Error(`Expected float, got NaN at ${path.join(".")}`);
@@ -2954,17 +3065,23 @@ Error: ${error.message}`
     },
     integer: (value, type, path) => {
       if (!Number.isInteger(value)) {
-        throw new Error(`Expected integer, got ${typeof value === "number" ? "float" : typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected integer, got ${typeof value === "number" ? "float" : typeof value} at ${path.join(".")}`
+        );
       }
     },
     natural: (value, type, path) => {
       if (!Number.isInteger(value) || value < 0) {
-        throw new Error(`Expected natural number, got ${value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected natural number, got ${value} at ${path.join(".")}`
+        );
       }
     },
     vect: (value, type, path, rootState, validateType2) => {
       if (!Array.isArray(value) || value.length !== type.length) {
-        throw new Error(`Expected Vect of length ${type.length}, got ${value.length} at ${path.join(".")}`);
+        throw new Error(
+          `Expected Vect of length ${type.length}, got ${value.length} at ${path.join(".")}`
+        );
       }
       value.forEach((item, index) => {
         validateType2(item, type.elemType, [...path, index], rootState);
@@ -2972,9 +3089,13 @@ Error: ${error.message}`
     },
     tree: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null)
-        throw new Error(`Expected tree, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected tree, got ${typeof value} at ${path.join(".")}`
+        );
       if (!("value" in value))
-        throw new Error(`Invalid tree structure: missing 'value' at ${path.join(".")}`);
+        throw new Error(
+          `Invalid tree structure: missing 'value' at ${path.join(".")}`
+        );
       validateType2(value.value, type.valueType, [...path, "value"], rootState);
       if ("left" in value)
         validateType2(value.left, type, [...path, "left"], rootState);
@@ -2983,44 +3104,64 @@ Error: ${error.message}`
     },
     roseTree: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null)
-        throw new Error(`Expected rose tree, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected rose tree, got ${typeof value} at ${path.join(".")}`
+        );
       if (!("value" in value) || !("children" in value))
         throw new Error(`Invalid rose tree structure at ${path.join(".")}`);
       validateType2(value.value, type.valueType, [...path, "value"], rootState);
       if (!Array.isArray(value.children))
-        throw new Error(`Expected array of children, got ${typeof value.children} at ${path.join(".")}.children`);
+        throw new Error(
+          `Expected array of children, got ${typeof value.children} at ${path.join(
+            "."
+          )}.children`
+        );
       value.children.forEach((child, index) => {
         validateType2(child, type, [...path, "children", index], rootState);
       });
     },
     dependentRecord: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null)
-        throw new Error(`Expected object, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected object, got ${typeof value} at ${path.join(".")}`
+        );
       Object.entries(type.fields).forEach(([key, fieldType]) => {
         if (!(key in value))
-          throw new Error(`Missing required property ${key} at ${path.join(".")}`);
+          throw new Error(
+            `Missing required property ${key} at ${path.join(".")}`
+          );
         const resolvedType = typeof fieldType === "function" ? fieldType(value) : fieldType;
         validateType2(value[key], resolvedType, [...path, key], rootState);
       });
       if (typeof type.validateFn === "function") {
         const result = type.validateFn(value, rootState);
         if (result !== true) {
-          throw new Error(`Validation failed for dependent record at ${path.join(".")}: ${result}`);
+          throw new Error(
+            `Validation failed for dependent record at ${path.join(
+              "."
+            )}: ${result}`
+          );
         }
       }
     },
     dependentFunction: (value, type, path) => {
       if (typeof value !== "function") {
-        throw new Error(`Expected function, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected function, got ${typeof value} at ${path.join(".")}`
+        );
       }
     },
     dependentArray: (value, type, path, rootState, validateType2) => {
       if (!Array.isArray(value)) {
-        throw new Error(`Expected array, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected array, got ${typeof value} at ${path.join(".")}`
+        );
       }
       const expectedLength = type.lengthFn(value);
       if (value.length !== expectedLength) {
-        throw new Error(`Expected array of length ${expectedLength}, got ${value.length} at ${path.join(".")}`);
+        throw new Error(
+          `Expected array of length ${expectedLength}, got ${value.length} at ${path.join(".")}`
+        );
       }
       value.forEach((item, index) => {
         const itemType = type.itemTypeFn(index, value);
@@ -3040,45 +3181,67 @@ Error: ${error.message}`
         }
       }
       if (possibleTypes.length === errors2.length) {
-        throw new Error(`Dependent sum type validation failed at ${path.join(".")}. Errors: ${errors2.join("; ")}`);
+        throw new Error(
+          `Dependent sum type validation failed at ${path.join(
+            "."
+          )}. Errors: ${errors2.join("; ")}`
+        );
       }
     },
     literal: (value, type, path) => {
       if (value !== type.value) {
-        throw new Error(`Expected ${type.value}, got ${value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected ${type.value}, got ${value} at ${path.join(".")}`
+        );
       }
     },
     boolean: (value, type, path) => {
       if (typeof value !== "boolean")
-        throw new Error(`Expected boolean, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected boolean, got ${typeof value} at ${path.join(".")}`
+        );
     },
     bigint: (value, type, path) => {
       if (typeof value !== "bigint")
-        throw new Error(`Expected bigint, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected bigint, got ${typeof value} at ${path.join(".")}`
+        );
     },
     symbol: (value, type, path) => {
       if (typeof value !== "symbol")
-        throw new Error(`Expected symbol, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected symbol, got ${typeof value} at ${path.join(".")}`
+        );
     },
     function: (value, type, path) => {
       if (typeof value !== "function") {
-        throw new Error(`Expected function, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected function, got ${typeof value} at ${path.join(".")}`
+        );
       }
     },
     void: () => {
     },
     reference: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "number") {
-        throw new Error(`Expected reference ID (number), got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected reference ID (number), got ${typeof value} at ${path.join(
+            "."
+          )}`
+        );
       }
     },
     model: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null) {
-        throw new Error(`Expected model object, got ${typeof value} at ${path.join(".")}`);
+        throw new Error(
+          `Expected model object, got ${typeof value} at ${path.join(".")}`
+        );
       }
       Object.entries(type.schema).forEach(([key, fieldType]) => {
         if (!(key in value)) {
-          throw new Error(`Missing required property ${key} in model at ${path.join(".")}`);
+          throw new Error(
+            `Missing required property ${key} in model at ${path.join(".")}`
+          );
         }
         validateType2(value[key], fieldType, [...path, key], rootState, key);
       });
@@ -3086,7 +3249,9 @@ Error: ${error.message}`
   };
   var validateType = (value, type, path = [], rootState = {}, currentKey = "") => {
     if (type === void 0) {
-      throw new Error(`Invalid type definition for key "${currentKey}" at ${path.join(".")}`);
+      throw new Error(
+        `Invalid type definition for key "${currentKey}" at ${path.join(".")}`
+      );
     }
     if (type.type === "optional") {
       if (value === void 0 || value === null) {
@@ -3095,27 +3260,59 @@ Error: ${error.message}`
       return validateType(value, type.optional, path, rootState, currentKey);
     }
     if (value === void 0) {
-      throw new Error(`Missing required property "${currentKey}" at ${path.join(".")}`);
+      throw new Error(
+        `Missing required property "${currentKey}" at ${path.join(".")}`
+      );
     }
     if (value === null && type !== "null") {
-      throw new Error(`Expected non-null value for "${currentKey}", got null at ${path.join(".")}`);
+      throw new Error(
+        `Expected non-null value for "${currentKey}", got null at ${path.join(
+          "."
+        )}`
+      );
     }
     if (type instanceof Model) {
-      return typeValidators.model(value, type, path, rootState, (v, t, p, r, k) => validateType(v, t, p, r, k));
+      return typeValidators.model(
+        value,
+        type,
+        path,
+        rootState,
+        (v, t, p, r, k) => validateType(v, t, p, r, k)
+      );
     }
     if (typeof type === "string") {
       const validator2 = typeValidators[type];
       if (validator2) {
-        return validator2(value, type, path, rootState, (v, t, p, r, k) => validateType(v, t, p, r, k));
+        return validator2(
+          value,
+          type,
+          path,
+          rootState,
+          (v, t, p, r, k) => validateType(v, t, p, r, k)
+        );
       } else {
-        throw new Error(`Unknown primitive type ${type} for "${currentKey}" at ${path.join(".")}`);
+        throw new Error(
+          `Unknown primitive type ${type} for "${currentKey}" at ${path.join(
+            "."
+          )}`
+        );
       }
     }
     const validator = typeValidators[type.type];
     if (validator) {
-      return validator(value, type, path, rootState, (v, t, p, r, k) => validateType(v, t, p, r, k));
+      return validator(
+        value,
+        type,
+        path,
+        rootState,
+        (v, t, p, r, k) => validateType(v, t, p, r, k)
+      );
     } else {
-      throw new Error(`Unknown type ${JSON.stringify(type)} for "${currentKey}" at ${path.join(".")}`);
+      throw new Error(
+        `Unknown type ${JSON.stringify(type)} for "${currentKey}" at ${path.join(
+          "."
+        )}`
+      );
     }
   };
   var useValidationHook = (schema) => {
@@ -3285,14 +3482,22 @@ Error: ${error.message}`
         }
         if (typeof expectedType === "object" && expectedType !== null) {
           if (typeof actualValue !== "object" || actualValue === null) {
-            throw new TypeError(`Invalid type at ${currentPath.join(".")}. Expected object, got ${typeof actualValue}`);
+            throw new TypeError(
+              `Invalid type at ${currentPath.join(
+                "."
+              )}. Expected object, got ${typeof actualValue}`
+            );
           }
           this._validateDeepState(expectedType, actualValue, currentPath);
         } else {
           if (expectedType === "null") {
           } else if (expectedType === "undefined") {
           } else if (actualType !== expectedType) {
-            throw new TypeError(`Invalid type at ${currentPath.join(".")}. Expected ${expectedType}, got ${actualType}`);
+            throw new TypeError(
+              `Invalid type at ${currentPath.join(
+                "."
+              )}. Expected ${expectedType}, got ${actualType}`
+            );
           }
         }
       });
@@ -3339,13 +3544,19 @@ Error: ${error.message}`
         if (action === void 0) {
           const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
           if (currentAction) {
-            throw new Error(`[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`);
+            throw new Error(
+              `[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`
+            );
           } else {
-            throw new Error(`[Cami.js] Attempted to dispatch undefined action in the global namespace.`);
+            throw new Error(
+              `[Cami.js] Attempted to dispatch undefined action in the global namespace.`
+            );
           }
         }
         if (typeof action !== "string") {
-          throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+          throw new Error(
+            `[Cami.js] Action type must be a string. Got: ${typeof action}`
+          );
         }
         const reducer = this.reducers[action];
         const spec = (_a = this.specs) == null ? void 0 : _a.get(action);
@@ -3354,31 +3565,51 @@ Error: ${error.message}`
           return _deepClone(this._state);
         }
         if (spec && spec.precondition) {
-          const isPreconditionMet = spec.precondition({ state: this._state, payload, action });
+          const isPreconditionMet = spec.precondition({
+            state: this._state,
+            payload,
+            action
+          });
           if (!isPreconditionMet) {
             throw new Error(`Precondition not met for action ${action}`);
           }
         }
         this.__applyHooks("before", { action, payload, state: this._state });
-        const [nextState, patches, inversePatches] = produceWithPatches(this._state, (draft) => {
-          reducer({
-            state: draft,
-            payload,
-            dispatch: this.dispatch.bind(this),
-            query: this.query.bind(this),
-            mutate: this.mutate.bind(this),
-            invalidateQueries: this.invalidateQueries.bind(this),
-            memo: this.memo.bind(this),
-            trigger: this.trigger.bind(this)
-          });
-        });
+        const [nextState, patches, inversePatches] = produceWithPatches(
+          this._state,
+          (draft) => {
+            reducer({
+              state: draft,
+              payload,
+              dispatch: this.dispatch.bind(this),
+              query: this.query.bind(this),
+              mutate: this.mutate.bind(this),
+              invalidateQueries: this.invalidateQueries.bind(this),
+              memo: this.memo.bind(this),
+              trigger: this.trigger.bind(this)
+            });
+          }
+        );
         if (spec && spec.postcondition) {
-          const isPostconditionMet = spec.postcondition({ state: nextState, payload, action, previousState: _deepClone(this._state) });
+          const isPostconditionMet = spec.postcondition({
+            state: nextState,
+            payload,
+            action,
+            previousState: _deepClone(this._state)
+          });
           if (!isPostconditionMet) {
             throw new Error(`Postcondition not met for action ${action}`);
           }
         }
-        this.__applyHooks("after", { action, payload, state: nextState, previousState: this._state, patches, inversePatches, dispatch: this.dispatch.bind(this) });
+        this.__applyHooks("after", {
+          action,
+          payload,
+          state: nextState,
+          previousState: this._state,
+          patches,
+          inversePatches,
+          dispatch: this.dispatch.bind(this)
+        });
         const hasChanged = patches.length > 0;
         if (hasChanged) {
           const stateHasChanged = !_deepEqual(this._state, nextState);
@@ -3390,7 +3621,12 @@ Error: ${error.message}`
             if (this.devTools) {
               this.devTools.send(action, this._state);
             }
-            __trace("cami:store:state:change", `Changed store state via action: ${action}`, inversePatches, patches);
+            __trace(
+              "cami:store:state:change",
+              `Changed store state via action: ${action}`,
+              inversePatches,
+              patches
+            );
             if (__config.events.isEnabled && typeof window !== "undefined") {
               const event = new CustomEvent("cami:store:state:change", {
                 detail: {
@@ -3619,50 +3855,62 @@ Error: ${error.message}`
       this.__observers.forEach((observer) => observer.next(this._state));
     }
     /**
-      * @method query
-      * @memberof ObservableStore
-      * @param {string} queryName - The name of the query to register.
-      * @param {Object} config - The configuration object for the query.
-      * @param {string|Array|Function} config.queryKey - The unique key for the query or a function to generate the key.
-      * @param {Function} config.queryFn - The function to fetch data for the query.
-      * @param {number} [config.staleTime=0] - The time in milliseconds before the query is considered stale.
-      * @param {boolean} [config.refetchOnWindowFocus=false] - Whether to refetch the query on window focus.
-      * @param {number|null} [config.refetchInterval=null] - The interval in milliseconds to refetch the query.
-      * @param {boolean} [config.refetchOnReconnect=true] - Whether to refetch the query on reconnect.
-      * @param {number} [config.gcTime=300000] - The time in milliseconds before garbage collecting the query.
-      * @param {number} [config.retry=1] - The number of retry attempts for the query.
-      * @param {Function} [config.retryDelay] - The function to calculate the delay between retries.
-      * @param {Function} [config.onSuccess] - The callback function to execute when the query succeeds. Receives a context object with `result`, `state`, `actions`, `mutations`, and `invalidateQueries`.
-      * @param {Function} [config.onError] - The callback function to execute when the query fails. Receives a context object with `error`, `state`, `actions`, `mutations`, and `invalidateQueries`.
-      * @param {Object} [config.actions=this.actions] - The actions available in the store.
-      * @description Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
-      * @example
-      * ```javascript
-      * appStore.defineAction('setPosts', (state, posts) => {
-      *   state.posts = posts;
-      * });
-      *
-      * appStore.defineQuery('fetchPosts', {
-      *   queryKey: (args) => ['posts', ...args],
-      *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
-      *   onSuccess: (ctx) => {
-      *     ctx.actions.setPosts(ctx.result);
-      *   },
-      *   onError: (ctx) => {
-      *     // console.error('Query failed:', ctx.error);
-      *   }
-      * });
-      * ```
-      */
+     * @method query
+     * @memberof ObservableStore
+     * @param {string} queryName - The name of the query to register.
+     * @param {Object} config - The configuration object for the query.
+     * @param {string|Array|Function} config.queryKey - The unique key for the query or a function to generate the key.
+     * @param {Function} config.queryFn - The function to fetch data for the query.
+     * @param {number} [config.staleTime=0] - The time in milliseconds before the query is considered stale.
+     * @param {boolean} [config.refetchOnWindowFocus=false] - Whether to refetch the query on window focus.
+     * @param {number|null} [config.refetchInterval=null] - The interval in milliseconds to refetch the query.
+     * @param {boolean} [config.refetchOnReconnect=true] - Whether to refetch the query on reconnect.
+     * @param {number} [config.gcTime=300000] - The time in milliseconds before garbage collecting the query.
+     * @param {number} [config.retry=1] - The number of retry attempts for the query.
+     * @param {Function} [config.retryDelay] - The function to calculate the delay between retries.
+     * @param {Function} [config.onSuccess] - The callback function to execute when the query succeeds. Receives a context object with `result`, `state`, `actions`, `mutations`, and `invalidateQueries`.
+     * @param {Function} [config.onError] - The callback function to execute when the query fails. Receives a context object with `error`, `state`, `actions`, `mutations`, and `invalidateQueries`.
+     * @param {Object} [config.actions=this.actions] - The actions available in the store.
+     * @description Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
+     * @example
+     * ```javascript
+     * appStore.defineAction('setPosts', (state, posts) => {
+     *   state.posts = posts;
+     * });
+     *
+     * appStore.defineQuery('fetchPosts', {
+     *   queryKey: (args) => ['posts', ...args],
+     *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
+     *   onSuccess: (ctx) => {
+     *     ctx.actions.setPosts(ctx.result);
+     *   },
+     *   onError: (ctx) => {
+     *     // console.error('Query failed:', ctx.error);
+     *   }
+     * });
+     * ```
+     */
     defineQuery(queryName, config) {
       if (this.queryFunctions.has(queryName)) {
-        throw new Error(`[Cami.js] Query with name ${queryName} has already been defined.`);
+        throw new Error(
+          `[Cami.js] Query with name ${queryName} has already been defined.`
+        );
       }
       this.queryFunctions.set(queryName, config);
       this.queries[queryName] = (...args) => this.query(queryName, ...args);
     }
     _executeQuery(queryName, payload, query) {
-      const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled } = query;
+      const {
+        queryFn,
+        queryKey,
+        staleTime,
+        retry,
+        retryDelay,
+        onFetch,
+        onSuccess,
+        onError,
+        onSettled
+      } = query;
       const cacheKey = typeof queryKey === "function" ? queryKey(payload).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
       const cachedData = this.queryCache.get(cacheKey);
       const storeContext = {
@@ -3676,21 +3924,46 @@ Error: ${error.message}`
         invalidateQueries: this.invalidateQueries.bind(this),
         dispatchAsync: this.dispatchAsync.bind(this)
       };
-      __trace(`_executeQuery`, `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`);
+      __trace(
+        `_executeQuery`,
+        `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`
+      );
       if (cachedData && !this._isStale(cachedData, staleTime)) {
-        __trace(`query`, `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`);
-        return this._handleQueryResult(queryName, cachedData.data, null, storeContext, { onSuccess, onSettled });
+        __trace(
+          `query`,
+          `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`
+        );
+        return this._handleQueryResult(
+          queryName,
+          cachedData.data,
+          null,
+          storeContext,
+          { onSuccess, onSettled }
+        );
       }
-      __trace(`query`, `Data is stale or not cached, fetching new data for: ${queryName}`);
+      __trace(
+        `query`,
+        `Data is stale or not cached, fetching new data for: ${queryName}`
+      );
       if (onFetch) {
         __trace(`query`, `onFetch callback invoked for: ${queryName}`);
         onFetch(storeContext);
       }
       return this._fetchWithRetry(() => queryFn(payload), retry, retryDelay).then((data) => {
-        this.queryCache.set(cacheKey, { data, timestamp: Date.now(), isStale: false });
-        return this._handleQueryResult(queryName, data, null, storeContext, { onSuccess, onSettled });
+        this.queryCache.set(cacheKey, {
+          data,
+          timestamp: Date.now(),
+          isStale: false
+        });
+        return this._handleQueryResult(queryName, data, null, storeContext, {
+          onSuccess,
+          onSettled
+        });
       }).catch((error) => {
-        return this._handleQueryResult(queryName, null, error, storeContext, { onError, onSettled });
+        return this._handleQueryResult(queryName, null, error, storeContext, {
+          onError,
+          onSettled
+        });
       });
     }
     _handleQueryResult(queryName, data, error, storeContext, callbacks) {
@@ -3724,30 +3997,37 @@ Error: ${error.message}`
      */
     invalidateQueries({ queryKey, predicate }) {
       if (!queryKey && !predicate) {
-        throw new Error(`[Cami.js] invalidateQueries expects either a queryKey or a predicate.`);
+        throw new Error(
+          `[Cami.js] invalidateQueries expects either a queryKey or a predicate.`
+        );
       }
-      const queriesToInvalidate = Array.from(this.queryFunctions.keys()).filter((queryName) => {
-        if (queryKey) {
-          const storedQueryKey = this.queryFunctions.get(queryName).queryKey;
-          if (typeof storedQueryKey === "function") {
-            try {
-              const generatedKey = storedQueryKey({});
-              return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
-            } catch (error) {
-              __trace(`invalidateQueries`, `Error generating key for ${queryName}: ${error.message}`);
-              return false;
+      const queriesToInvalidate = Array.from(this.queryFunctions.keys()).filter(
+        (queryName) => {
+          if (queryKey) {
+            const storedQueryKey = this.queryFunctions.get(queryName).queryKey;
+            if (typeof storedQueryKey === "function") {
+              try {
+                const generatedKey = storedQueryKey({});
+                return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
+              } catch (error) {
+                __trace(
+                  `invalidateQueries`,
+                  `Error generating key for ${queryName}: ${error.message}`
+                );
+                return false;
+              }
+            } else if (Array.isArray(storedQueryKey)) {
+              return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
+            } else {
+              return storedQueryKey === queryKey[0];
             }
-          } else if (Array.isArray(storedQueryKey)) {
-            return JSON.stringify(storedQueryKey) === JSON.stringify(queryKey);
-          } else {
-            return storedQueryKey === queryKey[0];
           }
+          if (predicate) {
+            return predicate(this.queryFunctions.get(queryName));
+          }
+          return false;
         }
-        if (predicate) {
-          return predicate(this.queryFunctions.get(queryName));
-        }
-        return false;
-      });
+      );
       queriesToInvalidate.forEach((queryName) => {
         const query = this.queryFunctions.get(queryName);
         if (!query)
@@ -3760,7 +4040,10 @@ Error: ${error.message}`
         } else {
           cacheKey = query.queryKey;
         }
-        __trace(`invalidateQueries`, `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`);
+        __trace(
+          `invalidateQueries`,
+          `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`
+        );
         if (this.queryCache.has(cacheKey)) {
           const cachedData = this.queryCache.get(cacheKey);
           cachedData.isStale = true;
@@ -3776,7 +4059,10 @@ Error: ${error.message}`
           this.focusHandlers.delete(queryName);
         }
         if (this.reconnectHandlers.has(queryName)) {
-          window.removeEventListener("online", this.reconnectHandlers.get(queryName));
+          window.removeEventListener(
+            "online",
+            this.reconnectHandlers.get(queryName)
+          );
           this.reconnectHandlers.delete(queryName);
         }
         if (this.gcTimeouts.has(queryName)) {
@@ -3803,7 +4089,9 @@ Error: ${error.message}`
           if (attempts < retry) {
             attempts++;
             const delay = typeof retryDelay === "function" ? retryDelay(attempts) : retryDelay;
-            return new Promise((resolve) => setTimeout(resolve, delay)).then(executeFetch);
+            return new Promise((resolve) => setTimeout(resolve, delay)).then(
+              executeFetch
+            );
           }
           throw error;
         });
@@ -3823,14 +4111,17 @@ Error: ${error.message}`
       const timeSinceLastUpdate = currentTime - cachedData.timestamp;
       const isDataStale = !cachedData.timestamp || timeSinceLastUpdate > staleTime;
       const isManuallyInvalidated = cachedData.isStale === true;
-      __trace(`_isStale`, `
+      __trace(
+        `_isStale`,
+        `
       isDataStale: ${isDataStale}
       isManuallyInvalidated: ${isManuallyInvalidated}
       Current Time: ${currentTime}
       Data Timestamp: ${cachedData.timestamp}
       Time Since Last Update: ${timeSinceLastUpdate}ms
       Stale Time: ${staleTime}ms
-    `);
+    `
+      );
       return isDataStale || isManuallyInvalidated;
     }
     /**
@@ -3870,7 +4161,9 @@ Error: ${error.message}`
      */
     defineMutation(mutationName, config) {
       if (this.mutationFunctions.has(mutationName)) {
-        throw new Error(`[Cami.js] Mutation with name ${mutationName} is already registered.`);
+        throw new Error(
+          `[Cami.js] Mutation with name ${mutationName} is already registered.`
+        );
       }
       this.mutationFunctions.set(mutationName, config);
       this.mutations[mutationName] = (...args) => this.mutate(mutationName, ...args);
@@ -3932,16 +4225,22 @@ Error: ${error.message}`
             throw new Error(`Event '${eventName}' must be an object`);
           }
           if (!event.to || typeof event.to !== "function" && typeof event.to !== "object") {
-            throw new Error(`Event '${eventName}' must have a 'to' property that is an object or a function returning an object`);
+            throw new Error(
+              `Event '${eventName}' must have a 'to' property that is an object or a function returning an object`
+            );
           }
           if (event.guard && typeof event.guard !== "function") {
             throw new Error(`Guard for event '${eventName}' must be a function`);
           }
           if (event.onTransition && typeof event.onTransition !== "function") {
-            throw new Error(`onTransition for event '${eventName}' must be a function`);
+            throw new Error(
+              `onTransition for event '${eventName}' must be a function`
+            );
           }
           if (event.onEntry && typeof event.onEntry !== "function") {
-            throw new Error(`onEntry for event '${eventName}' must be a function`);
+            throw new Error(
+              `onEntry for event '${eventName}' must be a function`
+            );
           }
           if (event.onExit && typeof event.onExit !== "function") {
             throw new Error(`onExit for event '${eventName}' must be a function`);
@@ -3971,7 +4270,9 @@ Error: ${error.message}`
           if (this.isValidTransition(event.from, currentState)) {
             const applyTransition = (to) => {
               this.validateToShape(event.from, to);
-              this.executeHandler(event.onExit, __spreadProps(__spreadValues({}, storeContext), { state: currentState }));
+              this.executeHandler(event.onExit, __spreadProps(__spreadValues({}, storeContext), {
+                state: currentState
+              }));
               Object.entries(to).forEach(([key, value]) => {
                 state[key] = value;
               });
@@ -3993,7 +4294,9 @@ Error: ${error.message}`
             }
             __trace(
               "cami:state-machine:ignored-transition",
-              `Ignored transition '${fullEventName}' event. Actual: ${JSON.stringify(actual)}. Expected: Any of ${JSON.stringify(event.from)}`
+              `Ignored transition '${fullEventName}' event. Actual: ${JSON.stringify(
+                actual
+              )}. Expected: Any of ${JSON.stringify(event.from)}`
             );
           }
         });
@@ -4009,7 +4312,9 @@ Error: ${error.message}`
     trigger(fullEventName, payload) {
       const [machineName, eventName] = fullEventName.split(":");
       if (!this.machines[machineName] || !this.machines[machineName][eventName]) {
-        throw new Error(`Event '${fullEventName}' not found in any state machine.`);
+        throw new Error(
+          `Event '${fullEventName}' not found in any state machine.`
+        );
       }
       return this.dispatch(fullEventName, payload);
     }
@@ -4116,9 +4421,13 @@ Error: ${error.message}`
           if (!(key in actual)) {
             mismatched.push(`${fullKey} (missing)`);
           } else if (typeof expected[key] !== typeof actual[key]) {
-            mismatched.push(`${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`);
+            mismatched.push(
+              `${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[key]})`
+            );
           } else if (typeof expected[key] === "object" && expected[key] !== null) {
-            mismatched.push(...findMismatchedKeys(expected[key], actual[key], fullKey));
+            mismatched.push(
+              ...findMismatchedKeys(expected[key], actual[key], fullKey)
+            );
           }
         });
         return mismatched;
@@ -4126,20 +4435,32 @@ Error: ${error.message}`
       const fromShape = Array.isArray(from) ? from[0] : from;
       if (typeof to !== "object" || to === null) {
         const expectedShape = getShapeDescription(fromShape);
-        throw new Error(`Invalid 'to' state: must be an object.
+        throw new Error(
+          `Invalid 'to' state: must be an object.
 
 Expected key-value pairs:
-${JSON.stringify(expectedShape, null, 2)}`);
+${JSON.stringify(
+            expectedShape,
+            null,
+            2
+          )}`
+        );
       }
       const mismatchedKeys = findMismatchedKeys(fromShape, to);
       if (mismatchedKeys.length > 0) {
         const expectedShape = getShapeDescription(fromShape);
-        throw new Error(`Invalid 'to' state shape.
+        throw new Error(
+          `Invalid 'to' state shape.
 
 Expected key-value pairs:
-${JSON.stringify(expectedShape, null, 2)}
+${JSON.stringify(
+            expectedShape,
+            null,
+            2
+          )}
 
-Mismatched keys: ${mismatchedKeys.join(", ")}`);
+Mismatched keys: ${mismatchedKeys.join(", ")}`
+        );
       }
     }
     executeHandler(handler, context) {
@@ -4163,10 +4484,14 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
     }
     return new Proxy(freeze(value, true), {
       set(target, prop, val) {
-        throw new Error(`Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`);
+        throw new Error(
+          `Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`
+        );
       },
       deleteProperty(target, prop) {
-        throw new Error(`Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`);
+        throw new Error(
+          `Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`
+        );
       }
     });
   };
@@ -4195,7 +4520,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
   var ObservableProxy = class {
     constructor(observable) {
       if (!(observable instanceof ObservableState)) {
-        throw new TypeError("Expected observable to be an instance of ObservableState");
+        throw new TypeError(
+          "Expected observable to be an instance of ObservableState"
+        );
       }
       return new Proxy(observable, {
         get: (target, property) => {
@@ -4263,9 +4590,19 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
         attrValue = produce(attrValue, transformFn);
         const observable = this.__observable(attrValue, attrName);
         if (this.__isObjectOrArray(observable.value)) {
-          this.__createObservablePropertyForObjOrArr(this, attrName, observable, true);
+          this.__createObservablePropertyForObjOrArr(
+            this,
+            attrName,
+            observable,
+            true
+          );
         } else {
-          this.__createObservablePropertyForPrimitive(this, attrName, observable, true);
+          this.__createObservablePropertyForPrimitive(
+            this,
+            attrName,
+            observable,
+            true
+          );
         }
       });
     }
@@ -4463,7 +4800,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
      */
     __createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
       if (!(observable instanceof ObservableState)) {
-        throw new TypeError("Expected observable to be an instance of ObservableState");
+        throw new TypeError(
+          "Expected observable to be an instance of ObservableState"
+        );
       }
       const proxy = this.__observableProxy(observable);
       Object.defineProperty(context, key, {
@@ -4494,7 +4833,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
      */
     __createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
       if (!(observable instanceof ObservableState)) {
-        throw new TypeError("Expected observable to be an instance of ObservableState");
+        throw new TypeError(
+          "Expected observable to be an instance of ObservableState"
+        );
       }
       Object.defineProperty(context, key, {
         get: () => observable.value,
@@ -4535,7 +4876,11 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
               if (this.__isObjectOrArray(observable.value)) {
                 this.__createObservablePropertyForObjOrArr(this, key, observable);
               } else {
-                this.__createObservablePropertyForPrimitive(this, key, observable);
+                this.__createObservablePropertyForPrimitive(
+                  this,
+                  key,
+                  observable
+                );
               }
             }
           }
@@ -4554,7 +4899,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
     __observable(initialValue, _name) {
       if (!this.__isAllowedType(initialValue)) {
         const type = Object.prototype.toString.call(initialValue);
-        throw new Error(`[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`);
+        throw new Error(
+          `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
+        );
       }
       const observable = new ObservableState(initialValue, null, { name: _name });
       this.__registerObservables(observable);
@@ -4590,15 +4937,17 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`);
       return prototype === null || prototype === Object.prototype;
     }
     /**
-      * @private
-      * @method
-      * @description Registers an observable state to the list of unsubscribers
-      * @param {ObservableState} observableState - The observable state to register
-      * @returns {void}
-      */
+     * @private
+     * @method
+     * @description Registers an observable state to the list of unsubscribers
+     * @param {ObservableState} observableState - The observable state to register
+     * @returns {void}
+     */
     __registerObservables(observableState) {
       if (!(observableState instanceof ObservableState)) {
-        throw new TypeError("Expected observableState to be an instance of ObservableState");
+        throw new TypeError(
+          "Expected observableState to be an instance of ObservableState"
+        );
       }
       this.__unsubscribers.set(observableState, () => {
         if (typeof observableState.dispose === "function") {

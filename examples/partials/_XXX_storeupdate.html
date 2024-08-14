@@ -19,7 +19,7 @@
   const appStore = store({
     state: {
       navigation: {
-        status: "menu",
+        sidebar: "menu",
       },
     },
     name: "navigation-store",
@@ -32,21 +32,24 @@
       profile: "menu",
     };
 
-    console.log(state.navigation.status);
+    console.log(state.navigation.sidebar);
 
-    state.navigation.status = transitions[state.navigation.status];
+    state.navigation.sidebar = transitions[state.navigation.sidebar];
   });
 
   // Action that attempts to set an invalid type
   appStore.action("NAV_FSM:INVALIDATE", ({ state }) => {
     // This should trigger a type error because we're trying to set a number instead of a string
-    state.navigation.status = 123;
+    state.navigation.sidebar = 123;
   });
 
   effect(() => {
-    console.log("Navigation status changed:", appStore.state.navigation.status);
+    console.log(
+      "Navigation status changed:",
+      appStore.state.navigation.sidebar
+    );
     document.getElementById("navStatus").textContent =
-      appStore.state.navigation.status;
+      appStore.state.navigation.sidebar;
   });
 
   document.getElementById("toggleNav").addEventListener("click", () => {

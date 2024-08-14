@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
 <article>
   <h1>Team Management</h1>
   <team-management-component></team-management-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement, store } = cami;
@@ -19,35 +29,49 @@
   const teamStore = store({
     state: {
       teams: [
-        { id: 1, name: "Team Alpha", members: [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }]},
-        { id: 2, name: "Team Beta", members: [{ id: 3, name: "Charlie" }, { id: 4, name: "Dave" }]}
+        {
+          id: 1,
+          name: "Team Alpha",
+          members: [
+            { id: 1, name: "Alice" },
+            { id: 2, name: "Bob" },
+          ],
+        },
+        {
+          id: 2,
+          name: "Team Beta",
+          members: [
+            { id: 3, name: "Charlie" },
+            { id: 4, name: "Dave" },
+          ],
+        },
       ],
-      editing: { isEditing: false, memberId: null }
+      editing: { isEditing: false, memberId: null },
     },
-    name: "team-store"
+    name: "team-store",
   });
 
-  teamStore.defineAction('addMember', ({ state, payload }) => {
+  teamStore.defineAction("addMember", ({ state, payload }) => {
     const { teamId, name } = payload;
-    const team = state.teams.find(team => team.id === teamId);
+    const team = state.teams.find((team) => team.id === teamId);
     if (team) {
       team.members.push({ id: Date.now(), name });
     }
   });
 
-  teamStore.defineAction('removeMember', ({ state, payload }) => {
+  teamStore.defineAction("removeMember", ({ state, payload }) => {
     const { teamId, memberId } = payload;
-    const team = state.teams.find(team => team.id === teamId);
+    const team = state.teams.find((team) => team.id === teamId);
     if (team) {
-      team.members = team.members.filter(member => member.id !== memberId);
+      team.members = team.members.filter((member) => member.id !== memberId);
     }
   });
 
-  teamStore.defineAction('editMember', ({ state, payload }) => {
+  teamStore.defineAction("editMember", ({ state, payload }) => {
     const { teamId, memberId, newName } = payload;
-    const team = state.teams.find(team => team.id === teamId);
+    const team = state.teams.find((team) => team.id === teamId);
     if (team) {
-      const member = team.members.find(member => member.id === memberId);
+      const member = team.members.find((member) => member.id === memberId);
       if (member) {
         member.name = newName;
       }
@@ -55,11 +79,12 @@
     state.editing = { isEditing: false, memberId: null };
   });
 
-  teamStore.defineAction('startEditing', ({ state, payload }) => {
+  teamStore.defineAction("startEditing", ({ state, payload }) => {
     state.editing = { isEditing: true, memberId: payload };
   });
 
-  customElements.define('team-management-component',
+  customElements.define(
+    "team-management-component",
     class extends ReactiveElement {
       template() {
         const { teams, editing } = teamStore.state;
@@ -67,44 +92,81 @@
 
         return html`
           <ul>
-            ${teams.map(team => html`
-              <li>
-                ${team.name}
-                <ul>
-                  ${team.members.map(member => html`
-                    <li>
-                      ${editing.isEditing && editing.memberId === member.id ? html`
-                        <input id="editMemberName${member.id}" type="text" value="${member.name}">
-                        <button @click=${() => {
-                          dispatch('editMember', {
-                            teamId: team.id,
-                            memberId: member.id,
-                            newName: document.getElementById('editMemberName' + member.id).value
-                          });
-                        }}>Save</button>
-                      ` : html`
-                        <span>${member.name}</span>
-                        <a @click=${() => dispatch('startEditing', member.id)}>Edit</a>
-                        <a @click=${() => dispatch('removeMember', { teamId: team.id, memberId: member.id })}>Remove</a>
-                      `}
-                    </li>
-                  `)}
-                </ul>
-                <input id="newMemberName${team.id}" type="text" placeholder="New member name">
-                <button @click=${() => {
-                  dispatch('addMember', {
-                    teamId: team.id,
-                    name: document.getElementById('newMemberName' + team.id).value
-                  });
-                  document.getElementById('newMemberName' + team.id).value = '';
-                }}>Add Member</button>
-              </li>
-            `)}
+            ${teams.map(
+              (team) => html`
+                <li>
+                  ${team.name}
+                  <ul>
+                    ${team.members.map(
+                      (member) => html`
+                        <li>
+                          ${editing.isEditing && editing.memberId === member.id
+                            ? html`
+                                <input
+                                  id="editMemberName${member.id}"
+                                  type="text"
+                                  value="${member.name}"
+                                />
+                                <button
+                                  @click=${() => {
+                                    dispatch("editMember", {
+                                      teamId: team.id,
+                                      memberId: member.id,
+                                      newName: document.getElementById(
+                                        "editMemberName" + member.id
+                                      ).value,
+                                    });
+                                  }}
+                                >
+                                  Save
+                                </button>
+                              `
+                            : html`
+                                <span>${member.name}</span>
+                                <a
+                                  @click=${() =>
+                                    dispatch("startEditing", member.id)}
+                                  >Edit</a
+                                >
+                                <a
+                                  @click=${() =>
+                                    dispatch("removeMember", {
+                                      teamId: team.id,
+                                      memberId: member.id,
+                                    })}
+                                  >Remove</a
+                                >
+                              `}
+                        </li>
+                      `
+                    )}
+                  </ul>
+                  <input
+                    id="newMemberName${team.id}"
+                    type="text"
+                    placeholder="New member name"
+                  />
+                  <button
+                    @click=${() => {
+                      dispatch("addMember", {
+                        teamId: team.id,
+                        name: document.getElementById("newMemberName" + team.id)
+                          .value,
+                      });
+                      document.getElementById("newMemberName" + team.id).value =
+                        "";
+                    }}
+                  >
+                    Add Member
+                  </button>
+                </li>
+              `
+            )}
           </ul>
         `;
       }
     }
   );
 </script>
-</body>
+  </body>
 </html>

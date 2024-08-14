@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
 <article>
   <h1>Toggle Switch Example</h1>
   <toggle-switch label="Dark Mode"></toggle-switch>
   <toggle-switch label="Notifications"></toggle-switch>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
   const { html, ReactiveElement } = cami;
@@ -26,22 +36,31 @@
     template() {
       return html`
         <label class="toggle-switch">
-          <input class="toggle-switch__input" type="checkbox" .checked=${this.isOn} @change=${() => this.toggle()}>
+          <input
+            class="toggle-switch__input"
+            type="checkbox"
+            .checked=${this.isOn}
+            @change=${() => this.toggle()}
+          />
           <span class="toggle-switch__slider"></span>
-          <span class="toggle-switch__label">${this.getAttribute('label')}</span>
+          <span class="toggle-switch__label"
+            >${this.getAttribute("label")}</span
+          >
         </label>
       `;
     }
   }
 
-  customElements.define('toggle-switch', ToggleSwitch);
+  customElements.define("toggle-switch", ToggleSwitch);
 </script>
 <style>
   :root {
     --switch-width: 60px;
     --switch-height: 34px;
     --switch-padding: 4px;
-    --switch-toggle-size: calc(var(--switch-height) - (var(--switch-padding) * 2));
+    --switch-toggle-size: calc(
+      var(--switch-height) - (var(--switch-padding) * 2)
+    );
     --switch-translate-x: calc(var(--switch-width) - var(--switch-height));
     --spacing: 10px;
     --color-disabled: #e0e0e0;
@@ -99,5 +118,5 @@
     line-height: var(--switch-height);
   }
 </style>
-</body>
+  </body>
 </html>
