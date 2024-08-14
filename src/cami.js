@@ -18,6 +18,7 @@ import { ObservableState, effect } from "./observables/observable-state.js";
 import { __config } from "./config.js";
 import { __trace } from "./trace.js";
 import { Type, useValidationHook, useValidationThunk } from "./types.js";
+import { createURLStore } from "./observables/url-store.js";
 import {
   createIdbPromise,
   persistToIdbThunk,
@@ -58,4 +59,5 @@ export {
   persistToIdbThunk,
   createLocalStorage,
   persistToLocalStorageThunk,
+  createURLStore,
 };
