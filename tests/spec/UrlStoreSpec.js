@@ -31,7 +31,7 @@ describe('URL Store', () => {
   });
 
   it('should initialize with the correct initial state', () => {
-    expect(urlStore.url).toEqual({
+    expect(urlStore.getState()).toEqual({
       params: {},
       hashPaths: [],
       hashParams: {}
@@ -40,7 +40,7 @@ describe('URL Store', () => {
 
   it('should update state when navigating', () => {
     urlStore.navigate({ path: 'inbox/123', params: { filter: 'unread' } });
-    expect(urlStore.url).toEqual({
+    expect(urlStore.getState()).toEqual({
       params: { filter: 'unread' },
       hashPaths: ['inbox', '123'],
       hashParams: {}
@@ -49,26 +49,24 @@ describe('URL Store', () => {
 
   it('should handle hash parameters', () => {
     urlStore.navigate({ path: 'sent/456', hashParams: { sort: 'date' } });
-    expect(urlStore.url).toEqual({
+    expect(urlStore.getState()).toEqual({
       params: {},
       hashPaths: ['sent', '456'],
       hashParams: { sort: 'date' }
     });
   });
 
-  it('should update watchers when state changes', async () => {
+  it('should update subscribers when state changes', (done) => {
     let callCount = 0;
-    const watchPromise = new Promise(resolve => {
-      urlStore.watch(() => {
-        callCount++;
-        if (callCount === 2) {
-          resolve();
-        }
-      });
+    const subscription = urlStore.subscribe(() => {
+      callCount++;
+      if (callCount === 1) {
+        expect(urlStore.getState().hashPaths).toEqual(['draft', '789']);
+        subscription.unsubscribe();
+      }
     });
 
     urlStore.navigate({ path: 'draft/789' });
-    await watchPromise;
   });
 
   it('should handle full hash replace navigation', () => {
@@ -80,7 +78,7 @@ describe('URL Store', () => {
       fullReplace: true
     });
 
-    expect(urlStore.url).toEqual({
+    expect(urlStore.getState()).toEqual({
       params: { newParam: 'value' },
       hashPaths: ['full', 'replace'],
       hashParams: { newHashParam: 'value' }
@@ -91,7 +89,7 @@ describe('URL Store', () => {
     urlStore.navigate({ path: 'inbox/123', params: { filter: 'unread' }, hashParams: { sort: 'date' } });
     urlStore.navigate({ path: '', fullReplace: true });
 
-    expect(urlStore.url).toEqual({
+    expect(urlStore.getState()).toEqual({
       params: {},
       hashPaths: [],
       hashParams: {}

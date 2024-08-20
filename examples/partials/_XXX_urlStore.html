@@ -1,0 +1,95 @@
+<article>
+  <h1>URL Store Example</h1>
+  <url-store-component></url-store-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, effect, createURLStore } = cami;
+  cami.debug.enable();
+
+  const urlStore = createURLStore();
+
+  customElements.define(
+    "url-store-component",
+    class extends ReactiveElement {
+      onConnect() {
+        effect(() => {
+          console.log(urlStore.getState());
+        });
+      }
+
+      template() {
+        const { params, hashPaths, hashParams } = urlStore.getState();
+
+        return html`
+          <div>
+            <h2>Current URL State</h2>
+            <p>Hash Paths: ${JSON.stringify(hashPaths)}</p>
+            <p>Params: ${JSON.stringify(params)}</p>
+            <p>Hash Params: ${JSON.stringify(hashParams)}</p>
+            <div>
+              <button @click=${this.navigateToExample}>
+                Navigate to Example
+              </button>
+              <button @click=${this.navigateToInbox}>Navigate to Inbox</button>
+              <button @click=${this.navigateToSent}>Navigate to Sent</button>
+              <button @click=${this.navigateWithFullReplace}>
+                Full Replace Navigation
+              </button>
+              <button @click=${this.clearNavigation}>Clear Navigation</button>
+              <button @click=${this.navigateWithCustomTitle}>
+                Navigate with Custom Title
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      navigateToExample() {
+        urlStore.navigate({
+          path: "example/path",
+          params: { foo: "bar" },
+          hashParams: { baz: "qux" },
+        });
+      }
+
+      navigateToInbox() {
+        urlStore.navigate({
+          path: "inbox/123",
+          params: { filter: "unread" },
+        });
+      }
+
+      navigateToSent() {
+        urlStore.navigate({
+          path: "sent/456",
+          hashParams: { sort: "date" },
+        });
+      }
+
+      navigateWithFullReplace() {
+        urlStore.navigate({
+          path: "full/replace",
+          params: { newParam: "value" },
+          hashParams: { newHashParam: "value" },
+          fullReplace: true,
+        });
+      }
+
+      clearNavigation() {
+        urlStore.navigate({ path: "", fullReplace: true });
+      }
+
+      navigateWithCustomTitle() {
+        urlStore.navigate({
+          path: "settings/profile",
+          pageTitle: "User Profile | My App",
+        });
+      }
+    }
+  );
+</script>
