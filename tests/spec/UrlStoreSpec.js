@@ -103,7 +103,7 @@ describe('URL Store', () => {
 
   it('should set default page title based on path when not provided', () => {
     urlStore.navigate({ path: 'settings/profile' });
-    expect(document.title).toEqual('Profile | My SPA');
+    expect(document.title).toEqual('Localhost | Settings - Profile');
   });
 
   it('should update aria-current attribute for matching links', async () => {
@@ -126,5 +126,69 @@ describe('URL Store', () => {
     } else {
       throw new Error('Test div not found');
     }
+  });
+
+  describe('matches', () => {
+    beforeEach(() => {
+      urlStore.navigate({
+        path: 'users/123',
+        params: { filter: 'active' },
+        hashParams: { view: 'details' }
+      });
+    });
+
+    it('should match exact state', () => {
+      expect(urlStore.matches({
+        hashPaths: ['users', '123'],
+        params: { filter: 'active' },
+        hashParams: { view: 'details' }
+      })).toBe(true);
+    });
+
+    it('should match partial hashPaths', () => {
+      expect(urlStore.matches({ hashPaths: ['users'] })).toBe(true);
+    });
+
+    it('should not match incorrect hashPaths', () => {
+      expect(urlStore.matches({ hashPaths: ['posts'] })).toBe(false);
+    });
+
+    it('should match partial params', () => {
+      expect(urlStore.matches({ params: { filter: 'active' } })).toBe(true);
+    });
+
+    it('should not match incorrect params', () => {
+      expect(urlStore.matches({ params: { filter: 'inactive' } })).toBe(false);
+    });
+
+    it('should match partial hashParams', () => {
+      expect(urlStore.matches({ hashParams: { view: 'details' } })).toBe(true);
+    });
+
+    it('should not match incorrect hashParams', () => {
+      expect(urlStore.matches({ hashParams: { view: 'list' } })).toBe(false);
+    });
+
+    it('should match combination of partial state properties', () => {
+      expect(urlStore.matches({
+        hashPaths: ['users'],
+        params: { filter: 'active' }
+      })).toBe(true);
+    });
+
+    it('should not match if any property does not match', () => {
+      expect(urlStore.matches({
+        hashPaths: ['users'],
+        params: { filter: 'inactive' }
+      })).toBe(false);
+    });
+
+    it('should match empty state slice', () => {
+      expect(urlStore.matches({})).toBe(true);
+    });
+
+    it('should not match if hashPaths is longer than current state', () => {
+      expect(urlStore.matches({ hashPaths: ['users', '123', 'extra'] })).toBe(false);
+    });
   });
 });

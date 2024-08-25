@@ -52,7 +52,7 @@ class URLStore extends Observable {
 
   navigate(options = {}) {
     const {
-      path = '',
+      path,
       params = {},
       hashParams = {},
       focusSelector,
@@ -63,41 +63,51 @@ class URLStore extends Observable {
     } = options;
 
     let newUrl = new URL(window.location.href);
+    let newHash = '#';
 
-    if (fullReplace && path === '') {
-      // Clear the hash entirely
-      newUrl.hash = '';
-    } else {
-      let newHash = '#';
+    // Preserve existing hashPaths if path is not provided
+    const currentState = this.getState();
+    const hashPaths = path !== undefined
+      ? path.split('/').filter(Boolean)
+      : currentState.hashPaths;
 
-      if (path !== '' || !fullReplace) {
-        const hashPaths = path.split('/').filter(Boolean);
-        newHash += hashPaths.join('/');
-      }
+    newHash += hashPaths.join('/');
 
-      const searchParams = new URLSearchParams();
-      const hashSearchParams = new URLSearchParams();
+    const searchParams = new URLSearchParams();
+    const hashSearchParams = new URLSearchParams();
 
-      if (!fullReplace) {
-        Object.entries(this._state.params).forEach(([key, value]) => searchParams.set(key, value));
-        Object.entries(this._state.hashParams).forEach(([key, value]) => hashSearchParams.set(key, value));
-      }
-
-      Object.entries(params).forEach(([key, value]) => searchParams.set(key, value));
-      Object.entries(hashParams).forEach(([key, value]) => hashSearchParams.set(key, value));
-
-      const searchString = searchParams.toString();
-      const hashSearchString = hashSearchParams.toString();
-
-      if (searchString) {
-        newHash += '?' + searchString;
-      }
-      if (hashSearchString) {
-        newHash += '#' + hashSearchString;
-      }
-
-      newUrl.hash = newHash;
+    if (!fullReplace) {
+      Object.entries(currentState.params).forEach(([key, value]) => searchParams.set(key, value));
+      Object.entries(currentState.hashParams).forEach(([key, value]) => hashSearchParams.set(key, value));
     }
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null || value === undefined) {
+        searchParams.delete(key);
+      } else {
+        searchParams.set(key, value);
+      }
+    });
+
+    Object.entries(hashParams).forEach(([key, value]) => {
+      if (value === null || value === undefined) {
+        hashSearchParams.delete(key);
+      } else {
+        hashSearchParams.set(key, value);
+      }
+    });
+
+    const searchString = searchParams.toString();
+    const hashSearchString = hashSearchParams.toString();
+
+    if (searchString) {
+      newHash += '?' + searchString;
+    }
+    if (hashSearchString) {
+      newHash += '#' + hashSearchString;
+    }
+
+    newUrl.hash = newHash;
 
     window.history.pushState(null, '', newUrl.toString());
 
@@ -116,9 +126,18 @@ class URLStore extends Observable {
     if (pageTitle) {
       document.title = pageTitle;
     } else if (path) {
+      // Set default page title based on the domain and hash path
+      const domain = window.location.hostname;
+      const formattedDomain = domain.split('.').map(segment =>
+        segment.charAt(0).toUpperCase() + segment.slice(1)
+      ).join('.');
+
       const pathSegments = path.split('/').filter(Boolean);
-      const lastSegment = pathSegments[pathSegments.length - 1] || 'Home';
-      document.title = `${lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1)} | My SPA`;
+      const formattedPath = pathSegments.map(segment =>
+        segment.charAt(0).toUpperCase() + segment.slice(1)
+      ).join(' - ');
+
+      document.title = `${formattedDomain} | ${formattedPath}`;
     }
 
     if (announcement) {
@@ -142,6 +161,66 @@ class URLStore extends Observable {
         currentPageLink.setAttribute('aria-current', 'page');
       }
     }
+  }
+
+  matches(stateSlice) {
+    const currentState = this.getState();
+
+    for (const key in stateSlice) {
+      if (stateSlice.hasOwnProperty(key)) {
+        if (key === 'hashPaths') {
+          // For hashPaths, check if the provided array is a prefix of the current hashPaths
+          if (!this._isArrayPrefix(currentState.hashPaths, stateSlice.hashPaths)) {
+            return false;
+          }
+        } else if (['params', 'hashParams'].includes(key)) {
+          // For params and hashParams, check if all provided key-value pairs match
+          for (const paramKey in stateSlice[key]) {
+            if (stateSlice[key].hasOwnProperty(paramKey)) {
+              if (currentState[key][paramKey] !== stateSlice[key][paramKey]) {
+                return false;
+              }
+            }
+          }
+        } else {
+          // For any other properties, perform a strict equality check
+          if (currentState[key] !== stateSlice[key]) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * @method isEmpty
+   * @memberof URLStore
+   * @returns {boolean} True if the store's state is effectively empty, false otherwise.
+   * @description Checks if the internal state is effectively empty by verifying if there's any meaningful content in hashPaths, params, or hashParams.
+   * @example
+   * ```javascript
+   * const urlStore = createURLStore();
+   * console.log(urlStore.isEmpty()); // true if the store is effectively empty
+   * ```
+   */
+  isEmpty() {
+    const { hashPaths, params, hashParams } = this.getState();
+
+    return (
+      hashPaths.length === 0 &&
+      Object.keys(params).length === 0 &&
+      Object.keys(hashParams).length === 0 &&
+      !hashPaths.some(path => path.trim() !== '')
+    );
+  }
+
+  _isArrayPrefix(arr, prefix) {
+    if (prefix.length > arr.length) {
+      return false;
+    }
+    return prefix.every((value, index) => value === arr[index]);
   }
 }
 
