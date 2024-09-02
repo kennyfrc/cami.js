@@ -25,6 +25,7 @@ import {
   createLocalStorage,
   persistToLocalStorageThunk,
 } from "./storage/adapters.js";
+import { defineReactiveElement } from './reactive-element-v2.js'
 
 const { debug, events } = __config;
 
@@ -60,4 +61,5 @@ export {
   createLocalStorage,
   persistToLocalStorageThunk,
   createURLStore,
+  defineReactiveElement,
 };

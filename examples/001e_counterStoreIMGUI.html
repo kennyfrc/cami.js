@@ -14,7 +14,7 @@
     "
   >
 <article>
-  <h1>Counter Example</h1>
+  <h1>Counter (Store Version)</h1>
   <counter-component></counter-component>
 </article>
 <link
@@ -23,23 +23,19 @@
 />
 <script src="./build/cami.cdn.js"></script>
 <script type="module">
-  const { html, defineReactiveElement, Type } = cami;
+  const { html, defineReactiveElement, store } = cami;
+  cami.debug.enable();
 
-  const Counter = Type.Model("CounterModel", {
-    count: Type.Integer,
-  });
-
-  const counterStore = Counter.create({
-    state: { count: 0 },
-    actions: {
-      increment: ({ state }) => {
-        state.count += 1;
-      },
-      decrement: ({ state }) => {
-        state.count -= 1;
-      },
+  const counterStore = store({
+    state: {
+      count: 0,
     },
+    name: "counter-store",
   });
+
+  counterStore.defineAction("increment", ({ state }) => (state.count += 1));
+  counterStore.defineAction("decrement", ({ state }) => (state.count -= 1));
+  counterStore.defineMemo("isEven", ({ state }) => state.count % 2 === 0);
 
   const uuid = crypto.randomUUID();
   const incrementId = `${uuid}-increment`
@@ -47,6 +43,7 @@
 
   defineReactiveElement("counter-component", counterStore, ({ store, ctx}) => {
     const { count } = store.getState();
+    const isEven = store.memo("isEven");
 
     if (ctx.clicked.owner === incrementId) {
       store.dispatch("increment");
@@ -60,6 +57,7 @@
       <button node-id=${decrementId}>-</button>
       <button node-id=${incrementId}>+</button>
       <div>Count: ${count}</div>
+      <div>Is even: ${isEven}</div>
     `;
   });
 </script>
