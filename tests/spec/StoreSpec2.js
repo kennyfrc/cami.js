@@ -41,7 +41,7 @@ describe("Observable Store (Set 2)", function () {
     });
 
     navStore.defineMachine("navigation", {
-      TOGGLE_CHAT: {
+      toggle_chat: {
         from: [
           { navigation: { center: "documents" } },
           { navigation: { center: "chat" } }
@@ -441,7 +441,7 @@ describe("Observable Store (Set 2)", function () {
       });
 
       // Toggle to chat
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
       expect(navStore.getState().navigation).toEqual({
         sidebar: "chat",
         center: "chat",
@@ -449,7 +449,7 @@ describe("Observable Store (Set 2)", function () {
       });
 
       // Toggle back to document
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
       expect(navStore.getState().navigation).toEqual({
         sidebar: "chat",
         center: "documents",
@@ -462,7 +462,7 @@ describe("Observable Store (Set 2)", function () {
       navStore.dispatch("updateNavigation", { center: "invalid" });
 
       // Attempt to toggle chat (should fail)
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
 
       // State should remain unchanged
       expect(navStore.getState().navigation).toEqual({
@@ -473,7 +473,7 @@ describe("Observable Store (Set 2)", function () {
     });
 
     it("should call onEntry with correct states", function () {
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
       expect(navStore.onEntrySpy).toHaveBeenCalledWith(
         { sidebar: "chat", center: "chat", topbar: "default" },
         { sidebar: "chat", center: "documents", topbar: "default" }
@@ -490,7 +490,7 @@ describe("Observable Store (Set 2)", function () {
     });
 
     it("should allow multiple transitions", function () {
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
       navStore.dispatch("navigation:CHANGE_SIDEBAR", "profile");
       expect(navStore.getState().navigation).toEqual({
         sidebar: "profile",
@@ -500,9 +500,9 @@ describe("Observable Store (Set 2)", function () {
     });
 
     it("should maintain correct state after multiple transitions", function () {
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
       navStore.dispatch("navigation:CHANGE_SIDEBAR", "settings");
-      navStore.dispatch("navigation:TOGGLE_CHAT");
+      navStore.dispatch("navigation:toggle_chat");
       expect(navStore.getState().navigation).toEqual({
         sidebar: "settings",
         center: "documents",

@@ -25,7 +25,7 @@
     name: "navigation-store",
   });
 
-  appStore.action("NAV_FSM:TOGGLE", ({ state }) => {
+  appStore.action("nav_fsm:TOGGLE", ({ state }) => {
     const transitions = {
       menu: "settings",
       settings: "profile",
@@ -38,7 +38,7 @@
   });
 
   // Action that attempts to set an invalid type
-  appStore.action("NAV_FSM:INVALIDATE", ({ state }) => {
+  appStore.action("nav_fsm:INVALIDATE", ({ state }) => {
     // This should trigger a type error because we're trying to set a number instead of a string
     state.navigation.sidebar = 123;
   });
@@ -54,7 +54,7 @@
 
   document.getElementById("toggleNav").addEventListener("click", () => {
     try {
-      appStore.dispatch("NAV_FSM:TOGGLE");
+      appStore.dispatch("nav_fsm:TOGGLE");
     } catch (error) {
       handleError(error);
     }
@@ -62,7 +62,7 @@
 
   document.getElementById("invalidateNav").addEventListener("click", () => {
     try {
-      appStore.dispatch("NAV_FSM:INVALIDATE");
+      appStore.dispatch("nav_fsm:INVALIDATE");
     } catch (error) {
       handleError(error);
     }
@@ -79,7 +79,7 @@
   // Attempt to trigger the bug by rapidly changing the navigation status
   const intervalId = setInterval(() => {
     try {
-      appStore.dispatch("NAV_FSM:TOGGLE");
+      appStore.dispatch("nav_fsm:TOGGLE");
     } catch (error) {
       handleError(error);
     }

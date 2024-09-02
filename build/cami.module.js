@@ -5474,6 +5474,346 @@ function persistToLocalStorageThunk(toLocalStorage) {
   });
 }
 
+// src/reactive-element-v2.js
+var interactionContextSchema = {
+  active: { owner: "window" },
+  focused: { owner: "window" },
+  hovered: { owner: "window" },
+  clicked: { owner: null, x: null, y: null },
+  dragging: {
+    status: "idle",
+    owner: "window",
+    startX: null,
+    startY: null,
+    currentX: null,
+    currentY: null,
+    sourceId: null,
+    targetId: null,
+    initialOffsetX: null,
+    initialOffsetY: null
+  },
+  resizing: {
+    status: "idle",
+    owner: "window",
+    startX: null,
+    startY: null,
+    currentX: null,
+    currentY: null,
+    initialWidth: null,
+    initialHeight: null
+  },
+  keyPressed: { key: null, owner: "window" },
+  keyPressBuffer: [],
+  lastKeyPressTime: null,
+  viewportSize: { width: 0, height: 0 }
+};
+var interactionContextFromWindow = () => __spreadProps(__spreadValues({}, interactionContextSchema), {
+  viewportSize: { width: window.innerWidth, height: window.innerHeight }
+});
+var deviceTypeFromUserAgent = (userAgent) => {
+  if (/Tablet|iPad/i.test(userAgent))
+    return "tablet";
+  if (/IEMobile|Windows Phone|Android|webOS|iPhone|iPod|BlackBerry|Opera Mini/i.test(userAgent))
+    return "mobile";
+  return "desktop";
+};
+var eventsFromDeviceType = (deviceType) => {
+  const commonEvents = [
+    "focus",
+    "blur",
+    "focusin",
+    "focusout",
+    "keydown",
+    "keyup",
+    "mousedown",
+    "mouseup",
+    "mousemove",
+    "mouseover",
+    "mouseout",
+    "mouseenter",
+    "mouseleave",
+    "touchstart",
+    "touchend",
+    "touchmove",
+    "touchcancel",
+    "resize",
+    "orientationchange",
+    "dragstart",
+    "drag",
+    "dragend",
+    "dragenter",
+    "dragover",
+    "dragleave",
+    "drop",
+    "scroll",
+    "wheel",
+    "click"
+    // Added 'click' event
+  ];
+  const mobileEvents = [
+    "devicemotion",
+    "deviceorientation"
+  ];
+  return deviceType === "mobile" || deviceType === "tablet" ? [...commonEvents, ...mobileEvents] : commonEvents;
+};
+var touchToMouseMap = {
+  "touchstart": "mousedown",
+  "touchend": "mouseup",
+  "touchmove": "mousemove",
+  "touchcancel": "mouseout"
+};
+var createMicroStore = (initialState, reducer = (state) => state) => {
+  let state = initialState;
+  let stateKeys = Object.keys(initialState);
+  let subscribers = /* @__PURE__ */ new Set();
+  const stateProxy = new Proxy(state, {
+    get(target, prop) {
+      if (DependencyTracker.current) {
+        DependencyTracker.current.addDependency({ onValue: (callback) => {
+          subscribers.add(callback);
+          return {
+            unsubscribe: () => subscribers.delete(callback)
+          };
+        } });
+      }
+      return state[prop];
+    },
+    ownKeys() {
+      return stateKeys;
+    },
+    getOwnPropertyDescriptor(target, prop) {
+      return {
+        enumerable: true,
+        configurable: true,
+        value: state[prop]
+      };
+    }
+  });
+  function getState() {
+    return stateProxy;
+  }
+  function dispatch(action) {
+    const oldState = __spreadValues({}, state);
+    state = reducer(state, action);
+    stateKeys = Object.keys(state);
+    if (JSON.stringify(oldState) !== JSON.stringify(state)) {
+      subscribers.forEach((subscriber) => subscriber());
+    }
+  }
+  return { getState, dispatch };
+};
+var createInteractionReducer = (initialState) => (state = initialState, action) => {
+  switch (action.type) {
+    case "SET_FOCUSED":
+      return __spreadProps(__spreadValues({}, state), { focused: { owner: action.payload || "window" } });
+    case "SET_HOVERED":
+      return __spreadProps(__spreadValues({}, state), { hovered: { owner: action.payload || "window" } });
+    case "SET_ACTIVE":
+      return __spreadProps(__spreadValues({}, state), { active: { owner: action.payload || "window" } });
+    case "SET_CLICKED":
+      return __spreadProps(__spreadValues({}, state), { clicked: action.payload });
+    case "CLEAR_CLICKED":
+      return __spreadProps(__spreadValues({}, state), { clicked: { owner: null, x: null, y: null } });
+    case "SET_DRAGGING":
+      return __spreadProps(__spreadValues({}, state), { dragging: __spreadProps(__spreadValues({}, action.payload), { owner: action.payload.owner || "window" }) });
+    case "SET_RESIZING":
+      return __spreadProps(__spreadValues({}, state), { resizing: __spreadProps(__spreadValues({}, action.payload), { status: action.payload.status || null }) });
+    case "SET_KEY_PRESSED":
+      return __spreadProps(__spreadValues({}, state), { keyPressed: __spreadProps(__spreadValues({}, action.payload), { owner: action.payload.owner || "window" }) });
+    case "SET_KEY_PRESS_BUFFER":
+      return __spreadProps(__spreadValues({}, state), { keyPressBuffer: action.payload });
+    case "SET_LAST_KEY_PRESS_TIME":
+      return __spreadProps(__spreadValues({}, state), { lastKeyPressTime: action.payload });
+    case "SET_VIEWPORT_SIZE":
+      return __spreadProps(__spreadValues({}, state), { viewportSize: action.payload });
+    default:
+      return state;
+  }
+};
+var interactionReducer = createInteractionReducer(interactionContextFromWindow());
+var interactionStore = createMicroStore(interactionContextFromWindow(), interactionReducer);
+var keyPressBufferFromEvent = (store2, event, targetId) => {
+  const { keyPressBuffer } = store2.getState();
+  let newBuffer = new Set(keyPressBuffer);
+  if (event.type === "keydown") {
+    newBuffer.add(event.key);
+  } else if (event.type === "keyup") {
+    newBuffer.delete(event.key);
+    newBuffer.delete("Meta");
+  }
+  const sortedBuffer = Array.from(newBuffer).sort().join("+");
+  return [
+    { type: "SET_KEY_PRESS_BUFFER", payload: Array.from(newBuffer) },
+    { type: "SET_KEY_PRESSED", payload: { key: sortedBuffer, owner: targetId } }
+  ];
+};
+var actionFromEventType = (type, store2) => (event) => {
+  var _a;
+  const targetId = event.target instanceof Element ? (_a = event.target.closest("[node-id]")) == null ? void 0 : _a.getAttribute("node-id") : "window";
+  const draggingState = store2.getState().dragging;
+  const resizingState = store2.getState().resizing;
+  const viewportSize = store2.getState().viewportSize;
+  const coordinatesFromEvent = (evt) => {
+    return evt.touches ? { clientX: evt.touches[0].clientX, clientY: evt.touches[0].clientY } : evt;
+  };
+  switch (type) {
+    case "focus":
+      return { type: "SET_FOCUSED", payload: targetId };
+    case "blur":
+      return { type: "SET_FOCUSED", payload: null };
+    case "mouseover":
+    case "touchstart":
+      return { type: "SET_HOVERED", payload: targetId };
+    case "mouseout":
+    case "touchend":
+    case "touchcancel":
+      return { type: "SET_HOVERED", payload: null };
+    case "click":
+      const { clientX, clientY } = coordinatesFromEvent(event);
+      return [
+        { type: "SET_CLICKED", payload: { owner: targetId, x: clientX, y: clientY } },
+        { type: "CLEAR_CLICKED", payload: { owner: targetId, x: clientX, y: clientY } }
+      ];
+    case "mousedown":
+    case "touchstart":
+      if (targetId == null ? void 0 : targetId.startsWith("resize-handle")) {
+        const resizeDirection = targetId.split("-").slice(2).join("-");
+        const targetElement = event.target.closest(".window");
+        const rect = targetElement.getBoundingClientRect();
+        return {
+          type: "SET_RESIZING",
+          payload: {
+            status: `resizing-${resizeDirection}`,
+            owner: targetId,
+            initialWidth: rect.width,
+            initialHeight: rect.height,
+            startX: event.clientX,
+            startY: event.clientY,
+            currentX: event.clientX,
+            currentY: event.clientY
+          }
+        };
+      }
+      return [
+        {
+          type: "SET_DRAGGING",
+          payload: {
+            status: "dragging",
+            owner: targetId,
+            startX: event.clientX,
+            startY: event.clientY,
+            currentX: event.clientX,
+            currentY: event.clientY,
+            initialOffsetX: event.target.getBoundingClientRect().left,
+            initialOffsetY: event.target.getBoundingClientRect().top
+          }
+        },
+        {
+          type: "SET_ACTIVE",
+          payload: targetId
+        }
+      ];
+    case "mouseup":
+    case "touchend":
+    case "touchcancel":
+      const actions = [];
+      if (resizingState.status.startsWith("resizing")) {
+        actions.push({ type: "SET_RESIZING", payload: __spreadProps(__spreadValues({}, resizingState), { status: "idle" }) });
+      }
+      if (draggingState.status === "dragging") {
+        actions.push({ type: "SET_DRAGGING", payload: __spreadProps(__spreadValues({}, draggingState), { status: "idle" }) });
+      }
+      actions.push({
+        type: "SET_ACTIVE",
+        payload: null
+      });
+      return actions;
+    case "mousemove":
+    case "touchmove":
+      const { clientX: moveX, clientY: moveY } = coordinatesFromEvent(event);
+      const moveActions = [];
+      if (draggingState.status === "dragging") {
+        moveActions.push({ type: "SET_DRAGGING", payload: __spreadProps(__spreadValues({}, draggingState), { currentX: moveX, currentY: moveY }) });
+      }
+      if (resizingState.status.startsWith("resizing")) {
+        moveActions.push({ type: "SET_RESIZING", payload: __spreadProps(__spreadValues({}, resizingState), { currentX: moveX, currentY: moveY }) });
+      }
+      return moveActions.length > 0 ? moveActions : null;
+    case "keydown":
+    case "keyup":
+      return keyPressBufferFromEvent(store2, event, targetId);
+    case "resize":
+    case "orientationchange":
+      return { type: "SET_VIEWPORT_SIZE", payload: { width: window.innerWidth, height: window.innerHeight } };
+    default:
+      return null;
+  }
+};
+var dispatchGlobalInteraction = (event) => {
+  const closestNodeElement = event.target instanceof Element ? event.target.closest("[node-id]") : null;
+  const targetId = closestNodeElement ? closestNodeElement.getAttribute("node-id") : "window";
+  const eventType = touchToMouseMap[event.type] || event.type;
+  const actions = actionFromEventType(eventType, interactionStore)(event);
+  if (actions) {
+    if (Array.isArray(actions)) {
+      actions.forEach((action) => {
+        interactionStore.dispatch(action);
+      });
+    } else {
+      interactionStore.dispatch(actions);
+    }
+  }
+};
+var initializeGlobalListeners = () => {
+  if (globalListenersInitialized)
+    return;
+  const globalEvents = eventsFromDeviceType(deviceTypeFromUserAgent(navigator.userAgent));
+  globalEvents.forEach((eventType) => {
+    if (["resize"].includes(eventType)) {
+      window.addEventListener(eventType, dispatchGlobalInteraction, { passive: true });
+    } else {
+      document.addEventListener(eventType, dispatchGlobalInteraction, { passive: true });
+    }
+  });
+  globalListenersInitialized = true;
+};
+var defineReactiveElement = (name, store2, renderFn) => {
+  customElements.define(
+    name,
+    class extends HTMLElement {
+      constructor() {
+        super();
+        this.deviceType = deviceTypeFromUserAgent(navigator.userAgent);
+      }
+      connectedCallback() {
+        this.updateViewportSize();
+        this.isUpdating = false;
+        effect(() => {
+          if (!this.isUpdating) {
+            this.isUpdating = true;
+            this.render();
+            this.isUpdating = false;
+          }
+        });
+      }
+      disconnectedCallback() {
+      }
+      updateViewportSize() {
+        interactionStore.dispatch({
+          type: "SET_VIEWPORT_SIZE",
+          payload: { width: window.innerWidth, height: window.innerHeight }
+        });
+      }
+      render() {
+        const ctx = interactionStore.getState();
+        render(renderFn({ store: store2, element: this, ctx }), this);
+      }
+    }
+  );
+};
+var globalListenersInitialized = false;
+initializeGlobalListeners();
+
 // src/cami.js
 var { debug, events } = __config;
 export {
@@ -5487,6 +5827,7 @@ export {
   createLocalStorage,
   createURLStore,
   debug,
+  defineReactiveElement,
   effect,
   events,
   html,

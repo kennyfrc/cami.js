@@ -186,3 +186,4 @@ src/spike.js
 src/test*.js
 src/assert.js
 src/runner.js
+.aider*
