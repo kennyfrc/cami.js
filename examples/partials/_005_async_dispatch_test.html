@@ -1,0 +1,118 @@
+<article>
+  <h1>Async Action Dispatch Test</h1>
+  <p>Open the console to see async dispatch and state mutation logs</p>
+  <async-dispatch-test-component></async-dispatch-test-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  // Main store
+  const mainStore = store({
+    state: {
+      status: 'idle',
+      count: 0,
+      message: ''
+    },
+    name: "main-store"
+  });
+
+  // Secondary store
+  const sideStore = store({
+    state: {
+      processed: false,
+      value: null
+    },
+    name: "side-store"
+  });
+
+  // Define regular actions for state mutations
+  mainStore.defineAction("setStatus", ({ state, payload }) => {
+    console.log(`[${Date.now()}] Main Store: Setting status to ${payload}`);
+    state.status = payload;
+  });
+
+  mainStore.defineAction("incrementCount", ({ state }) => {
+    console.log(`[${Date.now()}] Main Store: Incrementing count`);
+    state.count += 1;
+  });
+
+  mainStore.defineAction("setMessage", ({ state, payload }) => {
+    console.log(`[${Date.now()}] Main Store: Setting message to ${payload}`);
+    state.message = payload;
+  });
+
+  sideStore.defineAction("setProcessed", ({ state, payload }) => {
+    console.log(`[${Date.now()}] Side Store: Setting processed to ${payload}`);
+    state.processed = payload;
+  });
+
+  sideStore.defineAction("setValue", ({ state, payload }) => {
+    console.log(`[${Date.now()}] Side Store: Setting value to ${payload}`);
+    state.value = payload;
+  });
+
+  // Async action with various dispatch patterns
+  mainStore.defineAsyncAction("processAsync", async ({ dispatch }) => {
+    console.log(`[${Date.now()}] Starting async process`);
+    
+    // Initial state update
+    dispatch("setStatus", "processing");
+    
+    try {
+      // Simulate API call
+      console.log(`[${Date.now()}] Making API call`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Multiple dispatches in sequence
+      console.log(`[${Date.now()}] API call complete, updating states`);
+      dispatch("incrementCount");
+      dispatch("setMessage", "Process completed");
+      
+      // Cross-store dispatch
+      sideStore.dispatch("setProcessed", true);
+      sideStore.dispatch("setValue", Date.now());
+      
+      // Final status update
+      dispatch("setStatus", "complete");
+      
+      console.log(`[${Date.now()}] Async process complete`);
+    } catch (error) {
+      console.error(`[${Date.now()}] Error in async process:`, error);
+      dispatch("setStatus", "error");
+      dispatch("setMessage", error.message);
+    }
+  });
+
+  // Test Component
+  customElements.define("async-dispatch-test-component", 
+    class extends ReactiveElement {
+      template() {
+        const mainState = mainStore.getState();
+        const sideState = sideStore.getState();
+
+        return html`
+          <div>
+            <h3>Store States:</h3>
+            <pre>
+Main Store: ${JSON.stringify(mainState, null, 2)}
+Side Store: ${JSON.stringify(sideState, null, 2)}
+            </pre>
+            
+            <button 
+              @click=${() => mainStore.dispatchAsync("processAsync")}
+              ?disabled=${mainState.status === "processing"}
+            >
+              Test Async Process
+            </button>
+          </div>
+        `;
+      }
+    }
+  );
+</script>
