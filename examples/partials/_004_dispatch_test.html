@@ -1,0 +1,111 @@
+<article>
+  <h1>Dispatch Test</h1>
+  <p>Open the console to see dispatch and state mutation logs</p>
+  <dispatch-test-component></dispatch-test-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  // Store 1 - Main store
+  const store1 = store({
+    state: {
+      counter: 0,
+      message: ''
+    },
+    name: "store-1"
+  });
+
+  // Store 2 - Secondary store
+  const store2 = store({
+    state: {
+      flag: false,
+      data: null
+    },
+    name: "store-2"
+  });
+
+  // Store 3 - Auxiliary store
+  const store3 = store({
+    state: {
+      status: 'idle',
+      value: 0
+    },
+    name: "store-3"
+  });
+
+  // Store 1 Actions
+  
+  // Scenario 1: Direct state mutation
+  store1.defineAction("incrementCounter", ({ state }) => {
+    console.log("Store 1: Direct state mutation");
+    state.counter += 1;
+  });
+
+  // Scenario 2: Dispatch to self
+  store1.defineAction("updateMessage", ({ state, dispatch }) => {
+    console.log("Store 1: Dispatching to self");
+    state.message = "Updated";
+    dispatch("incrementCounter");
+  });
+
+  // Scenario 3: Cross-store dispatch
+  store1.defineAction("triggerCrossStoreUpdate", ({ dispatch }) => {
+    console.log("Store 1: Initiating cross-store dispatch");
+    store2.dispatch("setFlag", true);
+    store3.dispatch("updateStatus", "active");
+  });
+
+  // Store 2 Actions
+  store2.defineAction("setFlag", ({ state, payload }) => {
+    console.log("Store 2: Handling dispatch from Store 1");
+    state.flag = payload;
+    state.data = { timestamp: Date.now() };
+  });
+
+  // Store 3 Actions
+  store3.defineAction("updateStatus", ({ state, payload }) => {
+    console.log("Store 3: Handling dispatch from Store 1");
+    state.status = payload;
+    state.value += 1;
+  });
+
+  // Test Component
+  customElements.define("dispatch-test-component", 
+    class extends ReactiveElement {
+      template() {
+        const store1State = store1.getState();
+        const store2State = store2.getState();
+        const store3State = store3.getState();
+
+        return html`
+          <div>
+            <h3>Store States:</h3>
+            <pre>
+Store 1: ${JSON.stringify(store1State, null, 2)}
+Store 2: ${JSON.stringify(store2State, null, 2)}
+Store 3: ${JSON.stringify(store3State, null, 2)}
+            </pre>
+            
+            <button @click=${() => store1.dispatch("incrementCounter")}>
+              Test Direct Mutation
+            </button>
+            
+            <button @click=${() => store1.dispatch("updateMessage")}>
+              Test Self Dispatch
+            </button>
+            
+            <button @click=${() => store1.dispatch("triggerCrossStoreUpdate")}>
+              Test Cross-Store Dispatch
+            </button>
+          </div>
+        `;
+      }
+    }
+  );
+</script>
