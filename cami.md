@@ -31,17 +31,68 @@ myStore.afterHook(persistToLocalStorageThunk(storage));
 
 ### Actions
 
-Actions modify store state and are defined using `defineAction`:
+Actions modify store state and are defined using `defineAction`. There are important considerations around state mutations and dispatching:
 
 ```javascript
+// Basic action
 myStore.defineAction("incrementCount", ({ state, payload }) => {
   state.count += payload.amount;
 });
 
-myStore.defineAction("setUser", ({ state, payload }) => {
+// Action with state mutation and dispatch
+myStore.defineAction("updateUser", ({ state, payload }) => {
   state.user = payload;
 });
 ```
+
+#### State Mutations and Dispatching
+
+State mutations within actions are batched and only applied after all dispatches complete. This has important implications:
+
+```javascript
+// ❌ Won't work as expected - mutated state not available in dispatch
+store.defineAction("updateAndNotify", ({ state, dispatch }) => {
+  state.counter += 1;
+  dispatch("notify", state.counter);  // Will get old counter value!
+});
+
+// ✅ Correct way - pass the new value directly
+store.defineAction("updateAndNotify", ({ state, dispatch }) => {
+  const newCount = state.counter + 1;
+  state.counter = newCount;
+  dispatch("notify", newCount);
+});
+```
+
+#### Dispatch Types and Behavior
+
+1. **Same-Store Dispatch**
+   - Dispatches within the same store are checked for cycles
+   - You'll get warnings about potential circular dependencies
+   ```javascript
+   store.defineAction("action1", ({ state, dispatch }) => {
+     state.value = 1;
+     dispatch("action2");  // Warning: Potential cycle
+   });
+   ```
+
+2. **Cross-Store Dispatch**
+   - Dispatches between different stores are fully supported
+   - Execute synchronously in order
+   - No cyclic detection warnings
+   ```javascript
+   store1.defineAction("updateMultiple", ({ dispatch }) => {
+     store2.dispatch("action1");  // Executes first
+     store3.dispatch("action2");  // Executes second
+   });
+   ```
+
+#### State Update Order
+
+1. All synchronous code executes in order
+2. State mutations are batched
+3. Actual state updates occur after all dispatches complete
+4. State change events fire at the end
 
 Actions can be validated using specs:
 
