@@ -6,7 +6,7 @@ import { _deepClone } from "../utils";
  * @property {function(): any} get - A getter function that returns a copy of the current value of the property.
  * @property {function(any): void} set - A setter function that updates the value of the property.
  */
-const proxyPropsKey = Symbol('proxyProps');
+const proxyPropsStore = new WeakMap();
 
 class ObservableProxy {
   constructor(observable) {
@@ -41,11 +41,11 @@ class ObservableProxy {
 
     return new Proxy(observable, {
       get: (target, property, receiver) => {
-         // Check proxy-specific properties first
-         const props = receiver[proxyPropsKey] || {};
-          if (property in props) {
-            return props[property];
-          }
+         // Check proxy-specific properties first using WeakMap
+         const props = proxyPropsStore.get(target) || {};
+         if (property in props) {
+           return props[property];
+         }
         // Handle conversion methods first
         if (property === 'valueOf' ||
             property === 'toString' ||
@@ -78,13 +78,13 @@ class ObservableProxy {
         }
       },
       set: (target, property, value, receiver) => {
-       // Handle proxy-specific properties
+       // Handle proxy-specific properties using WeakMap
        if (!(property in target) && !(property in target.value)) {
-        const props = receiver[proxyPropsKey] || {};
-        props[property] = value;
-        receiver[proxyPropsKey] = props;
-        return true;
-      }
+         const props = proxyPropsStore.get(target) || {};
+         props[property] = value;
+         proxyPropsStore.set(target, props);
+         return true;
+       }
 
        if (property in target) {
          target[property] = value;
@@ -103,7 +103,7 @@ class ObservableProxy {
         return false;
       },
       ownKeys: (target) => {
-               const props = target[proxyPropsKey] || {};
+               const props = proxyPropsStore.get(target) || {};
                return [
                  ...Reflect.ownKeys(target.value),
                  ...Reflect.ownKeys(target),
@@ -111,7 +111,7 @@ class ObservableProxy {
                ];
              },
       has: (target, property) => {
-               const props = target[proxyPropsKey] || {};
+               const props = proxyPropsStore.get(target) || {};
                return property in props ||
                       property in target.value ||
                       property in target;
@@ -135,7 +135,7 @@ class ObservableProxy {
       }
     });
 
-    proxy[proxyPropsKey] = {};
+    proxyPropsStore.set(observable, {});
          return proxy;
   }
 }
