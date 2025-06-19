@@ -2,9 +2,9 @@
 
 ⚠️ Expect API changes until v1.0.0 ⚠️
 
-Current version: 0.3.23.
+Current version: 0.4.0
 
-Bundle Size: 14kb minified & gzipped.
+Bundle Size: 15kb minified & gzipped.
 
 A simple yet powerful toolkit for interactive islands in web applications. No build step required.
 
@@ -20,7 +20,7 @@ Note that Cami specializes in bringing rich interactivity to your web applicatio
   const { html, ReactiveElement } = cami;
 
   class CounterElement extends ReactiveElement {
-    count = 0
+    count = 0;
 
     template() {
       return html`
@@ -31,7 +31,7 @@ Note that Cami specializes in bringing rich interactivity to your web applicatio
     }
   }
 
-  customElements.define('cami-counter', CounterElement);
+  customElements.define("cami-counter", CounterElement);
 </script>
 ```
 
@@ -39,13 +39,13 @@ Note that Cami specializes in bringing rich interactivity to your web applicatio
 
 ## Learn By Example
 
-* [Counter](https://camijs.com/learn_by_example/counter/)
-* [Interactive Registration Form](https://camijs.com/learn_by_example/form_validation/)
-* [Todo List with Server State Management](https://camijs.com/learn_by_example/todo_list_server/)
-* [Cart with Client & Server State Management](https://camijs.com/learn_by_example/cart/)
-* [Blog with Optimistic UI](https://camijs.com/learn_by_example/blog/)
-* [Nested Key Updates](https://camijs.com/learn_by_example/nested_updates/)
-* [WAI-ARIA Compliant Modal](https://camijs.com/learn_by_example/modal/)
+- [Counter](https://camijs.com/learn_by_example/counter/)
+- [Interactive Registration Form](https://camijs.com/learn_by_example/form_validation/)
+- [Todo List with Server State Management](https://camijs.com/learn_by_example/todo_list_server/)
+- [Cart with Client & Server State Management](https://camijs.com/learn_by_example/cart/)
+- [Blog with Optimistic UI](https://camijs.com/learn_by_example/blog/)
+- [Nested Key Updates](https://camijs.com/learn_by_example/nested_updates/)
+- [WAI-ARIA Compliant Modal](https://camijs.com/learn_by_example/modal/)
 
 ## Key Concepts:
 
@@ -65,34 +65,34 @@ To use it, you'll need to create a custom element and register it with `customEl
 <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script>
 <article>
   <h1>Counter</h1>
-  <counter-component
-  ></counter-component>
+  <counter-component></counter-component>
 </article>
 <script type="module">
   const { html, ReactiveElement } = cami;
 
-  class CounterElement extends ReactiveElement {
-    count = 0
+  customElements.define(
+    "counter-component",
+    class extends ReactiveElement {
+      count = 0;
 
-    template() {
-      return html`
-        <button @click=${() => this.count--}>-</button>
-        <button @click=${() => this.count++}>+</button>
-        <div>Count: ${this.count}</div>
-      `;
+      template() {
+        return html`
+          <button @click=${() => this.count--}>-</button>
+          <button @click=${() => this.count++}>+</button>
+          <div>Count: ${this.count}</div>
+        `;
+      }
     }
-  }
-
-  customElements.define('counter-component', CounterElement);
+  );
 </script>
 ```
 
 ## Features include:
 
-* **Reactive Web Components**: Simplifies front-end web development with `ReactiveElement`. This is done through [Observable Properties](https://camijs.com/features/observable_property). They are properties of a `ReactiveElement` instance that are automatically observed for changes. When a change occurs, the `ReactiveElement` instance is notified and can react accordingly by re-rendering the component. Observable properties support deep updates, array changes, and reactive attributes, making it easier to manage dynamic content. Lastly, this removes the boilerplate of `signal()`, `setState()`, or `reactive()` that you might find in other libraries.
-* **Async State Management**: Easily manage server data. Our library provides a simple API for fetching and updating data with [`query` and `mutation`](https://camijs.com/features/async_state_management). Use the `query` method to fetch and cache data, with options to control how often it refreshes. The `mutation` method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.
-* **Cross-component State Management with  Stores**: Share state across different components with ease using a single store using [`cami.store`](https://camijs.com/features/client_state_management). By default, this uses `localStorage` to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.
-* **Streams & Functional Reactive Programming (FRP)**: Handle asynchronous events gracefully with [Observable Streams](https://camijs.com/features/streams/). They offer powerful functions like `map`, `filter`, `flatMap`, and `debounce` to process events in a sophisticated yet manageable way, for clean & declarative code.
+- **Reactive Web Components**: Simplifies front-end web development with `ReactiveElement`. This is done through [Observable Properties](https://camijs.com/features/observable_property). They are properties of a `ReactiveElement` instance that are automatically observed for changes. When a change occurs, the `ReactiveElement` instance is notified and can react accordingly by re-rendering the component. Observable properties support deep updates, array changes, and reactive attributes, making it easier to manage dynamic content. Lastly, this removes the boilerplate of `signal()`, `setState()`, or `reactive()` that you might find in other libraries.
+- **Async State Management**: Easily manage server data. Our library provides a simple API for fetching and updating data with [`query` and `mutation`](https://camijs.com/features/async_state_management). Use the `query` method to fetch and cache data, with options to control how often it refreshes. The `mutation` method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.
+- **Cross-component State Management with Stores**: Share state across different components with ease using a single store using [`cami.store`](https://camijs.com/features/client_state_management). By default, this uses `localStorage` to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.
+- **Streams & Functional Reactive Programming (FRP)**: Handle asynchronous events gracefully with [Observable Streams](https://camijs.com/features/streams/). They offer powerful functions like `map`, `filter`, `flatMap`, and `debounce` to process events in a sophisticated yet manageable way, for clean & declarative code.
 
 Please visit our [Documentation](https://camijs.com/), [API Reference](https://camijs.com/api/), [Examples](https://camijs.com/learn_by_example/counter/), or [Core Concepts](https://camijs.com/features/observable_property/) to learn more.
 
@@ -108,7 +108,6 @@ That said, I like the idea of declarative templates, uni-directional data flow, 
 
 - **Lean Teams or Solo Devs**: If you're building a small to medium-sized application, I built Cami with that in mind. You can start with `ReactiveElement`, and once you need to share state between components, you can add our store. It's a great choice for rich data tables, dashboards, calculators, and other interactive islands. If you're working with large applications with large teams, you may want to consider other frameworks.
 - **Developers of Multi-Page Applications**: For folks who have an existing server-rendered application, you can use Cami to add interactivity to your application.
-
 
 ## Examples
 
@@ -134,7 +133,6 @@ bun run build:minify
 JSDoc is used to build the API reference. We use Material for MkDocs for the documentation.
 
 To make JSDoc be compatible with MkDocs, we use jsdoc2md to generate markdown files from JSDoc comments. We use then use MkDocs to build the documentation site.
-
 
 ### Testing
 

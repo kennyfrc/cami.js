@@ -1,0 +1,43 @@
+<article>
+  <h1>Counter (Model Version)</h1>
+  <counter-component></counter-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
+
+  const CounterModel = model("CounterModel", {
+    store: "counter-store",
+    state: {
+      count: 0,
+    },
+  });
+
+  CounterModel.register({
+    actions: {
+      increment: ({ state }) => state.count++,
+      decrement: ({ state }) => state.count--,
+    },
+  });
+
+  class CounterElement extends ReactiveElement {
+    template() {
+      const { count, dispatch } = CounterModel;
+
+      return html`
+        <button @click=${() => dispatch("decrement")}>-</button>
+        <button @click=${() => dispatch("increment")}>+</button>
+        <div>Count: ${CounterModel.count}</div>
+      `;
+    }
+  }
+
+  customElements.define("counter-component", CounterElement);
+</script>

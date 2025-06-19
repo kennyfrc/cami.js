@@ -1,0 +1,201 @@
+<article>
+  <h1>Microwave Oven</h1>
+  <microwave-oven-component></microwave-oven-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const microwaveStore = store({
+    state: {
+      status: "idle",
+      powerLevel: "medium",
+      mode: "normal",
+      timer: 0,
+      previousState: null,
+    },
+    name: "microwave-store",
+  });
+
+  microwaveStore.defineMachine("microwave", {
+    start_cooking: {
+      from: { status: "idle" },
+      to: { status: "cooking" },
+      guard: ({ state }) => state.timer > 0,
+    },
+    pause: {
+      from: { status: "cooking" },
+      to: ({ state }) => ({
+        status: "paused",
+        previousState: {
+          powerLevel: state.powerLevel,
+          mode: state.mode,
+          timer: state.timer,
+        },
+      }),
+    },
+    resume: {
+      from: { status: "paused" },
+      to: ({ state }) => ({
+        status: "cooking",
+        ...state.previousState,
+        previousState: null,
+      }),
+      guard: ({ state }) =>
+        state.previousState !== null && state.previousState.timer > 0,
+    },
+    stop: {
+      from: [{ status: "cooking" }, { status: "paused" }],
+      to: {
+        status: "idle",
+        timer: 0,
+        previousState: null,
+      },
+    },
+    set_power: {
+      from: { status: "idle" },
+      to: ({ payload }) => ({
+        status: "idle",
+        powerLevel: payload,
+      }),
+    },
+    set_mode: {
+      from: { status: "idle" },
+      to: ({ payload }) => ({
+        status: "idle",
+        mode: payload,
+      }),
+    },
+    set_timer: {
+      from: { status: "idle" },
+      to: ({ payload }) => ({
+        status: "idle",
+        timer: Math.max(0, payload),
+      }),
+    },
+    tick: {
+      from: { status: "cooking" },
+      to: ({ state }) => ({
+        timer: Math.max(0, state.timer - 1),
+        status: state.timer <= 1 ? "idle" : "cooking",
+      }),
+      guard: ({ state }) => state.timer > 0,
+    },
+  });
+
+  customElements.define(
+    "microwave-oven-component",
+    class extends ReactiveElement {
+      intervalId;
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.intervalId = setInterval(() => {
+          if (microwaveStore.state.status === "cooking") {
+            microwaveStore.trigger("microwave:tick");
+          }
+        }, 1000);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        clearInterval(this.intervalId);
+      }
+
+      template() {
+        const { status, powerLevel, mode, timer } = microwaveStore.state;
+        const { trigger } = microwaveStore;
+
+        return html`
+          <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 20px;"
+          >
+            <h2>Microwave Status: ${status}</h2>
+            <p>Power Level: ${powerLevel}</p>
+            <p>Mode: ${mode}</p>
+            <p>Timer: ${timer} seconds</p>
+            <div>
+              <button
+                @click=${() => trigger("microwave:set_power", "low")}
+                ?disabled=${status !== "idle"}
+              >
+                Low Power
+              </button>
+              <button
+                @click=${() => trigger("microwave:set_power", "medium")}
+                ?disabled=${status !== "idle"}
+              >
+                Medium Power
+              </button>
+              <button
+                @click=${() => trigger("microwave:set_power", "high")}
+                ?disabled=${status !== "idle"}
+              >
+                High Power
+              </button>
+            </div>
+            <div>
+              <button
+                @click=${() => trigger("microwave:set_mode", "normal")}
+                ?disabled=${status !== "idle"}
+              >
+                Normal Mode
+              </button>
+              <button
+                @click=${() => trigger("microwave:set_mode", "defrost")}
+                ?disabled=${status !== "idle"}
+              >
+                Defrost Mode
+              </button>
+            </div>
+            <div>
+              <button
+                @click=${() => trigger("microwave:set_timer", 30)}
+                ?disabled=${status !== "idle"}
+              >
+                Set 30s
+              </button>
+              <button
+                @click=${() => trigger("microwave:set_timer", 60)}
+                ?disabled=${status !== "idle"}
+              >
+                Set 60s
+              </button>
+            </div>
+            <div>
+              <button
+                @click=${() => trigger("microwave:start_cooking")}
+                ?disabled=${status !== "idle" || timer === 0}
+              >
+                Start
+              </button>
+              <button
+                @click=${() => trigger("microwave:pause")}
+                ?disabled=${status !== "cooking"}
+              >
+                Pause
+              </button>
+              <button
+                @click=${() => trigger("microwave:resume")}
+                ?disabled=${status !== "paused"}
+              >
+                Resume
+              </button>
+              <button
+                @click=${() => trigger("microwave:stop")}
+                ?disabled=${status === "idle"}
+              >
+                Stop
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+  );
+</script>

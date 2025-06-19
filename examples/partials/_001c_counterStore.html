@@ -1,0 +1,41 @@
+<article>
+  <h1>Counter (Store Version)</h1>
+  <counter-component></counter-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const counterStore = store({
+    state: {
+      count: 0,
+    },
+    name: "counter-store",
+  });
+
+  counterStore.defineAction("increment", ({ state }) => (state.count += 1));
+  counterStore.defineAction("decrement", ({ state }) => (state.count -= 1));
+  counterStore.defineMemo("isEven", ({ state }) => state.count % 2 === 0);
+
+  customElements.define(
+    "counter-component",
+    class extends ReactiveElement {
+      template() {
+        const { count } = counterStore.state;
+        const isEven = counterStore.memo("isEven");
+
+        return html`
+          <button @click=${() => counterStore.dispatch("decrement")}>-</button>
+          <button @click=${() => counterStore.dispatch("increment")}>+</button>
+          <div>Count: ${count}</div>
+          <div>Is even: ${isEven}</div>
+        `;
+      }
+    }
+  );
+</script>

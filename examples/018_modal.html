@@ -1,27 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <style>
-    .dialog__backdrop {
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .dialog__backdrop--hidden {
-      display: none;
-    }
-  </style>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<style>
+  .dialog__backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .dialog__backdrop--hidden {
+    display: none;
+  }
+</style>
 <cami-modal></cami-modal>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
@@ -35,34 +42,44 @@
     focusableElements = [];
 
     openDialog() {
-			this.isOpen = true;
-      this.querySelector('dialog').setAttribute('open', '');
+      this.isOpen = true;
+      this.querySelector("dialog").setAttribute("open", "");
       this.lastFocusedElement = document.activeElement;
       this.focusFirstElement();
     }
 
     closeDialog() {
-			this.isOpen = false;
-      this.querySelector('dialog').removeAttribute('open');
+      this.isOpen = false;
+      this.querySelector("dialog").removeAttribute("open");
       this.lastFocusedElement && this.lastFocusedElement.focus();
     }
 
     focusFirstElement() {
-    	const dialog = this.querySelector('dialog');
-      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+      const dialog = this.querySelector("dialog");
+      this.focusableElements = Array.from(
+        dialog.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      );
       const hasFocusables = this.focusableElements.length > 0;
       hasFocusables && this.focusableElements[0].focus();
     }
 
     template() {
       return html`
-        <aside @click=${() => this.closeDialog()} class="dialog__backdrop ${this.isOpen ? '' : 'dialog__backdrop--hidden'}">
-          <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
+        <aside @click=${() => this.closeDialog()} class="dialog__backdrop ${
+        this.isOpen ? "" : "dialog__backdrop--hidden"
+      }">
+          <dialog @click=${(event) =>
+            event.stopPropagation()} role="dialog" aria-modal=${
+        this.isOpen
+      } aria-labelledby="dialog-title">
             <article>
               <h2 id="dialog-title">Hi! I'm a Modal</h2>
               <label>Add Label Here</label>
               <input></input>
-              <button @click=${() => this.closeDialog()} aria-label="Close Modal">Close</button>
+              <button @click=${() =>
+                this.closeDialog()} aria-label="Close Modal">Close</button>
             </article>
           </dialog>
         </aside>
@@ -71,23 +88,31 @@
     }
 
     onConnect() {
-      this.addEventListener('keydown', (event) => {
-        const preventDefault = () => { event.preventDefault(); return true; };
-        const isEscape = event.key === 'Escape';
-        const isTab = event.key === 'Tab';
+      this.addEventListener("keydown", (event) => {
+        const preventDefault = () => {
+          event.preventDefault();
+          return true;
+        };
+        const isEscape = event.key === "Escape";
+        const isTab = event.key === "Tab";
         const isShiftTab = isTab && event.shiftKey;
-        const isTabAtStart = isTab && document.activeElement === this.focusableElements[0];
-        const isTabAtEnd = isTab && document.activeElement === this.focusableElements[this.focusableElements.length - 1];
+        const isTabAtStart =
+          isTab && document.activeElement === this.focusableElements[0];
+        const isTabAtEnd =
+          isTab &&
+          document.activeElement ===
+            this.focusableElements[this.focusableElements.length - 1];
 
         isEscape && this.closeDialog();
-        isTabAtStart && preventDefault() && this.focusableElements[this.focusableElements.length - 1]?.focus();
+        isTabAtStart &&
+          preventDefault() &&
+          this.focusableElements[this.focusableElements.length - 1]?.focus();
         isTabAtEnd && preventDefault() && this.focusFirstElement();
       });
     }
   }
 
-  customElements.define('cami-modal', DialogElement);
+  customElements.define("cami-modal", DialogElement);
 </script>
-
-</body>
+  </body>
 </html>

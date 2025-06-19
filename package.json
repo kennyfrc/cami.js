@@ -1,6 +1,6 @@
 {
   "name": "cami",
-  "version": "0.3.23",
+  "version": "0.4.0",
   "author": "Kenn Costales <kenn@askmonolith.com>",
   "repository": {
     "type": "git",
@@ -9,10 +9,20 @@
   "main": "build/cami.cdn.js",
   "module": "build/cami.module.js",
   "devDependencies": {
+    "@preact/signals-core": "^1.8.0",
+    "@reduxjs/toolkit": "^2.6.1",
     "bun-types": "latest",
     "concurrently": "^8.2.2",
     "fetch-mock": "^9.11.0",
-    "nodemon": "^3.0.1"
+    "mobx": "^6.13.6",
+    "mobx-state-tree": "7.0.2",
+    "nodemon": "^3.0.1",
+    "react": "^19.0.0",
+    "redux": "5.0.1",
+    "rxjs": "^7.8.2",
+    "valtio": "2.1.4",
+    "vue": "^3.5.13",
+    "zustand": "5.0.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -39,18 +49,28 @@
     "reactive state",
     "reactive state management",
     "web components",
-    "lit-html"
+    "lit-html",
+    "immer"
   ],
   "license": "MIT",
   "scripts": {
     "build": "mkdir -p examples/build && esbuild src/cami.js --bundle --sourcemap --target=es2015 --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && esbuild src/cami.js --bundle --target=es2015 --format=iife --global-name=cami --outfile=docs/javascripts/cami.cdn.js && sh build_examples.sh",
-    "build:minify": "mkdir -p examples/build && esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js docs/javascripts/cami.cdn.js && cp build/cami.cdn.js.map docs/javascripts/cami.cdn.js.map && sh build_examples.sh",
+    "build:minify": "mkdir -p examples/build && esbuild src/cami.js --bundle --sourcemap --target=es2015 --minify-whitespace --minify-identifiers --format=esm --outfile=build/cami.module.js && cp build/cami.module.js examples/build/cami.module.js && esbuild src/cami.js --bundle --sourcemap --target=es2015  --minify-whitespace --minify-identifiers --format=iife --global-name=cami --outfile=build/cami.cdn.js && cp build/cami.cdn.js examples/build/cami.cdn.js && cp build/cami.cdn.js docs/javascripts/cami.cdn.js && cp build/cami.cdn.js.map docs/javascripts/cami.cdn.js.map && sh build_examples.sh && bun gzip.js",
     "type-check": "tsc --noEmit --allowJs --checkJs",
     "test": "bunx serve tests",
-    "build:docs": "jsdoc2md ./src/reactive-element.js > ./docs/api/reactive_element.md && jsdoc2md ./src/http.js > ./docs/api/http.md && jsdoc2md ./src/observables/observable.js > ./docs/api/observable.md && jsdoc2md ./src/observables/observable-state.js > ./docs/api/observable_state.md && jsdoc2md ./src/observables/observable-store.js > ./docs/api/observable_store.md && jsdoc2md ./src/observables/observable-stream.js > ./docs/api/observable_stream.md && mkdocs build",
+    "build:docs": "jsdoc2md ./src/reactive-element.js > ./docs/api/reactive_element.md && jsdoc2md ./src/observables/observable.js > ./docs/api/observable.md && jsdoc2md ./src/observables/observable-state.js > ./docs/api/observable_state.md && jsdoc2md ./src/observables/observable-store.js > ./docs/api/observable_store.md && mkdocs build",
     "watch": "nodemon --watch src/cami.js --exec \"bun run build\"",
-    "dev": "concurrently \"bunx serve\" \"npm run watch\""
+    "dev": "concurrently \"bunx serve\" \"npm run watch\"",
+    "docs:serve": "mkdocs serve"
   },
   "type": "module",
-  "unpkg": "build/cami.cdn.js"
+  "unpkg": "build/cami.cdn.js",
+  "dependencies": {
+    "benchmark": "^2.1.4",
+    "fast-deep-equal": "^3.1.3",
+    "idb": "^8.0.0",
+    "immer": "^10.1.1",
+    "lodash.clonedeep": "^4.5.0",
+    "rfdc": "^1.4.1"
+  }
 }

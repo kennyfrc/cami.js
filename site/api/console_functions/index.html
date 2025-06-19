@@ -355,8 +355,6 @@
       
         
       
-        
-      
     
     
     
@@ -507,27 +505,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../features/streams/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -548,10 +525,6 @@
       
         
           
-        
-      
-        
-      
         
       
         
@@ -794,48 +767,6 @@
   
   <span class="md-ellipsis">
     Observable store
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../observable_stream/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable stream
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../http/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    HTTP
   </span>
   
 
@@ -1400,7 +1331,7 @@
 <dd><p>This function disables logging. This is the default setting.</p></dd>
 
 <dt><a href="#events.enable">cami.events.enable()</a> ⇒ <code>void</code></dt>
-<dd><p>This function enables event emissions. This emits the `cami:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.</p></dd>
+<dd><p>This function enables event emissions. This emits the `cami:elem:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.</p></dd>
 
 <dt><a href="#events.disable">cami.events.disable()</a> ⇒ <code>void</code></dt>
 <dd><p>This function disables event emissions.</p></dd>
@@ -1420,10 +1351,10 @@
 </span></code></pre></div></p>
 <p><a name="events.enable"></a></p>
 <h3 id="camieventsenable">cami.events.enable()</h3>
-<p>This function enables event emissions. This emits the <code>cami:state:change</code> event. One can then attach an eventListener to the window to capture this event. This is the default setting.</p>
+<p>This function enables event emissions. This emits the <code>cami:elem:state:change</code> event. One can then attach an eventListener to the window to capture this event. This is the default setting.</p>
 <p><strong>Example</strong>
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">cami</span><span class="p">.</span><span class="nx">events</span><span class="p">.</span><span class="nx">enable</span><span class="p">();</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;cami:state:change&#39;</span><span class="p">,</span><span class="w"> </span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">window</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;cami:elem:state:change&#39;</span><span class="p">,</span><span class="w"> </span><span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;State changed:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">e</span><span class="p">.</span><span class="nx">detail</span><span class="p">);</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">});</span>
 </span></code></pre></div></p>

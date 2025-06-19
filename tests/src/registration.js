@@ -1,118 +1,152 @@
-const { html, ReactiveElement } = cami;
+const { html, ReactiveElement, store } = cami;
 
-class RegistrationFormElement extends ReactiveElement {
-  emailError = ''
-  passwordError = ''
-  email = '';
-  password = '';
-  emailIsValid = null;
-  isEmailAvailable = null;
+const registrationStore = store({
+  state: {
+    email: "",
+    password: "",
+    emailError: "",
+    passwordError: "",
+    emailIsValid: false,
+    isEmailAvailable: false,
+  },
+  name: "registration-store",
+  adapter: "memory",
+});
 
-  inputValidation$ = this.stream();
-  passwordValidation$ = this.stream();
-
-  onConnect() {
-    this.inputValidation$
-      .map(e => this.validateEmail(e.target.value))
-      .debounce(300)
-      .subscribe(({ isEmailValid, emailError, email }) => {
-        this.emailError = emailError;
-        this.isEmailValid = isEmailValid;
-        this.email = email;
-        this.isEmailAvailable = this.queryEmail(this.email)
-      });
-
-    this.passwordValidation$
-      .map(e => this.validatePassword(e.target.value))
-      .debounce(300)
-      .subscribe(({ isValid, password }) => {
-        this.passwordError = isValid ? '' : 'Password must be at least 8 characters long.';
-        this.password = password;
-      });
+registrationStore.defineAction(
+  "processEmailInput",
+  ({ state, payload, query }) => {
+    const { isEmailValid, emailError } = validateEmail(payload);
+    state.email = payload;
+    state.emailError = emailError;
+    state.emailIsValid = isEmailValid;
+    query("checkEmailAvailability", payload);
   }
+);
 
-  validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    let emailError = '';
-    let isEmailValid = null;
-    if (email === '') {
-      emailError = '';
-      isEmailValid = null;
-    } else if (!emailRegex.test(email)) {
-      emailError = 'Please enter a valid email address.';
-      isEmailValid = false;
-    } else {
-      emailError = '';
-      isEmailValid = true;
-    }
-    return { isEmailValid, emailError, email };
+registrationStore.defineAction("processPasswordInput", ({ state, payload }) => {
+  const { isValid } = validatePassword(payload);
+  state.password = payload;
+  state.passwordError = isValid
+    ? ""
+    : "Password must be at least 8 characters long.";
+});
+
+registrationStore.defineAction(
+  "updateEmailAvailability",
+  ({ state, payload }) => {
+    state.isEmailAvailable = payload;
   }
+);
 
-  validatePassword(password) {
-    let isValid = false;
-    if (password === '') {
-      isValid = null;
-    } else if (password?.length >= 8) {
-      isValid = true;
-    }
+registrationStore.defineQuery("checkEmailAvailability", {
+  queryKey: (email) => ["Email", email],
+  queryFn: (email) =>
+    fetch(`https://api.camijs.com/users?email=${email}`).then((res) =>
+      res.json()
+    ),
+  onSuccess: ({ state, data, dispatch }) => {
+    dispatch("updateEmailAvailability", data.length === 0);
+  },
+  staleTime: 1000 * 60 * 5, // 5 minutes
+});
 
-    return { isValid, password }
+registrationStore.defineMemo("getEmailInputState", ({ state }) => {
+  if (state.email === "") {
+    return "";
   }
+  return state.emailIsValid && state.isEmailAvailable === true ? false : true;
+});
 
-  queryEmail(email) {
-    return this.query({
-      queryKey: ['Email', email],
-      queryFn: () => {
-        return fetch(`https://api.camijs.com/users?email=${email}`).then(res => res.json())
-      },
-      staleTime: 1000 * 60 * 5
-    })
+registrationStore.defineMemo("getPasswordInputState", ({ state }) => {
+  if (state.password === "") {
+    return "";
   }
+  return state.passwordError === "" ? false : true;
+});
 
-  getEmailInputState() {
-    if (this.email === '') {
-      return '';
-    } else if (this.isEmailValid && this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length === 0) {
-      return false;
-    } else {
-      return true;
-    }
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  let emailError = "";
+  let isEmailValid = null;
+  if (email === "") {
+    emailError = "";
+    isEmailValid = null;
+  } else if (!emailRegex.test(email)) {
+    emailError = "Please enter a valid email address.";
+    isEmailValid = false;
+  } else {
+    emailError = "";
+    isEmailValid = true;
   }
-
-  getPasswordInputState() {
-    if (this.password === '') {
-      return '';
-    } else if (this.passwordError === '') {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  template() {
-    return html`
-      <form action="/submit" method="POST">
-        <label>
-          Email:
-          <input type="email"
-            aria-invalid=${this.getEmailInputState()}
-            @input=${(e) => this.inputValidation$.next(e) } value=${this.email}>
-            <span id="email-available"
-            >${this.isEmailAvailable?.status === 'success' && this.isEmailAvailable?.data?.length > 0 && this.emailError === '' ? 'Email is already taken.' : ''}</span>
-          <span id="email-error">${this.emailError}</span>
-        </label>
-        <label>
-          Password:
-          <input type="password" @input=${(e) => this.passwordValidation$.next(e) }
-            value=${this.password}
-            aria-invalid=${this.getPasswordInputState()}>
-          <span id="password-error"
-          >${this.passwordError}</span>
-        </label>
-        <input type="submit" value="Submit" ?disabled=${this.emailError !== '' || this.passwordError !== '' || this.email === '' || this.password === ''}>
-      </form>
-    `;
-  }
+  return { isEmailValid, emailError };
 }
 
-customElements.define('registration-test', RegistrationFormElement);
+function validatePassword(password) {
+  let isValid = false;
+  if (password === "") {
+    isValid = null;
+  } else if (password?.length >= 8) {
+    isValid = true;
+  }
+  return { isValid };
+}
+
+customElements.define(
+  "registration-test",
+  class extends ReactiveElement {
+    template() {
+      const {
+        email,
+        password,
+        emailError,
+        passwordError,
+        emailIsValid,
+        isEmailAvailable,
+      } = registrationStore.state;
+      const { dispatch, memo } = registrationStore;
+      const getEmailInputState = memo("getEmailInputState");
+      const getPasswordInputState = memo("getPasswordInputState");
+
+      return html`
+        <form action="/submit" method="POST">
+          <label>
+            Email:
+            <input
+              type="email"
+              aria-invalid=${getEmailInputState}
+              @input=${(e) => dispatch("processEmailInput", e.target.value)}
+              value=${email}
+            />
+            <span id="email-available"
+              >${isEmailAvailable === false && emailError === ""
+                ? "Email is already taken."
+                : ""}</span
+            >
+            <span id="email-error">${emailError}</span>
+          </label>
+          <label>
+            Password:
+            <input
+              type="password"
+              @input=${(e) => dispatch("processPasswordInput", e.target.value)}
+              value=${password}
+              aria-invalid=${getPasswordInputState}
+            />
+            <span id="password-error">${passwordError}</span>
+          </label>
+          <input
+            type="submit"
+            value="Submit"
+            ?disabled=${emailError !== "" ||
+            passwordError !== "" ||
+            email === "" ||
+            password === ""}
+          />
+        </form>
+      `;
+    }
+  }
+);
+
+export { registrationStore };

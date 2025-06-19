@@ -1,39 +1,43 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Jasmine Spec Runner v5.1.1</title>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Runner</title>
 
-  <link rel="shortcut icon" type="image/png" href="lib/jasmine-5.1.1/jasmine_favicon.png">
-  <link rel="stylesheet" href="lib/jasmine-5.1.1/jasmine.css">
+    <script src="test-runner.js"></script>
+    <script src="html-generator.js"></script>
 
-  <script src="lib/jasmine-5.1.1/jasmine.js"></script>
-  <script src="lib/jasmine-5.1.1/jasmine-html.js"></script>
-  <script src="lib/jasmine-5.1.1/boot0.js"></script>
-  <!-- optional: include a file here that configures the Jasmine env -->
-  <script src="lib/jasmine-5.1.1/boot1.js"></script>
+    <!-- include source files here... -->
+    <script src="../build/cami.cdn.js"></script>
+    <script type="module" src="src/counter.js"></script>
+    <script type="module" src="src/registration.js"></script>
+    <script type="module" src="src/taskmanager.js"></script>
+    <script type="module" src="src/nested.js"></script>
+    <script type="module" src="src/blog.js"></script>
+    <script type="module" src="src/trafficLight.js"></script>
+    <script type="module" src="src/render-test.js"></script>
 
-  <!-- include source files here... -->
-  <script src="../build/cami.cdn.js"></script>
-  <script type="module" src="src/counter.js"></script>
-  <script type="module" src="src/registration.js"></script>
-  <script type="module" src="src/taskmanager.js"></script>
-  <script type="module" src="src/nested.js"></script>
-  <script type="module" src="src/blog.js"></script>
+    <!-- include spec files here... -->
+    <script type="module" src="spec/CounterSpec.js"></script>
+    <script type="module" src="spec/RegistrationSpec.js"></script>
+    <script type="module" src="spec/TaskManagerSpec.js"></script>
+    <script type="module" src="spec/NestedSpec.js"></script>
+    <script type="module" src="spec/StoreSpec.js"></script>
+    <script type="module" src="spec/StoreSpec2.js"></script>
+    <script type="module" src="spec/StateSpec.js"></script>
+    <script type="module" src="spec/BlogSpec.js"></script>
+    <script type="module" src="spec/MachineSpec.js"></script>
+    <script type="module" src="spec/AsyncSpec.js"></script>
+    <script type="module" src="spec/ModelSpec.js"></script>
+    <script type="module" src="spec/IdbSpec.js"></script>
+    <script type="module" src="spec/LocalStorageSpec.js"></script>
+    <script type="module" src="spec/SpecTest.js"></script>
+    <script type="module" src="spec/UrlStoreSpec.js"></script>
+    <script type="module" src="spec/RenderSpec.js"></script>
 
-
-  <!-- include spec files here... -->
-  <script type="module" src="spec/CounterSpec.js"></script>
-  <script type="module" src="spec/RegistrationSpec.js"></script>
-  <script type="module" src="spec/TaskManagerSpec.js"></script>
-  <script type="module" src="spec/NestedSpec.js"></script>
-  <script type="module" src="spec/StoreSpec.js"></script>
-  <script type="module" src="spec/SliceSpec.js"></script>
-  <script type="module" src="spec/StateSpec.js"></script>
-  <script type="module" src="spec/BlogSpec.js"></script>
-
-</head>
-
-<body>
-</body>
+    <!-- <script type="module" src="spec/HookSpec.js"></script> -->
+  </head>
+  <body></body>
+  <div id="url-store-hook-test"></div>
 </html>

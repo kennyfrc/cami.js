@@ -1,13 +1,11 @@
 import { ObservableState } from "./observable-state.js";
-import { _deepClone } from "../utils";
+import { _deepClone, _deepEqual } from "../utils";
 
 /**
  * @typedef ObservableProxy
  * @property {function(): any} get - A getter function that returns a copy of the current value of the property.
  * @property {function(any): void} set - A setter function that updates the value of the property.
  */
-const proxyPropsStore = new WeakMap();
-
 class ObservableProxy {
   constructor(observable) {
     if (!(observable instanceof ObservableState)) {
@@ -16,12 +14,10 @@ class ObservableProxy {
       );
     }
 
-    // Create proxy first to use as WeakMap key
-     let proxy;
-     const conversionMethods = {
-       valueOf() {
-         return observable.value;
-       },
+    const conversionMethods = {
+      valueOf() {
+        return observable.value;
+      },
       toString() {
         return String(observable.value);
       },
@@ -41,11 +37,6 @@ class ObservableProxy {
 
     return new Proxy(observable, {
       get: (target, property, receiver) => {
-         // Check proxy-specific properties first using WeakMap
-         const props = proxyPropsStore.get(target) || {};
-         if (property in props) {
-           return props[property];
-         }
         // Handle conversion methods first
         if (property === 'valueOf' ||
             property === 'toString' ||
@@ -54,14 +45,17 @@ class ObservableProxy {
           return conversionMethods[property];
         }
 
-        const getPropertyType = (target, property) => {
-          if (typeof target[property] === "function") return "targetFunction";
-          if (property in target) return "targetProperty";
-          if (typeof target.value[property] === "function") return "valueFunction";
-          return "valueProperty";
-        };
-
-        const propertyType = getPropertyType(target, property);
+        // Inline property type check for better performance
+        let propertyType;
+        if (typeof target[property] === "function") {
+          propertyType = "targetFunction";
+        } else if (property in target) {
+          propertyType = "targetProperty";
+        } else if (typeof target.value[property] === "function") {
+          propertyType = "valueFunction";
+        } else {
+          propertyType = "valueProperty";
+        }
 
         switch (propertyType) {
           case "targetFunction":
@@ -78,22 +72,40 @@ class ObservableProxy {
         }
       },
       set: (target, property, value, receiver) => {
-       // Handle proxy-specific properties using WeakMap
-       if (!(property in target) && !(property in target.value)) {
-         const props = proxyPropsStore.get(target) || {};
-         props[property] = value;
-         proxyPropsStore.set(target, props);
-         return true;
-       }
-
-       if (property in target) {
-         target[property] = value;
-       } else {
-         target.value[property] = value;
-       }
-       target.update(() => target.value);
-       return true;
-     },
+        if (property in target) {
+          // Check if the value is actually different before updating
+          if (typeof target[property] === 'object' && target[property] !== null && 
+              typeof value === 'object' && value !== null) {
+            // Deep equality check for objects
+            if (_deepEqual(target[property], value)) {
+              return true; // Skip update if they're equal
+            }
+          } else if (target[property] === value) {
+            return true; // Skip update if primitive values are equal
+          }
+          
+          target[property] = value;
+        } else {
+          // For properties on target.value
+          const oldValue = target.value[property];
+          
+          // Check if the value is actually different before updating
+          if (typeof oldValue === 'object' && oldValue !== null && 
+              typeof value === 'object' && value !== null) {
+            // Deep equality check for objects
+            if (_deepEqual(oldValue, value)) {
+              return true; // Skip update if they're equal
+            }
+          } else if (oldValue === value) {
+            return true; // Skip update if primitive values are equal
+          }
+          
+          target.value[property] = value;
+        }
+        
+        target.update(() => target.value);
+        return true;
+      },
       deleteProperty: (target, property) => {
         if (property in target.value) {
           delete target.value[property];
@@ -103,19 +115,11 @@ class ObservableProxy {
         return false;
       },
       ownKeys: (target) => {
-               const props = proxyPropsStore.get(target) || {};
-               return [
-                 ...Reflect.ownKeys(target.value),
-                 ...Reflect.ownKeys(target),
-                 ...Object.keys(props)
-               ];
-             },
+        return Reflect.ownKeys(target.value);
+      },
       has: (target, property) => {
-               const props = proxyPropsStore.get(target) || {};
-               return property in props ||
-                      property in target.value ||
-                      property in target;
-             },
+        return property in target.value || property in target;
+      },
       defineProperty: (target, property, descriptor) => {
         if (property in target) {
           return Reflect.defineProperty(target, property, descriptor);
@@ -134,9 +138,6 @@ class ObservableProxy {
         return Reflect.getOwnPropertyDescriptor(target.value, property);
       }
     });
-
-    proxyPropsStore.set(observable, {});
-         return proxy;
   }
 }
 

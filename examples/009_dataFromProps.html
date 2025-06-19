@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
-<my-component
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <my-component
     todos='{"data": ["Buy milk", "Buy eggs", "Buy bread"]}'
   ></my-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -19,45 +29,48 @@
   const { html, ReactiveElement } = cami;
 
   class MyComponent extends ReactiveElement {
-    todos = []
+    todos = [];
 
     onConnect() {
       this.observableAttributes({
-        todos: (v) => JSON.parse(v).data
+        todos: (v) => JSON.parse(v).data,
       });
     }
 
-    addTodo (todo) {
+    addTodo(todo) {
       this.todos.push(todo);
     }
 
-    deleteTodo (todo) {
+    deleteTodo(todo) {
       this.todos.splice(this.todos.indexOf(todo), 1);
     }
 
     template() {
       return html`
         <input id="newTodo" type="text" />
-        <button @click=${() => {
-          this.addTodo(document.getElementById('newTodo').value); document.getElementById('newTodo').value = ''; }}
-        >Add</button>
+        <button
+          @click=${() => {
+            this.addTodo(document.getElementById("newTodo").value);
+            document.getElementById("newTodo").value = "";
+          }}
+        >
+          Add
+        </button>
         <ul>
-          ${this.todos.map(todo => html`
-            <li>
-              ${todo}
-              <button @click=${() => this.deleteTodo(todo)
-              }>Delete</button>
-            </li>
-          `)}
+          ${this.todos.map(
+            (todo) => html`
+              <li>
+                ${todo}
+                <button @click=${() => this.deleteTodo(todo)}>Delete</button>
+              </li>
+            `
+          )}
         </ul>
       `;
     }
-
   }
 
-  customElements.define('my-component', MyComponent);
-
+  customElements.define("my-component", MyComponent);
 </script>
-
-</body>
+  </body>
 </html>

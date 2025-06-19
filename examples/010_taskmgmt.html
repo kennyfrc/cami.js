@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
   <h1>Task Manager</h1>
   <task-manager-component></task-manager-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -19,7 +29,7 @@
 
   class TaskManagerElement extends ReactiveElement {
     tasks = [];
-    filter = 'all';
+    filter = "all";
 
     addTask(task) {
       this.tasks.push({ name: task, completed: false });
@@ -30,7 +40,7 @@
     }
 
     toggleTask(index) {
-      this.tasks.update(tasks => {
+      this.tasks.update((tasks) => {
         tasks[index].completed = !tasks[index].completed;
       });
     }
@@ -41,10 +51,10 @@
 
     getFilteredTasks() {
       switch (this.filter) {
-        case 'completed':
-          return this.tasks.filter(task => task.completed);
-        case 'active':
-          return this.tasks.filter(task => !task.completed);
+        case "completed":
+          return this.tasks.filter((task) => task.completed);
+        case "active":
+          return this.tasks.filter((task) => !task.completed);
         default:
           return this.tasks;
       }
@@ -52,29 +62,38 @@
 
     template() {
       return html`
-        <input id="taskInput" type="text" placeholder="Enter task name">
-        <button @click=${() => {
-          this.addTask(document.getElementById('taskInput').value);
-          document.getElementById('taskInput').value = '';
-        }}>Add Task</button>
-        <button @click=${() => this.setFilter('all')}>All</button>
-        <button @click=${() => this.setFilter('active')}>Active</button>
-        <button @click=${() => this.setFilter('completed')}>Completed</button>
+        <input id="taskInput" type="text" placeholder="Enter task name" />
+        <button
+          @click=${() => {
+            this.addTask(document.getElementById("taskInput").value);
+            document.getElementById("taskInput").value = "";
+          }}
+        >
+          Add Task
+        </button>
+        <button @click=${() => this.setFilter("all")}>All</button>
+        <button @click=${() => this.setFilter("active")}>Active</button>
+        <button @click=${() => this.setFilter("completed")}>Completed</button>
         <ul>
-          ${this.getFilteredTasks().map((task, index) => html`
-            <li>
-              <input type="checkbox" .checked=${task.completed} @click=${() => this.toggleTask(index)}>
-              ${task.name}
-              <a @click=${() => this.removeTask(index)}>Remove</a>
-            </li>
-          `)}
+          ${this.getFilteredTasks().map(
+            (task, index) => html`
+              <li>
+                <input
+                  type="checkbox"
+                  .checked=${task.completed}
+                  @click=${() => this.toggleTask(index)}
+                />
+                ${task.name}
+                <a @click=${() => this.removeTask(index)}>Remove</a>
+              </li>
+            `
+          )}
         </ul>
       `;
     }
   }
 
-  customElements.define('task-manager-component', TaskManagerElement);
+  customElements.define("task-manager-component", TaskManagerElement);
 </script>
-
-</body>
+  </body>
 </html>

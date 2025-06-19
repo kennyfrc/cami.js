@@ -1,7 +1,7 @@
 const { html, ReactiveElement } = cami;
 
 class CounterElement extends ReactiveElement {
-  count = 0
+  count = 0;
 
   template() {
     return html`
@@ -12,4 +12,4 @@ class CounterElement extends ReactiveElement {
   }
 }
 
-customElements.define('counter-test', CounterElement);
+customElements.define("counter-test", CounterElement);

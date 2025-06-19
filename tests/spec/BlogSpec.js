@@ -1,44 +1,64 @@
-import BlogComponent from '../src/blog.js';
+import { blogStore } from "../src/blog.js";
 
-describe('Querying the API & Mutating Data - BlogComponent', () => {
-  let blogComponent;
+describe("Querying the API & Mutating Data - BlogComponent", () => {
+  let blogElement;
+  let fetchSpy;
 
-  beforeEach(async function() {
-    spyOn(window, 'fetch').and.returnValue(Promise.resolve({
-      json: () => Promise.resolve([{ id: 1, title: 'Test Post' }])
-    }));
+  beforeEach(async function () {
+    fetchSpy = spyOn(window, "fetch");
+    fetchSpy.and.returnValue(
+      Promise.resolve({
+        json: () => Promise.resolve([{ id: 1, title: "Test Post" }]),
+      })
+    );
 
-    blogComponent = new BlogComponent();
-    await blogComponent.updateComplete;
+    // Create and append the custom element to the DOM
+    blogElement = document.createElement("blog-component");
+    document.body.appendChild(blogElement);
 
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await customElements.whenDefined("blog-component");
+    await blogElement.updateComplete;
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
-  it("should fetch data from the API", function() {
-    window.fetch.and.returnValue(Promise.resolve({
-      json: () => Promise.resolve([{ id: 1, title: 'Test Post' }])
-    }));
-
-    expect(blogComponent.posts.data).toEqual([{ id: 1, title: 'Test Post' }]);
+  afterEach(function () {
+    // Clean up the DOM after each test
+    if (blogElement && blogElement.parentNode) {
+      blogElement.parentNode.removeChild(blogElement);
+    }
+    // Reset the store state
+    // blogStore.reset();
   });
 
-  it("should optimistically add a post", async function() {
-    const newPost = { title: 'New Post', body: 'This is a new post.', userId: 1 };
-    const optimisticPost = { ...newPost, id: jasmine.any(Number) };
+  it("should fetch data from the API", async function () {
+    await blogStore.query("fetchPosts");
+    expect(blogStore.getState().posts).toEqual([{ id: 1, title: "Test Post" }]);
+  });
 
-    window.fetch.and.returnValue(Promise.resolve({
-      json: () => Promise.resolve(newPost)
-    }));
+  it("should optimistically add a post", async function () {
+    const newPost = {
+      title: "New Post",
+      body: "This is a new post.",
+      userId: 1,
+    };
+    const optimisticPost = { ...newPost, id: expect.any(Number) };
 
-    await blogComponent.addPost.mutate(newPost);
+    fetchSpy.and.returnValue(
+      Promise.resolve({
+        json: () => Promise.resolve({ ...newPost, id: 2 }),
+      })
+    );
 
-    expect(blogComponent.posts.data).toContain(optimisticPost);
-    expect(window.fetch).toHaveBeenCalledWith("https://api.camijs.com/posts", {
+    await blogStore.mutate("createPost", newPost);
+
+    expect(blogStore.getState().posts).toContain(optimisticPost);
+    expect(fetchSpy).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),
       headers: {
-        "Content-type": "application/json; charset=UTF-8"
-      }
+        "Content-type": "application/json; charset=UTF-8",
+      },
     });
   });
 });

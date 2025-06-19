@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <h1>Todo List</h1>
+  <p><small class="note"></small></p>
+  <todo-list-component></todo-list-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, model } = cami;
+  cami.debug.enable();
+
+  const TodoModel = model("TodoModel", {
+    store: "todo-store",
+    state: {
+      newTodoTitle: "",
+      todos: {
+        data: [],
+        status: "idle",
+        error: null,
+      },
+    },
+    actions: {
+      setTodos: ({ state, payload }) => {
+        const { data, status, error } = payload;
+        state.todos = { data, status, error };
+      },
+      addTodo: ({ state, payload }) => {
+        state.todos.data.push(payload);
+      },
+      removeTodo: ({ state, payload }) => {
+        state.todos.data = state.todos.data.filter(
+          (todo) => todo.title !== payload.title
+        );
+      },
+      setNewTodoTitle: ({ state, payload }) => {
+        state.newTodoTitle = payload;
+      },
+    },
+    queries: {
+      fetchTodos: {
+        queryKey: ["todos"],
+        queryFn: () => {
+          return fetch("https://api.camijs.com/todos?_limit=5").then((res) =>
+            res.json()
+          );
+        },
+        staleTime: 1000 * 60 * 5,
+        onFetch: ({ dispatch }) => {
+          dispatch("setTodos", {
+            data: [],
+            status: "pending",
+            error: null,
+          });
+        },
+        onSuccess: ({ dispatch, data }) => {
+          dispatch("setTodos", {
+            data: data,
+            status: "success",
+            error: null,
+          });
+        },
+        onError: ({ dispatch, data }) => {
+          dispatch("setTodos", {
+            data: [],
+            status: "error",
+            error: data,
+          });
+        },
+      },
+    },
+    mutations: {
+      createTodo: {
+        mutationFn: (newTodo) => {
+          return fetch("https://api.camijs.com/todos", {
+            method: "POST",
+            body: JSON.stringify(newTodo),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8",
+            },
+          }).then((res) => {
+            document.querySelector(".note").innerHTML =
+              "Todo added optimistically. Note that since we're using a mock server, this doesn't modify anything in the DB.";
+            return res.json();
+          });
+        },
+        onMutate: ({ dispatch, payload }) => {
+          const newTodo = {
+            id: Date.now(),
+            title: payload.title,
+            completed: payload.completed,
+          };
+          dispatch("addTodo", newTodo);
+        },
+        onSuccess: ({ invalidateQueries }) => {
+          invalidateQueries({ queryKey: ["todos"] });
+        },
+      },
+      deleteTodo: {
+        mutationFn: (todo) => {
+          return fetch(`https://api.camijs.com/todos/${todo.id}`, {
+            method: "DELETE",
+          }).then((res) => {
+            document.querySelector(".note").innerHTML =
+              "Todo deleted optimistically. Note that since we're using a mock server, this doesn't modify anything in the DB.";
+            return res.json();
+          });
+        },
+        onMutate: ({ dispatch, payload }) => {
+          dispatch("removeTodo", payload);
+        },
+        onSuccess: ({ invalidateQueries }) => {
+          invalidateQueries({ queryKey: ["todos"] });
+        },
+      },
+    },
+  });
+
+  class TodoListElement extends ReactiveElement {
+    template() {
+      const { todos, newTodoTitle, mutate, dispatch } = TodoModel;
+
+      if (todos.status === "success") {
+        return html`
+          <input
+            type="text"
+            .value=${newTodoTitle}
+            @input=${(e) => dispatch("setNewTodoTitle", e.target.value)}
+          />
+          <button
+            @click=${() => {
+              if (newTodoTitle.trim()) {
+                mutate("createTodo", {
+                  title: newTodoTitle.trim(),
+                  completed: false,
+                });
+                dispatch("setNewTodoTitle", "");
+              }
+            }}
+          >
+            Add
+          </button>
+          <ul>
+            ${todos.data
+              .slice()
+              .reverse()
+              .map(
+                (todo) => html`
+                  <li>
+                    ${todo.title}
+                    <button @click=${() => mutate("deleteTodo", todo)}>
+                      Delete
+                    </button>
+                  </li>
+                `
+              )}
+          </ul>
+        `;
+      }
+
+      if (todos.status === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (todos.status === "error") {
+        return html`<div>Error: ${todos.error.message}</div>`;
+      }
+    }
+  }
+
+  TodoModel.query("fetchTodos");
+
+  customElements.define("todo-list-component", TodoListElement);
+</script>
+  </body>
+</html>

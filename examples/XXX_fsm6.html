@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <h1>Smart Home System</h1>
+  <smart-home-component></smart-home-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const smartHomeStore = store({
+    state: {
+      mode: "home",
+      thermostat: {
+        status: "idle",
+        temperature: 22,
+      },
+      lights: {
+        status: "off",
+        brightness: 0,
+      },
+      security: {
+        status: "disarmed",
+      },
+    },
+    name: "smart-home-store",
+  });
+
+  smartHomeStore.defineMachine("smart-home", {
+    change_mode: {
+      from: [{ mode: "home" }, { mode: "away" }, { mode: "night" }],
+      to: ({ payload }) => ({ mode: payload }),
+      onTransition: ({ trigger, to, state }) => {
+        if (to.mode === "away") {
+          if (state.security.status === "disarmed") {
+            trigger("smart-home:arm_security");
+          }
+          trigger("smart-home:lights_off");
+          trigger("smart-home:set_eco_temperature");
+        } else if (to.mode === "night") {
+          if (state.security.status === "disarmed") {
+            trigger("smart-home:arm_security");
+          }
+          if (state.lights.status === "on") {
+            trigger("smart-home:dim_lights");
+          }
+          trigger("smart-home:set_sleep_temperature");
+        } else {
+          if (state.security.status === "armed") {
+            trigger("smart-home:disarm_security");
+          }
+          trigger("smart-home:lights_on");
+          trigger("smart-home:set_comfort_temperature");
+        }
+      },
+    },
+    arm_security: {
+      from: { security: { status: "disarmed" } },
+      to: { security: { status: "armed" } },
+    },
+    disarm_security: {
+      from: { security: { status: "armed" } },
+      to: { security: { status: "disarmed" } },
+    },
+    lights_on: {
+      from: { lights: { status: "off" } },
+      to: { lights: { status: "on", brightness: 100 } },
+    },
+    lights_off: {
+      from: { lights: { status: "on" } },
+      to: { lights: { status: "off", brightness: 0 } },
+    },
+    dim_lights: {
+      from: { lights: { status: "on" } },
+      to: { lights: { status: "on", brightness: 30 } },
+    },
+    set_eco_temperature: {
+      to: { thermostat: { status: "eco", temperature: 18 } },
+    },
+    set_sleep_temperature: {
+      to: { thermostat: { status: "sleep", temperature: 20 } },
+    },
+    set_comfort_temperature: {
+      to: { thermostat: { status: "comfort", temperature: 22 } },
+    },
+    adjust_temperature: {
+      from: [
+        { thermostat: { status: "eco" } },
+        { thermostat: { status: "sleep" } },
+        { thermostat: { status: "comfort" } },
+      ],
+      to: ({ state, payload }) => ({
+        thermostat: {
+          ...state.thermostat,
+          temperature: state.thermostat.temperature + payload,
+        },
+      }),
+    },
+  });
+
+  smartHomeStore.defineMemo("getModeIcon", ({ state }) => {
+    switch (state.mode) {
+      case "home":
+        return "🏠";
+      case "away":
+        return "🚶";
+      case "night":
+        return "🌙";
+      default:
+        return "❓";
+    }
+  });
+
+  smartHomeStore.defineMemo("getThermostatIcon", ({ state }) => {
+    switch (state.thermostat.status) {
+      case "idle":
+        return "💤";
+      case "eco":
+        return "🍃";
+      case "sleep":
+        return "😴";
+      case "comfort":
+        return "😊";
+      default:
+        return "❓";
+    }
+  });
+
+  smartHomeStore.defineMemo("getLightsIcon", ({ state }) => {
+    if (state.lights.status === "off") return "🔅";
+    if (state.lights.brightness < 50) return "💡";
+    return "🔆";
+  });
+
+  smartHomeStore.defineMemo("getSecurityIcon", ({ state }) => {
+    return state.security.status === "armed" ? "🔒" : "🔓";
+  });
+
+  customElements.define(
+    "smart-home-component",
+    class extends ReactiveElement {
+      template() {
+        const { mode, thermostat, lights, security } = smartHomeStore.state;
+        const { trigger, memo } = smartHomeStore;
+
+        return html`
+          <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 20px;"
+          >
+            <h2>Current Mode: ${memo("getModeIcon")} ${mode}</h2>
+            <div>
+              <button @click=${() => trigger("smart-home:change_mode", "home")}>
+                🏠 Home Mode
+              </button>
+              <button @click=${() => trigger("smart-home:change_mode", "away")}>
+                🚶 Away Mode
+              </button>
+              <button
+                @click=${() => trigger("smart-home:change_mode", "night")}
+              >
+                🌙 Night Mode
+              </button>
+            </div>
+            <div>
+              <h3>Thermostat ${memo("getThermostatIcon")}</h3>
+              <p>
+                Status: ${thermostat.status}, Temperature:
+                ${thermostat.temperature}°C
+              </p>
+              <button
+                @click=${() => trigger("smart-home:adjust_temperature", 1)}
+              >
+                🔼
+              </button>
+              <button
+                @click=${() => trigger("smart-home:adjust_temperature", -1)}
+              >
+                🔽
+              </button>
+            </div>
+            <div>
+              <h3>Lights ${memo("getLightsIcon")}</h3>
+              <p>Status: ${lights.status}, Brightness: ${lights.brightness}%</p>
+            </div>
+            <div>
+              <h3>Security ${memo("getSecurityIcon")}</h3>
+              <p>Status: ${security.status}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+  );
+</script>
+  </body>
+</html>

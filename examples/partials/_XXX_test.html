@@ -1,0 +1,97 @@
+<article>
+  <h1>Post Management</h1>
+  <post-management-component></post-management-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const appStore = store({ posts: [] });
+
+  appStore.register("setPosts", (state, posts) => {
+    state.posts = posts;
+  });
+
+  appStore.query("fetchPosts", {
+    queryKey: "posts",
+    queryFn: () =>
+      fetch("https://api.camijs.com/posts").then((res) => res.json()),
+    onSuccess: (ctx) => {
+      ctx.actions.setPosts(ctx.result);
+    },
+    onError: (ctx) => {
+      // console.error('Query failed:', error);
+    },
+  });
+
+  appStore.mutation("deletePost", {
+    mutationFn: (id) =>
+      fetch(`https://api.camijs.com/posts/${id}`, { method: "DELETE" }).then(
+        (res) => res.json()
+      ),
+    onMutate: (context) => {
+      // debugger;
+
+      context.actions.setPosts(
+        context.state.posts.filter((post) => post.id !== context.args[0])
+      );
+
+      // debugger;
+
+      // appStore.dispatch('setPosts', appStore.state.posts.filter(post => post.id !== id));
+      // return { previousPosts };
+    },
+    onError: (context) => {
+      // appStore.state.posts = context.previousPosts;
+      console.log("Mutation failed. Rolling back.", context);
+
+      // context.state.posts = context.previousState.posts;
+      // debugger;
+      context.actions.setPosts(context.previousState.posts);
+    },
+    onSuccess: (context) => {
+      console.log("Mutation successful:", context);
+    },
+    onSettled: (context) => {
+      console.log("Mutation settled");
+      context.invalidateQueries("posts");
+    },
+  });
+
+  class PostManagementComponent extends ReactiveElement {
+    onCreate() {
+      this.state = appStore.getState();
+    }
+
+    onConnect() {
+      appStore.subscribe((state) => {
+        this.state = state;
+      });
+      appStore.fetch("fetchPosts");
+    }
+
+    template() {
+      return html`
+        <ul>
+          ${this.state.posts.map(
+            (post) => html`
+              <li>
+                ${post.title}
+                <button @click=${() => appStore.mutate("deletePost", post.id)}>
+                  Delete
+                </button>
+              </li>
+            `
+          )}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define("post-management-component", PostManagementComponent);
+</script>

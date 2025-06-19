@@ -1,0 +1,153 @@
+<article>
+  <h1>Post List</h1>
+  <p><small class="note"></small></p>
+  <post-list-component></post-list-component>
+</article>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, slice } = cami;
+  cami.debug.enable();
+
+  // Create a slice for posts
+  const PostSlice = slice("PostSlice", {
+    store: "todo-store",
+    state: {
+      list: [],
+      loading: false,
+      error: null
+    },
+    actions: {
+      setList: ({ state, payload }) => {
+        state.list = payload;
+      },
+      setLoading: ({ state, payload }) => {
+        state.loading = payload;
+      },
+      setError: ({ state, payload }) => {
+        state.error = payload;
+      }
+    },
+    queries: {
+      read: {
+        queryKey: ['posts'],
+        queryFn: () => fetch("https://api.camijs.com/posts?_limit=5").then(res => res.json()),
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        onFetch: (ctx) => {
+          ctx.actions.setLoading(true);
+        },
+        onError: (ctx) => {
+          ctx.actions.setError(ctx.error.message);
+        },
+        onSuccess: (ctx) => {
+          ctx.actions.setList(ctx.response);
+        },
+        onSettled: (ctx) => {
+          ctx.actions.setLoading(false);
+        }
+      }
+    },
+    mutations: {
+      create: {
+        mutationFn: (newPost) => {
+          return fetch("https://api.camijs.com/posts", {
+            method: "POST",
+            body: JSON.stringify(newPost),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          }).then(res => res.json());
+        },
+        onMutate: (ctx) => {
+          const previousList = ctx.state.list;
+          ctx.actions.setList([...previousList, ctx.args[0]]);
+        },
+        onSuccess: (ctx) => {
+          ctx.invalidateQueries({ queryKey: ['posts'] });
+          document.querySelector('.note').innerHTML = 'Post was created successfully.';
+        },
+        onError: (ctx) => {
+          document.querySelector('.note').innerHTML = `Error: ${ctx.error.message}`;
+        }
+      },
+      update: {
+        mutationFn: (updatedPost) => {
+          return fetch(`https://api.camijs.com/posts/${updatedPost.id}`, {
+            method: "PUT",
+            body: JSON.stringify(updatedPost),
+            headers: {
+              "Content-type": "application/json; charset=UTF-8"
+            }
+          }).then(res => res.json());
+        },
+        onMutate: (ctx) => {
+          const previousList = ctx.state.list;
+          ctx.actions.setList(previousList.map(p => p.id === ctx.args[0].id ? ctx.args[0] : p));
+          return { previousList };
+        },
+        onSuccess: (ctx) => {
+          ctx.invalidateQueries({ queryKey: ['posts'] });
+          document.querySelector('.note').innerHTML = 'Post was updated successfully.';
+        },
+        onError: (ctx) => {
+          ctx.actions.setList(ctx.previousList);
+          document.querySelector('.note').innerHTML = `Error: ${ctx.error.message}`;
+        }
+      },
+      delete: {
+        mutationFn: (post) => {
+          return fetch(`https://api.camijs.com/posts/${post.id}`, {
+            method: "DELETE"
+          }).then(res => res.json());
+        },
+        onMutate: (ctx) => {
+          const previousList = ctx.state.list;
+          ctx.actions.setList(previousList.filter(p => p.id !== ctx.args[0].id));
+          return { previousList };
+        },
+        onSuccess: (ctx) => {
+          ctx.invalidateQueries({ queryKey: ['posts'] });
+          document.querySelector('.note').innerHTML = 'Post was deleted successfully.';
+        },
+        onError: (ctx) => {
+          ctx.actions.setList(ctx.previousList);
+          document.querySelector('.note').innerHTML = `Error: ${ctx.error.message}`;
+        }
+      }
+    }
+  });
+
+  // Define the custom element
+  class PostListElement extends ReactiveElement {
+    onConnect() {
+      PostSlice.read();
+    }
+
+    template() {
+      if (PostSlice.loading) return html`<p>Loading...</p>`;
+      if (PostSlice.error) return html`<p>Error: ${PostSlice.error}</p>`;
+
+      return html`
+        <input class="newPost" type="text" />
+        <button @click=${() => {
+          const newPost = {
+            title: document.querySelector('.newPost').value,
+            completed: false
+          };
+          PostSlice.create(newPost);
+          document.querySelector('.newPost').value = '';
+        }}>Add</button>
+        <ul>
+          ${PostSlice.list.slice().reverse().map(post => html`
+            <li>
+              ${post.title}
+              <button @click=${() => PostSlice.delete(post)}>Delete</button>
+            </li>
+          `)}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define('post-list-component', PostListElement);
+</script>

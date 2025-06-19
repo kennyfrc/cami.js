@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <h1>Todo List with LocalStorage</h1>
+  <p><small class="note"></small></p>
+  <todo-list-component></todo-list-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const {
+    html,
+    ReactiveElement,
+    Type,
+    createLocalStorage,
+    persistToLocalStorageThunk,
+  } = cami;
+  cami.debug.enable();
+
+  const todoLocalStorage = createLocalStorage({
+    name: "TodoLocalStorage",
+    version: 1,
+  });
+
+  const TodoModel = Type.Model("TodoModel", {
+    todos: Type.Array(
+      Type.Product({
+        id: Type.Integer,
+        title: Type.String,
+        completed: Type.Boolean,
+      })
+    ),
+    todoStatus: Type.Enum("idle", "pending", "success", "error"),
+    todoError: Type.Optional(Type.String),
+    newTodoTitle: Type.String,
+    editingTodoId: Type.Optional(Type.Integer),
+  });
+
+  const todoStore = TodoModel.create({
+    state: {
+      todos: (await todoLocalStorage.getState())?.todos || [],
+      todoStatus: "idle",
+      todoError: null,
+      newTodoTitle: "",
+      editingTodoId: null,
+    },
+    actions: {
+      setTodos: ({ state, payload }) => {
+        const { todos, status, error } = payload;
+        state.todos = todos.map((todo, index) => ({
+          id: todo.id ?? Date.now() + index,
+          title: todo.title,
+          completed: todo.completed || false,
+        }));
+        state.todoStatus = status;
+        state.todoError = error;
+      },
+      addTodo: ({ state, payload }) => {
+        state.todos.push({
+          id: payload.id,
+          title: payload.title,
+          completed: payload.completed || false,
+        });
+      },
+      removeTodo: ({ state, payload }) => {
+        state.todos = state.todos.filter((todo) => todo.id !== payload.id);
+      },
+      setNewTodoTitle: ({ state, payload }) => {
+        state.newTodoTitle = payload;
+      },
+      setEditingTodoId: ({ state, payload }) => {
+        state.editingTodoId = payload;
+      },
+      updateTodoTitle: ({ state, payload }) => {
+        const todo = state.todos.find((todo) => todo.id === payload.id);
+        if (todo) {
+          todo.title = payload.title;
+        }
+      },
+    },
+    queries: {
+      fetchTodos: {
+        queryKey: ["todos"],
+        queryFn: () => {
+          return fetch("https://api.camijs.com/todos?_limit=5").then((res) =>
+            res.json()
+          );
+        },
+        staleTime: 1000 * 60 * 5,
+        onFetch: ({ dispatch }) => {
+          dispatch("setTodos", {
+            todos: [],
+            status: "pending",
+            error: null,
+          });
+        },
+        onSuccess: ({ dispatch, data }) => {
+          dispatch("setTodos", {
+            todos: data.map((todo) => ({
+              id: todo.id,
+              title: todo.title,
+              completed: todo.completed || false,
+            })),
+            status: "success",
+            error: null,
+          });
+        },
+        onError: ({ dispatch, error }) => {
+          dispatch("setTodos", {
+            todos: [],
+            status: "error",
+            error: error.message,
+          });
+        },
+      },
+    },
+    mutations: {
+      createTodo: {
+        mutationFn: (newTodo) => {
+          return fetch("https://api.camijs.com/todos", {
+            method: "POST",
+            body: JSON.stringify(newTodo),
+            headers: { "Content-type": "application/json; charset=UTF-8" },
+          }).then((res) => res.json());
+        },
+        onMutate: ({ dispatch, payload }) => {
+          const newTodo = {
+            id: Date.now(),
+            title: payload.title,
+            completed: payload.completed || false,
+          };
+          dispatch("addTodo", newTodo);
+          document.querySelector(".note").innerHTML =
+            "Todo added and will be persisted to LocalStorage. Note that the mock server doesn't modify the DB.";
+        },
+        onSuccess: ({ invalidateQueries }) => {
+          invalidateQueries({ queryKey: ["todos"] });
+        },
+      },
+      deleteTodo: {
+        mutationFn: (todo) => {
+          return fetch(`https://api.camijs.com/todos/${todo.id}`, {
+            method: "DELETE",
+          }).then((res) => res.json());
+        },
+        onMutate: ({ dispatch, payload }) => {
+          dispatch("removeTodo", payload);
+          document.querySelector(".note").innerHTML =
+            "Todo deleted and will be persisted to LocalStorage. Note that the mock server doesn't modify the DB.";
+        },
+        onSuccess: ({ invalidateQueries }) => {
+          invalidateQueries({ queryKey: ["todos"] });
+        },
+      },
+      updateTodo: {
+        mutationFn: (updatedTodo) => {
+          return fetch(`https://api.camijs.com/todos/${updatedTodo.id}`, {
+            method: "PUT",
+            body: JSON.stringify(updatedTodo),
+            headers: { "Content-type": "application/json; charset=UTF-8" },
+          }).then((res) => res.json());
+        },
+        onMutate: ({ dispatch, payload }) => {
+          dispatch("updateTodoTitle", payload);
+          document.querySelector(".note").innerHTML =
+            "Todo updated and will be persisted to LocalStorage. Note that the mock server doesn't modify the DB.";
+        },
+        onSuccess: ({ dispatch, invalidateQueries }) => {
+          dispatch("setEditingTodoId", null);
+          invalidateQueries({ queryKey: ["todos"] });
+        },
+      },
+    },
+  });
+
+  todoStore.afterHook(persistToLocalStorageThunk(todoLocalStorage));
+
+  class TodoListElement extends ReactiveElement {
+    template() {
+      const { todos, todoStatus, todoError, newTodoTitle, editingTodoId } =
+        todoStore.getState();
+      const { mutate, dispatch } = todoStore;
+
+      if (todoStatus === "success" || todoStatus === "idle") {
+        return html`
+          <input
+            type="text"
+            .value=${newTodoTitle}
+            @input=${(e) => dispatch("setNewTodoTitle", e.target.value)}
+          />
+          <button
+            @click=${() => {
+              if (newTodoTitle.trim()) {
+                mutate("createTodo", {
+                  title: newTodoTitle.trim(),
+                  completed: false,
+                });
+                dispatch("setNewTodoTitle", "");
+              }
+            }}
+          >
+            Add
+          </button>
+          <ul>
+            ${todos
+              .slice()
+              .reverse()
+              .map(
+                (todo) => html`
+                  <li>
+                    ${editingTodoId === todo.id
+                      ? html`
+                          <input
+                            type="text"
+                            .value=${todo.title}
+                            @input=${(e) => {
+                              const updatedTodo = {
+                                ...todo,
+                                title: e.target.value,
+                              };
+                              dispatch("updateTodoTitle", updatedTodo);
+                            }}
+                          />
+                          <button
+                            @click=${() => {
+                              mutate("updateTodo", todo);
+                            }}
+                          >
+                            Save
+                          </button>
+                        `
+                      : html`
+                          ${todo.title}
+                          <button
+                            @click=${() =>
+                              dispatch("setEditingTodoId", todo.id)}
+                          >
+                            Edit
+                          </button>
+                        `}
+                    <button @click=${() => mutate("deleteTodo", todo)}>
+                      Delete
+                    </button>
+                  </li>
+                `
+              )}
+          </ul>
+        `;
+      }
+
+      if (todoStatus === "pending") {
+        return html`<div>Loading...</div>`;
+      }
+
+      if (todoStatus === "error") {
+        return html`<div>Error: ${todoError}</div>`;
+      }
+    }
+  }
+
+  todoStore.query("fetchTodos");
+
+  customElements.define("todo-list-component", TodoListElement);
+</script>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+<article>
+  <h1>Traffic Light Simulator</h1>
+  <traffic-light-component></traffic-light-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const trafficLightStore = store({
+    state: {
+      color: "red",
+      timer: 5,
+      random: "hello",
+    },
+    name: "traffic-light-store-fsm1",
+  });
+
+  trafficLightStore.defineMachine("traffic-light-fsm", {
+    timer_expired: {
+      from: [{ color: "red" }, { color: "green" }, { color: "yellow" }],
+      to: ({ state }) => {
+        const transitions = {
+          red: { color: "green", timer: 5 },
+          green: { color: "yellow", timer: 2 },
+          yellow: { color: "red", timer: 5 },
+        };
+        return transitions[state.color];
+      },
+      onTransition: ({ from, to }) => {
+        console.log(`Light changed from ${from.color} to ${to.color}`);
+      },
+    },
+    tick: {
+      from: [{ color: "red" }, { color: "green" }, { color: "yellow" }],
+      to: ({ state }) => {
+        return {
+          color: state.color,
+          timer: state.timer - 1,
+        };
+      },
+      guard: ({ state }) => state.timer > 0,
+    },
+  });
+
+  customElements.define(
+    "traffic-light-component",
+    class extends ReactiveElement {
+      intervalId;
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.intervalId = setInterval(() => {
+          const { timer } = trafficLightStore.state;
+          if (timer > 1) {
+            trafficLightStore.trigger("traffic-light-fsm:tick");
+          } else {
+            trafficLightStore.trigger("traffic-light-fsm:timer_expired");
+          }
+        }, 1000);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        clearInterval(this.intervalId);
+      }
+
+      template() {
+        const { color, timer } = trafficLightStore.state;
+        const { trigger } = trafficLightStore;
+
+        return html`
+          <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 20px;"
+          >
+            <div
+              style="width: 100px; height: 100px; border-radius: 50%; background-color: ${color};"
+            ></div>
+            <p>Current light: ${color}</p>
+            <p>Time remaining: ${timer} second${timer > 1 ? "s" : ""}</p>
+            <button @click=${() => trigger("traffic-light-fsm:timer_expired")}>
+              Force Change
+            </button>
+          </div>
+        `;
+      }
+    }
+  );
+</script>

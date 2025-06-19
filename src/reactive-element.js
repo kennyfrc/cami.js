@@ -1,11 +1,15 @@
-import { html, render as __litRender } from './html.js';
-import { produce } from "./produce.js"
-import { Observable } from './observables/observable.js';
-import { ObservableStore } from './observables/observable-store.js';
-import { ObservableState, computed, effect } from './observables/observable-state.js';
-import { ObservableStream } from './observables/observable-stream.js';
-import { ObservableProxy } from './observables/observable-proxy.js';
-import { __trace } from './trace.js';
+import { html, render as __litRender } from "./html.js";
+import { produce } from "immer";
+import { Observable } from "./observables/observable.js";
+import { ObservableStore } from "./observables/observable-store.js";
+import {
+  ObservableState,
+  effect,
+  derive,
+} from "./observables/observable-state.js";
+import { ObservableProxy } from "./observables/observable-proxy.js";
+import { __trace } from "./trace.js";
+import { _deepEqual } from "./utils";
 
 /**
  * @typedef ObservableProperty
@@ -24,24 +28,6 @@ import { __trace } from './trace.js';
  *       <button @click=${() => this.count++}>+</button>
  *       <div>Count: ${this.count}</div>
  *     `;
- *   }
- * }
- *
- * // Non-primitive value example from _003_todo.html
- * // this.query returns an ObservableProperty / ObservableProxy
- * // this.todos is an ObservableProxy, where if you get the value, it returns the current value of the property, and if you set the value, it updates the property with the new value
- * // We use Proxy instead of Object.defineProperty because it allows us to handle nested properties
- * class TodoListElement extends ReactiveElement {
- *   todos = this.query({
- *     queryKey: ['todos'],
- *     queryFn: () => {
- *       return fetch("https://api.camijs.com/todos?_limit=5").then(res => res.json())
- *     },
- *     staleTime: 1000 * 60 * 5 // 5 minutes
- *   })
- *
- *   template() {
- *     // ...template code...
  *   }
  * }
  *
@@ -66,13 +52,6 @@ import { __trace } from './trace.js';
  * @property {function(function(any): any): void} update - A function that updates the value of the observable state. It takes an updater function that receives the current value and returns the new value. This is used when assigning a new value to a primitive property on a ReactiveElement instance. It allows deeply nested updates.
  * @property {function(): void} [dispose] - An optional function that cleans up the observable state when it is no longer needed. This is used internally by ReactiveElement to manage memory.
  */
-
-/**
- * @private
- * @description A cache for storing the results of queries.
- * @type {Map<string, any>}
- */
-const QueryCache = new Map();
 
 /**
  * @class
@@ -107,9 +86,8 @@ class ReactiveElement extends HTMLElement {
     super();
     this.onCreate();
     this.__unsubscribers = new Map();
-    this.__computed = computed.bind(this);
     this.effect = effect.bind(this);
-    this.__queryFunctions = new Map();
+    this.derive = this.__derive.bind(this);
   }
 
   /**
@@ -127,38 +105,27 @@ class ReactiveElement extends HTMLElement {
     Object.entries(attributes).forEach(([attrName, parseFn]) => {
       // Retrieve the attribute value and apply the transformation function if provided
       let attrValue = this.getAttribute(attrName);
-      const transformFn = typeof parseFn === 'function' ? parseFn : (v) => v;
+      const transformFn = typeof parseFn === "function" ? parseFn : (v) => v;
       attrValue = produce(attrValue, transformFn);
 
       // Create an ObservableProperty or ObservableProxy for the attribute
       const observable = this.__observable(attrValue, attrName);
       if (this.__isObjectOrArray(observable.value)) {
-        this.__createObservablePropertyForObjOrArr(this, attrName, observable, true);
+        this.__createObservablePropertyForObjOrArr(
+          this,
+          attrName,
+          observable,
+          true
+        );
       } else {
-        this.__createObservablePropertyForPrimitive(this, attrName, observable, true);
+        this.__createObservablePropertyForPrimitive(
+          this,
+          attrName,
+          observable,
+          true
+        );
       }
     });
-  }
-
-  /**
-   * @private
-   * @method
-   * @description Creates a computed observable state and registers it. The computed state is recalculated whenever
-   * one of its dependencies changes. This is useful for creating derived state that automatically updates.
-   *
-   * @example
-   * // Assuming `this.count` is an observable
-   * const countSquared = this.__computed(() => this.count * this.count);
-   * // `countSquared` will automatically update when `this.count` changes
-   *
-   * @param {Function} computeFn - The function to compute the state
-   * @returns {ObservableState} The computed observable state
-   */
-  __computed(computeFn) {
-    const observableState = super._computed(computeFn);
-    console.log(observableState);
-    this.__registerObservables(observableState);
-    return observableState;
   }
 
   /**
@@ -182,339 +149,18 @@ class ReactiveElement extends HTMLElement {
 
   /**
    * @method
-   * @description Subscribes to a store and creates an observable for a specific key in the store. This is useful for
-   * synchronizing the component's state with a global store.
-   *
+   * @description Creates a derived value that updates when its dependencies change.
+   * @param {Function} deriveFn - The function to compute the derived value
+   * @returns {any} The derived value
    * @example
-   * // Assuming there is a store for cart items
-   * // `cartItems` will be an observable reflecting the current state of cart items in the store
-   * this.cartItems = this.connect(CartStore, 'cartItems');
-   *
-   * @param {ObservableStore} store - The store to subscribe to
-   * @param {string} key - The key in the store to create an observable for
-   * @returns {ObservableProxy} An observable property or proxy for the store key
+   * // Assuming `this.count` is an ObservableProperty
+   * this.doubleCount = this.derive(() => this.count * 2);
+   * console.log(this.doubleCount); // If this.count is 5, this will log 10
    */
-    connect(store, key) {
-      if (!(store instanceof ObservableStore)) {
-        throw new TypeError('Expected store to be an instance of ObservableStore');
-      }
-
-      const observable = this.__observable(store.state[key], key);
-      const unsubscribe = store.subscribe(newState => {
-        observable.update(() => newState[key]);
-      });
-      this.__unsubscribers.set(key, unsubscribe);
-
-      if (this.__isObjectOrArray(observable.value)) {
-        this.__createObservablePropertyForObjOrArr(this, key, observable);
-        return this[key];
-      } else {
-        this.__createObservablePropertyForPrimitive(this, key, observable);
-        return this[key];
-      }
-    }
-
-  /**
-   * @method
-   * @description Creates an ObservableStream from a subscription function.
-   * @param {Function} subscribeFn - The subscription function.
-   * @returns {ObservableStream} An ObservableStream that emits values produced by the subscription function.
-   * @example
-   * // In a FormElement component
-   * const inputValidation$ = this.stream();
-   * inputValidation$
-   *   .map(e => this.validateEmail(e.target.value))
-   *   .debounce(300)
-   *   .subscribe(({ isEmailValid, emailError, email }) => {
-   *     this.emailError = emailError;
-   *     this.isEmailValid = isEmailValid;
-   *     this.email = email;
-   *     this.isEmailAvailable = this.queryEmail(this.email);
-   *   });
-   */
-  stream(subscribeFn) {
-    return new ObservableStream(subscribeFn);
-  }
-
-  /**
-   * @method
-   * @throws {Error} If the method template() is not implemented
-   * @returns {void}
-   * @example
-   * // Here's a simple example of a template method implementation
-   * template() {
-   *   return html`<div>Hello World</div>`;
-   * }
-   */
-  template() {
-    throw new Error('[Cami.js] You have to implement the method template()!');
-  }
-
-  /**
-   * @method
-   * @description Fetches data from an API and caches it. This method is based on the TanStack Query defaults: https://tanstack.com/query/latest/docs/react/guides/important-defaults.
-   * @param {Object} options - The options for the query.
-   * @param {Array|string} options.queryKey - The key for the query.
-   * @param {Function} options.queryFn - The function to fetch data.
-   * @param {number} [options.staleTime=0] - The stale time for the query.
-   * @param {boolean} [options.refetchOnWindowFocus=true] - Whether to refetch on window focus.
-   * @param {boolean} [options.refetchOnMount=true] - Whether to refetch on mount.
-   * @param {boolean} [options.refetchOnReconnect=true] - Whether to refetch on network reconnect.
-   * @param {number} [options.refetchInterval=null] - The interval to refetch data.
-   * @param {number} [options.gcTime=1000 * 60 * 5] - The garbage collection time for the query.
-   * @param {number} [options.retry=3] - The number of retry attempts.
-   * @param {Function} [options.retryDelay=(attempt) => Math.pow(2, attempt) * 1000] - The delay before retrying a failed query.
-   * @example
-   * // In _012_blog.html, a query is set up to fetch posts with a stale time of 5 minutes:
-   * const posts = this.query({
-   *   queryKey: ["posts"],
-   *   queryFn: () => fetch("https://api.camijs.com/posts?_limit=5").then(res => res.json()),
-   *   staleTime: 1000 * 60 * 5
-   * });
-   * @returns {ObservableProxy} A proxy that contains the state of the query.
-   */
-  query({ queryKey, queryFn, staleTime = 0, refetchOnWindowFocus = true, refetchOnMount = true, refetchOnReconnect = true, refetchInterval = null, gcTime = 1000 * 60 * 5, retry = 3, retryDelay = (attempt) => Math.pow(2, attempt) * 1000 }) {
-    const key = Array.isArray(queryKey)
-    ? queryKey.map(k => typeof k === 'object' ? JSON.stringify(k) : k).join(':')
-    : queryKey;
-    this.__queryFunctions.set(key, queryFn);
-
-    __trace('query', 'Starting query with key:', key);
-
-    const queryState = this.__observable({
-      data: null,
-      status: 'pending',
-      fetchStatus: 'idle',
-      error: null,
-      lastUpdated: QueryCache.has(key) ? QueryCache.get(key).lastUpdated : null
-    }, key);
-
-    const queryProxy = this.__observableProxy(queryState);
-
-    const fetchData = async (attempt = 0) => {
-      const now = Date.now();
-      const cacheEntry = QueryCache.get(key);
-
-      if (cacheEntry && (now - cacheEntry.lastUpdated) < staleTime) {
-        __trace('fetchData (if)', 'Using cached data for key:', key);
-        queryProxy.update(state => {
-          state.data = cacheEntry.data;
-          state.status = 'success';
-          state.fetchStatus = 'idle';
-        });
-      } else {
-        __trace('fetchData (else)', 'Fetching data for key:', key);
-        try {
-          queryProxy.update(state => {
-            state.status = 'pending';
-            state.fetchStatus = 'fetching';
-          });
-          const data = await queryFn();
-          QueryCache.set(key, { data, lastUpdated: now });
-          queryProxy.update(state => {
-            state.data = data;
-            state.status = 'success';
-            state.fetchStatus = 'idle';
-          });
-        } catch (error) {
-          __trace('fetchData (catch)', 'Fetch error for key:', key, error);
-          if (attempt < retry) {
-            setTimeout(() => fetchData(attempt + 1), retryDelay(attempt));
-          } else {
-            queryProxy.update(state => {
-              state.errorDetails = { message: error.message, stack: error.stack };
-              state.status = 'error';
-              state.fetchStatus = 'idle';
-            });
-          }
-        }
-      }
-    }
-
-    // Refetch data when new instances of the query mount
-    if (refetchOnMount) {
-      __trace('query', 'Setting up refetch on mount for key:', key);
-      fetchData();
-    }
-
-    // Refetch data when window is refocused
-    if (refetchOnWindowFocus) {
-      __trace('query', 'Setting up refetch on window focus for key:', key);
-      const refetchOnFocus = () => fetchData();
-      window.addEventListener('focus', refetchOnFocus);
-      this.__unsubscribers.set(`focus:${key}`, () => window.removeEventListener('focus', refetchOnFocus));
-    }
-
-    // Refetch data when network is reconnected
-    if (refetchOnReconnect) {
-      __trace('query', 'Setting up refetch on reconnect for key:', key);
-      window.addEventListener('online', fetchData);
-      this.__unsubscribers.set(`online:${key}`, () => window.removeEventListener('online', fetchData));
-    }
-
-    // Refetch data at a specific interval
-    if (refetchInterval) {
-      __trace('query', 'Setting up refetch interval for key:', key);
-      const intervalId = setInterval(fetchData, refetchInterval);
-      this.__unsubscribers.set(`interval:${key}`, () => clearInterval(intervalId));
-    }
-
-    // Garbage collect data after gcTime
-    const gcTimeout = setTimeout(() => {
-      QueryCache.delete(key);
-    }, gcTime);
-    this.__unsubscribers.set(`gc:${key}`, () => clearTimeout(gcTimeout));
-
-    return queryProxy;
-  }
-
-  /**
-   * @method
-   * @description Performs a mutation and returns an observable proxy. This method is inspired by the TanStack Query mutate method: https://tanstack.com/query/latest/docs/react/guides/mutations.
-   * @param {Object} options - The options for the mutation.
-   * @param {Function} options.mutationFn - The function to perform the mutation.
-   * @param {Function} [options.onMutate] - The function to be called before the mutation is performed.
-   * @param {Function} [options.onError] - The function to be called if the mutation encounters an error.
-   * @param {Function} [options.onSuccess] - The function to be called if the mutation is successful.
-   * @param {Function} [options.onSettled] - The function to be called after the mutation has either succeeded or failed.
-   * @example
-   * // In _012_blog.html, a mutation is set up to add a new post with optimistic UI updates:
-   * const addPost = this.mutation({
-   *   mutationFn: (newPost) => fetch("https://api.camijs.com/posts", {
-   *     method: "POST",
-   *     body: JSON.stringify(newPost),
-   *     headers: {
-   *       "Content-type": "application/json; charset=UTF-8"
-   *     }
-   *   }).then(res => res.json()),
-   *   onMutate: (newPost) => {
-   *     // Snapshot the previous state
-   *     const previousPosts = this.posts.data;
-   *     // Optimistically update to the new value
-   *     this.posts.update(state => {
-   *       state.data.push({ ...newPost, id: Date.now() });
-   *     });
-   *     // Return the rollback function and the new post
-   *     return {
-   *       rollback: () => {
-   *         this.posts.update(state => {
-   *           state.data = previousPosts;
-   *         });
-   *       },
-   *       optimisticPost: newPost
-   *     };
-   *   }
-   * });
-   * @returns {ObservableProxy} A proxy that contains the state of the mutation.
-   */
-  mutation({ mutationFn, onMutate, onError, onSuccess, onSettled }) {
-    const mutationState = this.__observable({
-      data: null,
-      status: 'idle',
-      error: null,
-      isSettled: false
-    }, 'mutation');
-
-    const mutationProxy = this.__observableProxy(mutationState);
-
-    const performMutation = async (variables) => {
-      __trace('mutation', 'Starting mutation for variables:', variables);
-      let context;
-      const previousState = mutationProxy.value;
-
-      if (onMutate) {
-        __trace('mutation', 'Performing optimistic update for variables:', variables);
-        context = onMutate(variables, previousState);
-        mutationProxy.update(state => {
-          state.data = context.optimisticData;
-          state.status = 'pending';
-          state.errorDetails = null;
-        });
-      } else {
-        __trace('mutation', 'Performing mutation without optimistic update for variables:', variables);
-        mutationProxy.update(state => {
-          state.status = 'pending';
-          state.errorDetails = null;
-        });
-      }
-
-      try {
-        const data = await mutationFn(variables);
-        mutationProxy.update(state => {
-          state.data = data;
-          state.status = 'success';
-        });
-        if (onSuccess) {
-          onSuccess(data, variables, context);
-        }
-        __trace('mutation', 'Mutation successful for variables:', variables, data);
-      } catch (error) {
-        __trace('mutation', 'Mutation error for variables:', variables, error);
-        mutationProxy.update(state => {
-          state.errorDetails = { message: error.message };
-          state.status = 'error';
-          if (!onError && context && context.rollback) {
-            __trace('mutation', 'Rolling back mutation for variables:', variables);
-            context.rollback();
-          }
-        });
-        if (onError) {
-          onError(error, variables, context);
-        }
-      } finally {
-        if (!mutationProxy.value.isSettled) {
-          mutationProxy.update(state => {
-            state.isSettled = true
-          });
-          if (onSettled) {
-            __trace('mutation', 'Calling onSettled for variables:', variables);
-            onSettled(mutationProxy.value.data, mutationProxy.value.error, variables, context);
-          }
-        }
-      }
-    };
-
-    mutationProxy.mutate = performMutation;
-
-    mutationProxy.reset = () => {
-      mutationProxy.update(state => {
-        state.data = null;
-        state.status = 'idle';
-        state.errorDetails = null;
-        state.isSettled = false;
-      });
-    };
-
-    return mutationProxy;
-  }
-
-  /**
-   * @method
-   * @description Invalidates the queries with the given key by clearing the cache. To reflect the latest state in the UI, one will still need to manually refetch the data after invalidation. This method is particularly useful when used in conjunction with mutations, such as in the `onSettled` callback, to ensure that the UI reflects the latest state.
-   *
-   * @example
-   * // In a mutation's `onSettled` callback within a `BlogComponent`:
-   * this.addPost = this.mutation({
-   *   // ...mutation config...
-   *   onSettled: () => {
-   *     // Invalidate the posts query to clear the cache
-   *     this.invalidateQueries(['posts']);
-   *     // Manually refetch the posts to update the UI with the true state
-   *     this.fetchPosts(); // this assumes something like this.posts = this.query({ ... })
-   *   }
-   * });
-   *
-   * @param {Array|string} queryKey - The key for the query to invalidate.
-   * @returns {void}
-   */
-  invalidateQueries(queryKey) {
-    // Convert the queryKey to a string if it's an array for consistency with the cache keys
-    const key = Array.isArray(queryKey) ? queryKey.join(':') : queryKey;
-    __trace('invalidateQueries', 'Invalidating query with key:', key);
-
-    QueryCache.delete(key);
-
-    this.__updateCache(key);
+  __derive(deriveFn) {
+    const { value, dispose } = derive(deriveFn);
+    this.__unsubscribers.set(deriveFn, dispose);
+    return value;
   }
 
   /**
@@ -522,24 +168,11 @@ class ReactiveElement extends HTMLElement {
    * @description Called when the component is created. Can be overridden by subclasses to add initialization logic.
    * This method is a hook for the connectedCallback, which is invoked each time the custom element is appended into a document-connected element.
    * @returns {void}
-   * @example
-   * onCreate() {
-   *   // Example initialization logic here
-   *   this.posts = this.query({
-   *     queryKey: ["posts"],
-   *     queryFn: () => {
-   *       return fetch("https://api.camijs.com/posts?_limit=5")
-   *         .then(res => res.json())
-   *     },
-   *     staleTime: 1000 * 60 * 5 // 5 minutes
-   *   });
-   * }
    */
   onCreate() {
     // Default implementation does nothing.
     // Subclasses can override this to add initialization logic.
   }
-
 
   /**
    * @method
@@ -556,7 +189,9 @@ class ReactiveElement extends HTMLElement {
    */
   connectedCallback() {
     this.__setup({ infer: true });
-    this.effect(() => this.render());
+    this.effect(() => {
+      this.render();
+    });
     this.render();
     this.onConnect();
   }
@@ -592,7 +227,7 @@ class ReactiveElement extends HTMLElement {
    */
   disconnectedCallback() {
     this.onDisconnect();
-    this.__unsubscribers.forEach(unsubscribe => unsubscribe());
+    this.__unsubscribers.forEach((unsubscribe) => unsubscribe());
   }
 
   /**
@@ -691,7 +326,9 @@ class ReactiveElement extends HTMLElement {
    * @returns {boolean} True if the value is an object or an array, false otherwise.
    */
   __isObjectOrArray(value) {
-    return value !== null && (typeof value === 'object' || Array.isArray(value));
+    return (
+      value !== null && (typeof value === "object" || Array.isArray(value))
+    );
   }
 
   /**
@@ -705,20 +342,27 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  __createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
+  __createObservablePropertyForObjOrArr(
+    context,
+    key,
+    observable,
+    isAttribute = false
+  ) {
     if (!(observable instanceof ObservableState)) {
-      throw new TypeError('Expected observable to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observable to be an instance of ObservableState"
+      );
     }
 
     const proxy = this.__observableProxy(observable);
     Object.defineProperty(context, key, {
       get: () => proxy,
-      set: newValue => {
+      set: (newValue) => {
         observable.update(() => newValue);
         if (isAttribute) {
           this.setAttribute(key, newValue);
         }
-      }
+      },
     });
   }
 
@@ -738,19 +382,26 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns {void}
    */
-  __createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
+  __createObservablePropertyForPrimitive(
+    context,
+    key,
+    observable,
+    isAttribute = false
+  ) {
     if (!(observable instanceof ObservableState)) {
-      throw new TypeError('Expected observable to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observable to be an instance of ObservableState"
+      );
     }
 
     Object.defineProperty(context, key, {
       get: () => observable.value,
-      set: newValue => {
+      set: (newValue) => {
         observable.update(() => newValue);
         if (isAttribute) {
           this.setAttribute(key, newValue);
         }
-      }
+      },
     });
   }
 
@@ -769,26 +420,37 @@ class ReactiveElement extends HTMLElement {
   /**
    * @private
    * @method
-   * @description Defines the observables, computed properties, effects, and attributes for the element.
+   * @description Defines the observables, effects, and attributes for the element.
    * @param {Object} config - The configuration object.
    * @returns {void}
    */
   __setup(config) {
     if (config.infer === true) {
-      Object.keys(this).forEach(key => {
-        if (typeof this[key] !== 'function' && !key.startsWith('__')) {
-          if (this[key] instanceof Observable) {
-            return;
+      const keys = Object.keys(this);
+      const keysLen = keys.length;
+      
+      // Using direct for loop instead of forEach for better performance
+      for (let i = 0; i < keysLen; i++) {
+        const key = keys[i];
+        const value = this[key];
+        
+        if (typeof value !== "function" && !key.startsWith("__")) {
+          if (value instanceof Observable) {
+            continue;
           } else {
-            const observable = this.__observable(this[key], key);
+            const observable = this.__observable(value, key);
             if (this.__isObjectOrArray(observable.value)) {
               this.__createObservablePropertyForObjOrArr(this, key, observable);
             } else {
-              this.__createObservablePropertyForPrimitive(this, key, observable);
+              this.__createObservablePropertyForPrimitive(
+                this,
+                key,
+                observable
+              );
             }
           }
         }
-      })
+      }
     }
   }
 
@@ -804,7 +466,9 @@ class ReactiveElement extends HTMLElement {
   __observable(initialValue, _name) {
     if (!this.__isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
-      throw new Error(`[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`);
+      throw new Error(
+        `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
+      );
     }
 
     const observable = new ObservableState(initialValue, null, { name: _name });
@@ -816,63 +480,18 @@ class ReactiveElement extends HTMLElement {
   /**
    * @private
    * @method
-   * Updates the cache for the given key by refetching the data.
-   * @param {string} key - The key for the query to refetch.
-   * @returns {void}
-   */
-  __updateCache(key) {
-    __trace('__updateCache', 'Invalidating cache with key:', key);
-    const queryFn = this.__queryFunctions.get(key);
-
-    if (queryFn) {
-      __trace('__updateCache', 'Found query function for key:', key);
-      // Snapshot the previous state before the optimistic update
-      const previousState = QueryCache.get(key) || { data: undefined, status: 'idle', error: null };
-
-      // Optimistically update the UI assuming the fetch will succeed
-      QueryCache.set(key, {
-        ...previousState,
-        status: 'pending',
-        error: null,
-      });
-
-      // Trigger the refetch
-      queryFn().then(data => {
-        QueryCache.set(key, {
-          data: data,
-          status: 'success',
-          error: null,
-          lastUpdated: Date.now(),
-        });
-        __trace('__updateCache', 'Refetch successful for key:', key, data);
-      }).catch(error => {
-        if (previousState.data !== undefined) {
-          __trace('__updateCache', 'Rolling back refetch for key:', key);
-          QueryCache.set(key, previousState);
-        }
-
-        QueryCache.set(key, {
-          ...previousState,
-          status: 'error',
-          error: error,
-        });
-      });
-    }
-  }
-
-  /**
-   * @private
-   * @method
    * @description Checks if the provided value is of an allowed type
    * @param {any} value - The value to check
    * @returns {boolean} True if the value is of an allowed type, false otherwise
    */
   __isAllowedType(value) {
-    const allowedTypes = ['number', 'string', 'boolean', 'object', 'undefined'];
+    const allowedTypes = ["number", "string", "boolean", "object", "undefined"];
     const valueType = typeof value;
 
-    if (valueType === 'object') {
-      return value === null || Array.isArray(value) || this.__isPlainObject(value);
+    if (valueType === "object") {
+      return (
+        value === null || Array.isArray(value) || this.__isPlainObject(value)
+      );
     }
 
     return allowedTypes.includes(valueType);
@@ -886,14 +505,13 @@ class ReactiveElement extends HTMLElement {
    * @returns {boolean} True if the value is a plain object, false otherwise
    */
   __isPlainObject(value) {
-    if (Object.prototype.toString.call(value) !== '[object Object]') {
+    if (Object.prototype.toString.call(value) !== "[object Object]") {
       return false;
     }
 
     const prototype = Object.getPrototypeOf(value);
     return prototype === null || prototype === Object.prototype;
   }
-
 
   /**
    * @private
@@ -904,27 +522,59 @@ class ReactiveElement extends HTMLElement {
    */
   __registerObservables(observableState) {
     if (!(observableState instanceof ObservableState)) {
-      throw new TypeError('Expected observableState to be an instance of ObservableState');
+      throw new TypeError(
+        "Expected observableState to be an instance of ObservableState"
+      );
     }
 
-    // Only computeds and effects have a dispose method
+    // Only effects have a dispose method - use direct property access for speed
     this.__unsubscribers.set(observableState, () => {
-     if (typeof observableState.dispose === 'function') {
-       observableState.dispose();
-     }
-   });
+      const dispose = observableState.dispose;
+      if (typeof dispose === "function") {
+        dispose.call(observableState);
+      }
+    });
+  }
+
+  afterRender() {
+    // no-op. just a hook for the user.
   }
 
   /**
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+   * Uses memoization to avoid unnecessary rendering when the template result hasn't changed.
    * @returns {void}
    */
   render() {
-    const template = this.template();
-    __litRender(template, this);
+    if (typeof this.template === "function") {
+      // Call template function and get the result
+      const template = this.template();
+
+      // Using reference equality first (faster) before deep equal check
+      if (this.__prevTemplate === template) return;
+
+      // Check if we have a previous template result to compare with
+      if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
+        // If the template hasn't changed, no need to re-render
+        return;
+      }
+
+      // Store the current template for future comparison
+      this.__prevTemplate = template;
+      
+      // Render the template
+      __litRender(template, this);
+      this.afterRender();
+    }
+  }
+
+  warnIfMissingProperties(properties) {
+    const missingProperties = properties.filter(prop => !(prop in this));
+    if (missingProperties.length > 0) {
+      console.warn(`Missing required properties: ${missingProperties.join(', ')}`);
+    }
   }
 }
 
 export { ReactiveElement };
-

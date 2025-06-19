@@ -1,0 +1,50 @@
+<article>
+  <h1>Counter Example</h1>
+  <counter-component></counter-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, defineReactiveElement, Type } = cami;
+
+  const Counter = Type.Model("CounterModel", {
+    count: Type.Integer,
+  });
+
+  const counterStore = Counter.create({
+    state: { count: 0 },
+    actions: {
+      increment: ({ state }) => {
+        state.count += 1;
+      },
+      decrement: ({ state }) => {
+        state.count -= 1;
+      },
+    },
+  });
+
+  const uuid = crypto.randomUUID();
+  const incrementId = `${uuid}-increment`
+  const decrementId = `${uuid}-decrement`
+
+  defineReactiveElement("counter-component", counterStore, ({ store, ctx}) => {
+    const { count } = store.getState();
+
+    if (ctx.clicked.owner === incrementId) {
+      store.dispatch("increment");
+    }
+
+    if (ctx.clicked.owner === decrementId) {
+      store.dispatch("decrement");
+    }
+
+    return html`
+      <button node-id=${decrementId}>-</button>
+      <button node-id=${incrementId}>+</button>
+      <div>Count: ${count}</div>
+    `;
+  });
+</script>

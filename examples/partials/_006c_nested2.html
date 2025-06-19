@@ -1,0 +1,105 @@
+<article>
+  <h1>User Update Page (Nested Observable)</h1>
+  <nested-observable-element></nested-observable-element>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const userStore = store({
+    state: {
+      user: {
+        name: "John",
+        age: 30,
+        address: {
+          street: "123 Main St",
+          city: "Anytown",
+          country: "USA",
+          postalCode: "12345",
+          coordinates: {
+            lat: "40.7128",
+            long: "74.0060",
+          },
+        },
+      },
+    },
+    name: "user-store",
+  });
+
+  userStore.defineAction("changeUser", ({ state }) => {
+    const john = {
+      name: "John",
+      age: 30,
+      address: {
+        street: "123 Main St",
+        city: "Anytown",
+        country: "USA",
+        postalCode: "12345",
+        coordinates: {
+          lat: "40.7128",
+          long: "74.0060",
+        },
+      },
+    };
+
+    const jane = {
+      name: "Jane",
+      age: 31,
+      address: {
+        street: "456 Elm St",
+        city: "Othertown",
+        country: "Canada",
+        postalCode: "67890",
+        coordinates: {
+          lat: "51.5074",
+          long: "0.1278",
+        },
+      },
+    };
+
+    state.user = state.user.name === "John" ? jane : john;
+  });
+
+  userStore.defineAction("changeName", ({ state }) => {
+    state.user.name = state.user.name === "John" ? "Jane" : "John";
+  });
+
+  userStore.defineAction("changeStreet", ({ state }) => {
+    state.user.address.street =
+      state.user.address.street === "123 Main St"
+        ? "456 Elm St"
+        : "123 Main St";
+  });
+
+  userStore.defineAction("changeLat", ({ state }) => {
+    state.user.address.coordinates.lat =
+      state.user.address.coordinates.lat === "40.7128" ? "51.5074" : "40.7128";
+  });
+
+  customElements.define(
+    "nested-observable-element",
+    class extends ReactiveElement {
+      template() {
+        const { user } = userStore.state;
+        const { dispatch } = userStore;
+
+        return html`
+          <div>Name: ${user.name}</div>
+          <div>Street: ${user.address.street}</div>
+          <div>Latitude: ${user.address.coordinates.lat}</div>
+          <button @click=${() => dispatch("changeUser")}>Change User</button>
+          <button @click=${() => dispatch("changeName")}>Change Name</button>
+          <button @click=${() => dispatch("changeStreet")}>
+            Change Street
+          </button>
+          <button @click=${() => dispatch("changeLat")}>Change Latitude</button>
+        `;
+      }
+    }
+  );
+</script>

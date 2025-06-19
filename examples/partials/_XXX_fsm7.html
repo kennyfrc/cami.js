@@ -1,0 +1,147 @@
+<article>
+  <h1>Email Input State Machine</h1>
+  <email-input-component></email-input-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const emailInputStore = store({
+    state: {
+      value: "",
+      errorMessage: "",
+      isActive: true,
+      isFocused: false,
+      validationState: "pending",
+    },
+    name: "email-input-store",
+  });
+
+  const validateEmail = (email) => {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  emailInputStore.defineMachine("email-input", {
+    change: {
+      from: [
+        { isActive: true, validationState: "pending" },
+        { isActive: true, validationState: "valid" },
+        { isActive: true, validationState: "invalid" },
+      ],
+      to: ({ payload, state }) => {
+        const newValue = payload;
+        let newValidationState = "pending";
+        let newErrorMessage = "";
+
+        if (newValue === "") {
+          newValidationState = "invalid";
+          newErrorMessage = "Email cannot be empty";
+        } else if (!validateEmail(newValue)) {
+          newValidationState = "invalid";
+          newErrorMessage = "Invalid email format";
+        } else {
+          newValidationState = "valid";
+        }
+
+        return {
+          ...state,
+          value: newValue,
+          validationState: newValidationState,
+          errorMessage: newErrorMessage,
+        };
+      },
+    },
+    blur: {
+      from: { isActive: true, isFocused: true },
+      to: ({ state }) => ({ ...state, isFocused: false }),
+    },
+    focus: {
+      from: { isActive: true, isFocused: false },
+      to: ({ state }) => ({ ...state, isFocused: true }),
+    },
+    disable: {
+      from: { isActive: true },
+      to: ({ state }) => ({ ...state, isActive: false, isFocused: false }),
+    },
+    enable: {
+      from: { isActive: false },
+      to: ({ state }) => ({ ...state, isActive: true }),
+    },
+  });
+
+  emailInputStore.defineMemo("getInputStyle", ({ state }) => {
+    if (state.validationState === "valid") return "border-color: green;";
+    if (state.validationState === "invalid") return "border-color: red;";
+    return "";
+  });
+
+  emailInputStore.defineMemo("getStatusIcon", ({ state }) => {
+    if (state.validationState === "valid") return "✅";
+    if (state.validationState === "invalid") return "❌";
+    return "";
+  });
+
+  customElements.define(
+    "email-input-component",
+    class extends ReactiveElement {
+      template() {
+        const { value, errorMessage, isActive, isFocused, validationState } =
+          emailInputStore.state;
+        const { trigger, memo } = emailInputStore;
+
+        return html`
+          <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 20px;"
+          >
+            <h2>Email Input State</h2>
+            <p>Active: ${isActive ? "Yes" : "No"}</p>
+            <p>Focused: ${isFocused ? "Yes" : "No"}</p>
+            <p>Validation: ${validationState}</p>
+            <div style="position: relative; width: 100%; max-width: 300px;">
+              <input
+                type="email"
+                .value=${value}
+                @input=${(e) => trigger("email-input:change", e.target.value)}
+                @focus=${() => trigger("email-input:focus")}
+                @blur=${() => trigger("email-input:blur")}
+                ?disabled=${!isActive}
+                style="${memo(
+                  "getInputStyle"
+                )} width: 100%; padding-right: 30px;"
+                placeholder="Enter your email"
+              />
+              <span
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+              >
+                ${memo("getStatusIcon")}
+              </span>
+            </div>
+            ${errorMessage
+              ? html`<p style="color: red;">${errorMessage}</p>`
+              : ""}
+            <div>
+              <button
+                @click=${() => trigger("email-input:disable")}
+                ?disabled=${!isActive}
+              >
+                Disable
+              </button>
+              <button
+                @click=${() => trigger("email-input:enable")}
+                ?disabled=${isActive}
+              >
+                Enable
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+  );
+</script>

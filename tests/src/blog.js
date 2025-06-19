@@ -1,99 +1,85 @@
-const { html, ReactiveElement, http } = cami;
+const { ReactiveElement, store, html } = cami;
 
-class BlogComponent extends ReactiveElement {
-  posts = this.query({
-    queryKey: ["posts"],
-    queryFn: () => {
-      return fetch("https://api.camijs.com/posts?_limit=5")
-        .then(res => res.json())
-    },
-    staleTime: 1000 * 60 * 5 // 5 minutes
-  })
+const blogStore = store({
+  state: {
+    posts: [],
+    loading: false,
+    error: null,
+  },
+  name: "blog-store",
+});
 
-  //
-  // This uses optimistic UI. To disable optimistic UI, remove the onMutate and onError handlers.
-  //
-  addPost = this.mutation({
-    mutationFn: (newPost) => {
-      return fetch("https://api.camijs.com/posts", {
-        method: "POST",
-        body: JSON.stringify(newPost),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
-        }
-      }).then(res => res.json())
-    },
-    onMutate: (newPost) => {
-      // Snapshot the previous state
-      const previousPosts = this.posts.data;
+blogStore.defineAction("setPosts", ({ state, payload }) => {
+  state.posts = payload;
+  state.loading = false;
+});
 
-      // Optimistically update to the new value
-      this.posts.update(state => {
-        state.data.push({ ...newPost, id: Date.now() });
-      });
+blogStore.defineAction("setError", ({ state, payload }) => {
+  state.error = payload;
+  state.loading = false;
+});
 
-      // Return the rollback function and the new post
-      return {
-        rollback: () => {
-          this.posts.update(state => {
-            state.data = previousPosts;
-          });
-        },
-        optimisticPost: newPost
-      };
-    },
-    onError: (error, newPost, context) => {
-      // Rollback to the previous state
-      if (context.rollback) {
-        context.rollback();
-      }
-    },
-    onSettled: () => {
-      // Invalidate the posts query to refetch the true state
-      if (!this.addPost.isSettled) {
-        this.invalidateQueries(['posts']);
-      }
-    }
-  });
+blogStore.defineAction("pushPost", ({ state, payload }) => {
+  state.posts.push(payload);
+});
 
-  template() {
-    if (this.addPost.status === "pending") {
+blogStore.defineQuery("fetchPosts", {
+  queryKey: ["posts"],
+  queryFn: () =>
+    fetch("https://api.camijs.com/posts").then((res) => res.json()),
+  onSuccess: ({ dispatch, data }) => {
+    dispatch("setPosts", data);
+  },
+  onError: ({ dispatch, data }) => {
+    dispatch("setError", data.message);
+  },
+});
+
+blogStore.defineMutation("createPost", {
+  mutationFn: (payload) => {
+    return fetch("https://api.camijs.com/posts", {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    }).then((res) => res.json());
+  },
+  onMutate: ({ dispatch, payload }) => {
+    const post = { ...payload, id: Date.now() };
+    dispatch("pushPost", post);
+  },
+  onSuccess: ({ invalidateQueries }) => {
+    invalidateQueries({ queryKey: ["posts"] });
+  },
+  onError: ({ dispatch, previousState }) => {
+    dispatch("setPosts", previousState.posts);
+  },
+});
+
+customElements.define(
+  "blog-component",
+  class extends ReactiveElement {
+    template() {
+      const { loading, error, posts } = blogStore.state;
+      const { mutate } = blogStore;
+
+      if (loading) return html`<p>Loading...</p>`;
+      if (error) return html`<p>Error: ${error}</p>`;
+
       return html`
-      <div>Adding post...</div>`;
-    }
-
-    if (this.addPost.status === "error") {
-      return html`<div>Error: ${this.addPost.errorDetails.message}</div>`;
-    }
-
-    if (this.posts.data) {
-      return html`
-        <button @click=${() => this.addPost.mutate({
-          title: "New Post, Made Optimistically",
-          body: "This is a new post created with optimistic UI. I actually won't persist to the server though. So upon refresh, I will rollback (either through window change, refresh, or after stale time of 5 minutes)",
-          userId: 1
-        })}>Add Post</button>
         <ul>
-          ${this.posts.data.slice().reverse().map(post => html`
-            <li>
-              <h2>${post.title}</h2>
-              <p>${post.body}</p>
-            </li>
-          `)}
+          ${posts.map((post) => html`<li>${post.title}</li>`)}
         </ul>
+        <button
+          @click=${() =>
+            mutate("createPost", { title: "New Post", content: "Content" })}
+        >
+          Add New Post
+        </button>
       `;
     }
-
-    if (this.posts.status === "loading") {
-      return html`<div>Loading...</div>`;
-    }
-
-    if (this.posts.status === "error") {
-      return html`<div>Error: ${this.posts.errorDetails.message}</div>`;
-    }
   }
-}
+);
 
-customElements.define('blog-component', BlogComponent);
-
-export default BlogComponent;
+export { blogStore };

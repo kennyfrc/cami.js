@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <h1>Post List</h1>
+  <p><small class="note"></small></p>
+  <post-list-component></post-list-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<!-- CDN version below -->
+<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  // Create a store with initial state
+  const appStore = store({ posts: [] });
+  3;
+
+  // Register actions
+  appStore.register("setPosts", (state, posts) => {
+    state.posts = posts;
+  });
+
+  // Register queries
+  appStore.query("fetchPosts", {
+    queryKey: "posts",
+    queryFn: () =>
+      fetch("https://api.camijs.com/posts?_limit=5").then((res) => res.json()),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    onStart: (context) => {
+      context.actions.setPosts([]);
+      console.log("fetchPosts onStart");
+    },
+    onSuccess: (context) => {
+      context.actions.setPosts(context.result);
+    },
+    onError: (context) => {
+      document.querySelector(
+        ".note"
+      ).innerHTML = `Error: ${context.error.message}`;
+    },
+  });
+
+  // Register mutations
+  appStore.mutation("addPost", {
+    mutationFn: (newPost) => {
+      return fetch("https://api.camijs.com/posts", {
+        method: "POST",
+        body: JSON.stringify(newPost),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      }).then((res) => res.json());
+    },
+    onMutate: (context) => {
+      const previousPosts = context.state.posts;
+      context.actions.setPosts([...previousPosts, context.args[0]]);
+    },
+    onSuccess: (context) => {
+      context.invalidateQueries("posts");
+      document.querySelector(".note").innerHTML =
+        "Post was added successfully.";
+    },
+    onError: (context) => {
+      context.actions.setPosts(context.previousState.posts);
+      document.querySelector(
+        ".note"
+      ).innerHTML = `Error: ${context.error.message}`;
+    },
+  });
+
+  appStore.mutation("deletePost", {
+    mutationFn: (post) => {
+      return fetch(`https://api.camijs.com/posts/${post.id}`, {
+        method: "DELETE",
+      }).then((res) => res.json());
+    },
+    onMutate: (context) => {
+      const previousPosts = context.state.posts;
+      context.actions.setPosts(
+        previousPosts.filter((p) => p.id !== context.args[0].id)
+      );
+    },
+    onSuccess: (context) => {
+      context.invalidateQueries("posts");
+      document.querySelector(".note").innerHTML =
+        "Post was deleted successfully.";
+    },
+    onError: (context) => {
+      context.actions.setPosts(context.previousState.posts);
+      document.querySelector(
+        ".note"
+      ).innerHTML = `Error: ${context.error.message}`;
+    },
+  });
+
+  // Define the custom element
+  class PostListElement extends ReactiveElement {
+    onCreate() {
+      this.state = appStore.getState();
+    }
+
+    onConnect() {
+      appStore.subscribe((state) => {
+        this.state = state;
+      });
+      appStore.fetch("fetchPosts");
+    }
+
+    template() {
+      return html`
+        <input class="newPost" type="text" />
+        <button
+          @click=${() => {
+            const newPost = {
+              title: document.querySelector(".newPost").value,
+              completed: false,
+            };
+            appStore.mutate("addPost", newPost);
+            document.querySelector(".newPost").value = "";
+          }}
+        >
+          Add
+        </button>
+        <ul>
+          ${this.state.posts.map(
+            (post) => html`
+              <li>
+                ${post.title}
+                <button @click=${() => appStore.mutate("deletePost", post)}>
+                  Delete
+                </button>
+              </li>
+            `
+          )}
+        </ul>
+      `;
+    }
+  }
+
+  customElements.define("post-list-component", PostListElement);
+</script>
+  </body>
+</html>

@@ -13,7 +13,7 @@ The following functions can be invoked in the developer tools console. When you 
 <dd><p>This function disables logging. This is the default setting.</p></dd>
 
 <dt><a href="#events.enable">cami.events.enable()</a> ⇒ <code>void</code></dt>
-<dd><p>This function enables event emissions. This emits the `cami:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.</p></dd>
+<dd><p>This function enables event emissions. This emits the `cami:elem:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.</p></dd>
 
 <dt><a href="#events.disable">cami.events.disable()</a> ⇒ <code>void</code></dt>
 <dd><p>This function disables event emissions.</p></dd>
@@ -42,12 +42,12 @@ cami.debug.disable();
 <a name="events.enable"></a>
 
 ### cami.events.enable()
-This function enables event emissions. This emits the `cami:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.
+This function enables event emissions. This emits the `cami:elem:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.
 
 **Example**
 ```javascript
 cami.events.enable();
-window.addEventListener('cami:state:change', function(e) {
+window.addEventListener('cami:elem:state:change', function(e) {
   console.log('State changed:', e.detail);
 });
 ```

@@ -1,0 +1,105 @@
+<article>
+  <h1>Toggle Switch Example</h1>
+  <toggle-switch label="Dark Mode"></toggle-switch>
+  <toggle-switch label="Notifications"></toggle-switch>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+  class ToggleSwitch extends ReactiveElement {
+    isOn = false;
+
+    toggle() {
+      this.isOn = !this.isOn;
+    }
+
+    template() {
+      return html`
+        <label class="toggle-switch">
+          <input
+            class="toggle-switch__input"
+            type="checkbox"
+            .checked=${this.isOn}
+            @change=${() => this.toggle()}
+          />
+          <span class="toggle-switch__slider"></span>
+          <span class="toggle-switch__label"
+            >${this.getAttribute("label")}</span
+          >
+        </label>
+      `;
+    }
+  }
+
+  customElements.define("toggle-switch", ToggleSwitch);
+</script>
+<style>
+  :root {
+    --switch-width: 60px;
+    --switch-height: 34px;
+    --switch-padding: 4px;
+    --switch-toggle-size: calc(
+      var(--switch-height) - (var(--switch-padding) * 2)
+    );
+    --switch-translate-x: calc(var(--switch-width) - var(--switch-height));
+    --spacing: 10px;
+    --color-disabled: #e0e0e0;
+    --color-background: #ffffff;
+    --color-primary: #1e88e5;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    height: var(--switch-height);
+    margin-right: var(--spacing);
+  }
+
+  .toggle-switch__input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-switch__slider {
+    position: relative;
+    display: inline-block;
+    width: var(--switch-width);
+    height: var(--switch-height);
+    background-color: var(--color-disabled);
+    transition: background-color 100ms ease-out;
+    border-radius: var(--switch-height);
+    margin-right: var(--spacing);
+  }
+
+  .toggle-switch__slider::before {
+    position: absolute;
+    content: "";
+    height: var(--switch-toggle-size);
+    width: var(--switch-toggle-size);
+    left: var(--switch-padding);
+    bottom: var(--switch-padding);
+    background-color: var(--color-background);
+    transition: transform 100ms ease-out;
+    border-radius: 50%;
+  }
+
+  .toggle-switch__input:checked + .toggle-switch__slider {
+    background-color: var(--color-primary);
+  }
+
+  .toggle-switch__input:checked + .toggle-switch__slider::before {
+    transform: translateX(var(--switch-translate-x));
+  }
+
+  .toggle-switch__label {
+    line-height: var(--switch-height);
+  }
+</style>

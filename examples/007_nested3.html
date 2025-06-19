@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
   <h1>User Update Page (Nested Store)</h1>
   <user-list-component></user-list-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -25,42 +35,42 @@
         name: "Alice",
         status: "Active",
         address: {
-          street: '123 Main St',
-          city: 'Anytown',
+          street: "123 Main St",
+          city: "Anytown",
           coordinates: {
-            lat: '40.7128',
-            long: '74.0060'
-          }
-        }
+            lat: "40.7128",
+            long: "74.0060",
+          },
+        },
       },
       {
         id: 2,
         name: "Bob",
         status: "Inactive",
         address: {
-          street: '456 Elm St',
-          city: 'Othertown',
+          street: "456 Elm St",
+          city: "Othertown",
           coordinates: {
-            lat: '51.5074',
-            long: '0.1278'
-          }
-        }
+            lat: "51.5074",
+            long: "0.1278",
+          },
+        },
       },
     ],
     updateStatus: (store, payload) => {
-      const user = store.users.find(user => user.id === payload.id);
+      const user = store.users.find((user) => user.id === payload.id);
       if (user) {
         user.status = payload.status;
       }
     },
     updateStreet: (store, payload) => {
-      const user = store.users.find(user => user.id === payload.id);
+      const user = store.users.find((user) => user.id === payload.id);
       if (user) {
         user.address.street = payload.street;
       }
     },
     updateLat: (store, payload) => {
-      const user = store.users.find(user => user.id === payload.id);
+      const user = store.users.find((user) => user.id === payload.id);
       if (user) {
         user.address.coordinates.lat = payload.lat;
       }
@@ -69,28 +79,52 @@
 
   // Step 3: Define a custom element that uses the store
   class UserListElement extends ReactiveElement {
-    users = this.connect(userStore, 'users');
+    users = this.connect(userStore, "users");
 
     template() {
       return html`
         <ul>
-          ${this.users.map(user => html`
-            <li>
-              ${user.name} - ${user.status}<br />
-              ${user.address.street} - ${user.address.coordinates.lat}
-              <button @click=${() => userStore.updateStatus({ id: user.id, status: "Active" })}>Activate</button>
-              <button @click=${() => userStore.updateStatus({ id: user.id, status: "Inactive" })}>Deactivate</button>
-              <button @click=${() => userStore.updateStreet({ id: user.id, street: "999 Main St" })}>Change Street</button>
-              <button @click=${() => userStore.updateLat({ id: user.id, lat: "99.9999" })}>Change Latitude</button>
-            </li>
-          `)}
+          ${this.users.map(
+            (user) => html`
+              <li>
+                ${user.name} - ${user.status}<br />
+                ${user.address.street} - ${user.address.coordinates.lat}
+                <button
+                  @click=${() =>
+                    userStore.updateStatus({ id: user.id, status: "Active" })}
+                >
+                  Activate
+                </button>
+                <button
+                  @click=${() =>
+                    userStore.updateStatus({ id: user.id, status: "Inactive" })}
+                >
+                  Deactivate
+                </button>
+                <button
+                  @click=${() =>
+                    userStore.updateStreet({
+                      id: user.id,
+                      street: "999 Main St",
+                    })}
+                >
+                  Change Street
+                </button>
+                <button
+                  @click=${() =>
+                    userStore.updateLat({ id: user.id, lat: "99.9999" })}
+                >
+                  Change Latitude
+                </button>
+              </li>
+            `
+          )}
         </ul>
       `;
     }
   }
 
-  customElements.define('user-list-component', UserListElement);
+  customElements.define("user-list-component", UserListElement);
 </script>
-
-</body>
+  </body>
 </html>

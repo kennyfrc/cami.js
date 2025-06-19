@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-    <article>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
   <h1>Todo List</h1>
   <p><small class="note"></small></p>
   <todo-list-component></todo-list-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -20,12 +30,14 @@
 
   class TodoListElement extends ReactiveElement {
     todos = this.query({
-      queryKey: ['todos'],
+      queryKey: ["todos"],
       queryFn: () => {
-        return fetch("https://api.camijs.com/todos?_limit=5").then(res => res.json())
+        return fetch("https://api.camijs.com/todos?_limit=5").then((res) =>
+          res.json()
+        );
       },
-      staleTime: 1000 * 60 * 5 // 5 minutes
-    })
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
 
     addTodo = this.mutation({
       mutationFn: (newTodo) => {
@@ -33,61 +45,65 @@
           method: "POST",
           body: JSON.stringify(newTodo),
           headers: {
-            "Content-type": "application/json; charset=UTF-8"
-          }
-        }).then(res => {
-          document.querySelector('.note').innerHTML = 'Todo was dispatched to the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
+            "Content-type": "application/json; charset=UTF-8",
+          },
+        }).then((res) => {
+          document.querySelector(".note").innerHTML =
+            "Todo was dispatched to the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.";
           return res.json();
-        })
-      }
+        });
+      },
     });
 
     deleteTodo = this.mutation({
       mutationFn: (todo) => {
         return fetch(`https://api.camijs.com/todos/${todo.id}`, {
-          method: "DELETE"
-        }).then(res => {
-          document.querySelector('.note').innerHTML = 'Todo was deleted from the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.';
+          method: "DELETE",
+        }).then((res) => {
+          document.querySelector(".note").innerHTML =
+            "Todo was deleted from the server. Since we are using a mock API, this wont work. In your local environment, you would need to persist the changes to your server database. The query will automatically refetch the data from the server.";
           return res.json();
-        })
-      }
+        });
+      },
     });
 
     template() {
       if (this.addTodo.status === "pending") {
-        return html`
-          <li style="opacity: 0.5;">
-            Adding new todo...
-          </li>
-        `;
+        return html` <li style="opacity: 0.5;">Adding new todo...</li> `;
       }
 
       if (this.deleteTodo.status === "pending") {
-        return html`
-          <li style="opacity: 0.5;">
-            Deleting todo...
-          </li>
-        `;
+        return html` <li style="opacity: 0.5;">Deleting todo...</li> `;
       }
 
       if (this.todos.data) {
         return html`
           <input class="newTodo" type="text" />
-          <button @click=${() => {
-            document.querySelector('.newTodo').value = '';
-            this.addTodo.mutate({
-              title: document.querySelector('.newTodo').value,
-              completed: false
-            })
-
-      }}>Add</button>
+          <button
+            @click=${() => {
+              document.querySelector(".newTodo").value = "";
+              this.addTodo.mutate({
+                title: document.querySelector(".newTodo").value,
+                completed: false,
+              });
+            }}
+          >
+            Add
+          </button>
           <ul>
-            ${this.todos.data.slice().reverse().map(todo => html`
-              <li>
-                ${todo.title}
-                <button @click=${() => this.deleteTodo.mutate(todo)}>Delete</button>
-              </li>
-            `)}
+            ${this.todos.data
+              .slice()
+              .reverse()
+              .map(
+                (todo) => html`
+                  <li>
+                    ${todo.title}
+                    <button @click=${() => this.deleteTodo.mutate(todo)}>
+                      Delete
+                    </button>
+                  </li>
+                `
+              )}
           </ul>
         `;
       }
@@ -106,8 +122,7 @@
     }
   }
 
-  customElements.define('todo-list-component', TodoListElement);
+  customElements.define("todo-list-component", TodoListElement);
 </script>
-
-</body>
+  </body>
 </html>

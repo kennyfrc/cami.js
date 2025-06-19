@@ -1,19 +1,71 @@
-import { Observable } from './observable.js';
-import { ObservableStream } from './observable-stream.js';
-import { produce } from '../produce.js';
-import { __config } from '../config.js';
-import { __trace } from '../trace.js';
+import { Observable } from "./observable.js";
+import { produce } from "immer";
+import { _deepEqual } from "../utils";
+import { __config } from "../config.js";
+import { __trace } from "../trace.js";
 
 /**
- * @private
- * @class
- * @description DependencyTracker is an object that holds the current dependency.
- * It is used to track dependencies between observables.
- * @type {Object}
+ * High-performance dependency tracking implementation
+ * inspired by signals and other reactive libraries
  */
-const DependencyTracker = {
-  current: null
-};
+class DependencyTracker {
+  // Shared static context for tracking the current computation
+  static current = null;
+
+  /**
+   * Track dependencies used during the execution of an effect function
+   * @param {Function} effectFn - Function to track
+   * @returns {Set} Set of dependencies
+   */
+  static track(effectFn) {
+    // Save previous context to support nested tracking
+    const previousTracker = DependencyTracker.current;
+    
+    // Create new tracker for this computation
+    const tracker = new DependencyTracker();
+    DependencyTracker.current = tracker;
+    
+    try {
+      // Execute the function to track dependencies
+      effectFn();
+      return tracker.dependencies;
+    } finally {
+      // Restore previous context
+      DependencyTracker.current = previousTracker;
+    }
+  }
+
+  constructor() {
+    // For small dependency sets, arrays are faster than Sets in V8
+    // When dependency count grows large, we can switch to a Set
+    this.dependencies = [];
+    
+    // For fast lookup to avoid duplicates (O(1) vs O(n))
+    this._depsMap = new Map();
+  }
+
+  /**
+   * Add a dependency to the current tracker
+   * @param {Object} store - The store to track
+   * @param {string} [property] - Optional property to track
+   */
+  addDependency(store, property) {
+    // Create a unique key for the dependency
+    const key = property ? `${store._uid || 'store'}.${property}` : (store._uid || 'store');
+    
+    // Only add if not already tracked (O(1) lookup)
+    if (!this._depsMap.has(key)) {
+      // Create dependency object with minimal properties
+      const dep = { store, property };
+      
+      // Track in array for ordered iteration
+      this.dependencies.push(dep);
+      
+      // Track in map for fast existence checks
+      this._depsMap.set(key, dep);
+    }
+  }
+}
 
 /**
  * @class
@@ -34,17 +86,53 @@ class ObservableState extends Observable {
    * @example
    * const observable = new ObservableState(10);
    */
-  constructor(initialValue = null, subscriber = null, {last = false, name = null} = {}) {
+  constructor(
+    initialValue = null,
+    subscriber = null,
+    { last = false, name = null } = {}
+  ) {
     super();
     if (last) {
       this.__lastObserver = subscriber;
     } else {
       this.__observers.push(subscriber);
     }
-    this.__value = produce(initialValue, draft => {});
+    this.__value = produce(initialValue, (draft) => {});
     this.__pendingUpdates = [];
     this.__updateScheduled = false;
     this.__name = name;
+    this.__isUpdating = false;
+    this.__updateStack = [];
+  }
+
+  /**
+   * @method
+   * @param {Function} callback - Callback function to be notified on value changes
+   * @returns {Object} A subscription object with an unsubscribe method
+   * @description High-performance subscription method with O(1) unsubscribe
+   */
+  onValue(callback) {
+    // Add observer to array - O(1) operation
+    const index = this.__observers.length;
+    this.__observers.push(callback);
+    
+    // Return subscription with direct index removal for O(1) unsubscribe when possible
+    return {
+      unsubscribe: () => {
+        // Fast path: if the callback is still at the original index, use direct removal
+        if (this.__observers[index] === callback) {
+          // Fast removal by swapping with last element and popping - O(1)
+          const lastIndex = this.__observers.length - 1;
+          if (index < lastIndex) {
+            this.__observers[index] = this.__observers[lastIndex];
+          }
+          this.__observers.pop();
+        } else {
+          // Fallback to filter only when needed - O(n)
+          this.__observers = this.__observers.filter(obs => obs !== callback);
+        }
+      }
+    };
   }
 
   /**
@@ -68,7 +156,25 @@ class ObservableState extends Observable {
    * observable.value = 20;
    */
   set value(newValue) {
-    this.update(() => newValue);
+    if (this.__isUpdating) {
+      const cycle = [...this.__updateStack, this.__name].join(" -> ");
+      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
+      // Optionally, return here to prevent the update
+      // return;
+    }
+
+    this.__isUpdating = true;
+    this.__updateStack.push(this.__name);
+
+    try {
+      if (!_deepEqual(newValue, this.__value)) {
+        this.__value = newValue;
+        this.__notifyObservers();
+      }
+    } finally {
+      this.__updateStack.pop();
+      this.__isUpdating = false;
+    }
   }
 
   /**
@@ -79,10 +185,10 @@ class ObservableState extends Observable {
    * observable.assign({ key: 'value' });
    */
   assign(obj) {
-    if (typeof this.__value !== 'object' || this.__value === null) {
-      throw new Error('[Cami.js] Observable value is not an object');
+    if (typeof this.__value !== "object" || this.__value === null) {
+      throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update(value => Object.assign(value, obj));
+    this.update((value) => Object.assign(value, obj));
   }
 
   /**
@@ -95,11 +201,11 @@ class ObservableState extends Observable {
    * observable.set('key.subkey', 'new value');
    */
   set(key, value) {
-    if (typeof this.__value !== 'object' || this.__value === null) {
-      throw new Error('[Cami.js] Observable value is not an object');
+    if (typeof this.__value !== "object" || this.__value === null) {
+      throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update(state => {
-      const keys = key.split('.');
+    this.update((state) => {
+      const keys = key.split(".");
       let current = state;
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
@@ -117,11 +223,11 @@ class ObservableState extends Observable {
    * observable.delete('key.subkey');
    */
   delete(key) {
-    if (typeof this.__value !== 'object' || this.__value === null) {
-      throw new Error('[Cami.js] Observable value is not an object');
+    if (typeof this.__value !== "object" || this.__value === null) {
+      throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update(state => {
-      const keys = key.split('.');
+    this.update((state) => {
+      const keys = key.split(".");
       let current = state;
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
@@ -149,9 +255,9 @@ class ObservableState extends Observable {
    */
   push(...elements) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.push(...elements);
     });
   }
@@ -164,9 +270,9 @@ class ObservableState extends Observable {
    */
   pop() {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.pop();
     });
   }
@@ -179,9 +285,9 @@ class ObservableState extends Observable {
    */
   shift() {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.shift();
     });
   }
@@ -197,9 +303,9 @@ class ObservableState extends Observable {
    */
   splice(start, deleteCount, ...items) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(arr => {
+    this.update((arr) => {
       arr.splice(start, deleteCount, ...items);
     });
   }
@@ -213,9 +319,9 @@ class ObservableState extends Observable {
    */
   unshift(...elements) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.unshift(...elements);
     });
   }
@@ -228,9 +334,9 @@ class ObservableState extends Observable {
    */
   reverse() {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.reverse();
     });
   }
@@ -244,9 +350,9 @@ class ObservableState extends Observable {
    */
   sort(compareFunction) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(value => {
+    this.update((value) => {
       value.sort(compareFunction);
     });
   }
@@ -262,9 +368,9 @@ class ObservableState extends Observable {
    */
   fill(value, start = 0, end = this.__value.length) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(arr => {
+    this.update((arr) => {
       arr.fill(value, start, end);
     });
   }
@@ -280,9 +386,9 @@ class ObservableState extends Observable {
    */
   copyWithin(target, start, end = this.__value.length) {
     if (!Array.isArray(this.__value)) {
-      throw new Error('[Cami.js] Observable value is not an array');
+      throw new Error("[Cami.js] Observable value is not an array");
     }
-    this.update(arr => {
+    this.update((arr) => {
       arr.copyWithin(target, start, end);
     });
   }
@@ -297,8 +403,23 @@ class ObservableState extends Observable {
    * observable.update(value => value + 1);
    */
   update(updater) {
-    this.__pendingUpdates.push(updater);
-    this.__scheduleupdate();
+    if (this.__isUpdating) {
+      const cycle = [...this.__updateStack, this.__name].join(" -> ");
+      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
+      // Optionally, return here to prevent the update
+      // return;
+    }
+
+    this.__isUpdating = true;
+    this.__updateStack.push(this.__name);
+
+    try {
+      this.__pendingUpdates.push(updater);
+      this.__scheduleupdate();
+    } finally {
+      this.__updateStack.pop();
+      this.__isUpdating = false;
+    }
   }
 
   __scheduleupdate() {
@@ -317,15 +438,57 @@ class ObservableState extends Observable {
    * If the observer is a function, it is called directly.
    * If the observer is an object with a 'next' method, the 'next' method is called.
    */
+  /**
+   * High-performance notification method with optimized code paths
+   * @private
+   */
   __notifyObservers() {
-    const observersWithLast = [...this.__observers, this.__lastObserver];
-    observersWithLast.forEach(observer => {
-      if (observer && typeof observer === 'function') {
-        observer(this.__value);
-      } else if (observer && observer.next) {
-        observer.next(this.__value);
+    // Fast path: no observers
+    if (this.__observers.length === 0 && !this.__lastObserver) {
+      return;
+    }
+    
+    // Cache the current value for consistent notifications
+    const value = this.__value;
+    
+    // Use direct array access with for-loop instead of creating a new array and using forEach
+    const observers = this.__observers;
+    const len = observers.length;
+    
+    // Highly optimized path for single observer (common case)
+    if (len === 1 && !this.__lastObserver) {
+      const observer = observers[0];
+      if (observer) {
+        if (typeof observer === "function") {
+          observer(value);
+        } else if (observer.next) {
+          observer.next(value);
+        }
       }
-    });
+      return;
+    }
+    
+    // Handle multiple observers with faster while-loop counting down
+    let i = len;
+    while (i--) {
+      const observer = observers[i];
+      if (observer) {
+        if (typeof observer === "function") {
+          observer(value);
+        } else if (observer.next) {
+          observer.next(value);
+        }
+      }
+    }
+    
+    // Handle the last observer separately (if exists)
+    if (this.__lastObserver) {
+      if (typeof this.__lastObserver === "function") {
+        this.__lastObserver(value);
+      } else if (this.__lastObserver && this.__lastObserver.next) {
+        this.__lastObserver.next(value);
+      }
+    }
   }
 
   /**
@@ -334,50 +497,134 @@ class ObservableState extends Observable {
    * @description This method applies all the pending updates to the value.
    * It then notifies all the observers with the updated value.
    */
+  /**
+   * Optimized update application with fast paths for common cases
+   * @private
+   */
   __applyUpdates() {
-    let oldValue = this.__value;
-    while (this.__pendingUpdates.length > 0) {
-      const updater = this.__pendingUpdates.shift();
-      if ((typeof this.__value === 'object' && this.__value !== null && this.__value.constructor === Object) || Array.isArray(this.__value)) {
-        this.__value = produce(this.__value, updater);
+    // Skip the expensive _deepEqual check by tracking changes explicitly
+    let hasChanged = false;
+    
+    // Cache the old value only if needed for event emission
+    const needsEventOrTrace = __config.events.isEnabled || __trace.isEnabled;
+    const oldValue = needsEventOrTrace ? this.__value : undefined;
+    
+    // Process all pending updates at once
+    const updates = this.__pendingUpdates;
+    const updateCount = updates.length;
+    
+    if (updateCount === 0) {
+      // No updates, nothing to do
+      this.__updateScheduled = false;
+      return;
+    }
+    
+    // Fast path for simple values (not objects or arrays)
+    const isComplexValue = (typeof this.__value === "object" && 
+                           this.__value !== null && 
+                           (this.__value.constructor === Object || Array.isArray(this.__value)));
+    
+    if (isComplexValue) {
+      // For objects/arrays, use immer's produce
+      // Apply all updates in a batch
+      if (updateCount === 1) {
+        // Fast path for single update (common case)
+        const updater = updates[0];
+        const newValue = produce(this.__value, updater);
+        
+        // First try reference equality (fast)
+        if (newValue !== this.__value) {
+          // For objects/arrays, do deep equality check to avoid unnecessary updates
+          if (typeof newValue === 'object' && newValue !== null &&
+              typeof this.__value === 'object' && this.__value !== null) {
+            if (!_deepEqual(newValue, this.__value)) {
+              hasChanged = true;
+              this.__value = newValue;
+            }
+          } else {
+            hasChanged = true;
+            this.__value = newValue;
+          }
+        }
       } else {
-        this.__value = updater(this.__value);
+        // When multiple updates exist, apply them in sequence
+        let currentValue = this.__value;
+        for (let i = 0; i < updateCount; i++) {
+          const updater = updates[i];
+          const newValue = produce(currentValue, updater);
+          // First try reference equality (fast)
+          if (newValue !== currentValue) {
+            // For objects/arrays, do deep equality check to avoid unnecessary updates
+            if (typeof newValue === 'object' && newValue !== null &&
+                typeof currentValue === 'object' && currentValue !== null) {
+              if (!_deepEqual(newValue, currentValue)) {
+                hasChanged = true;
+                currentValue = newValue;
+              }
+            } else {
+              hasChanged = true;
+              currentValue = newValue;
+            }
+          }
+        }
+        
+        if (hasChanged) {
+          this.__value = currentValue;
+        }
+      }
+    } else {
+      // For primitive values, apply updaters directly in sequence
+      let currentValue = this.__value;
+      for (let i = 0; i < updateCount; i++) {
+        const updater = updates[i];
+        const newValue = updater(currentValue);
+        // First try reference equality (fast)
+        if (newValue !== currentValue) {
+          // For objects/arrays, do deep equality check to avoid unnecessary updates
+          if (typeof newValue === 'object' && newValue !== null &&
+              typeof currentValue === 'object' && currentValue !== null) {
+            if (!_deepEqual(newValue, currentValue)) {
+              hasChanged = true;
+              currentValue = newValue;
+            }
+          } else {
+            hasChanged = true;
+            currentValue = newValue;
+          }
+        }
+      }
+      
+      if (hasChanged) {
+        this.__value = currentValue;
       }
     }
-    if (oldValue !== this.__value) {
+    
+    // Clear the update queue - faster than multiple shift() calls
+    updates.length = 0;
+    
+    // Only notify observers if the value actually changed
+    if (hasChanged) {
       this.__notifyObservers();
-
-      if (__config.events.isEnabled && typeof window !== 'undefined') {
-        const event = new CustomEvent('cami:state:change', {
+      
+      // Only emit events if necessary and configured
+      if (__config.events.isEnabled && typeof window !== "undefined") {
+        const event = new CustomEvent("cami:elem:state:change", {
           detail: {
             name: this.__name,
             oldValue: oldValue,
-            newValue: this.__value
-          }
+            newValue: this.__value,
+          },
         });
         window.dispatchEvent(event);
       }
-
-      __trace('cami:state:change', this.__name, oldValue, this.__value);
+      
+      // Only trace if enabled
+      if (needsEventOrTrace) {
+        __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
+      }
     }
+    
     this.__updateScheduled = false;
-  }
-
-  /**
-   * @method
-   * @description Converts the ObservableState to an ObservableStream.
-   * @returns {ObservableStream} The ObservableStream that emits the same values as the ObservableState.
-   * @example
-   * const stream = observable.toStream();
-   */
-  toStream() {
-    const stream = new ObservableStream();
-    this.subscribe({
-      next: value => stream.emit(value),
-      error: err => stream.error(err),
-      complete: () => stream.end(),
-    });
-    return stream;
   }
 
   /**
@@ -387,114 +634,13 @@ class ObservableState extends Observable {
    * observable.complete();
    */
   complete() {
-    this.__observers.forEach(observer => {
-      if (observer && typeof observer.complete === 'function') {
+    this.__observers.forEach((observer) => {
+      if (observer && typeof observer.complete === "function") {
         observer.complete();
       }
     });
   }
 }
-
-/**
- * @class
- * @extends ObservableState
- * @description ComputedState class that extends ObservableState and holds additional methods for computed observables
- */
-class ComputedState extends ObservableState {
-  /**
-   * @constructor
-   * @param {Function} computeFn - The function to compute the value of the observable
-   * @example
-   * const computedState = new ComputedState(() => observable.value * 2);
-   */
-  constructor(computeFn) {
-    super(null);
-    this.computeFn = computeFn;
-    this.dependencies = new Set();
-    this.subscriptions = new Map();
-    this.__compute();
-  }
-
-  /**
-   * @method
-   * @returns {any} The current value of the observable
-   * @example
-   * const value = computedState.value;
-   */
-  get value() {
-    if (DependencyTracker.current) {
-      DependencyTracker.current.addDependency(this);
-    }
-    return this.__value;
-  }
-
-  /**
-   * @private
-   * @method
-   * @description Computes the new value of the observable and notifies observers if it has changed
-   */
-  __compute() {
-    /**
-     * @description The tracker object is used to manage dependencies between observables.
-     * It has a method 'addDependency' which takes an observable as an argument.
-     * If the observable is not already in the dependencies set, it adds the observable to the set,
-     * and sets up a subscription to the observable.
-     * The subscription calls the 'compute' method of the ComputedState instance whenever the observable's value changes.
-     * This ensures that the ComputedState's value is always up-to-date with its dependencies.
-     */
-    const tracker = {
-      addDependency: (observable) => {
-        if (!this.dependencies.has(observable)) {
-          const subscription = observable.onValue(() => this.__compute());
-          this.dependencies.add(observable);
-          this.subscriptions.set(observable, subscription);
-        }
-      }
-    };
-
-    /**
-     * @description The DependencyTracker is a global object that is used to track dependencies of computed observables.
-     * It is set to the current tracker object before the compute function is called.
-     * This allows the compute function to add dependencies to the tracker object as it executes.
-     * After the compute function has finished executing, the DependencyTracker is set back to null.
-     * This is done to prevent further dependencies from being added after the computation is complete.
-     * This ensures that the dependencies of the computed observable are accurately tracked and updated.
-     */
-    DependencyTracker.current = tracker;
-    const newValue = this.computeFn();
-    DependencyTracker.current = null;
-
-    if (newValue !== this.__value) {
-      this.__value = newValue;
-      this.__notifyObservers();
-    }
-  }
-
-  /**
-   * @method
-   * @description Unsubscribes from all dependencies
-   * @example
-   * // Assuming `obs` is an instance of ObservableState
-   * obs.dispose(); // This will unsubscribe obs from all its dependencies
-   */
-  dispose() {
-    this.subscriptions.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-  }
-}
-
-/**
- * @function
- * @param {Function} computeFn - The function to compute the value of the observable
- * @returns {ComputedState} A new instance of ComputedState
- * @example
- * // Assuming `computeFn` is a function that computes the value of the observable
- * const computedValue = computed(computeFn);
- */
-const computed = function(computeFn) {
-  return new ComputedState(computeFn);
-};
 
 /**
  * @function
@@ -508,63 +654,96 @@ const computed = function(computeFn) {
 const effect = function(effectFn) {
   let cleanup = () => {};
   let dependencies = new Set();
-  let subscriptions = new Map();
 
-  /**
-   * The tracker object is used to keep track of dependencies for the effect function.
-   * It provides a method to add a dependency (an observable) to the dependencies set.
-   * If the observable is not already a dependency, it is added to the set and a subscription is created
-   * to run the effect function whenever the observable's value changes.
-   * This mechanism allows the effect function to respond to state changes in its dependencies.
-   */
-  const tracker = {
-    addDependency: (observable) => {
+  const _runEffect = () => {
+    // Clean up previous effect
+    cleanup();
+
+    // Track dependencies with optimized object allocation
+    DependencyTracker.current = { addDependency };  // Reuse the same function reference
+    
+    function addDependency(observable) {
       if (!dependencies.has(observable)) {
-        const subscription = observable.onValue(_runEffect);
         dependencies.add(observable);
-        subscriptions.set(observable, subscription);
+        observable.onValue(_runEffect);
       }
+    }
+
+    // Run the effect
+    try {
+      cleanup = effectFn() || (() => {});
+    } finally {
+      DependencyTracker.current = null;
     }
   };
 
-  /**
-   * The _runEffect function is responsible for running the effect function and managing its dependencies.
-   * Before the effect function is run, any cleanup from the previous run is performed and the current tracker
-   * is set to this tracker. This allows the effect function to add dependencies via the tracker while it is running.
-   * After the effect function has run, the current tracker is set back to null to prevent further dependencies
-   * from being added outside of the effect function.
-   * The effect function is expected to return a cleanup function, which is saved for the next run.
-   * The cleanup function, initially empty, is replaced by the one returned from effectFn (run by the observable) before each new run and on effect disposal.
-   */
-  const _runEffect = () => {
+  // Initial run
+  _runEffect();
+
+  // Return dispose function
+  return () => {
     cleanup();
-    DependencyTracker.current = tracker;
-    cleanup = effectFn() || (() => {});
-    DependencyTracker.current = null;
+    dependencies.forEach(dep => dep.__observers = dep.__observers.filter(obs => obs !== _runEffect));
+    dependencies.clear();
+  };
+};
+
+/**
+ * @function
+ * @param {Function} deriveFn - The function to compute the derived value
+ * @returns {Object} An object containing the current derived value and a dispose function
+ * @description This function creates a derived value that updates when its dependencies change
+ * @example
+ * const count = new ObservableState(0);
+ * const { value: doubleCount, dispose } = derive(() => count.value * 2);
+ * console.log(doubleCount); // 0
+ * count.value = 5;
+ * console.log(doubleCount); // 10
+ * dispose(); // Clean up when no longer needed
+ */
+const derive = function (deriveFn) {
+  let dependencies = new Set();
+  let subscriptions = new Map();
+  let currentValue;
+
+  const tracker = {
+    addDependency: (observable) => {
+      if (!dependencies.has(observable)) {
+        const subscription = observable.onValue(_computeDerivedValue);
+        dependencies.add(observable);
+        subscriptions.set(observable, subscription);
+      }
+    },
   };
 
-  if (typeof window !== 'undefined') {
-    requestAnimationFrame(_runEffect);
-  } else {
-    setTimeout(_runEffect, 0);
-  }
+  const _computeDerivedValue = () => {
+    DependencyTracker.current = tracker;
+    try {
+      currentValue = deriveFn();
+    } catch (error) {
+      console.warn("[Cami.js] Error in derive function:", error.message);
+    } finally {
+      DependencyTracker.current = null;
+    }
 
-  /**
-   * @method
-   * @description Unsubscribes from all dependencies and runs cleanup function
-   * @returns {void}
-   * @example
-   * // Assuming `dispose` is the function returned by `effect`
-   * dispose(); // This will unsubscribe from all dependencies and run cleanup function
-   */
+    try {
+      DependencyTracker.detectCycles();
+    } catch (error) {
+      console.warn(error.message);
+    }
+  };
+
+  _computeDerivedValue();
+
   const dispose = () => {
     subscriptions.forEach((subscription) => {
       subscription.unsubscribe();
     });
-    cleanup();
+    subscriptions.clear();
+    dependencies.clear();
   };
 
-  return dispose;
+  return { value: currentValue, dispose };
 };
 
-export { ObservableState, computed, effect };
+export { ObservableState, effect, derive, DependencyTracker };

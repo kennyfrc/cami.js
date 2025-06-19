@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <h1>Accordion Example</h1>
+  <accordion-component>
+    <h3 slot="title">Section 1</h3>
+    <template>
+      <p>This is the content for section 1.</p>
+    </template>
+  </accordion-component>
+  <accordion-component>
+    <h3 slot="title">Section 2</h3>
+    <template>
+      <p>This is the content for section 2.</p>
+    </template>
+  </accordion-component>
+  <accordion-component>
+    <h3 slot="title">Section 3</h3>
+    <template>
+      <p>This is the content for section 3.</p>
+    </template>
+  </accordion-component>
+</article>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement } = cami;
+
+class AccordionComponent extends ReactiveElement {
+  isOpen = false;
+  content = null;
+
+  toggleAccordion() {
+    this.isOpen = !this.isOpen;
+    if (this.isOpen && !this.content) {
+      const template = this.querySelector('template');
+      if (template) {
+        this.content = template.content.cloneNode(true);
+      }
+    }
+  }
+
+  template() {
+    const titleElement = this.querySelector('[slot="title"]');
+
+    return html`
+      <div class="accordion">
+        <div class="accordion-header" @click=${() => this.toggleAccordion()}>
+          ${titleElement}
+          <span class="accordion-icon">${this.isOpen ? '▲' : '▼'}</span>
+        </div>
+        <div class="accordion-content" style="display: ${this.isOpen ? 'block' : 'none'}">
+          ${this.content}
+        </div>
+      </div>
+    `;
+  }
+}
+
+    customElements.define('accordion-component', AccordionComponent);
+</script>
+<style>
+  .accordion {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+  }
+  .accordion-header {
+    background-color: #f1f1f1;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .accordion-content {
+    padding: 10px;
+  }
+</style>
+  </body>
+</html>

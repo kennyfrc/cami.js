@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Shell</title>
-</head>
-<body style="box-sizing: content-box; margin-inline: auto; max-inline-size: 60vw; margin-top: 10vh;">
-  <article>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
   <h1>Label Updates from Input Forms (Nested Observable)</h1>
   <simple-input-component></simple-input-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
@@ -21,7 +31,7 @@
     user = {};
 
     onConnect() {
-      this.initialUser =  { name: 'Kenn', age: 34, email: 'kenn@example.com' };
+      this.initialUser = { name: "Kenn", age: 34, email: "kenn@example.com" };
       this.user.assign(this.initialUser);
     }
 
@@ -38,24 +48,37 @@
         <form>
           <label>
             Name: ${this.user.name}
-            <input type="text" .value=${this.user.name} @input=${(e) => this.handleInput(e, 'name')} />
+            <input
+              type="text"
+              .value=${this.user.name}
+              @input=${(e) => this.handleInput(e, "name")}
+            />
           </label>
           <label>
             Age: ${this.user.age}
-            <input type="number" .value=${this.user.age} @input=${(e) => this.handleInput(e, 'age')} />
+            <input
+              type="number"
+              .value=${this.user.age}
+              @input=${(e) => this.handleInput(e, "age")}
+            />
           </label>
           <label>
             Email: ${this.user.email}
-            <input type="email" .value=${this.user.email} @input=${(e) => this.handleInput(e, 'email')} />
+            <input
+              type="email"
+              .value=${this.user.email}
+              @input=${(e) => this.handleInput(e, "email")}
+            />
           </label>
-          <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
+          <button type="button" @click=${this.resetForm.bind(this)}>
+            Reset
+          </button>
         </form>
       `;
     }
   }
 
-  customElements.define('simple-input-component', UserFormElement);
+  customElements.define("simple-input-component", UserFormElement);
 </script>
-
-</body>
+  </body>
 </html>

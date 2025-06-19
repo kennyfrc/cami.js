@@ -1,98 +1,126 @@
 <article>
   <h2>Products</h2>
-  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
+  <p>
+    This fetches the products from an API, and uses a client-side store to
+    manage the cart. After adding a product to the cart, you can refresh the
+    page and the cart will still be there as we are persisting the cart to
+    localStorage, which is what you want in a cart.
+  </p>
   <product-list-component></product-list-component>
 </article>
 <article>
-    <h2>Cart</h2>
-    <cart-component></cart-component>
+  <h2>Cart</h2>
+  <cart-component></cart-component>
 </article>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css"
+/>
 <script src="./build/cami.cdn.js"></script>
-<!-- CDN version below -->
-<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
 <script type="module">
-  const { html, ReactiveElement } = cami;
+  const { html, ReactiveElement, store, slice } = cami;
+  cami.debug.enable();
 
-  const appStore = cami.store({}, {
-    name: 'AppStore',
-    expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
-  });
+  const appStore = store(
+    {},
+    {
+      name: "rootStore",
+      expiry: 1000 * 60 * 60 * 24 * 3, // 3 days
+    }
+  );
 
-  const cartSlice = cami.slice(appStore, {
-    name: 'cart',
+  const cartSlice = slice(appStore, {
+    name: "cart",
     state: {
       cartItems: [],
     },
     actions: {
-      add(state, product) {
+      add: (state, product) => {
         const newItem = { ...product, id: Date.now() }; // lame way to generate a unique id
         state.cartItems.push(newItem);
       },
-      remove(state, product) {
-        state.cartItems = state.cartItems.filter(item => item.id !== product.id);
-      }
-    }
+      remove: (state, product) => {
+        state.cartItems = state.cartItems.filter(
+          (item) => item.id !== product.id
+        );
+      },
+    },
   });
 
-  const productSlice = cami.slice(appStore, {
-    name: 'products',
+  const productSlice = slice(appStore, {
+    name: "products",
     state: {
       items: [],
-      status: 'idle',
-      error: null
+      status: "idle",
+      error: "",
     },
     actions: {
-      setProducts(state, products) {
+      setProducts: (state, products) => {
         state.items = products;
       },
-      setStatus(state, status) {
+      setStatus: (state, status) => {
         state.status = status;
       },
-      setError(state, error) {
+      setError: (state, error) => {
         state.error = error;
-      }
-    }
+      },
+    },
+    queries: {
+      fetchProducts: {
+        queryKey: "products/fetch",
+        queryFn: () =>
+          fetch("https://api.camijs.com/products?_limit=3").then((res) =>
+            res.json()
+          ),
+        refetchOnWindowFocus: true,
+        onStart: (context) => {
+          context.actions.setStatus("pending");
+        },
+        onSuccess: (context) => {
+          context.actions.setProducts(context.result);
+          context.actions.setStatus("success");
+        },
+        onError: (context) => {
+          context.actions.setError(context.error);
+          context.actions.setStatus("error");
+        },
+      },
+    },
   });
-
-  cami.debug.enable();
 
   // Define a middleware function
   const loggerMiddleware = (context) => {
-    console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
+    console.log(
+      `Action ${context.action} was dispatched with payload:`,
+      context.payload
+    );
   };
 
   // Use the middleware function with the initialState
   appStore.use(loggerMiddleware);
 
   class ProductListElement extends ReactiveElement {
-    cartItems = [];
-    products = [];
+    onCreate() {
+      this.cartItems = [];
+      this.products = productSlice.getState();
+    }
 
     onConnect() {
-      productSlice.subscribe(state => {
+      productSlice.subscribe((state) => {
         this.products = state;
       });
 
-      cartSlice.subscribe(state => {
+      cartSlice.subscribe((state) => {
         this.cartItems = state.cartItems;
       });
 
-      productSlice.setStatus('pending');
-      fetch("https://api.camijs.com/products?_limit=3")
-        .then(res => res.json())
-        .then(data => {
-          productSlice.setProducts(data);
-          productSlice.setStatus('success');
-        })
-        .catch(error => {
-          productSlice.setError(error);
-          productSlice.setStatus('error');
-        });
+      productSlice.queries.fetchProducts();
     }
 
     isProductInCart(product) {
-      return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
+      return this.cartItems
+        ? this.cartItems.some((item) => item.id === product.id)
+        : false;
     }
 
     isOutOfStock(product) {
@@ -111,46 +139,64 @@
       if (this.products && this.products.items) {
         return html`
           <ul>
-            ${this.products.items.map(product => html`<li>
-              ${product.name} - ${(product.price / 100).toFixed(2)}
-              <button @click=${() => cartSlice.add(product)} ?disabled=${this.isOutOfStock(product)}>
-                Add to cart
-              </button>
-            </li>`)}
+            ${this.products.items.map(
+              (product) => html`<li>
+                ${product.name} - ${(product.price / 100).toFixed(2)}
+                <button
+                  @click=${() => cartSlice.actions.add(product)}
+                  ?disabled=${this.isOutOfStock(product)}
+                >
+                  Add to cart
+                </button>
+              </li>`
+            )}
           </ul>
         `;
       }
     }
   }
 
-  customElements.define('product-list-component', ProductListElement);
+  customElements.define("product-list-component", ProductListElement);
 
   class CartElement extends ReactiveElement {
-    cartItems = [];
+    onCreate() {
+      this.cartItems = cartSlice.getState().cartItems;
+    }
+
     onConnect() {
-      cartSlice.subscribe(state => {
+      cartSlice.subscribe((state) => {
         this.cartItems = state.cartItems;
       });
     }
 
     template() {
       return html`
-        ${this.cartItems.length > 0 ? html`
-          <p>Cart value: ${(this.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
-          <ul>
-            ${this.cartItems.map(item => html`
-              <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => cartSlice.remove(item)}>Remove</button></li>
-            `)}
-          </ul>
-        ` : html`
-          <p>Cart is empty</p>
-        `}
-      `
+        ${this.cartItems.length > 0
+          ? html`
+              <p>
+                Cart value:
+                ${(
+                  this.cartItems.reduce((acc, item) => acc + item.price, 0) /
+                  100
+                ).toFixed(2)}
+              </p>
+              <ul>
+                ${this.cartItems.map(
+                  (item) => html`
+                    <li>
+                      ${item.name} - ${(item.price / 100).toFixed(2)}
+                      <button @click=${() => cartSlice.actions.remove(item)}>
+                        Remove
+                      </button>
+                    </li>
+                  `
+                )}
+              </ul>
+            `
+          : html` <p>Cart is empty</p> `}
+      `;
     }
   }
 
-  customElements.define('cart-component', CartElement);
+  customElements.define("cart-component", CartElement);
 </script>
-
-</body>
-</html>
