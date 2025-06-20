@@ -17,10 +17,7 @@ var __spreadValues = (a3, b3) => {
   return a3;
 };
 var __spreadProps = (a3, b3) => __defProps(a3, __getOwnPropDescs(b3));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -42,7 +39,7 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 
-// ../../../../../../../node_modules/lit-html/lit-html.js
+// ../../../node_modules/lit-html/lit-html.js
 var t = globalThis;
 var i = t.trustedTypes;
 var s = i ? i.createPolicy("lit-html", { createHTML: (t5) => t5 }) : void 0;
@@ -72,8 +69,7 @@ var T = Symbol.for("lit-nothing");
 var A = /* @__PURE__ */ new WeakMap();
 var E = r.createTreeWalker(r, 129);
 function C(t5, i5) {
-  if (!Array.isArray(t5) || !t5.hasOwnProperty("raw"))
-    throw Error("invalid template strings array");
+  if (!Array.isArray(t5) || !t5.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return void 0 !== s ? s.createHTML(i5) : i5;
 }
 var P = (t5, i5) => {
@@ -82,8 +78,7 @@ var P = (t5, i5) => {
   for (let i6 = 0; i6 < s4; i6++) {
     const s5 = t5[i6];
     let a3, u5, d3 = -1, y3 = 0;
-    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); )
-      y3 = c4.lastIndex, c4 === f ? "!--" === u5[1] ? c4 = v : void 0 !== u5[1] ? c4 = _ : void 0 !== u5[2] ? ($.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m) : void 0 !== u5[3] && (c4 = m) : c4 === m ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m : '"' === u5[3] ? g : p) : c4 === g || c4 === p ? c4 = m : c4 === v || c4 === _ ? c4 = f : (c4 = m, r4 = void 0);
+    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); ) y3 = c4.lastIndex, c4 === f ? "!--" === u5[1] ? c4 = v : void 0 !== u5[1] ? c4 = _ : void 0 !== u5[2] ? ($.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m) : void 0 !== u5[3] && (c4 = m) : c4 === m ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m : '"' === u5[3] ? g : p) : c4 === g || c4 === p ? c4 = m : c4 === v || c4 === _ ? c4 = f : (c4 = m, r4 = void 0);
     const x3 = c4 === m && t5[i6 + 1].startsWith("/>") ? " " : "";
     l3 += c4 === f ? s5 + n : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e + s5.slice(d3) + h + x3) : s5 + h + (-2 === d3 ? i6 : x3);
   }
@@ -101,30 +96,23 @@ var V = class _V {
     }
     for (; null !== (r4 = E.nextNode()) && d3.length < u5; ) {
       if (1 === r4.nodeType) {
-        if (r4.hasAttributes())
-          for (const t6 of r4.getAttributeNames())
-            if (t6.endsWith(e)) {
-              const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h), e5 = /([.?@])?(.*)/.exec(i5);
-              d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? k : "?" === e5[1] ? H : "@" === e5[1] ? I : R }), r4.removeAttribute(t6);
-            } else
-              t6.startsWith(h) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
+        if (r4.hasAttributes()) for (const t6 of r4.getAttributeNames()) if (t6.endsWith(e)) {
+          const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h), e5 = /([.?@])?(.*)/.exec(i5);
+          d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? k : "?" === e5[1] ? H : "@" === e5[1] ? I : R }), r4.removeAttribute(t6);
+        } else t6.startsWith(h) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
         if ($.test(r4.tagName)) {
           const t6 = r4.textContent.split(h), s5 = t6.length - 1;
           if (s5 > 0) {
             r4.textContent = i ? i.emptyScript : "";
-            for (let i5 = 0; i5 < s5; i5++)
-              r4.append(t6[i5], l()), E.nextNode(), d3.push({ type: 2, index: ++c4 });
+            for (let i5 = 0; i5 < s5; i5++) r4.append(t6[i5], l()), E.nextNode(), d3.push({ type: 2, index: ++c4 });
             r4.append(t6[s5], l());
           }
         }
-      } else if (8 === r4.nodeType)
-        if (r4.data === o)
-          d3.push({ type: 2, index: c4 });
-        else {
-          let t6 = -1;
-          for (; -1 !== (t6 = r4.data.indexOf(h, t6 + 1)); )
-            d3.push({ type: 7, index: c4 }), t6 += h.length - 1;
-        }
+      } else if (8 === r4.nodeType) if (r4.data === o) d3.push({ type: 2, index: c4 });
+      else {
+        let t6 = -1;
+        for (; -1 !== (t6 = r4.data.indexOf(h, t6 + 1)); ) d3.push({ type: 7, index: c4 }), t6 += h.length - 1;
+      }
       c4++;
     }
   }
@@ -135,8 +123,7 @@ var V = class _V {
 };
 function N(t5, i5, s4 = t5, e5) {
   var _a3, _b, _c;
-  if (i5 === w)
-    return i5;
+  if (i5 === w) return i5;
   let h4 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
   const o4 = c(i5) ? void 0 : i5._$litDirective$;
   return (h4 == null ? void 0 : h4.constructor) !== o4 && ((_b = h4 == null ? void 0 : h4._$AO) == null ? void 0 : _b.call(h4, false), void 0 === o4 ? h4 = void 0 : (h4 = new o4(t5), h4._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h4 : s4._$Cl = h4), void 0 !== h4 && (i5 = N(t5, h4._$AS(t5, i5.values), h4, e5)), i5;
@@ -167,8 +154,7 @@ var S = class {
   }
   p(t5) {
     let i5 = 0;
-    for (const s4 of this._$AV)
-      void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
+    for (const s4 of this._$AV) void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
   }
 };
 var M = class _M {
@@ -206,8 +192,7 @@ var M = class _M {
   g(t5) {
     var _a3;
     const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = V.createElement(C(s4.h, s4.h[0]), this.options)), s4);
-    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5)
-      this._$AH.p(i5);
+    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5) this._$AH.p(i5);
     else {
       const t6 = new S(e5, this), s5 = t6.u(this.options);
       t6.p(i5), this.$(s5), this._$AH = t6;
@@ -221,8 +206,7 @@ var M = class _M {
     a(this._$AH) || (this._$AH = [], this._$AR());
     const i5 = this._$AH;
     let s4, e5 = 0;
-    for (const h4 of t5)
-      e5 === i5.length ? i5.push(s4 = new _M(this.k(l()), this.k(l()), this, this.options)) : s4 = i5[e5], s4._$AI(h4), e5++;
+    for (const h4 of t5) e5 === i5.length ? i5.push(s4 = new _M(this.k(l()), this.k(l()), this, this.options)) : s4 = i5[e5], s4._$AI(h4), e5++;
     e5 < i5.length && (this._$AR(s4 && s4._$AB.nextSibling, e5), i5.length = e5);
   }
   _$AR(t5 = this._$AA.nextSibling, i5) {
@@ -250,13 +234,11 @@ var R = class {
   _$AI(t5, i5 = this, s4, e5) {
     const h4 = this.strings;
     let o4 = false;
-    if (void 0 === h4)
-      t5 = N(this, t5, i5, 0), o4 = !c(t5) || t5 !== this._$AH && t5 !== w, o4 && (this._$AH = t5);
+    if (void 0 === h4) t5 = N(this, t5, i5, 0), o4 = !c(t5) || t5 !== this._$AH && t5 !== w, o4 && (this._$AH = t5);
     else {
       const e6 = t5;
       let n3, r4;
-      for (t5 = h4[0], n3 = 0; n3 < h4.length - 1; n3++)
-        r4 = N(this, e6[s4 + n3], i5, n3), r4 === w && (r4 = this._$AH[n3]), o4 || (o4 = !c(r4) || r4 !== this._$AH[n3]), r4 === T ? t5 = T : t5 !== T && (t5 += (r4 != null ? r4 : "") + h4[n3 + 1]), this._$AH[n3] = r4;
+      for (t5 = h4[0], n3 = 0; n3 < h4.length - 1; n3++) r4 = N(this, e6[s4 + n3], i5, n3), r4 === w && (r4 = this._$AH[n3]), o4 || (o4 = !c(r4) || r4 !== this._$AH[n3]), r4 === T ? t5 = T : t5 !== T && (t5 += (r4 != null ? r4 : "") + h4[n3 + 1]), this._$AH[n3] = r4;
     }
     o4 && !e5 && this.j(t5);
   }
@@ -286,8 +268,7 @@ var I = class extends R {
   }
   _$AI(t5, i5 = this) {
     var _a3;
-    if ((t5 = (_a3 = N(this, t5, i5, 0)) != null ? _a3 : T) === w)
-      return;
+    if ((t5 = (_a3 = N(this, t5, i5, 0)) != null ? _a3 : T) === w) return;
     const s4 = this._$AH, e5 = t5 === T && s4 !== T || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h4 = t5 !== T && (s4 === T || e5);
     e5 && this.element.removeEventListener(this.name, this, s4), h4 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
   }
@@ -312,7 +293,7 @@ var Z = t.litHtmlPolyfillSupport;
 var _a;
 Z == null ? void 0 : Z(V, M), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.0.0");
 
-// ../../../../../../../node_modules/lit-html/directive.js
+// ../../../node_modules/lit-html/directive.js
 var t2 = { ATTRIBUTE: 1, CHILD: 2, PROPERTY: 3, BOOLEAN_ATTRIBUTE: 4, EVENT: 5, ELEMENT: 6 };
 var e2 = (t5) => (...e5) => ({ _$litDirective$: t5, values: e5 });
 var i2 = class {
@@ -332,21 +313,16 @@ var i2 = class {
   }
 };
 
-// ../../../../../../../node_modules/lit-html/directives/unsafe-html.js
+// ../../../node_modules/lit-html/directives/unsafe-html.js
 var e3 = class extends i2 {
   constructor(i5) {
-    if (super(i5), this.et = T, i5.type !== t2.CHILD)
-      throw Error(this.constructor.directiveName + "() can only be used in child bindings");
+    if (super(i5), this.et = T, i5.type !== t2.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
   }
   render(r4) {
-    if (r4 === T || null == r4)
-      return this.vt = void 0, this.et = r4;
-    if (r4 === w)
-      return r4;
-    if ("string" != typeof r4)
-      throw Error(this.constructor.directiveName + "() called with a non-string value");
-    if (r4 === this.et)
-      return this.vt;
+    if (r4 === T || null == r4) return this.vt = void 0, this.et = r4;
+    if (r4 === w) return r4;
+    if ("string" != typeof r4) throw Error(this.constructor.directiveName + "() called with a non-string value");
+    if (r4 === this.et) return this.vt;
     this.et = r4;
     const s4 = [r4];
     return s4.raw = s4, this.vt = { _$litType$: this.constructor.resultType, strings: s4, values: [] };
@@ -355,7 +331,7 @@ var e3 = class extends i2 {
 e3.directiveName = "unsafeHTML", e3.resultType = 1;
 var o2 = e2(e3);
 
-// ../../../../../../../node_modules/lit-html/directive-helpers.js
+// ../../../node_modules/lit-html/directive-helpers.js
 var { D: t3 } = z;
 var s2 = () => document.createComment("");
 var r2 = (o4, i5, n3) => {
@@ -395,7 +371,7 @@ var h2 = (o4) => {
   }
 };
 
-// ../../../../../../../node_modules/lit-html/directives/keyed.js
+// ../../../node_modules/lit-html/directives/keyed.js
 var i3 = e2(class extends i2 {
   constructor() {
     super(...arguments), this.key = T;
@@ -408,25 +384,22 @@ var i3 = e2(class extends i2 {
   }
 });
 
-// ../../../../../../../node_modules/lit-html/directives/repeat.js
+// ../../../node_modules/lit-html/directives/repeat.js
 var u3 = (e5, s4, t5) => {
   const r4 = /* @__PURE__ */ new Map();
-  for (let l3 = s4; l3 <= t5; l3++)
-    r4.set(e5[l3], l3);
+  for (let l3 = s4; l3 <= t5; l3++) r4.set(e5[l3], l3);
   return r4;
 };
 var c2 = e2(class extends i2 {
   constructor(e5) {
-    if (super(e5), e5.type !== t2.CHILD)
-      throw Error("repeat() can only be used in text expressions");
+    if (super(e5), e5.type !== t2.CHILD) throw Error("repeat() can only be used in text expressions");
   }
   ht(e5, s4, t5) {
     let r4;
     void 0 === t5 ? t5 = s4 : void 0 !== s4 && (r4 = s4);
     const l3 = [], o4 = [];
     let i5 = 0;
-    for (const s5 of e5)
-      l3[i5] = r4 ? r4(s5, i5) : i5, o4[i5] = t5(s5, i5), i5++;
+    for (const s5 of e5) l3[i5] = r4 ? r4(s5, i5) : i5, o4[i5] = t5(s5, i5), i5++;
     return { values: o4, keys: l3 };
   }
   render(e5, s4, t5) {
@@ -435,36 +408,24 @@ var c2 = e2(class extends i2 {
   update(s4, [t5, r4, c4]) {
     var _a3;
     const d3 = p2(s4), { values: p4, keys: a3 } = this.ht(t5, r4, c4);
-    if (!Array.isArray(d3))
-      return this.dt = a3, p4;
+    if (!Array.isArray(d3)) return this.dt = a3, p4;
     const h4 = (_a3 = this.dt) != null ? _a3 : this.dt = [], v4 = [];
     let m4, y3, x3 = 0, j2 = d3.length - 1, k3 = 0, w3 = p4.length - 1;
-    for (; x3 <= j2 && k3 <= w3; )
-      if (null === d3[x3])
-        x3++;
-      else if (null === d3[j2])
-        j2--;
-      else if (h4[x3] === a3[k3])
-        v4[k3] = v2(d3[x3], p4[k3]), x3++, k3++;
-      else if (h4[j2] === a3[w3])
-        v4[w3] = v2(d3[j2], p4[w3]), j2--, w3--;
-      else if (h4[x3] === a3[w3])
-        v4[w3] = v2(d3[x3], p4[w3]), r2(s4, v4[w3 + 1], d3[x3]), x3++, w3--;
-      else if (h4[j2] === a3[k3])
-        v4[k3] = v2(d3[j2], p4[k3]), r2(s4, d3[x3], d3[j2]), j2--, k3++;
-      else if (void 0 === m4 && (m4 = u3(a3, k3, w3), y3 = u3(h4, x3, j2)), m4.has(h4[x3]))
-        if (m4.has(h4[j2])) {
-          const e5 = y3.get(a3[k3]), t6 = void 0 !== e5 ? d3[e5] : null;
-          if (null === t6) {
-            const e6 = r2(s4, d3[x3]);
-            v2(e6, p4[k3]), v4[k3] = e6;
-          } else
-            v4[k3] = v2(t6, p4[k3]), r2(s4, d3[x3], t6), d3[e5] = null;
-          k3++;
-        } else
-          h2(d3[j2]), j2--;
-      else
-        h2(d3[x3]), x3++;
+    for (; x3 <= j2 && k3 <= w3; ) if (null === d3[x3]) x3++;
+    else if (null === d3[j2]) j2--;
+    else if (h4[x3] === a3[k3]) v4[k3] = v2(d3[x3], p4[k3]), x3++, k3++;
+    else if (h4[j2] === a3[w3]) v4[w3] = v2(d3[j2], p4[w3]), j2--, w3--;
+    else if (h4[x3] === a3[w3]) v4[w3] = v2(d3[x3], p4[w3]), r2(s4, v4[w3 + 1], d3[x3]), x3++, w3--;
+    else if (h4[j2] === a3[k3]) v4[k3] = v2(d3[j2], p4[k3]), r2(s4, d3[x3], d3[j2]), j2--, k3++;
+    else if (void 0 === m4 && (m4 = u3(a3, k3, w3), y3 = u3(h4, x3, j2)), m4.has(h4[x3])) if (m4.has(h4[j2])) {
+      const e5 = y3.get(a3[k3]), t6 = void 0 !== e5 ? d3[e5] : null;
+      if (null === t6) {
+        const e6 = r2(s4, d3[x3]);
+        v2(e6, p4[k3]), v4[k3] = e6;
+      } else v4[k3] = v2(t6, p4[k3]), r2(s4, d3[x3], t6), d3[e5] = null;
+      k3++;
+    } else h2(d3[j2]), j2--;
+    else h2(d3[x3]), x3++;
     for (; k3 <= w3; ) {
       const e5 = r2(s4, v4[w3 + 1]);
       v2(e5, p4[k3]), v4[k3++] = e5;
@@ -1668,8 +1629,7 @@ var E2 = Symbol.for("lit-nothing");
 var A2 = /* @__PURE__ */ new WeakMap();
 var C2 = r3.createTreeWalker(r3, 129);
 function P2(t5, i5) {
-  if (!a2(t5) || !t5.hasOwnProperty("raw"))
-    throw Error("invalid template strings array");
+  if (!a2(t5) || !t5.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return void 0 !== s3 ? s3.createHTML(i5) : i5;
 }
 var V2 = (t5, i5) => {
@@ -1678,8 +1638,7 @@ var V2 = (t5, i5) => {
   for (let i6 = 0; i6 < s4; i6++) {
     const s5 = t5[i6];
     let a3, u5, d3 = -1, y3 = 0;
-    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); )
-      y3 = c4.lastIndex, c4 === f2 ? "!--" === u5[1] ? c4 = v3 : void 0 !== u5[1] ? c4 = _2 : void 0 !== u5[2] ? ($2.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m3) : void 0 !== u5[3] && (c4 = m3) : c4 === m3 ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f2, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m3 : '"' === u5[3] ? g2 : p3) : c4 === g2 || c4 === p3 ? c4 = m3 : c4 === v3 || c4 === _2 ? c4 = f2 : (c4 = m3, r4 = void 0);
+    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); ) y3 = c4.lastIndex, c4 === f2 ? "!--" === u5[1] ? c4 = v3 : void 0 !== u5[1] ? c4 = _2 : void 0 !== u5[2] ? ($2.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m3) : void 0 !== u5[3] && (c4 = m3) : c4 === m3 ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f2, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m3 : '"' === u5[3] ? g2 : p3) : c4 === g2 || c4 === p3 ? c4 = m3 : c4 === v3 || c4 === _2 ? c4 = f2 : (c4 = m3, r4 = void 0);
     const x3 = c4 === m3 && t5[i6 + 1].startsWith("/>") ? " " : "";
     l3 += c4 === f2 ? s5 + n2 : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e4 + s5.slice(d3) + h3 + x3) : s5 + h3 + (-2 === d3 ? i6 : x3);
   }
@@ -1697,30 +1656,23 @@ var N2 = class _N {
     }
     for (; null !== (r4 = C2.nextNode()) && d3.length < u5; ) {
       if (1 === r4.nodeType) {
-        if (r4.hasAttributes())
-          for (const t6 of r4.getAttributeNames())
-            if (t6.endsWith(e4)) {
-              const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h3), e5 = /([.?@])?(.*)/.exec(i5);
-              d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H2 : "?" === e5[1] ? I2 : "@" === e5[1] ? L2 : k2 }), r4.removeAttribute(t6);
-            } else
-              t6.startsWith(h3) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
+        if (r4.hasAttributes()) for (const t6 of r4.getAttributeNames()) if (t6.endsWith(e4)) {
+          const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h3), e5 = /([.?@])?(.*)/.exec(i5);
+          d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H2 : "?" === e5[1] ? I2 : "@" === e5[1] ? L2 : k2 }), r4.removeAttribute(t6);
+        } else t6.startsWith(h3) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
         if ($2.test(r4.tagName)) {
           const t6 = r4.textContent.split(h3), s5 = t6.length - 1;
           if (s5 > 0) {
             r4.textContent = i4 ? i4.emptyScript : "";
-            for (let i5 = 0; i5 < s5; i5++)
-              r4.append(t6[i5], l2()), C2.nextNode(), d3.push({ type: 2, index: ++c4 });
+            for (let i5 = 0; i5 < s5; i5++) r4.append(t6[i5], l2()), C2.nextNode(), d3.push({ type: 2, index: ++c4 });
             r4.append(t6[s5], l2());
           }
         }
-      } else if (8 === r4.nodeType)
-        if (r4.data === o3)
-          d3.push({ type: 2, index: c4 });
-        else {
-          let t6 = -1;
-          for (; -1 !== (t6 = r4.data.indexOf(h3, t6 + 1)); )
-            d3.push({ type: 7, index: c4 }), t6 += h3.length - 1;
-        }
+      } else if (8 === r4.nodeType) if (r4.data === o3) d3.push({ type: 2, index: c4 });
+      else {
+        let t6 = -1;
+        for (; -1 !== (t6 = r4.data.indexOf(h3, t6 + 1)); ) d3.push({ type: 7, index: c4 }), t6 += h3.length - 1;
+      }
       c4++;
     }
   }
@@ -1731,8 +1683,7 @@ var N2 = class _N {
 };
 function S2(t5, i5, s4 = t5, e5) {
   var _a3, _b, _c;
-  if (i5 === T2)
-    return i5;
+  if (i5 === T2) return i5;
   let h4 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
   const o4 = c3(i5) ? void 0 : i5._$litDirective$;
   return (h4 == null ? void 0 : h4.constructor) !== o4 && ((_b = h4 == null ? void 0 : h4._$AO) == null ? void 0 : _b.call(h4, false), void 0 === o4 ? h4 = void 0 : (h4 = new o4(t5), h4._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h4 : s4._$Cl = h4), void 0 !== h4 && (i5 = S2(t5, h4._$AS(t5, i5.values), h4, e5)), i5;
@@ -1763,8 +1714,7 @@ var M2 = class {
   }
   p(t5) {
     let i5 = 0;
-    for (const s4 of this._$AV)
-      void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
+    for (const s4 of this._$AV) void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
   }
 };
 var R2 = class _R {
@@ -1802,8 +1752,7 @@ var R2 = class _R {
   $(t5) {
     var _a3;
     const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = N2.createElement(P2(s4.h, s4.h[0]), this.options)), s4);
-    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5)
-      this._$AH.p(i5);
+    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5) this._$AH.p(i5);
     else {
       const t6 = new M2(e5, this), s5 = t6.u(this.options);
       t6.p(i5), this.T(s5), this._$AH = t6;
@@ -1817,8 +1766,7 @@ var R2 = class _R {
     a2(this._$AH) || (this._$AH = [], this._$AR());
     const i5 = this._$AH;
     let s4, e5 = 0;
-    for (const h4 of t5)
-      e5 === i5.length ? i5.push(s4 = new _R(this.O(l2()), this.O(l2()), this, this.options)) : s4 = i5[e5], s4._$AI(h4), e5++;
+    for (const h4 of t5) e5 === i5.length ? i5.push(s4 = new _R(this.O(l2()), this.O(l2()), this, this.options)) : s4 = i5[e5], s4._$AI(h4), e5++;
     e5 < i5.length && (this._$AR(s4 && s4._$AB.nextSibling, e5), i5.length = e5);
   }
   _$AR(t5 = this._$AA.nextSibling, i5) {
@@ -1846,13 +1794,11 @@ var k2 = class {
   _$AI(t5, i5 = this, s4, e5) {
     const h4 = this.strings;
     let o4 = false;
-    if (void 0 === h4)
-      t5 = S2(this, t5, i5, 0), o4 = !c3(t5) || t5 !== this._$AH && t5 !== T2, o4 && (this._$AH = t5);
+    if (void 0 === h4) t5 = S2(this, t5, i5, 0), o4 = !c3(t5) || t5 !== this._$AH && t5 !== T2, o4 && (this._$AH = t5);
     else {
       const e6 = t5;
       let n3, r4;
-      for (t5 = h4[0], n3 = 0; n3 < h4.length - 1; n3++)
-        r4 = S2(this, e6[s4 + n3], i5, n3), r4 === T2 && (r4 = this._$AH[n3]), o4 || (o4 = !c3(r4) || r4 !== this._$AH[n3]), r4 === E2 ? t5 = E2 : t5 !== E2 && (t5 += (r4 != null ? r4 : "") + h4[n3 + 1]), this._$AH[n3] = r4;
+      for (t5 = h4[0], n3 = 0; n3 < h4.length - 1; n3++) r4 = S2(this, e6[s4 + n3], i5, n3), r4 === T2 && (r4 = this._$AH[n3]), o4 || (o4 = !c3(r4) || r4 !== this._$AH[n3]), r4 === E2 ? t5 = E2 : t5 !== E2 && (t5 += (r4 != null ? r4 : "") + h4[n3 + 1]), this._$AH[n3] = r4;
     }
     o4 && !e5 && this.j(t5);
   }
@@ -1882,8 +1828,7 @@ var L2 = class extends k2 {
   }
   _$AI(t5, i5 = this) {
     var _a3;
-    if ((t5 = (_a3 = S2(this, t5, i5, 0)) != null ? _a3 : E2) === T2)
-      return;
+    if ((t5 = (_a3 = S2(this, t5, i5, 0)) != null ? _a3 : E2) === T2) return;
     const s4 = this._$AH, e5 = t5 === E2 && s4 !== E2 || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h4 = t5 !== E2 && (s4 === E2 || e5);
     e5 && this.element.removeEventListener(this.name, this, s4), h4 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
   }
@@ -1991,8 +1936,7 @@ var Subscriber = class {
    * @description Unsubscribes from the observable, preventing any further notifications.
    */
   unsubscribe() {
-    if (this.isUnsubscribed)
-      return;
+    if (this.isUnsubscribed) return;
     this.isUnsubscribed = true;
     if (!this.teardowns) {
       this.next = null;
@@ -2103,8 +2047,7 @@ var Observable = class {
   next(value) {
     const observers = this.__observers;
     const len = observers.length;
-    if (len === 0)
-      return;
+    if (len === 0) return;
     if (len === 1) {
       const observer = observers[0];
       if (!observer.isUnsubscribed && observer.next) {
@@ -2226,25 +2169,18 @@ var Observable = class {
 
 // src/utils.js
 var _deepEqual = (a3, b3) => {
-  if (a3 === b3)
-    return true;
-  if (a3 !== a3)
-    return b3 !== b3;
-  if (a3 == null || b3 == null)
-    return false;
-  if (typeof a3 !== "object" || typeof b3 !== "object")
-    return false;
+  if (a3 === b3) return true;
+  if (a3 !== a3) return b3 !== b3;
+  if (a3 == null || b3 == null) return false;
+  if (typeof a3 !== "object" || typeof b3 !== "object") return false;
   if (Array.isArray(a3)) {
-    if (!Array.isArray(b3) || a3.length !== b3.length)
-      return false;
+    if (!Array.isArray(b3) || a3.length !== b3.length) return false;
     for (let i5 = 0; i5 < a3.length; i5++) {
-      if (!_deepEqual(a3[i5], b3[i5]))
-        return false;
+      if (!_deepEqual(a3[i5], b3[i5])) return false;
     }
     return true;
   }
-  if (Array.isArray(b3))
-    return false;
+  if (Array.isArray(b3)) return false;
   if (a3 instanceof Date) {
     return b3 instanceof Date && a3.getTime() === b3.getTime();
   }
@@ -2252,17 +2188,14 @@ var _deepEqual = (a3, b3) => {
     return b3 instanceof RegExp && a3.source === b3.source && a3.flags === b3.flags;
   }
   if (a3 instanceof Map) {
-    if (!(b3 instanceof Map) || a3.size !== b3.size)
-      return false;
+    if (!(b3 instanceof Map) || a3.size !== b3.size) return false;
     for (const [key, val] of a3.entries()) {
-      if (!b3.has(key) || !_deepEqual(val, b3.get(key)))
-        return false;
+      if (!b3.has(key) || !_deepEqual(val, b3.get(key))) return false;
     }
     return true;
   }
   if (a3 instanceof Set) {
-    if (!(b3 instanceof Set) || a3.size !== b3.size)
-      return false;
+    if (!(b3 instanceof Set) || a3.size !== b3.size) return false;
     const aValues = Array.from(a3);
     const bValues = Array.from(b3);
     for (let i5 = 0; i5 < aValues.length; i5++) {
@@ -2273,8 +2206,7 @@ var _deepEqual = (a3, b3) => {
           break;
         }
       }
-      if (!found)
-        return false;
+      if (!found) return false;
     }
     return true;
   }
@@ -2283,16 +2215,13 @@ var _deepEqual = (a3, b3) => {
       return false;
     }
     for (let i5 = 0; i5 < a3.length; i5++) {
-      if (a3[i5] !== b3[i5])
-        return false;
+      if (a3[i5] !== b3[i5]) return false;
     }
     return true;
   }
-  if (a3.constructor !== b3.constructor)
-    return false;
+  if (a3.constructor !== b3.constructor) return false;
   const keys = Object.keys(a3);
-  if (keys.length !== Object.keys(b3).length)
-    return false;
+  if (keys.length !== Object.keys(b3).length) return false;
   const hasOwn = Object.prototype.hasOwnProperty;
   for (let i5 = 0; i5 < keys.length; i5++) {
     const key = keys[i5];
@@ -2305,12 +2234,9 @@ var _deepEqual = (a3, b3) => {
 var _deepMerge = (target, source) => {
   const seen = /* @__PURE__ */ new WeakMap();
   function merge(target2, source2) {
-    if (source2 === void 0)
-      return target2;
-    if (source2 === null)
-      return null;
-    if (typeof source2 !== "object")
-      return source2;
+    if (source2 === void 0) return target2;
+    if (source2 === null) return null;
+    if (typeof source2 !== "object") return source2;
     if (target2 === null || typeof target2 !== "object") {
       if (Array.isArray(source2)) {
         const length = source2.length;
@@ -2356,10 +2282,8 @@ var _deepMerge = (target, source) => {
       return result2;
     }
     if (source2.constructor !== Object) {
-      if (source2 instanceof Date)
-        return new Date(source2.getTime());
-      if (source2 instanceof RegExp)
-        return new RegExp(source2.source, source2.flags);
+      if (source2 instanceof Date) return new Date(source2.getTime());
+      if (source2 instanceof RegExp) return new RegExp(source2.source, source2.flags);
       if (ArrayBuffer.isView(source2) && !(source2 instanceof DataView)) {
         if (typeof Buffer !== "undefined" && source2 instanceof Buffer) {
           return Buffer.from(source2);
@@ -2381,13 +2305,10 @@ var _deepMerge = (target, source) => {
     }
     seen.set(source2, result);
     for (const key in source2) {
-      if (!Object.prototype.hasOwnProperty.call(source2, key))
-        continue;
-      if (key === "__proto__" || key === "constructor")
-        continue;
+      if (!Object.prototype.hasOwnProperty.call(source2, key)) continue;
+      if (key === "__proto__" || key === "constructor") continue;
       const sourceValue = source2[key];
-      if (sourceValue === void 0)
-        continue;
+      if (sourceValue === void 0) continue;
       if (sourceValue === null || typeof sourceValue !== "object") {
         result[key] = sourceValue;
         continue;
@@ -2412,10 +2333,8 @@ var _deepMerge = (target, source) => {
   return merge(target, source);
 };
 var _deepClone = (value, cache = /* @__PURE__ */ new WeakMap()) => {
-  if (value === null || typeof value !== "object")
-    return value;
-  if (cache.has(value))
-    return cache.get(value);
+  if (value === null || typeof value !== "object") return value;
+  if (cache.has(value)) return cache.get(value);
   if (Array.isArray(value)) {
     const length = value.length;
     const result2 = new Array(length);
@@ -2464,7 +2383,7 @@ var _deepClone = (value, cache = /* @__PURE__ */ new WeakMap()) => {
   const result = Object.create(proto);
   cache.set(value, result);
   for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
+    if (typeof key !== "symbol" && Object.prototype.hasOwnProperty.call(value, key)) {
       const val = value[key];
       result[key] = val === null || typeof val !== "object" ? val : _deepClone(val, cache);
     }
@@ -3143,8 +3062,7 @@ var InvariantViolationError = class extends Error {
   }
 };
 function invariant(message, callback) {
-  if (!alwaysEnabled && isProduction)
-    return;
+  if (!alwaysEnabled && isProduction) return;
   if (!callback()) {
     var error = new InvariantViolationError("Invariant Violation: " + message);
     if (!isProduction) {
@@ -3260,18 +3178,15 @@ ${errors2.join("\n\n")}`
   }
   validateItem(value, type, path, rootState) {
     const getTypeCategory = (type2, value2) => {
-      if (type2.type === "optional")
-        return "optional";
-      if (type2.type === "object" && typeof value2 === "object")
-        return "object";
+      if (type2.type === "optional") return "optional";
+      if (type2.type === "object" && typeof value2 === "object") return "object";
       return "other";
     };
     try {
       const typeCategory = getTypeCategory(type, value);
       switch (typeCategory) {
         case "optional":
-          if (value === void 0 || value === null)
-            return;
+          if (value === void 0 || value === null) return;
           return this.validateItem(value, type.optional, path, rootState);
         case "object":
           Object.entries(type.schema).forEach(([key, subType]) => {
@@ -3303,16 +3218,12 @@ Error: ${error.message}`
   // Below are just helper functions to express types when there are validation errors
   __getExpectedTypeString(type) {
     const getTypeCategory = (type2) => {
-      if (typeof type2 === "string")
-        return "string";
+      if (typeof type2 === "string") return "string";
       if (typeof type2 === "object") {
         if (type2.type) {
-          if (type2.type === "object" && type2.schema)
-            return "objectWithSchema";
-          if (type2.type === "array" && type2.itemType)
-            return "array";
-          if (type2.type === "enum" && type2.values)
-            return "enum";
+          if (type2.type === "object" && type2.schema) return "objectWithSchema";
+          if (type2.type === "array" && type2.itemType) return "array";
+          if (type2.type === "enum" && type2.values) return "enum";
           return "simpleType";
         }
         return "typeConstructor";
@@ -3345,14 +3256,10 @@ Error: ${error.message}`
   }
   __getActualTypeString(value) {
     const getValueType = (value2) => {
-      if (value2 === null)
-        return "null";
-      if (Array.isArray(value2))
-        return "array";
-      if (value2 instanceof Date)
-        return "date";
-      if (typeof value2 === "object")
-        return "object";
+      if (value2 === null) return "null";
+      if (Array.isArray(value2)) return "array";
+      if (value2 instanceof Date) return "date";
+      if (typeof value2 === "object") return "object";
       return typeof value2;
     };
     const valueType = getValueType(value);
@@ -3933,7 +3840,8 @@ var ObservableStore = class extends Observable {
       DependencyTracker.current.addDependency(this);
     }
     if (!this._frozenState) {
-      this._frozenState = deepFreeze(this._state);
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState);
     }
     return this._frozenState;
   }
@@ -3946,7 +3854,8 @@ var ObservableStore = class extends Observable {
       DependencyTracker.current.addDependency(this);
     }
     if (!this._frozenState) {
-      this._frozenState = deepFreeze(this._state);
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState);
     }
     return this._frozenState;
   }
@@ -3957,14 +3866,19 @@ var ObservableStore = class extends Observable {
    * This is a critical path for performance optimization
    */
   _createProxy(target) {
-    const STATE_TRAP = Symbol("state-trap");
     const SKIP_PROPS = /* @__PURE__ */ new Set(["constructor", "toJSON"]);
-    if (!target[STATE_TRAP]) {
-      target[STATE_TRAP] = /* @__PURE__ */ new Map();
+    if (!this._stateTrapStore) {
+      this._stateTrapStore = /* @__PURE__ */ new WeakMap();
+    }
+    if (!this._stateTrapStore.has(target)) {
+      this._stateTrapStore.set(target, /* @__PURE__ */ new Map());
     }
     return new Proxy(target, {
       get: (target2, prop, receiver) => {
-        if (typeof prop === "symbol" || SKIP_PROPS.has(prop) || prop === STATE_TRAP) {
+        if (typeof prop === "symbol" || SKIP_PROPS.has(prop)) {
+          if (typeof prop === "symbol") {
+            return void 0;
+          }
           return Reflect.get(target2, prop, receiver);
         }
         if (DependencyTracker.current) {
@@ -3975,7 +3889,7 @@ var ObservableStore = class extends Observable {
           return value;
         }
         if (!Object.getOwnPropertyDescriptor(target2, prop)) {
-          const trapMap = target2[STATE_TRAP];
+          const trapMap = this._stateTrapStore.get(target2);
           if (!trapMap.has(prop)) {
             trapMap.set(prop, value.bind(target2));
           }
@@ -3984,7 +3898,10 @@ var ObservableStore = class extends Observable {
         return value;
       },
       set: (target2, prop, value, receiver) => {
-        if (typeof prop === "symbol" || SKIP_PROPS.has(prop)) {
+        if (typeof prop === "symbol") {
+          return true;
+        }
+        if (SKIP_PROPS.has(prop)) {
           return Reflect.set(target2, prop, value, receiver);
         }
         const oldValue = target2[prop];
@@ -4018,7 +3935,7 @@ var ObservableStore = class extends Observable {
         if (DependencyTracker.current) {
           DependencyTracker.current.addDependency(this);
         }
-        return Reflect.ownKeys(target2);
+        return Reflect.ownKeys(target2).filter((key) => typeof key !== "symbol");
       },
       has: (target2, prop) => {
         if (DependencyTracker.current) {
@@ -4027,6 +3944,9 @@ var ObservableStore = class extends Observable {
         return Reflect.has(target2, prop);
       },
       defineProperty: (target2, prop, descriptor) => {
+        if (typeof prop === "symbol") {
+          return true;
+        }
         const result = Reflect.defineProperty(target2, prop, descriptor);
         if (result) {
           this._isDirty = true;
@@ -4068,8 +3988,7 @@ var ObservableStore = class extends Observable {
    * Only triggers if state has changed and batches notifications
    */
   _notifyObservers() {
-    if (!this._isDirty)
-      return;
+    if (!this._isDirty) return;
     if (this.__observers.length === 0 && !this.__subscriber) {
       this._isDirty = false;
       return;
@@ -4112,10 +4031,8 @@ var ObservableStore = class extends Observable {
   _createDeepSchema(state) {
     const typeCache = /* @__PURE__ */ new Map();
     const inferType = (value) => {
-      if (value === null)
-        return "null";
-      if (value === void 0)
-        return "undefined";
+      if (value === null) return "null";
+      if (value === void 0) return "undefined";
       if (typeCache.has(value)) {
         return typeCache.get(value);
       }
@@ -4141,15 +4058,13 @@ var ObservableStore = class extends Observable {
    * Validates a state object against a schema
    */
   _validateDeepState(schema, state, path = []) {
-    if (!schema || Object.keys(schema).length === 0)
-      return;
+    if (!schema || Object.keys(schema).length === 0) return;
     Object.keys(schema).forEach((key) => {
       const expectedType = schema[key];
       const actualValue = state[key];
       const currentPath = [...path, key];
       const actualType = this._inferType(actualValue);
-      if (actualType === "function")
-        return;
+      if (actualType === "function") return;
       if (typeof expectedType === "object" && expectedType !== null) {
         if (typeof actualValue !== "object" || actualValue === null) {
           throw new TypeError(
@@ -4172,20 +4087,16 @@ var ObservableStore = class extends Observable {
    * Determine the type of a value
    */
   _inferType(value) {
-    if (Array.isArray(value))
-      return "array";
-    if (value === null)
-      return "null";
-    if (value === void 0)
-      return "undefined";
+    if (Array.isArray(value)) return "array";
+    if (value === null) return "null";
+    if (value === void 0) return "undefined";
     return typeof value;
   }
   /**
    * Process the queue of actions to be dispatched
    */
   _processDispatchQueue() {
-    if (this.isDispatching)
-      return;
+    if (this.isDispatching) return;
     this.isDispatching = true;
     try {
       const queue = this.dispatchQueue;
@@ -4242,8 +4153,7 @@ var ObservableStore = class extends Observable {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
       __trace("cami:store:warn", `No reducer found for action ${action}`);
-      console.warn(`No reducer found for action ${action}`);
-      return this.getState();
+      throw new Error(`[Cami.js] No reducer found for action: ${action}`);
     }
     const originalState = _deepClone(this._state);
     try {
@@ -4307,20 +4217,20 @@ var ObservableStore = class extends Observable {
             inversePatches,
             patches
           );
-          if (this.afterHooks.length > 0) {
-            this.__applyHooks("after", {
-              action,
-              payload,
-              state: nextState,
-              previousState: originalState,
-              patches,
-              inversePatches,
-              dispatch: this.dispatch
-            });
-          }
-          if (Object.keys(this.schema).length > 0) {
-            this._validateState(this._state);
-          }
+        }
+        if (this.afterHooks.length > 0) {
+          this.__applyHooks("after", {
+            action,
+            payload,
+            state: nextState,
+            previousState: originalState,
+            patches,
+            inversePatches,
+            dispatch: this.dispatch
+          });
+        }
+        if (Object.keys(this.schema).length > 0) {
+          this._validateState(hasPatches ? this._state : nextState);
         }
         this._notifyObservers();
       } catch (error) {
@@ -4384,15 +4294,13 @@ var ObservableStore = class extends Observable {
     if (type === "before") {
       const hooks = this.beforeHooks;
       const len = hooks.length;
-      if (len === 0)
-        return;
+      if (len === 0) return;
       let i5 = len;
       while (i5--) {
         hooks[i5](context);
       }
     } else if (type === "after") {
-      if (this.afterHooks.length === 0)
-        return;
+      if (this.afterHooks.length === 0) return;
       this.throttledAfterHooks(context);
     }
   }
@@ -4402,14 +4310,14 @@ var ObservableStore = class extends Observable {
   __executeAfterHooks(context) {
     const hooks = this.afterHooks;
     const len = hooks.length;
-    if (len === 0)
-      return;
+    if (len === 0) return;
     let i5 = len;
     while (i5--) {
       try {
         hooks[i5](context);
       } catch (error) {
         console.error(`[Cami.js] Error in afterHook[${i5}]:`, error);
+        throw error;
       }
     }
   }
@@ -4418,16 +4326,14 @@ var ObservableStore = class extends Observable {
    * Optimized for performance with key-based targeting
    */
   _notifyPatchListeners(patches) {
-    if (this.patchListeners.size === 0)
-      return;
+    if (this.patchListeners.size === 0) return;
     const patchesByKey = /* @__PURE__ */ new Map();
     const patchesLen = patches.length;
     let i5 = patchesLen;
     while (i5--) {
       const patch = patches[i5];
       const key = patch.path[0];
-      if (!this.patchListeners.has(key))
-        continue;
+      if (!this.patchListeners.has(key)) continue;
       let keyPatches = patchesByKey.get(key);
       if (!keyPatches) {
         keyPatches = [];
@@ -4437,8 +4343,7 @@ var ObservableStore = class extends Observable {
     }
     for (const [key, keyPatches] of patchesByKey) {
       const listeners = this.patchListeners.get(key);
-      if (!listeners || listeners.length === 0)
-        continue;
+      if (!listeners || listeners.length === 0) continue;
       const listenersLen = listeners.length;
       let j2 = listenersLen;
       while (j2--) {
@@ -4766,19 +4671,16 @@ var ObservableStore = class extends Observable {
     const context = __spreadProps(__spreadValues({}, storeContext), { data, error });
     if (error) {
       __trace(`query`, `Fetch failed: ${queryName}`);
-      if (onError)
-        onError(context);
+      if (onError) onError(context);
     } else {
       __trace(`query`, `Fetch success: ${queryName}`);
-      if (onSuccess)
-        onSuccess(context);
+      if (onSuccess) onSuccess(context);
     }
     if (onSettled) {
       __trace(`query`, `Fetch settled: ${queryName}`);
       onSettled(context);
     }
-    if (error)
-      throw error;
+    if (error) throw error;
     return data;
   }
   /**
@@ -4825,8 +4727,7 @@ var ObservableStore = class extends Observable {
     );
     queriesToInvalidate.forEach((queryName) => {
       const query = this.queryFunctions.get(queryName);
-      if (!query)
-        return;
+      if (!query) return;
       let cacheKey;
       if (typeof query.queryKey === "function") {
         cacheKey = query.queryKey().join(":");
@@ -5916,8 +5817,7 @@ var ReactiveElement = class extends HTMLElement {
   render() {
     if (typeof this.template === "function") {
       const template = this.template();
-      if (this.__prevTemplate === template)
-        return;
+      if (this.__prevTemplate === template) return;
       if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
         return;
       }
@@ -6041,8 +5941,7 @@ var URLStore = class extends Observable {
    */
   __findMatchingRoute(pathSegments) {
     for (const [pattern, route] of this.__routes.entries()) {
-      if (route.segments.length !== pathSegments.length)
-        continue;
+      if (route.segments.length !== pathSegments.length) continue;
       let isMatch = true;
       const extractedParams = {};
       for (let i5 = 0; i5 < route.segments.length; i5++) {
@@ -6065,11 +5964,9 @@ var URLStore = class extends Observable {
   __updateStore() {
     return __async(this, null, function* () {
       var _a3, _b;
-      if (this.__navigationState.isPending)
-        return;
+      if (this.__navigationState.isPending) return;
       const urlState = this.__parseURL();
-      if (_deepEqual(this._state, urlState))
-        return;
+      if (_deepEqual(this._state, urlState)) return;
       this.__navigationState.isPending = true;
       try {
         const matchingRoute = this.__findMatchingRoute(urlState.hashPaths);
@@ -6122,8 +6019,7 @@ var URLStore = class extends Observable {
    */
   __loadResources(route, urlState) {
     return __async(this, null, function* () {
-      if (!route.resources || route.resources.length === 0)
-        return;
+      if (!route.resources || route.resources.length === 0) return;
       const context = {
         route,
         params: __spreadValues(__spreadValues({}, urlState.params), urlState.routeParams),
@@ -6132,8 +6028,7 @@ var URLStore = class extends Observable {
       yield Promise.all(
         route.resources.map((resourceName) => __async(this, null, function* () {
           const loader = this.__resourceLoaders.get(resourceName);
-          if (!loader)
-            return;
+          if (!loader) return;
           try {
             yield loader(context);
           } catch (error) {
@@ -6207,16 +6102,14 @@ var URLStore = class extends Observable {
     if (hashSearchString) {
       newHash += "#" + hashSearchString;
     }
-    if (newUrl.hash === newHash)
-      return;
+    if (newUrl.hash === newHash) return;
     newUrl.hash = newHash;
     window.history.pushState(null, "", newUrl.toString());
     this.__updateStore();
     if (focusSelector) {
       setTimeout(() => {
         const targetElement = document.querySelector(focusSelector);
-        if (targetElement)
-          targetElement.focus();
+        if (targetElement) targetElement.focus();
       }, 0);
     }
     if (pageTitle) {
@@ -6293,8 +6186,7 @@ var URLStore = class extends Observable {
     return hashPaths.length === 0 && Object.keys(params).length === 0 && Object.keys(hashParams).length === 0 && !hashPaths.some((path) => path.trim() !== "");
   }
   _isArrayPrefix(arr, prefix) {
-    if (prefix.length > arr.length)
-      return false;
+    if (prefix.length > arr.length) return false;
     return prefix.every((value, index) => value === arr[index]);
   }
 };
@@ -6311,10 +6203,8 @@ var createURLStore = (options = {}) => {
 // src/storage/adapters.js
 function unproxify(obj) {
   const getType = (value) => {
-    if (typeof value !== "object" || value === null)
-      return "primitive";
-    if (Array.isArray(value))
-      return "array";
+    if (typeof value !== "object" || value === null) return "primitive";
+    if (Array.isArray(value)) return "array";
     return "object";
   };
   switch (getType(obj)) {
@@ -6408,7 +6298,7 @@ function createIdbPromise({
          * - Count records: { type: 'count', range: IDBKeyRange.lowerBound(18) }
          * - Get keys: { type: 'keys', index: 'dateIndex', range: IDBKeyRange.bound('2023-01-01', '2023-12-31') }
          */
-        getState: (..._0) => __async(this, [..._0], function* (options = { type: "all" }) {
+        getState: (..._0) => __async(null, [..._0], function* (options = { type: "all" }) {
           const buildIdbRequest = ({ store: store2, options: options2 }) => {
             switch (options2.type) {
               case "key":
@@ -6447,8 +6337,7 @@ function createIdbPromise({
               case "keys":
                 return options2.index ? store2.index(options2.index).getAllKeys(options2.range) : store2.getAllKeys(options2.range);
               case "unique":
-                if (!options2.index)
-                  throw new Error("Index must be specified for unique query");
+                if (!options2.index) throw new Error("Index must be specified for unique query");
                 return store2.index(options2.index).getAll(options2.range, options2.limit);
               default:
                 throw new Error(`Unsupported query type: ${options2.type}`);
@@ -6470,10 +6359,8 @@ function createIdbPromise({
       const db = event.target.result;
       const oldVersion = event.oldVersion;
       const upgradeType = (() => {
-        if (oldVersion === 0)
-          return "create";
-        if (oldVersion < version)
-          return "recreate";
+        if (oldVersion === 0) return "create";
+        if (oldVersion < version) return "recreate";
         return "update";
       })();
       switch (upgradeType) {
@@ -6498,7 +6385,7 @@ function persistToIdbThunk({
   fromStateKey,
   toIDBStore
 }) {
-  return (_0) => __async(this, [_0], function* ({ action, patches }) {
+  return (_0) => __async(null, [_0], function* ({ action, patches }) {
     if (!Array.isArray(patches)) {
       throw new Error("patches must be an array");
     }
@@ -6526,15 +6413,12 @@ function persistToIdbThunk({
         }
         return Promise.resolve(state);
       };
-      const applyPatches2 = () => __async(this, null, function* () {
+      const applyPatches2 = () => __async(null, null, function* () {
         const getOperationType = (patch, relativePath) => {
-          if (relativePath.length === 0)
-            return patch.op === "remove" ? "removeAll" : "replaceAll";
+          if (relativePath.length === 0) return patch.op === "remove" ? "removeAll" : "replaceAll";
           const index = parseInt(relativePath[0], 10);
-          if (isNaN(index))
-            return "invalid";
-          if (relativePath.length === 1)
-            return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
+          if (isNaN(index)) return "invalid";
+          if (relativePath.length === 1) return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
           return "modifyNested";
         };
         for (const patch of relevantPatches) {
@@ -6636,13 +6520,13 @@ function createLocalStorage({
     __trace(`localStorage:version`, `Created ${name} with version ${version}`);
   }
   return {
-    getState: () => __async(this, null, function* () {
+    getState: () => __async(null, null, function* () {
       return new Promise((resolve) => {
         const data = localStorage.getItem(name);
         resolve(data ? JSON.parse(data) : null);
       });
     }),
-    setState: (state) => __async(this, null, function* () {
+    setState: (state) => __async(null, null, function* () {
       return new Promise((resolve) => {
         localStorage.setItem(name, JSON.stringify(state));
         resolve();
@@ -6653,7 +6537,7 @@ function createLocalStorage({
   };
 }
 function persistToLocalStorageThunk(toLocalStorage) {
-  return (_0) => __async(this, [_0], function* ({ action, state, previousState }) {
+  return (_0) => __async(null, [_0], function* ({ action, state, previousState }) {
     if (state !== previousState) {
       yield toLocalStorage.setState(state);
       __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
@@ -6702,20 +6586,9 @@ export {
 /*! Bundled license information:
 
 lit-html/lit-html.js:
-  (**
-   * @license
-   * Copyright 2017 Google LLC
-   * SPDX-License-Identifier: BSD-3-Clause
-   *)
-
 lit-html/directive.js:
-  (**
-   * @license
-   * Copyright 2017 Google LLC
-   * SPDX-License-Identifier: BSD-3-Clause
-   *)
-
 lit-html/directives/unsafe-html.js:
+lit-html/directives/repeat.js:
   (**
    * @license
    * Copyright 2017 Google LLC
@@ -6733,13 +6606,6 @@ lit-html/directives/keyed.js:
   (**
    * @license
    * Copyright 2021 Google LLC
-   * SPDX-License-Identifier: BSD-3-Clause
-   *)
-
-lit-html/directives/repeat.js:
-  (**
-   * @license
-   * Copyright 2017 Google LLC
    * SPDX-License-Identifier: BSD-3-Clause
    *)
 */

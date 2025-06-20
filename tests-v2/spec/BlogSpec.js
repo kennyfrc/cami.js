@@ -28,8 +28,8 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
     if (blogElement && blogElement.parentNode) {
       blogElement.parentNode.removeChild(blogElement);
     }
-    // Reset the store state
-    // blogStore.reset();
+    // Reset the store state using the action
+    blogStore.dispatch("setPosts", []);
     vi.restoreAllMocks();
   });
 
@@ -44,7 +44,6 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
       body: "This is a new post.",
       userId: 1,
     };
-    const optimisticPost = { ...newPost, id: expect.any(Number) };
 
     fetchSpy.mockReturnValue(
       Promise.resolve({
@@ -54,7 +53,20 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
 
     await blogStore.mutate("createPost", newPost);
 
-    expect(blogStore.getState().posts).toContain(optimisticPost);
+    const posts = blogStore.getState().posts;
+    
+    // Check that a new post was added optimistically
+    expect(posts).toHaveLength(1);
+    
+    // Check that the optimistic post has the correct properties
+    const optimisticPost = posts[0];
+    
+    expect(optimisticPost).toBeDefined();
+    expect(optimisticPost.id).toEqual(expect.any(Number));
+    expect(optimisticPost.title).toBe("New Post");
+    expect(optimisticPost.body).toBe("This is a new post.");
+    expect(optimisticPost.userId).toBe(1);
+
     expect(fetchSpy).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),

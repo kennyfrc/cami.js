@@ -411,8 +411,8 @@ const _deepClone = (value, cache = new WeakMap()) => {
   // Use for-in instead of Object.keys() + iteration for slight performance gain
   // This avoids an extra array allocation and iteration
   for (const key in value) {
-    // Only clone own properties, not inherited ones
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
+    // Only clone own properties, not inherited ones, and exclude symbols
+    if (typeof key !== 'symbol' && Object.prototype.hasOwnProperty.call(value, key)) {
       const val = value[key];
       
       // Fast path for primitives

@@ -151,7 +151,9 @@ class ObservableStore extends Observable {
     }
     // Create a frozen state only once and cache it until next change
     if (!this._frozenState) {
-      this._frozenState = deepFreeze(this._state);
+      // Deep clone the state first to filter out symbols and other internal properties
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState);
     }
     return this._frozenState;
   }
@@ -166,7 +168,9 @@ class ObservableStore extends Observable {
     }
     // Reuse the frozen state from the getter
     if (!this._frozenState) {
-      this._frozenState = deepFreeze(this._state);
+      // Deep clone the state first to filter out symbols and other internal properties
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState);
     }
     return this._frozenState;
   }
@@ -178,21 +182,27 @@ class ObservableStore extends Observable {
    * This is a critical path for performance optimization
    */
   _createProxy(target) {
-    // Cache symbols for property access in local closure for faster lookups
-    const STATE_TRAP = Symbol('state-trap');
-    
     // Common internal props to skip - precompute for faster checks
     const SKIP_PROPS = new Set(['constructor', 'toJSON']);
     
-    // Cache for method bindings to avoid repeated creation
-    if (!target[STATE_TRAP]) {
-      target[STATE_TRAP] = new Map();
+    // Use WeakMap to store method bindings without modifying the target object
+    // This completely prevents Symbol leakage into the state object
+    if (!this._stateTrapStore) {
+      this._stateTrapStore = new WeakMap();
+    }
+    if (!this._stateTrapStore.has(target)) {
+      this._stateTrapStore.set(target, new Map());
     }
     
     return new Proxy(target, {
       get: (target, prop, receiver) => {
-        // Fast path 1: Skip dependency tracking for internal symbols or known methods
-        if (typeof prop === 'symbol' || SKIP_PROPS.has(prop) || prop === STATE_TRAP) {
+        // Fast path 1: Skip dependency tracking for symbols and internal methods
+        // Don't allow any symbols to be accessed from the target
+        if (typeof prop === 'symbol' || SKIP_PROPS.has(prop)) {
+          // For symbols, return undefined to prevent them from being accessed
+          if (typeof prop === 'symbol') {
+            return undefined;
+          }
           return Reflect.get(target, prop, receiver);
         }
         
@@ -210,11 +220,11 @@ class ObservableStore extends Observable {
           return value;
         }
         
-        // Only for functions: ensure correct binding
+        // Only for functions: ensure correct binding using WeakMap
         // This is less common so it's moved to the end of the function
         if (!Object.getOwnPropertyDescriptor(target, prop)) {
-          // Check if we already have a bound method
-          const trapMap = target[STATE_TRAP];
+          // Check if we already have a bound method using WeakMap
+          const trapMap = this._stateTrapStore.get(target);
           if (!trapMap.has(prop)) {
             trapMap.set(prop, value.bind(target));
           }
@@ -225,8 +235,15 @@ class ObservableStore extends Observable {
       },
       
       set: (target, prop, value, receiver) => {
-        // Fast path: Skip internal properties
-        if (typeof prop === 'symbol' || SKIP_PROPS.has(prop)) {
+        // Fast path: Prevent symbols from being set on the target
+        // This completely prevents symbol leakage into the state object
+        if (typeof prop === 'symbol') {
+          // Don't allow symbols to be set on the state object at all
+          return true; // Return true to indicate "success" without actually setting
+        }
+        
+        // Skip other internal properties
+        if (SKIP_PROPS.has(prop)) {
           return Reflect.set(target, prop, value, receiver);
         }
         
@@ -280,7 +297,8 @@ class ObservableStore extends Observable {
         if (DependencyTracker.current) {
           DependencyTracker.current.addDependency(this);
         }
-        return Reflect.ownKeys(target);
+        // Filter out symbols to prevent internal symbols from leaking into state
+        return Reflect.ownKeys(target).filter(key => typeof key !== 'symbol');
       },
       
       has: (target, prop) => {
@@ -291,6 +309,11 @@ class ObservableStore extends Observable {
       },
       
       defineProperty: (target, prop, descriptor) => {
+        // Prevent symbols from being defined on the target
+        if (typeof prop === 'symbol') {
+          return true; // Return true to indicate "success" without actually defining
+        }
+        
         const result = Reflect.defineProperty(target, prop, descriptor);
         if (result) {
           this._isDirty = true;
@@ -578,8 +601,7 @@ class ObservableStore extends Observable {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
       __trace('cami:store:warn', `No reducer found for action ${action}`);
-      console.warn(`No reducer found for action ${action}`);
-      return this.getState();
+      throw new Error(`[Cami.js] No reducer found for action: ${action}`);
     }
 
     // Store original state for potential rollback - only clone when needed
@@ -669,24 +691,24 @@ class ObservableStore extends Observable {
             inversePatches, 
             patches
           );
-          
-          // Fast path 8: Skip after hooks if none defined
-          if (this.afterHooks.length > 0) {
-            this.__applyHooks("after", {
-              action,
-              payload,
-              state: nextState,
-              previousState: originalState,
-              patches,
-              inversePatches,
-              dispatch: this.dispatch
-            });
-          }
-          
-          // Fast path 9: Skip validation if no schema
-          if (Object.keys(this.schema).length > 0) {
-            this._validateState(this._state);
-          }
+        }
+        
+        // Fast path 8: Always run after hooks after successful dispatch (regardless of patches)
+        if (this.afterHooks.length > 0) {
+          this.__applyHooks("after", {
+            action,
+            payload,
+            state: nextState,
+            previousState: originalState,
+            patches,
+            inversePatches,
+            dispatch: this.dispatch
+          });
+        }
+        
+        // Fast path 9: Skip validation if no schema
+        if (Object.keys(this.schema).length > 0) {
+          this._validateState(hasPatches ? this._state : nextState);
         }
         
         // Always notify observers to ensure UI updates
@@ -798,6 +820,8 @@ class ObservableStore extends Observable {
         hooks[i](context);
       } catch (error) {
         console.error(`[Cami.js] Error in afterHook[${i}]:`, error);
+        // Re-throw the error so it can be caught by tests and rollback logic
+        throw error;
       }
     }
   }
