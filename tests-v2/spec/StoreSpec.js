@@ -132,7 +132,7 @@ describe("Observable Store (Set 1)", function () {
       createStore = () =>
         store({
           state: { count: 0, nested: { value: 10 }, list: [] },
-          name: `test-store-${Date.now()}`,
+          name: `test-store-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           localStorage: false,
         });
       appStore = createStore();
@@ -144,6 +144,12 @@ describe("Observable Store (Set 1)", function () {
         }
         state.list.push(payload.newItem);
       });
+    });
+
+    afterEach(function () {
+      // Ensure proper cleanup
+      appStore = null;
+      createStore = null;
     });
 
     it("should rollback state changes when an action throws an error", function () {
