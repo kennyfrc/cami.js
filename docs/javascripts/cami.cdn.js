@@ -4992,6 +4992,7 @@ Error: ${error.message}`
         const fullEventName = `${machineName}:${eventName}`;
         this.defineAction(fullEventName, ({ state, payload }) => {
           if (this.isValidTransition(event.from, state)) {
+            const previousState = _deepClone(state);
             const newState = typeof event.to === "function" ? event.to({ state, payload }) : event.to;
             Object.entries(newState).forEach(([key, value]) => {
               if (typeof value === "object" && value !== null && !Array.isArray(value)) {
@@ -5001,7 +5002,7 @@ Error: ${error.message}`
               }
             });
             if (event.onEntry) {
-              event.onEntry({ state, previousState: this._state, payload });
+              event.onEntry({ state, previousState, payload });
             }
           } else {
             console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);

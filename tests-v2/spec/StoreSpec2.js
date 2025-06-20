@@ -41,6 +41,10 @@ describe("Observable Store (Set 2)", function () {
       Object.assign(state.navigation, payload);
     });
 
+    // Create spies BEFORE machine definition
+    navStore.onExitSpy = vi.fn();
+    navStore.onEntrySpy = vi.fn();
+
     navStore.defineMachine("navigation", {
       toggle_chat: {
         from: [
@@ -70,9 +74,6 @@ describe("Observable Store (Set 2)", function () {
         })
       }
     });
-
-    navStore.onExitSpy = vi.fn();
-    navStore.onEntrySpy = vi.fn();
 
     const postStoreSchema = Type.Product({
       list: Type.Array(Type.Product({
@@ -368,6 +369,10 @@ describe("Observable Store (Set 2)", function () {
         center: "documents",
         topbar: "default"
       });
+      
+      // Reset spy call history
+      navStore.onExitSpy.mockClear();
+      navStore.onEntrySpy.mockClear();
     });
 
     it("should toggle center view while preserving other navigation properties", function () {

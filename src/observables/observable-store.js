@@ -1579,6 +1579,9 @@ class ObservableStore extends Observable {
       const fullEventName = `${machineName}:${eventName}`;
       this.defineAction(fullEventName, ({ state, payload }) => {
         if (this.isValidTransition(event.from, state)) {
+          // Capture the previous state before applying the transition
+          const previousState = _deepClone(state);
+          
           const newState = typeof event.to === "function"
             ? event.to({ state, payload })
             : event.to;
@@ -1594,7 +1597,7 @@ class ObservableStore extends Observable {
 
           // Execute onEntry
           if (event.onEntry) {
-            event.onEntry({ state, previousState: this._state, payload });
+            event.onEntry({ state, previousState, payload });
           }
         } else {
           console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
