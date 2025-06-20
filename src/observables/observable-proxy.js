@@ -1,10 +1,10 @@
 import { ObservableState } from "./observable-state.js";
-import { _deepClone } from "../utils.js";
+import { _deepClone, _deepEqual } from "../utils";
 
 /**
  * @typedef ObservableProxy
- * @property {function(): any} get - A getter function that returns a copy of the current value of the property. If the property is a primitive value, this will return the value directly from the ObservableState instance. If the property is a non-primitive value, this will return a deep clone of the value. This getter is used when accessing a non-primitive property on a ReactiveElement instance. We use Proxy instead of Object.defineProperty because it allows us to handle nested properties.
- * @property {function(any): void} set - A setter function that updates the value of the property. It updates the ObservableState instance with the new value. This setter is used when assigning a new value to a non-primitive property on a ReactiveElement instance.
+ * @property {function(): any} get - A getter function that returns a copy of the current value of the property.
+ * @property {function(any): void} set - A setter function that updates the value of the property.
  */
 class ObservableProxy {
   constructor(observable) {
@@ -14,56 +14,129 @@ class ObservableProxy {
       );
     }
 
-    return new Proxy(observable, {
-      get: (target, property) => {
-        const getPropertyType = (target, property) => {
-          if (typeof target[property] === "function") return "targetFunction";
-          if (property in target) return "targetProperty";
-          if (typeof target.value[property] === "function")
-            return "valueFunction";
-          return "valueProperty";
-        };
+    const conversionMethods = {
+      valueOf() {
+        return observable.value;
+      },
+      toString() {
+        return String(observable.value);
+      },
+      toJSON() {
+        return observable.value;
+      },
+      [Symbol.toPrimitive](hint) {
+        if (hint === 'number') {
+          return Number(observable.value);
+        }
+        if (hint === 'string') {
+          return String(observable.value);
+        }
+        return observable.value;
+      }
+    };
 
-        const propertyType = getPropertyType(target, property);
+    return new Proxy(observable, {
+      get: (target, property, receiver) => {
+        // Handle conversion methods first
+        if (property === 'valueOf' ||
+            property === 'toString' ||
+            property === 'toJSON' ||
+            property === Symbol.toPrimitive) {
+          return conversionMethods[property];
+        }
+
+        // Inline property type check for better performance
+        let propertyType;
+        if (typeof target[property] === "function") {
+          propertyType = "targetFunction";
+        } else if (property in target) {
+          propertyType = "targetProperty";
+        } else if (typeof target.value[property] === "function") {
+          propertyType = "valueFunction";
+        } else {
+          propertyType = "valueProperty";
+        }
 
         switch (propertyType) {
           case "targetFunction":
-            // If the property is a function on the target (ObservableState instance),
-            // we bind it to the target to ensure correct 'this' context when called.
-            // This allows methods on ObservableState to be called correctly.
             return target[property].bind(target);
-
           case "targetProperty":
-            // If the property exists directly on the target (ObservableState instance),
-            // we return a deep clone of it. This prevents accidental mutations of
-            // internal ObservableState properties.
             return _deepClone(target[property]);
-
           case "valueFunction":
-            // If the property is a function on the target's value (the actual data),
-            // we return a new function that calls the original function with the correct context.
-            // This allows methods on the stored data to be called while maintaining reactivity.
             return (...args) => target.value[property](...args);
-
           case "valueProperty":
-            // If the property is on the target's value (the actual data),
-            // we return a deep clone of it. This ensures that nested objects and arrays
-            // can be safely modified without affecting the original data until explicitly updated.
             return _deepClone(target.value[property]);
-
           default:
-            // If we encounter an unexpected property type, we log a warning and return undefined.
-            // This helps with debugging if the getPropertyType function is modified or if
-            // there's an unexpected scenario we haven't accounted for.
             console.warn(`Unexpected property type: ${propertyType}`);
             return undefined;
         }
       },
-      set: (target, property, value) => {
-        target[property] = value;
+      set: (target, property, value, receiver) => {
+        if (property in target) {
+          // Check if the value is actually different before updating
+          if (typeof target[property] === 'object' && target[property] !== null && 
+              typeof value === 'object' && value !== null) {
+            // Deep equality check for objects
+            if (_deepEqual(target[property], value)) {
+              return true; // Skip update if they're equal
+            }
+          } else if (target[property] === value) {
+            return true; // Skip update if primitive values are equal
+          }
+          
+          target[property] = value;
+        } else {
+          // For properties on target.value
+          const oldValue = target.value[property];
+          
+          // Check if the value is actually different before updating
+          if (typeof oldValue === 'object' && oldValue !== null && 
+              typeof value === 'object' && value !== null) {
+            // Deep equality check for objects
+            if (_deepEqual(oldValue, value)) {
+              return true; // Skip update if they're equal
+            }
+          } else if (oldValue === value) {
+            return true; // Skip update if primitive values are equal
+          }
+          
+          target.value[property] = value;
+        }
+        
         target.update(() => target.value);
         return true;
       },
+      deleteProperty: (target, property) => {
+        if (property in target.value) {
+          delete target.value[property];
+          target.update(() => target.value);
+          return true;
+        }
+        return false;
+      },
+      ownKeys: (target) => {
+        return Reflect.ownKeys(target.value);
+      },
+      has: (target, property) => {
+        return property in target.value || property in target;
+      },
+      defineProperty: (target, property, descriptor) => {
+        if (property in target) {
+          return Reflect.defineProperty(target, property, descriptor);
+        } else {
+          const result = Reflect.defineProperty(target.value, property, descriptor);
+          if (result) {
+            target.update(() => target.value);
+          }
+          return result;
+        }
+      },
+      getOwnPropertyDescriptor: (target, property) => {
+        if (property in target) {
+          return Reflect.getOwnPropertyDescriptor(target, property);
+        }
+        return Reflect.getOwnPropertyDescriptor(target.value, property);
+      }
     });
   }
 }

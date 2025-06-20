@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import { produce } from "immer";
 
+=======
+>>>>>>> session/vitest
 /**
  * @typedef {Object} Observer
  * @description The observer object or function.
@@ -10,15 +13,16 @@ import { produce } from "immer";
 
 /**
  * @class
- * @description Class representing a Subscriber.
+ * @description High-performance Subscriber implementation.
  */
 class Subscriber {
   /**
    * @constructor
-   * @description Creates a new Subscriber instance.
+   * @description Creates a new Subscriber instance with optimized memory layout.
    * @param {Observer|Function} observer - The observer object or function.
    */
   constructor(observer) {
+<<<<<<< HEAD
     if (typeof observer === "function") {
       this.observer = { next: observer };
     } else {
@@ -28,34 +32,58 @@ class Subscriber {
     if (typeof AbortController !== "undefined") {
       this.controller = new AbortController();
       this.signal = this.controller.signal;
+=======
+    // Fast path for the common case: just a function (>90% of cases)
+    if (typeof observer === "function") {
+      this.next = observer;
+      this.error = null;
+      this.complete = null;
+    } else if (observer && typeof observer === "object") {
+      // Avoid unnecessary binding for performance
+      if (observer.next) {
+        this.next = typeof observer.next === "function" ? 
+          (observer.next.bind ? observer.next.bind(observer) : observer.next) : 
+          null;
+      } else {
+        this.next = null;
+      }
+      
+      // Only create these properties if they exist
+      if (observer.error) {
+        this.error = typeof observer.error === "function" ? 
+          (observer.error.bind ? observer.error.bind(observer) : observer.error) : 
+          null;
+      } else {
+        this.error = null;
+      }
+      
+      if (observer.complete) {
+        this.complete = typeof observer.complete === "function" ? 
+          (observer.complete.bind ? observer.complete.bind(observer) : observer.complete) : 
+          null;
+      } else {
+        this.complete = null;
+      }
+    } else {
+      // Handle edge case - null or primitive
+      this.next = null;
+      this.error = null;
+      this.complete = null;
+>>>>>>> session/vitest
     }
+    
+    // Most subscribers won't have teardowns, so initialize on first use
+    this.teardowns = null;
     this.isUnsubscribed = false;
   }
 
   /**
    * @method
-   * @description Notifies the observer of a new value.
-   * @param {any} result - The result to pass to the observer's next method.
-   * @example
-   * subscriber.next('Hello, world!');
-   */
-  next(result) {
-    if (!this.isUnsubscribed && this.observer.next) {
-      this.observer.next(result);
-    }
-  }
-
-  /**
-   * @method
-   * @description Notifies the observer that the observable has completed and no more data will be emitted.
-   * @example
-   * subscriber.complete();
+   * @description Notifies the observer that the observable has completed.
    */
   complete() {
-    if (!this.isUnsubscribed) {
-      if (this.observer.complete) {
-        this.observer.complete();
-      }
+    if (!this.isUnsubscribed && this.complete) {
+      this.complete();
       this.unsubscribe();
     }
   }
@@ -64,34 +92,34 @@ class Subscriber {
    * @method
    * @description Notifies the observer that an error has occurred.
    * @param {Error} error - The error to pass to the observer's error method.
-   * @example
-   * subscriber.error(new Error('Something went wrong'));
    */
   error(error) {
-    if (!this.isUnsubscribed) {
-      if (this.observer.error) {
-        this.observer.error(error);
-      }
+    if (!this.isUnsubscribed && this.error) {
+      this.error(error);
       this.unsubscribe();
     }
   }
 
   /**
    * @method
-   * @description Adds a teardown function to the teardowns array.
-   * @param {Function} teardown - The teardown function to add to the teardowns array.
+   * @description Adds a teardown function to be executed when unsubscribing.
+   * @param {Function} teardown - The teardown function.
    */
   addTeardown(teardown) {
-    this.teardowns.push(teardown);
+    if (!this.teardowns) {
+      // Initialize only when needed
+      this.teardowns = [teardown];
+    } else {
+      this.teardowns.push(teardown);
+    }
   }
 
   /**
    * @method
-   * @description Unsubscribes from the observable, preventing any further notifications to the observer and triggering any teardown logic.
-   * @example
-   * subscriber.unsubscribe();
+   * @description Unsubscribes from the observable, preventing any further notifications.
    */
   unsubscribe() {
+<<<<<<< HEAD
     if (!this.isUnsubscribed) {
       this.isUnsubscribed = true;
       if (this.controller) {
@@ -105,40 +133,67 @@ class Subscriber {
         }
         teardown();
       });
+=======
+    if (this.isUnsubscribed) return;
+    
+    this.isUnsubscribed = true;
+    
+    // Fast path if no teardowns
+    if (!this.teardowns) {
+      // Clear references to aid GC
+      this.next = null;
+      this.error = null;
+      this.complete = null;
+      return;
+>>>>>>> session/vitest
     }
+    
+    // Execute teardowns with optimized while loop
+    const teardowns = this.teardowns;
+    let i = teardowns.length;
+    while (i--) {
+      const teardown = teardowns[i];
+      if (typeof teardown === "function") {
+        teardown();
+      }
+    }
+    
+    // Clear references to aid garbage collection
+    this.teardowns = null;
+    this.next = null;
+    this.error = null;
+    this.complete = null;
   }
 }
 
 /**
  * @class
- * @description Class representing an Observable.
+ * @description High-performance Observable implementation.
  */
 class Observable {
   /**
    * @constructor
-   * @description Creates a new Observable instance.
+   * @description Creates a new Observable instance with optimized internal structure.
    * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes.
    */
-  constructor(subscribeCallback = () => () => {}) {
+  constructor(subscribeCallback = null) {
+    // Use array for better performance than linked lists or sets
     this.__observers = [];
-    this.subscribeCallback = subscribeCallback;
+    // Only create this property if provided
+    if (subscribeCallback) {
+      this.subscribeCallback = subscribeCallback;
+    }
   }
 
   /**
    * @method
-   * @description Subscribes an observer to the observable.
-   * @param {Observer|Function} observerOrNext - The observer to subscribe or the next function. Default is an empty function.
-   * @param {Function} error - The error function. Default is an empty function.
-   * @param {Function} complete - The complete function. Default is an empty function.
-   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
-   * @example
-   * const observable = new Observable();
-   * const subscription = observable.subscribe({
-   *   next: value => console.log(value),
-   *   error: err => console.error(err),
-   *   complete: () => console.log('Completed'),
-   * });
+   * @description Subscribes an observer to the observable with optimized paths.
+   * @param {Observer|Function} observerOrNext - The observer to subscribe or the next function.
+   * @param {Function} error - The error function. Default is null.
+   * @param {Function} complete - The complete function. Default is null.
+   * @returns {Object} An object containing methods to manage the subscription.
    */
+<<<<<<< HEAD
   subscribe(observerOrNext = () => {}, error = () => {}, complete = () => {}) {
     let observer;
 
@@ -154,27 +209,87 @@ class Observable {
       throw new Error(
         "[Cami.js] First argument to subscribe must be a next callback or an observer object"
       );
+=======
+  subscribe(observerOrNext, error, complete) {
+    // Fast path for function observer (most common case)
+    const subscriber = typeof observerOrNext === "function" 
+      ? new Subscriber(observerOrNext)
+      : new Subscriber({ next: observerOrNext, error, complete });
+    
+    // Fast path for no subscribeCallback (common case)
+    if (!this.subscribeCallback) {
+      this.__observers.push(subscriber);
+      
+      // Add teardown to remove from observers array - this is allocated only once per subscriber
+      subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
+      
+      return this.__createSubscription(subscriber);
+>>>>>>> session/vitest
     }
-
-    const subscriber = new Subscriber(observer);
-    let teardown = () => {};
-
+    
+    // Path for subscribeCallback
+    let teardown;
     try {
       teardown = this.subscribeCallback(subscriber);
-    } catch (error) {
+    } catch (err) {
       if (subscriber.error) {
+<<<<<<< HEAD
         subscriber.error(error);
       } else {
         console.error("[Cami.js] Error in Subscriber:", error);
+=======
+        subscriber.error(err);
+>>>>>>> session/vitest
       }
-      return;
+      return { unsubscribe: () => {} };
     }
-
-    subscriber.addTeardown(teardown);
-    this.__observers.push(subscriber);
-
+    
+    if (teardown) {
+      subscriber.addTeardown(teardown);
+    }
+    
+    // Only add to observers if not immediately unsubscribed
+    if (!subscriber.isUnsubscribed) {
+      this.__observers.push(subscriber);
+      subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
+    }
+    
+    return this.__createSubscription(subscriber);
+  }
+  
+  /**
+   * @private
+   * @method __createRemoveTeardown
+   * @description Creates a teardown function that removes a subscriber from the observers array
+   * @param {Subscriber} subscriber - The subscriber to remove
+   * @returns {Function} A function that removes the subscriber when called
+   */
+  __createRemoveTeardown(subscriber) {
+    return () => {
+      const observers = this.__observers;
+      const index = observers.indexOf(subscriber);
+      if (index !== -1) {
+        // Faster removal by swapping with last element and popping - O(1)
+        const lastIndex = observers.length - 1;
+        if (index < lastIndex) {
+          observers[index] = observers[lastIndex];
+        }
+        observers.pop();
+      }
+    };
+  }
+  
+  /**
+   * @private
+   * @method __createSubscription
+   * @description Creates a subscription object with minimal properties
+   * @param {Subscriber} subscriber - The subscriber
+   * @returns {Object} A subscription object
+   */
+  __createSubscription(subscriber) {
     return {
       unsubscribe: () => subscriber.unsubscribe(),
+      // Only add these methods if needed in the future:
       complete: () => subscriber.complete(),
       error: (err) => subscriber.error(err),
     };
@@ -182,103 +297,151 @@ class Observable {
 
   /**
    * @method
-   * @description Passes a value to the observer's next method.
-   * @param {*} value - The value to be passed to the observer's next method.
-   * @example
-   * const observable = new Observable();
-   * observable.next('Hello, world!');
+   * @description Passes a value to all observers with maximum efficiency.
+   * @param {*} value - The value to emit.
    */
   next(value) {
+<<<<<<< HEAD
     this.__observers.forEach((observer) => {
       observer.next(value);
     });
+=======
+    const observers = this.__observers;
+    const len = observers.length;
+    
+    // Highly optimized loop with minimal checks
+    if (len === 0) return;
+    
+    // Special case for single observer (common case)
+    if (len === 1) {
+      const observer = observers[0];
+      if (!observer.isUnsubscribed && observer.next) {
+        observer.next(value);
+      }
+      return;
+    }
+    
+    // Using direct array access and while loop counting down for maximum performance
+    let i = len;
+    while (i--) {
+      const observer = observers[i];
+      // Minimal condition check
+      if (!observer.isUnsubscribed && observer.next) {
+        observer.next(value);
+      }
+    }
+>>>>>>> session/vitest
   }
 
   /**
    * @method
-   * @description Passes an error to the observer's error method.
-   * @param {*} error - The error to be passed to the observer's error method.
-   * @example
-   * const observable = new Observable();
-   * observable.error(new Error('Something went wrong'));
+   * @description Passes an error to all observers and terminates the stream.
+   * @param {*} error - The error to emit.
    */
   error(error) {
+<<<<<<< HEAD
     this.__observers.forEach((observer) => {
       observer.error(error);
     });
+=======
+    // Create a snapshot to prevent modification during iteration
+    const observers = this.__observers.slice();
+    const len = observers.length;
+    
+    for (let i = 0; i < len; i++) {
+      const observer = observers[i];
+      if (!observer.isUnsubscribed && observer.error) {
+        observer.error(error);
+      }
+    }
+    
+    // Clear all observers after error
+    this.__observers.length = 0;
+>>>>>>> session/vitest
   }
 
   /**
    * @method
-   * @description Calls the complete method on all observers.
-   * @example
-   * const observable = new Observable();
-   * observable.complete();
+   * @description Notifies all observers that the Observable has completed.
    */
   complete() {
+<<<<<<< HEAD
     this.__observers.forEach((observer) => {
       observer.complete();
     });
+=======
+    // Create a snapshot to prevent modification during iteration
+    const observers = this.__observers.slice();
+    const len = observers.length;
+    
+    for (let i = 0; i < len; i++) {
+      const observer = observers[i];
+      if (!observer.isUnsubscribed && observer.complete) {
+        observer.complete();
+      }
+    }
+    
+    // Clear all observers after completion
+    this.__observers.length = 0;
+>>>>>>> session/vitest
   }
 
   /**
    * @method
-   * @description Subscribes an observer with a next function to the observable.
-   * @param {Function} callbackFn - The callback function to call when a new value is emitted.
-   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
-   * @example
-   * const observable = new Observable();
-   * const subscription = observable.onValue(value => console.log(value));
+   * @description Simplified method to subscribe to value emissions only.
+   * @param {Function} callbackFn - The callback for each value.
+   * @returns {Object} Subscription object with unsubscribe method.
    */
   onValue(callbackFn) {
+<<<<<<< HEAD
     return this.subscribe({
       next: callbackFn,
     });
+=======
+    return this.subscribe(callbackFn);
+>>>>>>> session/vitest
   }
 
   /**
    * @method
-   * @description Subscribes an observer with an error function to the observable.
-   * @param {Function} callbackFn - The callback function to call when an error is emitted.
-   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
-   * @example
-   * const observable = new Observable();
-   * const subscription = observable.onError(err => console.error(err));
+   * @description Simplified method to subscribe to errors only.
+   * @param {Function} callbackFn - The callback for errors.
+   * @returns {Object} Subscription object with unsubscribe method.
    */
   onError(callbackFn) {
+<<<<<<< HEAD
     return this.subscribe({
       error: callbackFn,
     });
+=======
+    return this.subscribe(null, callbackFn);
+>>>>>>> session/vitest
   }
 
   /**
    * @method
-   * @description Subscribes an observer with a complete function to the observable.
-   * @param {Function} callbackFn - The callback function to call when the observable completes.
-   * @returns {Object} An object containing an unsubscribe method to stop receiving updates.
-   * @example
-   * const observable = new Observable();
-   * const subscription = observable.onEnd(() => console.log('Completed'));
+   * @description Simplified method to subscribe to completion only.
+   * @param {Function} callbackFn - The callback for completion.
+   * @returns {Object} Subscription object with unsubscribe method.
    */
   onEnd(callbackFn) {
+<<<<<<< HEAD
     return this.subscribe({
       complete: callbackFn,
     });
+=======
+    return this.subscribe(null, null, callbackFn);
+>>>>>>> session/vitest
   }
 
   /**
    * @method
-   * @description Returns an AsyncIterator which allows asynchronous iteration over emitted values.
-   * @returns {AsyncIterator} An object that conforms to the AsyncIterator protocol.
-   * @example
-   * const observable = new Observable();
-   * for await (const value of observable) {
-   *   console.log(value);
-   * }
+   * @description Returns an AsyncIterator for asynchronous iteration.
+   * @returns {AsyncIterator} AsyncIterator implementation.
    */
   [Symbol.asyncIterator]() {
-    let observer;
     let resolve;
+<<<<<<< HEAD
     let promise = new Promise((r) => (resolve = r));
 
     observer = {
@@ -290,14 +453,46 @@ class Observable {
         resolve({ done: true });
       },
       error: (err) => {
+=======
+    let promise = new Promise(r => resolve = r);
+    let subscription;
+    
+    const cleanup = () => {
+      if (subscription) {
+        subscription.unsubscribe();
+        subscription = null;
+      }
+    };
+    
+    subscription = this.subscribe(
+      // Next handler
+      value => {
+        resolve({ value, done: false });
+        promise = new Promise(r => resolve = r);
+      },
+      // Error handler
+      err => {
+        cleanup();
+>>>>>>> session/vitest
         throw err;
       },
-    };
-
-    this.subscribe(observer);
-
+      // Complete handler
+      () => {
+        cleanup();
+        resolve({ done: true });
+      }
+    );
+    
     return {
       next: () => promise,
+      return: () => {
+        cleanup();
+        return Promise.resolve({ done: true });
+      },
+      throw: err => {
+        cleanup();
+        return Promise.reject(err);
+      }
     };
   }
 }

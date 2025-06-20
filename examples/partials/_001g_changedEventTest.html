@@ -1,0 +1,213 @@
+<article>
+  <h1>Changed Event Testing Component with Modal</h1>
+  <changed-event-testing-component></changed-event-testing-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, defineReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  const changedEventStore = store({
+    state: {
+      count: 0,
+      text: '',
+      color: '#000000',
+      selectedOption: 'option2',
+      checkboxState: false,
+      lastChangedProperty: '',
+      isModalOpen: false,
+      options: [
+        { id: 'option1', name: 'Option 1' },
+        { id: 'option2', name: 'Option 2' },
+        { id: 'option3', name: 'Option 3' },
+      ],
+    },
+    name: "changed-event-store",
+  });
+
+  changedEventStore.defineAction("setCount", ({ state, payload }) => (state.count = payload.count));
+  changedEventStore.defineAction("setText", ({ state, payload }) => (state.text = payload.text));
+  changedEventStore.defineAction("setColor", ({ state, payload }) => (state.color = payload.color));
+  changedEventStore.defineAction("setSelectedOption", ({ state, payload }) => {
+    state.selectedOption = payload.option
+  });
+  changedEventStore.defineAction("setCheckboxState", ({ state, payload }) => (state.checkboxState = payload.checkbox));
+  changedEventStore.defineAction("setLastChangedProperty", ({ state, payload }) => (state.lastChangedProperty = payload.property));
+  changedEventStore.defineAction("setModalOpen", ({ state, payload }) => (state.isModalOpen = payload));
+
+  const uuid = crypto.randomUUID();
+
+  let selectCount = 0;
+
+  defineReactiveElement("changed-event-testing-component", changedEventStore, ({ store, ctx }) => {
+    const { count, text, color, selectedOption, checkboxState, lastChangedProperty, isModalOpen } = store.getState();
+
+    const eventTargets = {
+      count: `${uuid}-count`,
+      text: `${uuid}-text`,
+      color: `${uuid}-color`,
+      checkbox: `${uuid}-checkbox`,
+      dropdown: `${uuid}-select`,
+      openModal: `${uuid}-open-modal`,
+      closeModal: `${uuid}-close-modal`,
+      modal: `${uuid}-modal`,
+    }
+
+    const updateLastChangedProperty = (event) => {
+      store.dispatch("setLastChangedProperty", {
+        property: event.target
+      })
+    }
+
+    // Handle changed events
+    if (ctx.changed) {
+      if (ctx.changed.owner === eventTargets.dropdown) {
+        console.log(`before: ${selectedOption}`)
+        selectCount++;
+        store.dispatch("setSelectedOption", {
+          option: ctx.changed.value
+        })
+        console.log(`after: ${selectedOption}`)
+      }
+
+      if (ctx.changed.owner === eventTargets.checkbox) {
+        store.dispatch("setCheckboxState", {
+          checkbox: ctx.changed.value
+        })
+      }
+    }
+
+    if (ctx.input) {
+      if (ctx.input.owner === eventTargets.count) {
+        store.dispatch("setCount", {
+          count: ctx.input.value
+        })
+      }
+
+      if (ctx.input.owner === eventTargets.text) {
+        store.dispatch("setText", {
+          text: ctx.input.value
+        })
+      }
+
+      if (ctx.input.owner === eventTargets.color) {
+        store.dispatch("setColor", {
+          color: ctx.input.value
+        })
+      }
+    }
+
+    if (ctx.clicked) {
+      if (ctx.clicked.owner === eventTargets.openModal) {
+        store.dispatch("setModalOpen", true);
+      }
+      if (ctx.clicked.owner === eventTargets.closeModal) {
+        store.dispatch("setModalOpen", false);
+      }
+      if (ctx.clicked.owner === eventTargets.modal) {
+        // Check if the click is outside the modal content
+        const modalElement = document.querySelector(`[node-id="${eventTargets.modal}"]`);
+        const modalContent = modalElement.querySelector('.modal-content');
+        if (modalContent && !modalContent.contains(ctx.clicked.target)) {
+          store.dispatch("setModalOpen", false);
+        }
+      }
+    }
+
+    return html`
+      <style>
+        .hidden {
+          display: none;
+        }
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 1;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+        }
+        .show-modal {
+          display: block;
+        }
+      </style>
+      <div>
+        <h2>Number Input</h2>
+        <input type="number" node-id="${uuid}-count" value="${count}">
+        <div>Count: ${count}</div>
+      </div>
+
+      <div>
+        <h2>Text Input</h2>
+        <input type="text" node-id="${uuid}-text" value="${text}">
+        <div>Text: ${text}</div>
+      </div>
+
+      <div>
+        <h2>Color Picker</h2>
+        <input type="color" node-id="${uuid}-color" value="${color}">
+        <div>Color: ${color}</div>
+      </div>
+
+      <div>
+        <h2>Select Dropdown</h2>
+        <select node-id="${uuid}-select">
+          ${store.getState().options.map(
+            (option) => html`
+              <option
+                value=${option.id}
+                ?selected=${option.id === selectedOption}
+              >
+                ${option.name}
+              </option>
+            `
+          )}
+        </select>
+        <div>Selected Option: ${selectedOption}</div>
+      </div>
+
+      <div>
+        <h2>Checkbox</h2>
+        <input type="checkbox" node-id="${uuid}-checkbox">
+        <label for="${uuid}-checkbox">Check me</label>
+        <div>Checkbox State: ${checkboxState ? 'Checked' : 'Unchecked'}</div>
+      </div>
+
+      <div class="${checkboxState ? '' : 'hidden'}" node-id="${uuid}-toggle-div">
+        <h3>This div is shown/hidden based on the checkbox state</h3>
+        <p>You can see this content when the checkbox is checked.</p>
+      </div>
+
+      <div>
+        <h2>Last Changed Property</h2>
+        <div>${lastChangedProperty}</div>
+      </div>
+
+      <div>
+        <h2>Modal Example</h2>
+        <button node-id="${uuid}-open-modal">Open Modal</button>
+        <div class="modal ${isModalOpen ? 'show-modal' : ''}" node-id="${uuid}-modal">
+          <div class="modal-content">
+            <h2>Modal Title</h2>
+            <p>This is the modal content.</p>
+            <button node-id="${uuid}-close-modal">Close Modal</button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+</script>

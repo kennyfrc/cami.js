@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { _deepClone, _deepMerge } from "./utils.js";
+=======
+import { _deepClone, _deepMerge } from "./utils";
+>>>>>>> session/vitest
 import { Model } from "./observables/observable-model.js";
 
 const Type = {
@@ -63,7 +67,11 @@ const Type = {
     discriminantFn,
     typesFn,
   }),
+<<<<<<< HEAD
   Model: (name, properties) => new Model(name, properties),
+=======
+  Model: (name, properties) => new Model({ name: name, properties: properties }),
+>>>>>>> session/vitest
   Reference: (modelName) => ({
     type: "reference",
     modelName,

@@ -9,6 +9,10 @@ import {
 } from "./observables/observable-state.js";
 import { ObservableProxy } from "./observables/observable-proxy.js";
 import { __trace } from "./trace.js";
+<<<<<<< HEAD
+=======
+import { _deepEqual } from "./utils";
+>>>>>>> session/vitest
 
 /**
  * @typedef ObservableProperty
@@ -188,7 +192,9 @@ class ReactiveElement extends HTMLElement {
    */
   connectedCallback() {
     this.__setup({ infer: true });
-    this.effect(() => this.render());
+    this.effect(() => {
+      this.render();
+    });
     this.render();
     this.onConnect();
   }
@@ -423,12 +429,26 @@ class ReactiveElement extends HTMLElement {
    */
   __setup(config) {
     if (config.infer === true) {
+<<<<<<< HEAD
       Object.keys(this).forEach((key) => {
         if (typeof this[key] !== "function" && !key.startsWith("__")) {
           if (this[key] instanceof Observable) {
             return;
+=======
+      const keys = Object.keys(this);
+      const keysLen = keys.length;
+      
+      // Using direct for loop instead of forEach for better performance
+      for (let i = 0; i < keysLen; i++) {
+        const key = keys[i];
+        const value = this[key];
+        
+        if (typeof value !== "function" && !key.startsWith("__")) {
+          if (value instanceof Observable) {
+            continue;
+>>>>>>> session/vitest
           } else {
-            const observable = this.__observable(this[key], key);
+            const observable = this.__observable(value, key);
             if (this.__isObjectOrArray(observable.value)) {
               this.__createObservablePropertyForObjOrArr(this, key, observable);
             } else {
@@ -440,7 +460,11 @@ class ReactiveElement extends HTMLElement {
             }
           }
         }
+<<<<<<< HEAD
       });
+=======
+      }
+>>>>>>> session/vitest
     }
   }
 
@@ -517,23 +541,66 @@ class ReactiveElement extends HTMLElement {
       );
     }
 
+<<<<<<< HEAD
     // Only effects have a dispose method
     this.__unsubscribers.set(observableState, () => {
       if (typeof observableState.dispose === "function") {
         observableState.dispose();
       }
     });
+=======
+    // Only effects have a dispose method - use direct property access for speed
+    this.__unsubscribers.set(observableState, () => {
+      const dispose = observableState.dispose;
+      if (typeof dispose === "function") {
+        dispose.call(observableState);
+      }
+    });
+  }
+
+  afterRender() {
+    // no-op. just a hook for the user.
+>>>>>>> session/vitest
   }
 
   /**
    * @method
    * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+   * Uses memoization to avoid unnecessary rendering when the template result hasn't changed.
    * @returns {void}
    */
   render() {
     if (typeof this.template === "function") {
+<<<<<<< HEAD
       const template = this.template();
       __litRender(template, this);
+=======
+      // Call template function and get the result
+      const template = this.template();
+
+      // Using reference equality first (faster) before deep equal check
+      if (this.__prevTemplate === template) return;
+
+      // Check if we have a previous template result to compare with
+      if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
+        // If the template hasn't changed, no need to re-render
+        return;
+      }
+
+      // Store the current template for future comparison
+      this.__prevTemplate = template;
+      
+      // Render the template
+      __litRender(template, this);
+      this.afterRender();
+    }
+  }
+
+  warnIfMissingProperties(properties) {
+    const missingProperties = properties.filter(prop => !(prop in this));
+    if (missingProperties.length > 0) {
+      console.warn(`Missing required properties: ${missingProperties.join(', ')}`);
+>>>>>>> session/vitest
     }
   }
 }

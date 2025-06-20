@@ -1,4 +1,5 @@
 import { render as _litRender } from "./html.js";
+<<<<<<< HEAD
 import { DependencyTracker, effect } from "./observables/observable-state.js"
 
 const interactionContextSchema = {
@@ -307,6 +308,11 @@ const initializeGlobalListeners = () => {
 
     globalListenersInitialized = true;
 }
+=======
+import { DependencyTracker, effect } from "./observables/observable-state.js";
+import { _deepEqual } from "./utils";
+import { interactionStore, deviceTypeFromUserAgent } from './interaction-store.js';
+>>>>>>> session/vitest
 
 const defineReactiveElement = (name, store, renderFn) => {
     customElements.define(name, 
@@ -320,6 +326,10 @@ const defineReactiveElement = (name, store, renderFn) => {
                 this.updateViewportSize();
                 this.isUpdating = false;
                 effect(() => {
+<<<<<<< HEAD
+=======
+                    console.log(`Effect triggered`)
+>>>>>>> session/vitest
                     if (!this.isUpdating) {
                         this.isUpdating = true;
                         this.render();
@@ -340,14 +350,37 @@ const defineReactiveElement = (name, store, renderFn) => {
             }
 
             render() {
+<<<<<<< HEAD
                 const ctx = interactionStore.getState();
                 _litRender(renderFn({ store, element: this, ctx }), this);
+=======
+                console.log(`Render called`)
+                const ctx = interactionStore.getState();
+                
+                // Generate the template result
+                const template = renderFn({ store, element: this, ctx });
+                
+                // Check if the template has actually changed
+                if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
+                    console.log('Template unchanged, skipping render');
+                    return;
+                }
+                
+                // Store for future comparison
+                this.__prevTemplate = template;
+                
+                // Render the template
+                _litRender(template, this);
+>>>>>>> session/vitest
             }
         }
     )
 }
 
+<<<<<<< HEAD
 let globalListenersInitialized = false;
 initializeGlobalListeners();
 
+=======
+>>>>>>> session/vitest
 export { defineReactiveElement };

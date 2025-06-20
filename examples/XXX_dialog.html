@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<dialog-element></dialog-element>
+<style>
+    dialog {
+        padding: 20px;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+    }
+    dialog::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+    }
+</style>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+      // SpringSolver from WebKit
+      // https://github.com/WebKit/webkit/blob/main/Source/WebCore/platform/graphics/SpringSolver.h
+      const SpringSolver = {
+          create: function(mass, stiffness, damping, initialVelocity) {
+              const w0 = Math.sqrt(stiffness / mass);
+              const zeta = damping / (2 * Math.sqrt(stiffness * mass));
+
+              let wd, A, B;
+
+              if (zeta < 1) {
+                  // Under-damped
+                  wd = w0 * Math.sqrt(1 - zeta * zeta);
+                  A = 1;
+                  B = (zeta * w0 + -initialVelocity) / wd;
+              } else {
+                  // Critically damped (ignoring over-damped case for now)
+                  A = 1;
+                  B = -initialVelocity + w0;
+              }
+
+              return {
+                  solve: function(t) {
+                      let result;
+                      if (zeta < 1) {
+                          // Under-damped
+                          result = Math.exp(-t * zeta * w0) * (A * Math.cos(wd * t) + B * Math.sin(wd * t));
+                      } else {
+                          // Critically damped
+                          result = (A + B * t) * Math.exp(-t * w0);
+                      }
+                      // Map range from [1..0] to [0..1]
+                      return 1 - result;
+                  }
+              };
+          }
+      };
+
+      class AnimationChain {
+          constructor(animate) {
+              this.animate = animate;
+              this.beforeHook = null;
+              this.afterHook = null;
+          }
+
+          before(callback) {
+              this.beforeHook = callback;
+              return this;
+          }
+
+          after(callback) {
+              this.afterHook = callback;
+              return this;
+          }
+
+          async executeAnimation(method, options) {
+              if (this.beforeHook) await this.beforeHook();
+              const result = await this.animate[method](options);
+              if (this.afterHook) await this.afterHook();
+              return result;
+          }
+
+          entry(options) {
+              return this.executeAnimation('entry', options);
+          }
+
+          exit(options) {
+              return this.executeAnimation('exit', options);
+          }
+
+          with(options) {
+              return this.executeAnimation('with', options);
+          }
+      }
+
+      const animate = {
+          styleSheet: (function() {
+              const style = document.createElement('style');
+              document.head.appendChild(style);
+              return style.sheet;
+          })(),
+
+          easingCurves: {
+              'ease-in-quad': 'cubic-bezier(.55, .085, .68, .53)',
+              'ease-in-cubic': 'cubic-bezier(.550, .055, .675, .19)',
+              'ease-in-quart': 'cubic-bezier(.895, .03, .685, .22)',
+              'ease-in-quint': 'cubic-bezier(.755, .05, .855, .06)',
+              'ease-in-expo': 'cubic-bezier(.95, .05, .795, .035)',
+              'ease-in-circ': 'cubic-bezier(.6, .04, .98, .335)',
+              'ease-out-quad': 'cubic-bezier(.25, .46, .45, .94)',
+              'ease-out-cubic': 'cubic-bezier(.215, .61, .355, 1)',
+              'ease-out-quart': 'cubic-bezier(.165, .84, .44, 1)',
+              'ease-out-quint': 'cubic-bezier(.23, 1, .32, 1)',
+              'ease-out-expo': 'cubic-bezier(.19, 1, .22, 1)',
+              'ease-out-circ': 'cubic-bezier(.075, .82, .165, 1)',
+              'ease-in-out-quad': 'cubic-bezier(.455, .03, .515, .955)',
+              'ease-in-out-cubic': 'cubic-bezier(.645, .045, .355, 1)',
+              'ease-in-out-quart': 'cubic-bezier(.77, 0, .175, 1)',
+              'ease-in-out-quint': 'cubic-bezier(.86, 0, .07, 1)',
+              'ease-in-out-expo': 'cubic-bezier(1, 0, 0, 1)',
+              'ease-in-out-circ': 'cubic-bezier(.785, .135, .15, .86)'
+          },
+
+          getEasing(easing) {
+              return this.easingCurves[easing] || easing;
+          },
+
+          addRule(cssText) {
+              this.styleSheet.insertRule(cssText, this.styleSheet.cssRules.length);
+          },
+
+          activeAnimations: new WeakMap(),
+
+          createAnimation({ element, keyframes, options, customProperties }) {
+              const existingAnimation = this.activeAnimations.get(element);
+              if (existingAnimation) {
+                  existingAnimation.cancel();
+              }
+
+              if (customProperties) {
+                  keyframes = keyframes.map((frame, index) => {
+                      const customFrame = {};
+                      for (const [prop, { from, to }] of Object.entries(customProperties)) {
+                          customFrame[prop] = index === 0 ? from : to;
+                      }
+                      return { ...frame, ...customFrame };
+                  });
+              }
+
+              // Handle reverse and alternate directions
+              if (options.direction === 'reverse') {
+                  keyframes = keyframes.reverse();
+              } else if (options.direction === 'alternate' && options.iterations > 1) {
+                  const reversedKeyframes = [...keyframes].reverse();
+                  keyframes = keyframes.concat(reversedKeyframes);
+                  options.iterations = Math.floor(options.iterations / 2);
+              }
+
+              const animation = element.animate(keyframes, options);
+              this.activeAnimations.set(element, animation);
+
+              return new Promise((resolve) => {
+                  animation.onfinish = () => {
+                      this.activeAnimations.delete(element);
+                      if (customProperties) {
+                          Object.entries(customProperties).forEach(([prop, { to }]) => {
+                              element.style[prop] = to;
+                          });
+                      }
+                      resolve();
+                  };
+              });
+          },
+
+          createSpringKeyframes: function(config, currentVelocity = 0) {
+              const { mass, stiffness, damping, duration } = config;
+              const solver = SpringSolver.create(mass, stiffness, damping, currentVelocity);
+
+              const keyframes = [];
+              for (let t = 0; t <= duration; t += 16.67) { // ~60fps
+                  const progress = solver.solve(t / 1000); // Convert to seconds
+                  keyframes.push({ offset: t / duration, opacity: progress, transform: `scale(${0.96 + 0.04 * progress})` });
+              }
+
+              return keyframes;
+          },
+
+          getCurrentVelocity: function(element) {
+              const animation = this.activeAnimations.get(element);
+              if (animation && !animation.finished) {
+                  const currentTime = animation.currentTime || 0;
+                  const previousTime = currentTime - 16.67; // Assume 60fps
+                  if (previousTime >= 0) {
+                      const currentKeyframe = animation.effect.getComputedTiming();
+                      const previousKeyframe = animation.effect.getComputedTiming(previousTime);
+                      return (currentKeyframe.progress - previousKeyframe.progress) / 0.01667; // Convert to velocity per second
+                  }
+              }
+              return 0;
+          },
+
+          chain() {
+              return new AnimationChain(this);
+          },
+
+          entry(options) {
+              if (this instanceof AnimationChain) {
+                  return this.executeAnimation('entry', options);
+              }
+              return this._entry(options);
+          },
+
+          exit(options) {
+              if (this instanceof AnimationChain) {
+                  return this.executeAnimation('exit', options);
+              }
+              return this._exit(options);
+          },
+
+          with(options) {
+              if (this instanceof AnimationChain) {
+                  return this.executeAnimation('with', options);
+              }
+              return this._with(options);
+          },
+
+          _entry: function(options) {
+              const elementsArray = Array.isArray(options.elements) ? options.elements : [options.elements];
+
+              return Promise.all(elementsArray.map(element => {
+                  let keyframes, animationOptions;
+
+                  if (options.spring) {
+                      const currentVelocity = this.getCurrentVelocity(element);
+                      keyframes = this.createSpringKeyframes({
+                          mass: options.spring.mass || 1,
+                          stiffness: options.spring.stiffness || 100,
+                          damping: options.spring.damping || 10,
+                          duration: options.spring.duration || options.duration
+                      }, currentVelocity);
+                      animationOptions = {
+                          duration: options.spring.duration || options.duration,
+                          fill: 'forwards',
+                          direction: options.direction,
+                          iterations: options.loop ? Infinity : 1
+                      };
+                  } else {
+                      const easingValue = this.getEasing(options.easing);
+                      keyframes = [
+                          { opacity: options.opacity?.[0] ?? 1, transform: options.transform?.[0] ?? 'none' },
+                          { opacity: options.opacity?.[1] ?? 1, transform: options.transform?.[1] ?? 'none' }
+                      ];
+                      if (options.customProperties) {
+                          keyframes[0] = { ...keyframes[0], ...Object.fromEntries(Object.entries(options.customProperties).map(([key, { from }]) => [key, from])) };
+                          keyframes[1] = { ...keyframes[1], ...Object.fromEntries(Object.entries(options.customProperties).map(([key, { to }]) => [key, to])) };
+                      }
+                      animationOptions = {
+                          duration: options.duration,
+                          easing: easingValue,
+                          fill: 'forwards',
+                          direction: options.direction,
+                          iterations: options.loop ? Infinity : 1
+                      };
+                  }
+
+                  return this.createAnimation({ element, keyframes, options: animationOptions, customProperties: options.customProperties });
+              }));
+          },
+
+          _exit: function(options) {
+              const elementsArray = Array.isArray(options.elements) ? options.elements : [options.elements];
+
+              return Promise.all(elementsArray.map(element => {
+                  let keyframes, animationOptions;
+
+                  if (options.spring) {
+                      const currentVelocity = this.getCurrentVelocity(element);
+                      keyframes = this.createSpringKeyframes({
+                          mass: options.spring.mass || 1,
+                          stiffness: options.spring.stiffness || 100,
+                          damping: options.spring.damping || 10,
+                          duration: options.spring.duration || options.duration
+                      }, currentVelocity).reverse();
+                      animationOptions = {
+                          duration: options.spring.duration || options.duration,
+                          fill: 'forwards',
+                          direction: options.direction,
+                          iterations: options.loop ? Infinity : 1
+                      };
+                  } else {
+                      const easingValue = this.getEasing(options.easing);
+                      keyframes = [
+                          { opacity: options.opacity?.[0] ?? 1, transform: options.transform?.[0] ?? 'none' },
+                          { opacity: options.opacity?.[1] ?? 1, transform: options.transform?.[1] ?? 'none' }
+                      ];
+                      if (options.customProperties) {
+                          keyframes[0] = { ...keyframes[0], ...Object.fromEntries(Object.entries(options.customProperties).map(([key, { from }]) => [key, from])) };
+                          keyframes[1] = { ...keyframes[1], ...Object.fromEntries(Object.entries(options.customProperties).map(([key, { to }]) => [key, to])) };
+                      }
+                      animationOptions = {
+                          duration: options.duration,
+                          easing: easingValue,
+                          fill: 'forwards',
+                          direction: options.direction,
+                          iterations: options.loop ? Infinity : 1
+                      };
+                  }
+
+                  return this.createAnimation({ element, keyframes, options: animationOptions, customProperties: options.customProperties })
+              }));
+          },
+
+          _with: function(options) {
+              const elementsArray = Array.isArray(options.elements) ? options.elements : [options.elements];
+
+              return Promise.all(elementsArray.map(element => {
+                  let keyframes, animationOptions;
+
+                  if (options.spring) {
+                      const currentVelocity = this.getCurrentVelocity(element);
+                      keyframes = this.createSpringKeyframes({
+                          mass: options.spring.mass || 1,
+                          stiffness: options.spring.stiffness || 100,
+                          damping: options.spring.damping || 10,
+                          duration: options.spring.duration || options.duration
+                      }, currentVelocity);
+                      animationOptions = {
+                          duration: options.spring.duration || options.duration,
+                          fill: 'forwards',
+                          direction: options.direction,
+                          iterations: options.loop ? Infinity : 1
+                      };
+                  } else {
+                      const easingValue = this.getEasing(options.easing);
+                      keyframes = [
+                          { opacity: options.opacity?.[0] ?? 1, transform: options.transform?.[0] ?? 'none' },
+                          { opacity: options.opacity?.[1] ?? 1, transform: options.transform?.[1] ?? 'none' }
+                      ];
+                      if (options.customProperties) {
+                          keyframes[0] = { ...keyframes[0], ...Object.fromEntries(Object.entries(options.customProperties).map(([key, { from }]) => [key, from])) };
+                          keyframes[1] = { ...keyframes[1], ...Object.fromEntries(Object.entries(options.customProperties).map(([key, { to }]) => [key, to])) };
+                      }
+                      animationOptions = {
+                          duration: options.duration,
+                          easing: easingValue,
+                          fill: 'forwards',
+                          direction: options.direction,
+                          iterations: options.loop ? Infinity : 1
+                      };
+                  }
+
+                  return this.createAnimation({ element, keyframes, options: animationOptions, customProperties: options.customProperties });
+              }));
+          }
+      };
+
+    const { html, ReactiveElement } = cami;
+
+    customElements.define('dialog-element',
+      class extends ReactiveElement {
+        constructor() {
+          super();
+          this.isOpen = false;
+          this.isClosing = false;
+
+        }
+
+        template() {
+          let dialogElement;
+
+          // const onAnimationEnd = (event) => {
+          //   if (event.target === dialogElement && event.animationName === 'dialog-fade-out') {
+          //       // dialogElement.classList.remove('closing');
+          //       dialogElement.close();
+          //       dialogElement.removeEventListener('animationend', onAnimationEnd);
+          //       this.isClosing = false;
+          //   }
+          // }
+
+
+          const onOpen = async () => {
+              this.isOpen = true;
+              dialogElement = this.querySelector('dialog');
+
+              // Reset closing state in case the dialog is reopened
+              this.isClosing = false;
+              // dialogElement.classList.remove('closing');
+
+              dialogElement.showModal();
+
+              // Animate the backdrop entry (fade-in)
+              await animate.entry({
+                  elements: dialogElement,
+                  opacity: [0, 1],
+                  duration: 300,
+                  easing: 'ease-out-cubic'
+              });
+          };
+
+          const onClose = async (e) => {
+              e.preventDefault();
+
+              this.isOpen = false;
+
+              if (this.isClosing) {
+                  return; // Prevent multiple executions
+              }
+              this.isClosing = true;
+              // dialogElement.classList.add('closing');
+
+              // Add the animationend listener only once
+              await animate.exit({
+                  elements: dialogElement,
+                  opacity: [1, 0],
+                  duration: 200,
+                  easing: 'ease-out-cubic'
+              });
+
+              // dialogElement.addEventListener('animationend', onAnimationEnd);
+
+              dialogElement.close();
+          };
+
+          const onCancel = (e) => {
+              e.preventDefault();
+              onClose(e);
+          };
+
+          return html`
+              <button @click=${onOpen}>Open Dialog</button>
+              <dialog @cancel=${onCancel}>
+                  <div class="dialog-content">
+                      <h2>Dialog Content</h2>
+                      <p>This is a native dialog with show and hide animations.</p>
+                      <button @click=${onClose}>Close</button>
+                  </div>
+              </dialog>
+          `;
+        }
+      }
+    )
+
+    // let dialogElement;
+    // let isClosing = false;
+
+    // // Define the animation end handler outside to prevent multiple definitions
+    // const onAnimationEnd = (event) => {
+    //     if (event.target === dialogElement && event.animationName === 'dialog-fade-out') {
+    //         dialogElement.classList.remove('closing');
+    //         dialogElement.close();
+    //         dialogElement.removeEventListener('animationend', onAnimationEnd);
+    //         isClosing = false;
+    //     }
+    // };
+
+    // const dialogTemplate = () => {
+    //     const onOpen = () => {
+    //         dialogElement = document.querySelector('dialog');
+
+    //         // Reset closing state in case the dialog is reopened
+    //         isClosing = false;
+    //         dialogElement.classList.remove('closing');
+
+    //         dialogElement.showModal();
+    //     };
+
+    //     const onClose = (e) => {
+    //         e.preventDefault();
+
+    //         if (isClosing) {
+    //             return; // Prevent multiple executions
+    //         }
+    //         isClosing = true;
+    //         dialogElement.classList.add('closing');
+
+    //         // Add the animationend listener only once
+    //         dialogElement.addEventListener('animationend', onAnimationEnd);
+    //     };
+
+    //     const onCancel = (e) => {
+    //         e.preventDefault();
+    //         onClose(e);
+    //     };
+
+    //     return html`
+    //         <button @click=${onOpen}>Open Dialog</button>
+    //         <dialog @cancel=${onCancel}>
+    //             <div class="dialog-content">
+    //                 <h2>Dialog Content</h2>
+    //                 <p>This is a native dialog with show and hide animations.</p>
+    //                 <button @click=${onClose}>Close</button>
+    //             </div>
+    //         </dialog>
+    //     `;
+    // };
+</script>  </body>
+</html>

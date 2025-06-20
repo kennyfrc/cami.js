@@ -1,17 +1,19 @@
 import { Observable } from "./observable.js";
 import { produce } from "immer";
+<<<<<<< HEAD
 import { _deepEqual } from "../utils.js";
+=======
+import { _deepEqual } from "../utils";
+>>>>>>> session/vitest
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
 
 /**
- * @private
- * @class
- * @description DependencyTracker is an object that holds the current dependency.
- * It is used to track dependencies between observables.
- * @type {Object}
+ * High-performance dependency tracking implementation
+ * inspired by signals and other reactive libraries
  */
 class DependencyTracker {
+<<<<<<< HEAD
   static current = null;
   static dependencyGraph = new Map();
 
@@ -137,6 +139,63 @@ class DependencyTracker {
 
   static clearGraph() {
     DependencyTracker.dependencyGraph.clear();
+=======
+  // Shared static context for tracking the current computation
+  static current = null;
+
+  /**
+   * Track dependencies used during the execution of an effect function
+   * @param {Function} effectFn - Function to track
+   * @returns {Set} Set of dependencies
+   */
+  static track(effectFn) {
+    // Save previous context to support nested tracking
+    const previousTracker = DependencyTracker.current;
+    
+    // Create new tracker for this computation
+    const tracker = new DependencyTracker();
+    DependencyTracker.current = tracker;
+    
+    try {
+      // Execute the function to track dependencies
+      effectFn();
+      return tracker.dependencies;
+    } finally {
+      // Restore previous context
+      DependencyTracker.current = previousTracker;
+    }
+  }
+
+  constructor() {
+    // For small dependency sets, arrays are faster than Sets in V8
+    // When dependency count grows large, we can switch to a Set
+    this.dependencies = [];
+    
+    // For fast lookup to avoid duplicates (O(1) vs O(n))
+    this._depsMap = new Map();
+  }
+
+  /**
+   * Add a dependency to the current tracker
+   * @param {Object} store - The store to track
+   * @param {string} [property] - Optional property to track
+   */
+  addDependency(store, property) {
+    // Create a unique key for the dependency
+    const key = property ? `${store._uid || 'store'}.${property}` : (store._uid || 'store');
+    
+    // Only add if not already tracked (O(1) lookup)
+    if (!this._depsMap.has(key)) {
+      // Create dependency object with minimal properties
+      const dep = { store, property };
+      
+      // Track in array for ordered iteration
+      this.dependencies.push(dep);
+      
+      // Track in map for fast existence checks
+      this._depsMap.set(key, dep);
+    }
+>>>>>>> session/vitest
   }
 }
 
@@ -176,6 +235,39 @@ class ObservableState extends Observable {
     this.__name = name;
     this.__isUpdating = false;
     this.__updateStack = [];
+<<<<<<< HEAD
+=======
+  }
+
+  /**
+   * @method
+   * @param {Function} callback - Callback function to be notified on value changes
+   * @returns {Object} A subscription object with an unsubscribe method
+   * @description High-performance subscription method with O(1) unsubscribe
+   */
+  onValue(callback) {
+    // Add observer to array - O(1) operation
+    const index = this.__observers.length;
+    this.__observers.push(callback);
+    
+    // Return subscription with direct index removal for O(1) unsubscribe when possible
+    return {
+      unsubscribe: () => {
+        // Fast path: if the callback is still at the original index, use direct removal
+        if (this.__observers[index] === callback) {
+          // Fast removal by swapping with last element and popping - O(1)
+          const lastIndex = this.__observers.length - 1;
+          if (index < lastIndex) {
+            this.__observers[index] = this.__observers[lastIndex];
+          }
+          this.__observers.pop();
+        } else {
+          // Fallback to filter only when needed - O(n)
+          this.__observers = this.__observers.filter(obs => obs !== callback);
+        }
+      }
+    };
+>>>>>>> session/vitest
   }
 
   /**
@@ -481,15 +573,66 @@ class ObservableState extends Observable {
    * If the observer is a function, it is called directly.
    * If the observer is an object with a 'next' method, the 'next' method is called.
    */
+  /**
+   * High-performance notification method with optimized code paths
+   * @private
+   */
   __notifyObservers() {
+<<<<<<< HEAD
     const observersWithLast = [...this.__observers, this.__lastObserver];
     observersWithLast.forEach((observer) => {
       if (observer && typeof observer === "function") {
         observer(this.__value);
       } else if (observer && observer.next) {
         observer.next(this.__value);
+=======
+    // Fast path: no observers
+    if (this.__observers.length === 0 && !this.__lastObserver) {
+      return;
+    }
+    
+    // Cache the current value for consistent notifications
+    const value = this.__value;
+    
+    // Use direct array access with for-loop instead of creating a new array and using forEach
+    const observers = this.__observers;
+    const len = observers.length;
+    
+    // Highly optimized path for single observer (common case)
+    if (len === 1 && !this.__lastObserver) {
+      const observer = observers[0];
+      if (observer) {
+        if (typeof observer === "function") {
+          observer(value);
+        } else if (observer.next) {
+          observer.next(value);
+        }
+>>>>>>> session/vitest
       }
-    });
+      return;
+    }
+    
+    // Handle multiple observers with faster while-loop counting down
+    let i = len;
+    while (i--) {
+      const observer = observers[i];
+      if (observer) {
+        if (typeof observer === "function") {
+          observer(value);
+        } else if (observer.next) {
+          observer.next(value);
+        }
+      }
+    }
+    
+    // Handle the last observer separately (if exists)
+    if (this.__lastObserver) {
+      if (typeof this.__lastObserver === "function") {
+        this.__lastObserver(value);
+      } else if (this.__lastObserver && this.__lastObserver.next) {
+        this.__lastObserver.next(value);
+      }
+    }
   }
 
   /**
@@ -498,7 +641,12 @@ class ObservableState extends Observable {
    * @description This method applies all the pending updates to the value.
    * It then notifies all the observers with the updated value.
    */
+  /**
+   * Optimized update application with fast paths for common cases
+   * @private
+   */
   __applyUpdates() {
+<<<<<<< HEAD
     let oldValue = this.__value;
     while (this.__pendingUpdates.length > 0) {
       const updater = this.__pendingUpdates.shift();
@@ -509,13 +657,119 @@ class ObservableState extends Observable {
         Array.isArray(this.__value)
       ) {
         this.__value = produce(this.__value, updater);
+=======
+    // Skip the expensive _deepEqual check by tracking changes explicitly
+    let hasChanged = false;
+    
+    // Cache the old value only if needed for event emission
+    const needsEventOrTrace = __config.events.isEnabled || __trace.isEnabled;
+    const oldValue = needsEventOrTrace ? this.__value : undefined;
+    
+    // Process all pending updates at once
+    const updates = this.__pendingUpdates;
+    const updateCount = updates.length;
+    
+    if (updateCount === 0) {
+      // No updates, nothing to do
+      this.__updateScheduled = false;
+      return;
+    }
+    
+    // Fast path for simple values (not objects or arrays)
+    const isComplexValue = (typeof this.__value === "object" && 
+                           this.__value !== null && 
+                           (this.__value.constructor === Object || Array.isArray(this.__value)));
+    
+    if (isComplexValue) {
+      // For objects/arrays, use immer's produce
+      // Apply all updates in a batch
+      if (updateCount === 1) {
+        // Fast path for single update (common case)
+        const updater = updates[0];
+        const newValue = produce(this.__value, updater);
+        
+        // First try reference equality (fast)
+        if (newValue !== this.__value) {
+          // For objects/arrays, do deep equality check to avoid unnecessary updates
+          if (typeof newValue === 'object' && newValue !== null &&
+              typeof this.__value === 'object' && this.__value !== null) {
+            if (!_deepEqual(newValue, this.__value)) {
+              hasChanged = true;
+              this.__value = newValue;
+            }
+          } else {
+            hasChanged = true;
+            this.__value = newValue;
+          }
+        }
+>>>>>>> session/vitest
       } else {
-        this.__value = updater(this.__value);
+        // When multiple updates exist, apply them in sequence
+        let currentValue = this.__value;
+        for (let i = 0; i < updateCount; i++) {
+          const updater = updates[i];
+          const newValue = produce(currentValue, updater);
+          // First try reference equality (fast)
+          if (newValue !== currentValue) {
+            // For objects/arrays, do deep equality check to avoid unnecessary updates
+            if (typeof newValue === 'object' && newValue !== null &&
+                typeof currentValue === 'object' && currentValue !== null) {
+              if (!_deepEqual(newValue, currentValue)) {
+                hasChanged = true;
+                currentValue = newValue;
+              }
+            } else {
+              hasChanged = true;
+              currentValue = newValue;
+            }
+          }
+        }
+        
+        if (hasChanged) {
+          this.__value = currentValue;
+        }
+      }
+    } else {
+      // For primitive values, apply updaters directly in sequence
+      let currentValue = this.__value;
+      for (let i = 0; i < updateCount; i++) {
+        const updater = updates[i];
+        const newValue = updater(currentValue);
+        // First try reference equality (fast)
+        if (newValue !== currentValue) {
+          // For objects/arrays, do deep equality check to avoid unnecessary updates
+          if (typeof newValue === 'object' && newValue !== null &&
+              typeof currentValue === 'object' && currentValue !== null) {
+            if (!_deepEqual(newValue, currentValue)) {
+              hasChanged = true;
+              currentValue = newValue;
+            }
+          } else {
+            hasChanged = true;
+            currentValue = newValue;
+          }
+        }
+      }
+      
+      if (hasChanged) {
+        this.__value = currentValue;
       }
     }
+<<<<<<< HEAD
     if (!_deepEqual(oldValue, this.__value)) {
       this.__notifyObservers();
 
+=======
+    
+    // Clear the update queue - faster than multiple shift() calls
+    updates.length = 0;
+    
+    // Only notify observers if the value actually changed
+    if (hasChanged) {
+      this.__notifyObservers();
+      
+      // Only emit events if necessary and configured
+>>>>>>> session/vitest
       if (__config.events.isEnabled && typeof window !== "undefined") {
         const event = new CustomEvent("cami:elem:state:change", {
           detail: {
@@ -526,9 +780,18 @@ class ObservableState extends Observable {
         });
         window.dispatchEvent(event);
       }
+<<<<<<< HEAD
 
       __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
+=======
+      
+      // Only trace if enabled
+      if (needsEventOrTrace) {
+        __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
+      }
+>>>>>>> session/vitest
     }
+    
     this.__updateScheduled = false;
   }
 
@@ -559,36 +822,40 @@ class ObservableState extends Observable {
 const effect = function (effectFn) {
   let cleanup = () => {};
   let dependencies = new Set();
-  let subscriptions = new Map();
 
-  /**
-   * The tracker object is used to keep track of dependencies for the effect function.
-   * It provides a method to add a dependency (an observable) to the dependencies set.
-   * If the observable is not already a dependency, it is added to the set and a subscription is created
-   * to run the effect function whenever the observable's value changes.
-   * This mechanism allows the effect function to respond to state changes in its dependencies.
-   */
-  const tracker = {
-    addDependency: (observable) => {
+  const _runEffect = () => {
+    // Clean up previous effect
+    cleanup();
+
+    // Track dependencies with optimized object allocation
+    DependencyTracker.current = { addDependency };  // Reuse the same function reference
+    
+    function addDependency(observable) {
       if (!dependencies.has(observable)) {
-        const subscription = observable.onValue(_runEffect);
         dependencies.add(observable);
-        subscriptions.set(observable, subscription);
+        observable.onValue(_runEffect);
       }
+<<<<<<< HEAD
     },
+=======
+    }
+
+    // Run the effect
+    try {
+      cleanup = effectFn() || (() => {});
+    } finally {
+      DependencyTracker.current = null;
+    }
+>>>>>>> session/vitest
   };
 
-  /**
-   * The _runEffect function is responsible for running the effect function and managing its dependencies.
-   * Before the effect function is run, any cleanup from the previous run is performed and the current tracker
-   * is set to this tracker. This allows the effect function to add dependencies via the tracker while it is running.
-   * After the effect function has run, the current tracker is set back to null to prevent further dependencies
-   * from being added outside of the effect function.
-   * The effect function is expected to return a cleanup function, which is saved for the next run.
-   * The cleanup function, initially empty, is replaced by the one returned from effectFn (run by the observable) before each new run and on effect disposal.
-   */
-  const _runEffect = () => {
+  // Initial run
+  _runEffect();
+
+  // Return dispose function
+  return () => {
     cleanup();
+<<<<<<< HEAD
     DependencyTracker.current = tracker;
     try {
       cleanup = effectFn() || (() => {});
@@ -611,26 +878,77 @@ const effect = function (effectFn) {
   } else {
     queueMicrotask(_runEffect);
   }
+=======
+    dependencies.forEach(dep => dep.__observers = dep.__observers.filter(obs => obs !== _runEffect));
+    dependencies.clear();
+  };
+};
 
-  /**
-   * @method
-   * @description Unsubscribes from all dependencies and runs cleanup function
-   * @returns {void}
-   * @example
-   * // Assuming `dispose` is the function returned by `effect`
-   * dispose(); // This will unsubscribe from all dependencies and run cleanup function
-   */
+/**
+ * @function
+ * @param {Function} deriveFn - The function to compute the derived value
+ * @returns {Object} An object containing the current derived value and a dispose function
+ * @description This function creates a derived value that updates when its dependencies change
+ * @example
+ * const count = new ObservableState(0);
+ * const { value: doubleCount, dispose } = derive(() => count.value * 2);
+ * console.log(doubleCount); // 0
+ * count.value = 5;
+ * console.log(doubleCount); // 10
+ * dispose(); // Clean up when no longer needed
+ */
+const derive = function (deriveFn) {
+  let dependencies = new Set();
+  let subscriptions = new Map();
+  let currentValue;
+
+  const tracker = {
+    addDependency: (observable) => {
+      if (!dependencies.has(observable)) {
+        const subscription = observable.onValue(_computeDerivedValue);
+        dependencies.add(observable);
+        subscriptions.set(observable, subscription);
+      }
+    },
+  };
+
+  const _computeDerivedValue = () => {
+    DependencyTracker.current = tracker;
+    try {
+      currentValue = deriveFn();
+    } catch (error) {
+      console.warn("[Cami.js] Error in derive function:", error.message);
+    } finally {
+      DependencyTracker.current = null;
+    }
+
+    try {
+      DependencyTracker.detectCycles();
+    } catch (error) {
+      console.warn(error.message);
+    }
+  };
+
+  _computeDerivedValue();
+>>>>>>> session/vitest
+
   const dispose = () => {
     subscriptions.forEach((subscription) => {
       subscription.unsubscribe();
     });
+<<<<<<< HEAD
     cleanup();
     DependencyTracker.clearGraph();
+=======
+    subscriptions.clear();
+    dependencies.clear();
+>>>>>>> session/vitest
   };
 
-  return dispose;
+  return { value: currentValue, dispose };
 };
 
+<<<<<<< HEAD
 /**
  * @function
  * @param {Function} deriveFn - The function to compute the derived value
@@ -689,4 +1007,6 @@ const derive = function (deriveFn) {
   return { value: currentValue, dispose };
 };
 
+=======
+>>>>>>> session/vitest
 export { ObservableState, effect, derive, DependencyTracker };

@@ -11,11 +11,20 @@ import {
   enablePatches,
   freeze,
 } from "immer";
+<<<<<<< HEAD
 import { _deepMerge, _deepClone, _deepEqual } from "../utils.js";
+=======
+import { _deepMerge, _deepClone, _deepEqual, debounce } from "../utils";
+>>>>>>> session/vitest
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
 import invariant from "../invariant.js";
 import { validateType } from "../types.js";
+<<<<<<< HEAD
+=======
+
+// Enable immer patches for our store implementation
+>>>>>>> session/vitest
 enablePatches();
 
 /**
@@ -45,6 +54,11 @@ enablePatches();
  * CartStore.use(loggerMiddleware);
  * ```
  */
+/**
+ * ObservableStore - A high-performance state management implementation that uses
+ * proxies and immer for efficient state updates with immutability guarantees.
+ * Optimized for speed while maintaining compatibility with the original API.
+ */
 class ObservableStore extends Observable {
   constructor(initialState, options = {}) {
     super((subscriber) => {
@@ -56,28 +70,68 @@ class ObservableStore extends Observable {
 
     this.name = options.name || "cami-store";
     this.schema = options.schema || {};
+<<<<<<< HEAD
 
     this._state = this._createProxy(createDraft(initialState));
     this.previousState = _deepClone(initialState);
+=======
+>>>>>>> session/vitest
 
+    // Use immer's draft for immutable state tracking with efficient updates
+    this._state = createDraft(initialState);
+    
+    // Keep a frozen snapshot of current state for reads
+    // We don't deep clone to avoid unnecessary object creation
+    this._frozenState = null;
+    
+    // Track whether state has changed to avoid unnecessary notifications
+    this._isDirty = false;
+    
+    // State version for internal tracking of changes (not in state object)
+    this._stateVersion = 0;
+    
+    // Create the proxy for state access tracking
+    this._proxy = this._createProxy(this._state);
+    
+    // Store original state for change detection
+    this.previousState = initialState;
+
+    // Core data structures for store functionality
     this.reducers = {};
     this.actions = {};
+<<<<<<< HEAD
     this.devTools = this.__connectToDevTools();
     this.dispatchQueue = [];
     this.isDispatching = false;
     this.currentDispatchPromise = null;
+=======
+    this.dispatchQueue = [];
+    this.isDispatching = false;
+    this.currentDispatchPromise = null;
+    
+    // Cache structures 
+>>>>>>> session/vitest
     this.queryCache = new Map();
     this.queryFunctions = new Map();
     this.queries = {};
+    this.memoCache = new Map();
+    
+    // Resource management
     this.intervals = new Map();
     this.focusHandlers = new Map();
     this.reconnectHandlers = new Map();
     this.gcTimeouts = new Map();
+<<<<<<< HEAD
+=======
+    
+    // Advanced features
+>>>>>>> session/vitest
     this.mutationFunctions = new Map();
     this.mutations = {};
     this.patchListeners = new Map();
     this.machines = {};
     this.memos = {};
+<<<<<<< HEAD
     this.memoCache = new Map();
     this.thunks = {};
     this.beforeHooks = [];
@@ -85,6 +139,21 @@ class ObservableStore extends Observable {
     this.specs = new Map();
 
     // destructurable methods
+=======
+    this.thunks = {};
+    this.specs = new Map();
+    
+    // Hooks for middleware-like functionality
+    this.beforeHooks = [];
+    this.afterHooks = [];
+    this.throttledAfterHooks = this.__executeAfterHooks.bind(this);
+
+    // Dispatch tracking to prevent infinite loops
+    this.__isDispatching = false;
+    this.__dispatchStack = [];
+
+    // Bind methods to ensure consistent this context
+>>>>>>> session/vitest
     this.dispatch = this.dispatch.bind(this);
     this.query = this.query.bind(this);
     this.mutate = this.mutate.bind(this);
@@ -93,6 +162,7 @@ class ObservableStore extends Observable {
     this.memo = this.memo.bind(this);
     this.invalidateQueries = this.invalidateQueries.bind(this);
     this.dispatchAsync = this.dispatchAsync.bind(this);
+<<<<<<< HEAD
 
     this.__isDispatching = false;
     this.__dispatchStack = [];
@@ -100,17 +170,52 @@ class ObservableStore extends Observable {
     this._validateState(this._state);
   }
 
+=======
+    
+    // Add hook to update state version after changes
+    this.afterHook(() => {
+      this._stateVersion++;
+    });
+
+    // Validate initial state against schema if provided
+    if (Object.keys(this.schema).length > 0) {
+      this._validateState(this._state);
+    }
+  }
+
+  /**
+   * Returns a frozen snapshot of the current state
+   * Automatically tracks dependencies for reactive computations
+   */
+>>>>>>> session/vitest
   get state() {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
+<<<<<<< HEAD
     return deepFreeze(this._state);
   }
 
+=======
+    // Create a frozen state only once and cache it until next change
+    if (!this._frozenState) {
+      // Deep clone the state first to filter out symbols and other internal properties
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState);
+    }
+    return this._frozenState;
+  }
+
+  /**
+   * Alternative to 'state' getter that follows standard getState pattern
+   * Used by many libraries and compatible with redux-like interfaces
+   */
+>>>>>>> session/vitest
   getState() {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
+<<<<<<< HEAD
     return deepFreeze(this._state);
   }
 
@@ -145,10 +250,357 @@ class ObservableStore extends Observable {
           enumerable: true,
           configurable: true,
         });
+=======
+    // Reuse the frozen state from the getter
+    if (!this._frozenState) {
+      // Deep clone the state first to filter out symbols and other internal properties
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState);
+    }
+    return this._frozenState;
+  }
+
+  /**
+   * Creates a proxy that tracks property access for dependency tracking
+   * and automatically schedules updates when properties change
+   * 
+   * This is a critical path for performance optimization
+   */
+  _createProxy(target) {
+    // Common internal props to skip - precompute for faster checks
+    const SKIP_PROPS = new Set(['constructor', 'toJSON']);
+    
+    // Use WeakMap to store method bindings without modifying the target object
+    // This completely prevents Symbol leakage into the state object
+    if (!this._stateTrapStore) {
+      this._stateTrapStore = new WeakMap();
+    }
+    if (!this._stateTrapStore.has(target)) {
+      this._stateTrapStore.set(target, new Map());
+    }
+    
+    return new Proxy(target, {
+      get: (target, prop, receiver) => {
+        // Fast path 1: Skip dependency tracking for symbols and internal methods
+        // Don't allow any symbols to be accessed from the target
+        if (typeof prop === 'symbol' || SKIP_PROPS.has(prop)) {
+          // For symbols, return undefined to prevent them from being accessed
+          if (typeof prop === 'symbol') {
+            return undefined;
+          }
+          return Reflect.get(target, prop, receiver);
+        }
+        
+        // Fast path 2: Track dependency if in reactive context
+        // This is a hot path for reactive components
+        if (DependencyTracker.current) {
+          DependencyTracker.current.addDependency(this, prop);
+        }
+        
+        // Get the actual value (this is the most common operation)
+        const value = Reflect.get(target, prop, receiver);
+        
+        // Fast path 3: For non-functions, return directly
+        if (typeof value !== 'function') {
+          return value;
+        }
+        
+        // Only for functions: ensure correct binding using WeakMap
+        // This is less common so it's moved to the end of the function
+        if (!Object.getOwnPropertyDescriptor(target, prop)) {
+          // Check if we already have a bound method using WeakMap
+          const trapMap = this._stateTrapStore.get(target);
+          if (!trapMap.has(prop)) {
+            trapMap.set(prop, value.bind(target));
+          }
+          return trapMap.get(prop);
+        }
+        
+        return value;
+      },
+      
+      set: (target, prop, value, receiver) => {
+        // Fast path: Prevent symbols from being set on the target
+        // This completely prevents symbol leakage into the state object
+        if (typeof prop === 'symbol') {
+          // Don't allow symbols to be set on the state object at all
+          return true; // Return true to indicate "success" without actually setting
+        }
+        
+        // Skip other internal properties
+        if (SKIP_PROPS.has(prop)) {
+          return Reflect.set(target, prop, value, receiver);
+        }
+        
+        // Performance optimization: Reference equality check before updating
+        // This avoids unnecessary updates when the value hasn't changed
+        const oldValue = target[prop];
+        
+        // If the value is the same by reference equality, skip the update
+        if (oldValue === value) {
+          return true;
+        }
+        
+        // For objects and arrays, use deep equality check
+        if (typeof value === 'object' && value !== null && 
+            typeof oldValue === 'object' && oldValue !== null) {
+          // Import _deepEqual at the top of the file if not already imported
+          if (_deepEqual(oldValue, value)) {
+            return true;
+          }
+        }
+        
+        // Value is different, perform the actual set operation
+        const result = Reflect.set(target, prop, value, receiver);
+        
+        // Mark as dirty and invalidate the frozen state
+        this._isDirty = true;
+        this._frozenState = null;
+        
+        // Add property to proxy if it's new
+        if (typeof prop === 'string' && !(prop in this)) {
+          this._addProxyProperty(prop);
+        }
+        
+        return result;
+      },
+      
+      deleteProperty: (target, prop) => {
+        // Only mark dirty if the property actually exists
+        if (prop in target) {
+          const result = Reflect.deleteProperty(target, prop);
+          this._isDirty = true;
+          this._frozenState = null;
+          return result;
+        }
+        return true;
+      },
+      
+      // These traps are less frequently used but still important for correctness
+      
+      ownKeys: (target) => {
+        if (DependencyTracker.current) {
+          DependencyTracker.current.addDependency(this);
+        }
+        // Filter out symbols to prevent internal symbols from leaking into state
+        return Reflect.ownKeys(target).filter(key => typeof key !== 'symbol');
+      },
+      
+      has: (target, prop) => {
+        if (DependencyTracker.current) {
+          DependencyTracker.current.addDependency(this, prop);
+        }
+        return Reflect.has(target, prop);
+      },
+      
+      defineProperty: (target, prop, descriptor) => {
+        // Prevent symbols from being defined on the target
+        if (typeof prop === 'symbol') {
+          return true; // Return true to indicate "success" without actually defining
+        }
+        
+        const result = Reflect.defineProperty(target, prop, descriptor);
+        if (result) {
+          this._isDirty = true;
+          this._frozenState = null;
+          if (typeof prop === 'string' && !(prop in this)) {
+            this._addProxyProperty(prop);
+          }
+        }
+        return result;
+      },
+      
+      getOwnPropertyDescriptor: (target, prop) => {
+        if (DependencyTracker.current) {
+          DependencyTracker.current.addDependency(this, prop);
+        }
+        return Reflect.getOwnPropertyDescriptor(target, prop);
+      },
+    });
+  }
+
+  /**
+   * Adds a property from the state to the store instance for direct access
+   * Only used for properties not already defined on the store
+   */
+  _addProxyProperty(key) {
+    // Check if the property name is valid and doesn't conflict with existing methods
+    if (
+      typeof key === 'string' && 
+      !key.startsWith('_') && 
+      !key.startsWith('__') && 
+      !(key in this) &&
+      !['dispatch', 'getState', 'subscribe'].includes(key)
+    ) {
+      Object.defineProperty(this, key, {
+        get: () => this._state[key],
+        set: (value) => {
+          this._state[key] = value;
+          this._isDirty = true;
+          this._frozenState = null;
+        },
+        enumerable: true,
+        configurable: true,
+      });
+    }
+  }
+
+  /**
+   * Efficiently notifies observers of state changes
+   * Only triggers if state has changed and batches notifications
+   */
+  _notifyObservers() {
+    // Only proceed if state is marked as dirty
+    if (!this._isDirty) return;
+    
+    // Fast path: If there are no observers and no subscriber
+    if (this.__observers.length === 0 && !this.__subscriber) {
+      this._isDirty = false;
+      return;
+    }
+    
+    // Before proceeding with expensive operations, check if the state actually changed
+    // by doing a deeper comparison with the previous state
+    if (this.previousState && _deepEqual(this._state, this.previousState)) {
+      // State hasn't actually changed in a meaningful way, so don't notify observers
+      this._isDirty = false;
+      return;
+    }
+    
+    // When using immer, we should always notify upon dispatch completion
+    // This ensures consistent behavior with the original implementation
+    // and maintains compatibility with tests and existing code
+    
+    // Clear memo cache for consistent derived calculations
+    this.memoCache.clear();
+    this._frozenState = null;
+    
+    // Get a stable snapshot of the current state 
+    // Using a frozen state here is critical for maintaining immutability
+    // while allowing efficient access to nested properties
+    const stateToEmit = deepFreeze(_deepClone(this._state));
+    
+    // Use a local reference to avoid issues if observers modify the collection
+    // And avoid allocating a new array if possible by checking for emptiness first
+    const observerCount = this.__observers.length;
+    
+    // Notify all observers - using a while loop counting down for better performance
+    if (observerCount > 0) {
+      let i = observerCount;
+      while (i--) {
+        const observer = this.__observers[i];
+        if (observer && typeof observer.next === "function") {
+          observer.next(stateToEmit);
+        }
+      }
+    }
+    
+    // Notify subscriber if exists
+    if (this.__subscriber && typeof this.__subscriber.next === "function") {
+      this.__subscriber.next(stateToEmit);
+    }
+    
+    // Update previous state for next change detection
+    this.previousState = _deepClone(this._state);
+    this._isDirty = false;
+    
+    // Emit web event if enabled - but only if we know it's actually used
+    if (__config.events.isEnabled && typeof window !== "undefined") {
+      const event = new CustomEvent("cami:store:state:change", {
+        detail: {
+          store: this.name,
+          state: stateToEmit
+        }
+      });
+      window.dispatchEvent(event);
+    }
+  }
+
+  /**
+   * Creates a schema definition for type validation
+   */
+  _createDeepSchema(state) {
+    // Use a cached Map for type inference to improve performance
+    const typeCache = new Map();
+    
+    const inferType = (value) => {
+      // Fast path for primitives
+      if (value === null) return "null";
+      if (value === undefined) return "undefined";
+      
+      // Use cached type if available
+      if (typeCache.has(value)) {
+        return typeCache.get(value);
+      }
+      
+      // Determine type for reference types
+      let type;
+      if (Array.isArray(value)) {
+        type = "array";
+      } else if (typeof value === "object") {
+        type = this._createDeepSchema(value);
+      } else {
+        type = typeof value;
+      }
+      
+      // Cache and return
+      if (typeof value === "object" && value !== null) {
+        typeCache.set(value, type);
+      }
+      
+      return type;
+    };
+
+    // Process all properties
+    return Object.keys(state).reduce((acc, key) => {
+      acc[key] = inferType(state[key]);
+      return acc;
+    }, {});
+  }
+
+  /**
+   * Validates a state object against a schema
+   */
+  _validateDeepState(schema, state, path = []) {
+    // Fast path if schema is empty
+    if (!schema || Object.keys(schema).length === 0) return;
+    
+    Object.keys(schema).forEach((key) => {
+      const expectedType = schema[key];
+      const actualValue = state[key];
+      const currentPath = [...path, key];
+      const actualType = this._inferType(actualValue);
+      
+      // Skip function validation
+      if (actualType === "function") return;
+      
+      // Handle nested objects recursively
+      if (typeof expectedType === "object" && expectedType !== null) {
+        if (typeof actualValue !== "object" || actualValue === null) {
+          throw new TypeError(
+            `Invalid type at ${currentPath.join(".")}. Expected object, got ${typeof actualValue}`
+          );
+        }
+        this._validateDeepState(expectedType, actualValue, currentPath);
+      } 
+      // Handle primitive types
+      else {
+        // Special cases for null and undefined (allow any type)
+        if (expectedType === "null" || expectedType === "undefined") {
+          return;
+        } 
+        // Type mismatch error
+        else if (actualType !== expectedType) {
+          throw new TypeError(
+            `Invalid type at ${currentPath.join(".")}. Expected ${expectedType}, got ${actualType}`
+          );
+        }
+>>>>>>> session/vitest
       }
     });
   }
 
+<<<<<<< HEAD
   _notifyObservers() {
     if (!_deepEqual(this._state, this.previousState)) {
       this.memoCache.clear();
@@ -177,8 +629,252 @@ class ObservableStore extends Observable {
       if (value === undefined) return "undefined";
       if (typeof value === "object") return this._createDeepSchema(value);
       return typeof value;
-    };
+=======
+  /**
+   * Determine the type of a value
+   */
+  _inferType(value) {
+    if (Array.isArray(value)) return "array";
+    if (value === null) return "null";
+    if (value === undefined) return "undefined";
+    return typeof value;
+  }
 
+  /**
+   * Process the queue of actions to be dispatched
+   */
+  _processDispatchQueue() {
+    if (this.isDispatching) return;
+    
+    this.isDispatching = true;
+
+    try {
+      // Fast path: Special case for single queued action (common case)
+      const queue = this.dispatchQueue;
+      if (queue.length === 1) {
+        const { action, payload } = queue.shift();
+        this._dispatch(action, payload);
+        this.isDispatching = false;
+        return;
+      }
+      
+      // Process all items in the queue
+      while (queue.length > 0) {
+        const { action, payload } = queue.shift();
+        this._dispatch(action, payload);
+      }
+    } catch (error) {
+      console.error(`[Cami.js] Error in dispatch queue:`, error);
+      throw error;
+    } finally {
+      this.isDispatching = false;
+    }
+  }
+
+  /**
+   * Public API for dispatching actions
+   */
+  dispatch(action, payload) {
+    return this._dispatch(action, payload);
+  }
+
+  /**
+   * Main implementation of action dispatch
+   * Critical performance path - heavily optimized
+   */
+  _dispatch(action, payload) {
+    // Fast path 1: Cyclic dispatch detection
+    if (this.__isDispatching) {
+      const cycle = [...this.__dispatchStack, action].join(" -> ");
+      console.warn(`[Cami.js] Cyclic dispatch detected: ${cycle}`);
+    }
+
+    // Begin dispatch tracking
+    this.__isDispatching = true;
+    this.__dispatchStack.push(action);
+
+    // Fast path 2: Type validation - fail early
+    if (action === undefined) {
+      const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
+      this.__dispatchStack.pop();
+      this.__isDispatching = false;
+      throw new Error(
+        currentAction 
+          ? `[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`
+          : `[Cami.js] Attempted to dispatch undefined action in the global namespace.`
+      );
+    }
+
+    if (typeof action !== "string") {
+      this.__dispatchStack.pop();
+      this.__isDispatching = false;
+      throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+    }
+
+    // Fast path 3: Handle missing reducer without expensive operations
+    const reducer = this.reducers[action];
+    if (!reducer) {
+      this.__dispatchStack.pop();
+      this.__isDispatching = false;
+      __trace('cami:store:warn', `No reducer found for action ${action}`);
+      throw new Error(`[Cami.js] No reducer found for action: ${action}`);
+    }
+
+    // Store original state for potential rollback - only clone when needed
+    // This is an expensive operation, so we do it after early-exit checks
+    const originalState = _deepClone(this._state);
+    
+    try {
+      // Fast path 4: Skip spec check if no specs defined
+      const spec = this.specs?.get(action);
+      if (spec?.precondition) {
+        const isPreconditionMet = spec.precondition({
+          state: this._state,
+          payload,
+          action,
+        });
+        
+        if (!isPreconditionMet) {
+          throw new Error(`Precondition not met for action ${action}`);
+        }
+      }
+
+      // Fast path 5: Skip before hooks if none defined
+      if (this.beforeHooks.length > 0) {
+        this.__applyHooks("before", { action, payload, state: this._state });
+      }
+
+      // Create reducer context object with consistent shape for V8 optimization
+      const reducerContext = {
+        state: this._state,
+        payload,
+        dispatch: this.dispatch,
+        query: this.query,
+        mutate: this.mutate,
+        invalidateQueries: this.invalidateQueries,
+        memo: this.memo,
+        trigger: this.trigger
+      };
+
+      try {
+        // Use immer's produceWithPatches for efficient immutable updates
+        const [nextState, patches, inversePatches] = produceWithPatches(
+          this._state,
+          (draft) => {
+            reducer(reducerContext);
+          }
+        );
+
+        // Fast path 6: Skip postcondition if not defined
+        if (spec?.postcondition) {
+          const isPostconditionMet = spec.postcondition({
+            state: nextState,
+            payload,
+            action,
+            previousState: this._state,
+          });
+          
+          if (!isPostconditionMet) {
+            throw new Error(`Postcondition not met for action ${action}`);
+          }
+        }
+
+        // Mark store as dirty and invalidate frozen state - always needed
+        this._isDirty = true;
+        this._frozenState = null;
+        
+        // Fast path 7: Only process patches if there are any
+        const hasPatches = patches.length > 0;
+        
+        if (hasPatches) {
+          // Update state with nextState values - avoid forEach for better performance
+          // Use a fast for-in loop which is optimized for object keys
+          for (const key in nextState) {
+            if (Object.prototype.hasOwnProperty.call(nextState, key)) {
+              this._state[key] = nextState[key];
+            }
+          }
+          
+          // Notify patch listeners - only if we have patches
+          if (this.patchListeners.size > 0) {
+            this._notifyPatchListeners(patches);
+          }
+          
+          // Trace state changes if tracing is enabled (dev mode)
+          __trace(
+            "cami:store:state:change",
+            `Changed store state via action: ${action}`,
+            inversePatches, 
+            patches
+          );
+        }
+        
+        // Fast path 8: Always run after hooks after successful dispatch (regardless of patches)
+        if (this.afterHooks.length > 0) {
+          this.__applyHooks("after", {
+            action,
+            payload,
+            state: nextState,
+            previousState: originalState,
+            patches,
+            inversePatches,
+            dispatch: this.dispatch
+          });
+        }
+        
+        // Fast path 9: Skip validation if no schema
+        if (Object.keys(this.schema).length > 0) {
+          this._validateState(hasPatches ? this._state : nextState);
+        }
+        
+        // Always notify observers to ensure UI updates
+        this._notifyObservers();
+      } catch (error) {
+        // Error recovery - restore original state
+        this._state = createDraft(_deepClone(originalState));
+        
+        // Reset cache and internal tracking
+        this._isDirty = true;
+        this._frozenState = null;
+        this.memoCache.clear();
+        
+        // Re-throw the error
+        throw error;
+      }
+
+      // Return current state for any chained operations
+      return this.getState();
+    } finally {
+      // Always clean up dispatch tracking
+      this.__dispatchStack.pop();
+      this.__isDispatching = false;
+    }
+  }
+
+  /**
+   * Add a hook to run before actions
+   */
+  beforeHook(hook) {
+    if (typeof hook !== 'function') {
+      throw new Error('[Cami.js] Hook must be a function');
+    }
+    this.beforeHooks.push(hook);
+    return () => {
+      const hooks = this.beforeHooks;
+      const index = hooks.indexOf(hook);
+      if (index !== -1) {
+        // Faster removal by swapping with last element and popping - O(1)
+        const lastIndex = hooks.length - 1;
+        if (index < lastIndex) {
+          hooks[index] = hooks[lastIndex];
+        }
+        hooks.pop();
+      }
+>>>>>>> session/vitest
+    };
+  }
+
+<<<<<<< HEAD
     return Object.keys(state).reduce((acc, key) => {
       acc[key] = inferType(state[key]);
       return acc;
@@ -256,6 +952,52 @@ class ObservableStore extends Observable {
     if (this.__isDispatching) {
       const cycle = [...this.__dispatchStack, action].join(" -> ");
       console.warn(`[Cami.js] Cyclic dispatch detected: ${cycle}`);
+=======
+  /**
+   * Add a hook to run after actions
+   */
+  afterHook(hook) {
+    if (typeof hook !== 'function') {
+      throw new Error('[Cami.js] Hook must be a function');
+    }
+    this.afterHooks.push(hook);
+    return () => {
+      const hooks = this.afterHooks;
+      const index = hooks.indexOf(hook);
+      if (index !== -1) {
+        // Faster removal by swapping with last element and popping - O(1)
+        const lastIndex = hooks.length - 1;
+        if (index < lastIndex) {
+          hooks[index] = hooks[lastIndex];
+        }
+        hooks.pop();
+      }
+    };
+  }
+
+  /**
+   * Run hooks of a specific type
+   * Optimized to skip empty hook arrays
+   */
+  __applyHooks(type, context) {
+    if (type === "before") {
+      // Fast path 1: No before hooks registered
+      const hooks = this.beforeHooks;
+      const len = hooks.length;
+      if (len === 0) return;
+      
+      // Run all before hooks synchronously with while loop counting down
+      let i = len;
+      while (i--) {
+        hooks[i](context);
+      }
+    } else if (type === "after") {
+      // Fast path: no after hooks registered
+      if (this.afterHooks.length === 0) return;
+      
+      // Use throttled hook execution to reduce calls
+      this.throttledAfterHooks(context);
+>>>>>>> session/vitest
     }
 
     this.__isDispatching = true;
@@ -411,11 +1153,9 @@ class ObservableStore extends Observable {
   }
 
   /**
-   * @private
-   * @method _connectToDevTools
-   * @returns {Object|null} - Returns the devTools object if available, else null
-   * @description This method connects the store to the Redux DevTools extension if it is available.
+   * Execute after hooks with current context
    */
+<<<<<<< HEAD
   __connectToDevTools() {
     if (
       typeof window !== "undefined" &&
@@ -424,12 +1164,83 @@ class ObservableStore extends Observable {
       const devTools = window["__REDUX_DEVTOOLS_EXTENSION__"].connect();
       devTools.init(this._state);
       return devTools;
+=======
+  __executeAfterHooks(context) {
+    // Fast path: no after hooks registered
+    const hooks = this.afterHooks;
+    const len = hooks.length;
+    if (len === 0) return;
+    
+    // Run all after hooks with optimized loop
+    let i = len;
+    while (i--) {
+      try {
+        hooks[i](context);
+      } catch (error) {
+        console.error(`[Cami.js] Error in afterHook[${i}]:`, error);
+        // Re-throw the error so it can be caught by tests and rollback logic
+        throw error;
+      }
+>>>>>>> session/vitest
     }
-    return null;
   }
 
   /**
+<<<<<<< HEAD
    * @method register
+=======
+   * Notify patch listeners of changes
+   * Optimized for performance with key-based targeting
+   */
+  _notifyPatchListeners(patches) {
+    // Fast path: no patch listeners
+    if (this.patchListeners.size === 0) return;
+    
+    // Create a map of keys to an array of patches for that key
+    // This way we notify each listener only once with all applicable patches
+    const patchesByKey = new Map();
+    
+    // Group patches by key - use while loop counting down for better performance
+    const patchesLen = patches.length;
+    let i = patchesLen;
+    while (i--) {
+      const patch = patches[i];
+      const key = patch.path[0];  // First segment of path
+      
+      // Skip if no listeners for this key
+      if (!this.patchListeners.has(key)) continue;
+      
+      // Add to key's patch array - reuse existing arrays when possible
+      let keyPatches = patchesByKey.get(key);
+      if (!keyPatches) {
+        keyPatches = [];
+        patchesByKey.set(key, keyPatches);
+      }
+      keyPatches.push(patch);
+    }
+    
+    // Notify listeners with grouped patches
+    // Notify listeners with grouped patches - optimized iteration
+    for (const [key, keyPatches] of patchesByKey) {
+      const listeners = this.patchListeners.get(key);
+      if (!listeners || listeners.length === 0) continue;
+      
+      // Use direct array access with while loop for better performance
+      const listenersLen = listeners.length;
+      let j = listenersLen;
+      while (j--) {
+        try {
+          listeners[j](keyPatches);
+        } catch (error) {
+          console.error(`[Cami.js] Error in patch listener for key "${key}":`, error);
+        }
+      }
+    }
+  }
+
+  /**
+   * @method defineAction
+>>>>>>> session/vitest
    * @memberof ObservableStore
    * @param {string} action - The action type
    * @param {Function} reducer - The reducer function for the action
@@ -442,18 +1253,27 @@ class ObservableStore extends Observable {
    *   cartItems: [],
    * });
    *
+<<<<<<< HEAD
    * CartStore.defineAction('add', ({ state, product }) => { // Updated parameter format
+=======
+   * CartStore.defineAction('add', ({ state, product }) => { 
+>>>>>>> session/vitest
    *   const cartItem = { ...product, cartItemId: Date.now() };
    *   state.cartItems.push(cartItem);
    * });
    *
+<<<<<<< HEAD
    * CartStore.defineAction('remove', (state, product) => {
    *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+=======
+   * CartStore.defineAction('remove', ({ state, payload }) => {
+   *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== payload.cartItemId);
+>>>>>>> session/vitest
    * });
-   *
    * ```
    */
   defineAction(action, reducer) {
+<<<<<<< HEAD
     if (this.reducers[action]) {
       throw new Error(`[Cami.js] Action '${action}' is already defined.`);
     }
@@ -482,6 +1302,81 @@ class ObservableStore extends Observable {
       this.specs = new Map();
     }
     this.specs.set(actionName, spec);
+=======
+    // Validation
+    if (typeof action !== 'string') {
+      throw new Error(`[Cami.js] Action name must be a string, got: ${typeof action}`);
+    }
+    
+    if (typeof reducer !== 'function') {
+      throw new Error(`[Cami.js] Reducer must be a function, got: ${typeof reducer}`);
+    }
+    
+    // Check for existing action in THIS store instance, not globally
+    // This fixes the URL Store test which needs to create 
+    // multiple stores with same action names
+    if (this.reducers[action]) {
+      throw new Error(`[Cami.js] Action '${action}' is already defined in store '${this.name}'.`);
+    }
+    
+    // Create context once when defining the action
+    // This is more efficient than recreating it on every dispatch
+    const baseContext = {
+      dispatch: this.dispatch,
+      query: this.query,
+      mutate: this.mutate,
+      memo: this.memo,
+      trigger: this.trigger,
+      invalidateQueries: this.invalidateQueries,
+      dispatchAsync: this.dispatchAsync
+    };
+    
+    // Store the reducer with a wrapper that adds context
+    this.reducers[action] = (context) => {
+      // Merge provided context with base context
+      // This is faster than re-binding methods every time
+      const storeContext = Object.assign({}, baseContext, context);
+      return reducer(storeContext);
+    };
+    
+    // Create direct action helper method
+    this.actions[action] = (payload) => this.dispatch(action, payload);
+    
+    // For chaining
+    return this;
+  }
+
+  /**
+   * Define a spec for an action
+   * Specs can include preconditions and postconditions
+   */
+  defineSpec(actionName, spec) {
+    if (typeof actionName !== 'string') {
+      throw new Error(`[Cami.js] Action name must be a string, got: ${typeof actionName}`);
+    }
+    
+    if (!spec || typeof spec !== 'object') {
+      throw new Error(`[Cami.js] Spec must be an object, got: ${typeof spec}`);
+    }
+    
+    if (!this.specs) {
+      this.specs = new Map();
+    }
+    
+    // Validate spec content
+    if (spec.precondition && typeof spec.precondition !== 'function') {
+      throw new Error(`[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`);
+    }
+    
+    if (spec.postcondition && typeof spec.postcondition !== 'function') {
+      throw new Error(`[Cami.js] Postcondition must be a function, got: ${typeof spec.postcondition}`);
+    }
+    
+    this.specs.set(actionName, spec);
+    
+    // For chaining
+    return this;
+>>>>>>> session/vitest
   }
 
   /**
@@ -590,7 +1485,16 @@ class ObservableStore extends Observable {
       const listeners = this.patchListeners.get(key);
       const index = listeners.indexOf(callback);
       if (index > -1) {
+<<<<<<< HEAD
         listeners.splice(index, 1);
+=======
+        // Faster removal by swapping with last element and popping - O(1)
+        const lastIndex = listeners.length - 1;
+        if (index < lastIndex) {
+          listeners[index] = listeners[lastIndex];
+        }
+        listeners.pop();
+>>>>>>> session/vitest
       }
     };
   }
@@ -1082,6 +1986,12 @@ class ObservableStore extends Observable {
       const fullEventName = `${machineName}:${eventName}`;
       this.defineAction(fullEventName, ({ state, payload }) => {
         if (this.isValidTransition(event.from, state)) {
+<<<<<<< HEAD
+=======
+          // Capture the previous state before applying the transition
+          const previousState = _deepClone(state);
+          
+>>>>>>> session/vitest
           const newState = typeof event.to === "function"
             ? event.to({ state, payload })
             : event.to;
@@ -1097,7 +2007,11 @@ class ObservableStore extends Observable {
 
           // Execute onEntry
           if (event.onEntry) {
+<<<<<<< HEAD
             event.onEntry({ state, previousState: this._state, payload });
+=======
+            event.onEntry({ state, previousState, payload });
+>>>>>>> session/vitest
           }
         } else {
           console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
@@ -1150,6 +2064,7 @@ class ObservableStore extends Observable {
    * @param {string} memoName - The name of the memo to compute
    * @param {*} [payload] - Optional payload for the memo
    * @returns {*} The computed value of the memo
+<<<<<<< HEAD
    * @description Computes and returns the value of a memoized property
    */
   memo(memoName, payload) {
@@ -1158,12 +2073,30 @@ class ObservableStore extends Observable {
       throw new Error(`Memo '${memoName}' not found.`);
     }
 
+=======
+   * @description Computes and returns the value of a memoized property with efficient caching
+   */
+  memo(memoName, payload) {
+    // Validation - handle efficiently with early return instead of throwing
+    if (typeof memoName !== 'string') {
+      throw new Error(`[Cami.js] Memo name must be a string, got: ${typeof memoName}`);
+    }
+    
+    // Fast lookup with direct property access - much faster than function calls in V8
+    const memoFn = this.memos[memoName];
+    if (!memoFn) {
+      throw new Error(`[Cami.js] Memo '${memoName}' not found.`);
+    }
+
+    // Fast path for cache lookup - avoid unnecessary Map creation
+>>>>>>> session/vitest
     let cache = this.memoCache.get(memoName);
     if (!cache) {
       cache = new Map();
       this.memoCache.set(memoName, cache);
     }
 
+<<<<<<< HEAD
     const cacheKey = JSON.stringify(payload);
 
     if (cache.has(cacheKey)) {
@@ -1177,10 +2110,55 @@ class ObservableStore extends Observable {
     const trackingProxy = new Proxy(this._state, {
       get: (target, prop) => {
         dependencies.add(prop);
+=======
+    // Generate a more efficient cache key
+    // For primitives, use them directly to avoid string conversion overhead
+    // For objects, use a faster but still reliable hash function
+    let cacheKey;
+    if (payload === undefined || payload === null) {
+      cacheKey = '__undefined__';
+    } else if (typeof payload !== 'object') {
+      // Primitive values can be used directly as Map keys
+      cacheKey = payload;
+    } else {
+      // For objects, we still need to stringify but we can optimize this further
+      // in the future with a proper hash function if needed
+      cacheKey = JSON.stringify(payload);
+    }
+
+    // Fast path: return cached result if available and valid
+    if (cache.has(cacheKey)) {
+      const cached = cache.get(cacheKey);
+      
+      // State version check is much faster than deep dependency check
+      if (cached.stateVersion === this._stateVersion) {
+        return cached.result;
+      }
+      
+      // Fall back to dependency check only when needed
+      if (this._areDependenciesUnchanged(cached.dependencies)) {
+        return cached.result;
+      }
+    }
+
+    // No valid cache hit, need to calculate
+    // Use a Set for O(1) lookup of dependencies
+    const dependencies = new Set();
+    
+    // Optimized tracking proxy that only tracks top-level dependencies
+    // This is more efficient than tracking deep property access in most cases
+    const trackingProxy = new Proxy(this._state, {
+      get: (target, prop) => {
+        // Only track string properties that aren't internal
+        if (typeof prop === 'string' && !prop.startsWith('_')) {
+          dependencies.add(prop);
+        }
+>>>>>>> session/vitest
         return target[prop];
       },
     });
 
+<<<<<<< HEAD
     const storeContext = {
       state: trackingProxy,
       payload,
@@ -1194,14 +2172,126 @@ class ObservableStore extends Observable {
 
     const result = memoFn(storeContext);
     cache.set(cacheKey, { result, dependencies });
+=======
+    // Create context for memo function - reuse object shape for V8 optimization
+    const storeContext = {
+      state: trackingProxy,
+      payload,
+      dispatch: this.dispatch,
+      trigger: this.trigger,
+      memo: this.memo,
+      query: this.query,
+      mutate: this.mutate,
+      dispatchAsync: this.dispatchAsync
+    };
+
+    // Calculate the result
+    let result;
+    try {
+      result = memoFn(storeContext);
+    } catch (error) {
+      console.error(`[Cami.js] Error in memo '${memoName}':`, error);
+      throw error;
+    }
+    
+    // Cache the result with its dependencies
+    cache.set(cacheKey, { 
+      result, 
+      dependencies,
+      stateVersion: this._stateVersion
+    });
+>>>>>>> session/vitest
 
     return result;
   }
 
+<<<<<<< HEAD
   _areDependenciesUnchanged(dependencies) {
     return Array.from(dependencies).every(
       (dep) => this._state[dep] === this.previousState[dep]
     );
+=======
+  /**
+   * Check if all dependencies remain unchanged since last state update
+   * @private
+   */
+  _areDependenciesUnchanged(dependencies) {
+    // Fast path 1: No dependencies means always unchanged
+    if (!dependencies || dependencies.size === 0) {
+      return true;
+    }
+    
+    // Fast path 2: No previous state means always changed
+    if (!this.previousState) {
+      return false;
+    }
+    
+    // Fast path 3: For small dependency sets, direct iteration is fastest
+    if (dependencies.size <= 8) {
+      for (const dep of dependencies) {
+        // Reference check first (fast)
+        if (this._state[dep] !== this.previousState[dep]) {
+          // If objects, do a deep equality check (slower but more accurate)
+          if (typeof this._state[dep] === 'object' && this._state[dep] !== null &&
+              typeof this.previousState[dep] === 'object' && this.previousState[dep] !== null) {
+            if (!_deepEqual(this._state[dep], this.previousState[dep])) {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    
+    // For larger dependency sets, use a different approach
+    // Convert to array and use a basic for loop for better performance
+    const deps = Array.from(dependencies);
+    const len = deps.length;
+    for (let i = 0; i < len; i++) {
+      const dep = deps[i];
+      // Reference check first (fast)
+      if (this._state[dep] !== this.previousState[dep]) {
+        // If objects, do a deep equality check (slower but more accurate)
+        if (typeof this._state[dep] === 'object' && this._state[dep] !== null &&
+            typeof this.previousState[dep] === 'object' && this.previousState[dep] !== null) {
+          if (!_deepEqual(this._state[dep], this.previousState[dep])) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Define a memo function for the store
+   * @param {string} memoName - Name of the memo
+   * @param {Function} memoFn - Function that computes the memo value
+   */
+  defineMemo(memoName, memoFn) {
+    if (typeof memoName !== "string") {
+      throw new Error("[Cami.js] Memo name must be a string");
+    }
+    
+    if (typeof memoFn !== "function") {
+      throw new Error(`[Cami.js] Memo '${memoName}' must be a function`);
+    }
+    
+    this.memos[memoName] = memoFn;
+    
+    // Create empty cache for this memo
+    if (!this.memoCache.has(memoName)) {
+      this.memoCache.set(memoName, new Map());
+    }
+    
+    // For chaining
+    return this;
+>>>>>>> session/vitest
   }
 
   // Helper methods for the state machine
@@ -1312,6 +2402,17 @@ class ObservableStore extends Observable {
     }
   }
 
+<<<<<<< HEAD
+=======
+  hasAction(actionName) {
+    return actionName in this.reducers;
+  }
+
+  hasAsyncAction(actionName) {
+    return actionName in this.thunks;
+  }
+
+>>>>>>> session/vitest
   _validateState(state) {
     Object.entries(this.schema).forEach(([key, type]) => {
       try {
@@ -1343,6 +2444,7 @@ const deepFreeze = (value, deep = true) => {
       );
     },
   });
+<<<<<<< HEAD
 };
 
 const validateState = (storedState, validationRules, context) => {
@@ -1419,6 +2521,111 @@ const store = (config = {}) => {
 
   storeInstances.set(finalConfig.name, storeInstance);
 
+=======
+};
+
+const validateState = (storedState, validationRules, context) => {
+  const { type, name } = context;
+
+  if (!validationRules || !validationRules.presence) {
+    __trace(
+      `cami:${type}`,
+      `No validation rules specified for ${type} ${name}. Using initial state.`
+    );
+    return false; // Invalidate by default if no rules are defined
+  }
+
+  const { keys, values } = validationRules.presence;
+
+  if (keys) {
+    for (const key of keys) {
+      if (!(key in storedState)) {
+        __trace(
+          `cami:${type}`,
+          `${
+            type.charAt(0).toUpperCase() + type.slice(1)
+          } Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`
+        );
+        return false;
+      }
+    }
+  }
+
+  if (values) {
+    for (const valueObj of values) {
+      for (const [key, value] of Object.entries(valueObj)) {
+        if (storedState[key] !== value) {
+          __trace(
+            `cami:${type}`,
+            `${
+              type.charAt(0).toUpperCase() + type.slice(1)
+            } Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${
+              storedState[key]
+            }.`
+          );
+          return false;
+        }
+      }
+    }
+  }
+
+  __trace(`cami:${type}`, `No validation rules violated for ${type} ${name}.`);
+  return true;
+};
+
+/**
+ * Registry for store singletons by name
+ * @private
+ */
+const storeInstances = new Map();
+
+/**
+ * Creates a new ObservableStore instance or returns an existing one with the same name
+ * 
+ * @param {Object} config - Configuration options
+ * @param {Object} config.state - Initial state for the store
+ * @param {string} config.name - Name of the store (used for singleton lookup)
+ * @param {Object} config.schema - Optional schema for type validation
+ * @returns {ObservableStore} Store instance
+ */
+const store = (config = {}) => {
+  // Default configuration
+  const defaultConfig = {
+    state: {},
+    name: "cami-store",
+    schema: {},
+    enableLogging: false,
+    enableDevtools: false
+  };
+
+  // Merge provided config with defaults
+  const finalConfig = { ...defaultConfig, ...config };
+
+  // Return existing instance if available (singleton pattern)
+  if (storeInstances.has(finalConfig.name)) {
+    return storeInstances.get(finalConfig.name);
+  }
+
+  // Create new store instance (don't add _stateVersion to state to maintain compatibility)
+  const storeInstance = new ObservableStore(finalConfig.state, finalConfig);
+
+  // Verify required methods are available
+  const requiredMethods = ["memo", "query", "trigger", "dispatch", "mutate", "subscribe"];
+  const missingMethods = requiredMethods.filter(method => typeof storeInstance[method] !== "function");
+  
+  if (missingMethods.length > 0) {
+    console.warn(`[Cami.js] Store missing required methods: ${missingMethods.join(', ')}`);
+  }
+
+  // Register the store instance
+  storeInstances.set(finalConfig.name, storeInstance);
+
+  // Log creation if logging enabled
+  if (finalConfig.enableLogging) {
+    __trace('cami:store:create', `Created store: ${finalConfig.name}`);
+  }
+
+>>>>>>> session/vitest
   return storeInstance;
 };
 

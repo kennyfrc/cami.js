@@ -2,6 +2,7 @@
  * @private
  * @type {Object}
  * @property {boolean} events - A flag to control event firing
+ * @property {boolean} debug - A flag to control debug output
  * @description This is the default configuration for Cami.js
  */
 const __config = {

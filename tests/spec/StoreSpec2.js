@@ -1,5 +1,9 @@
 const { store, Type, useValidationThunk } = cami;
+<<<<<<< HEAD
 import { _deepMerge } from "../../src/utils.js"
+=======
+import { _deepMerge } from "../../src/utils"
+>>>>>>> session/vitest
 
 describe("Observable Store (Set 2)", function () {
   let navStore;

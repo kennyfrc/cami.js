@@ -61,7 +61,7 @@ invariant.config = function (config) {
     var isProd = production();
     isProduction = isProd && !isDev; // Cache the result
     alwaysEnabled = false; // Disable alwaysEnabled if both development and production are defined
-  } else if (config.hasOwnProperty("alwaysEnabled")) {
+  } else if (Object.hasOwn(config, "alwaysEnabled")) {
     alwaysEnabled = config.alwaysEnabled;
   }
 };

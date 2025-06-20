@@ -8,10 +8,19 @@
 /**
  * @module cami
  */
-import { html, render, svg } from "./html.js";
-import { produce } from "immer";
+import { html, svg } from "lit-html";
+import { unsafeHTML } from "lit-html/directives/unsafe-html.js"
+import { keyed } from "lit-html/directives/keyed.js"
+import { repeat } from "lit-html/directives/repeat.js"
+import { enableMapSet } from "immer";
+enableMapSet();
 import { ReactiveElement } from "./reactive-element.js";
+// Import the optimized store implementation and use it as the default
 import { ObservableStore, store } from "./observables/observable-store.js";
+// import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized.js";
+
+// Replace the standard store with the optimized version
+// const store = storeOptimized;
 import { Model } from "./observables/observable-model.js";
 import { Observable } from "./observables/observable.js";
 import { ObservableState, effect } from "./observables/observable-state.js";
@@ -25,7 +34,6 @@ import {
   createLocalStorage,
   persistToLocalStorageThunk,
 } from "./storage/adapters.js";
-import { defineReactiveElement } from './reactive-element-v2.js'
 
 const { debug, events } = __config;
 
@@ -43,12 +51,16 @@ const { debug, events } = __config;
  */
 export {
   store,
+  // storeOptimized,
   html,
   svg,
   ReactiveElement,
   Observable,
   ObservableState,
   ObservableStore,
+  // Export original implementation with different name for compatibility
+  // OriginalObservableStore,
+  // originalStore,
   debug,
   events,
   effect,
@@ -61,5 +73,7 @@ export {
   createLocalStorage,
   persistToLocalStorageThunk,
   createURLStore,
-  defineReactiveElement,
+  unsafeHTML,
+  repeat,
+  keyed
 };

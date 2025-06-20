@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article class="container">
+  <h1>Virtual Scroller Demo</h1>
+  <div class="controls grid">
+    <button onclick="regenerateItems(1000)">1K Items</button>
+    <button onclick="regenerateItems(10000)">10K Items</button>
+    <button onclick="regenerateItems(100000)">100K Items</button>
+  </div>
+  <virtual-scroller style="display: block; height: 400px; border: 1px solid var(--primary); border-radius: 4px;"></virtual-scroller>
+  <div id="stats" style="margin-top: 10px; font-size: 12px; color: var(--muted);"></div>
+</article>
+
+<style>
+  virtual-scroller {
+    display: block;
+    position: relative;
+    height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    contain: layout style;
+    -webkit-overflow-scrolling: touch;
+    background: var(--background-color);
+  }
+
+  .scroller-content {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .virtual-item {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: min-content;
+    contain: content;
+  }
+
+  .virtual-item-content {
+    position: relative;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--secondary);
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    background: var(--card-background-color);
+    height: auto;
+    min-height: min-content;
+  }
+
+  .virtual-item-inner {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: min-content;
+  }
+
+  .virtual-item h3 {
+    margin: 0 0 0.75rem 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+  }
+
+  .virtual-item p {
+    margin: 0;
+    color: var(--h3-color);
+    line-height: 1.6;
+  }
+
+  .virtual-item:hover .virtual-item-content {
+    background: var(--card-sectionning-background-color);
+  }
+
+  .controls {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css" />
+<script src="./build/cami.cdn.js"></script>
+
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+
+  // Module-level caches
+  const positionCache = new Map();
+
+  const resizeObserver = new ResizeObserver(entries => {
+    const updates = entries.map(entry => {
+      const item = entry.target.closest('.virtual-item');
+      if (!item) return null;
+
+      const index = parseInt(item.dataset.index, 10);
+      if (!isNaN(index)) {
+        // Add extra padding for safety
+        const height = Math.ceil(entry.contentRect.height + 4);
+        return { index, height };
+      }
+      return null;
+    }).filter(Boolean);
+
+    if (updates.length) {
+      requestAnimationFrame(() => {
+        updates.forEach(({ index, height }) => {
+          scrollerStore.dispatch("updateHeight", { index, height });
+        });
+        positionCache.clear();
+        const scroller = document.querySelector('virtual-scroller');
+        if (scroller) {
+          scroller.updatePositions();
+        }
+      });
+    }
+  });
+
+  const scrollerStore = store({
+    state: {
+      heightCache: new Map(),
+      totalHeight: 0,
+      scrollPosition: 0,
+      containerHeight: 0,
+      itemCount: 1000,
+      avgHeight: 200, // Increased default height
+      bufferSize: 4,  // Increased buffer size
+    },
+    name: "virtual-scroller"
+  });
+
+  scrollerStore.defineAction("updateScroll", ({ state, payload }) => {
+    state.scrollPosition = payload;
+  });
+
+  scrollerStore.defineAction("updateHeight", ({ state, payload: { index, height }}) => {
+    if (height > 0) {
+      const oldHeight = state.heightCache.get(index);
+      if (oldHeight !== height) {
+        state.heightCache.set(index, height);
+
+        const heights = Array.from(state.heightCache.values());
+        state.avgHeight = heights.length ?
+          heights.reduce((a, b) => a + b, 0) / heights.length : 200;
+
+        let totalHeight = 0;
+        for (let i = 0; i < state.itemCount; i++) {
+          totalHeight += state.heightCache.get(i) || state.avgHeight;
+        }
+        state.totalHeight = Math.ceil(totalHeight + 100); // Add extra padding
+      }
+    }
+  });
+
+  scrollerStore.defineAction("setItemCount", ({ state, payload }) => {
+    state.itemCount = payload;
+    state.heightCache.clear();
+    positionCache.clear();
+    state.totalHeight = state.itemCount * state.avgHeight;
+  });
+
+  scrollerStore.defineAction("setContainerHeight", ({ state, payload }) => {
+    state.containerHeight = payload;
+  });
+
+  class VirtualScroller extends ReactiveElement {
+    constructor() {
+      super();
+      this.style.cssText = 'display: block; overflow-y: auto; overflow-x: hidden;';
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+
+      const updateHeight = () => {
+        scrollerStore.dispatch("setContainerHeight", this.clientHeight);
+        this.updateVisibleItems();
+      };
+
+      // Initial size update
+      requestAnimationFrame(updateHeight);
+
+      // Handle window resize
+      this.resizeHandler = () => requestAnimationFrame(updateHeight);
+      window.addEventListener('resize', this.resizeHandler);
+
+      // Handle scroll
+      this.boundScrollHandler = () => {
+        requestAnimationFrame(() => {
+          scrollerStore.dispatch("updateScroll", this.scrollTop);
+          this.updateVisibleItems();
+        });
+      };
+
+      this.addEventListener("scroll", this.boundScrollHandler, { passive: true });
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.querySelectorAll('.virtual-item-content').forEach(item => {
+        resizeObserver.unobserve(item);
+      });
+      this.removeEventListener("scroll", this.boundScrollHandler);
+      window.removeEventListener('resize', this.resizeHandler);
+    }
+
+    getVisibleRange() {
+      const state = scrollerStore.getState();
+      const startIndex = Math.max(0,
+        Math.floor(state.scrollPosition / state.avgHeight) - state.bufferSize
+      );
+      const endIndex = Math.min(
+        state.itemCount - 1,
+        Math.ceil((state.scrollPosition + state.containerHeight) / state.avgHeight) + state.bufferSize
+      );
+      return { startIndex, endIndex };
+    }
+
+    calculatePosition(index) {
+      const state = scrollerStore.getState();
+      let position = 0;
+      for (let i = 0; i < index; i++) {
+        position += state.heightCache.get(i) || state.avgHeight;
+      }
+      return position;
+    }
+
+    getItemPosition(index) {
+      let position = positionCache.get(index);
+      if (position === undefined) {
+        position = this.calculatePosition(index);
+        positionCache.set(index, position);
+      }
+      return position;
+    }
+
+    updatePositions() {
+      const items = this.querySelectorAll('.virtual-item');
+      items.forEach(item => {
+        const index = parseInt(item.dataset.index, 10);
+        const top = this.getItemPosition(index);
+        item.style.transform = `translateY(${top}px)`;
+      });
+    }
+
+    createItemElement(index) {
+      const div = document.createElement('div');
+      div.className = 'virtual-item';
+      div.dataset.index = index;
+
+      const content = document.createElement('div');
+      content.className = 'virtual-item-content';
+
+      const inner = document.createElement('div');
+      inner.className = 'virtual-item-inner';
+
+      const innerContent = this.generateContent(index);
+      inner.appendChild(innerContent);
+      content.appendChild(inner);
+      div.appendChild(content);
+
+      return div;
+    }
+
+    generateContent(index) {
+      const words = [
+        "Lorem", "ipsum", "dolor", "sit", "amet", "consectetur",
+        "adipiscing", "elit", "sed", "do", "eiusmod", "tempor",
+        "incididunt", "ut", "labore", "et", "dolore", "magna",
+        "aliqua", "enim", "ad", "minim", "veniam", "quis"
+      ];
+
+      // More variable content length
+      const wordCount = 20 + Math.floor(Math.random() * 300);
+
+      const container = document.createElement('div');
+
+      const header = document.createElement('h3');
+      header.textContent = `Item ${index + 1}`;
+      container.appendChild(header);
+
+      const paragraph = document.createElement('p');
+      paragraph.textContent = Array.from(
+        { length: wordCount },
+        () => words[Math.floor(Math.random() * words.length)]
+      ).join(' ');
+      container.appendChild(paragraph);
+
+      return container;
+    }
+
+    updateVisibleItems() {
+      const { startIndex, endIndex } = this.getVisibleRange();
+      const container = this.querySelector('.scroller-content');
+      if (!container) return;
+
+      // Remove items that are no longer visible
+      this.querySelectorAll('.virtual-item').forEach(item => {
+        const index = parseInt(item.dataset.index, 10);
+        if (index < startIndex || index > endIndex) {
+          const content = item.querySelector('.virtual-item-content');
+          if (content) {
+            resizeObserver.unobserve(content);
+          }
+          item.remove();
+        }
+      });
+
+      // Add new visible items
+      for (let i = startIndex; i <= endIndex; i++) {
+        if (!this.querySelector(`[data-index="${i}"]`)) {
+          const item = this.createItemElement(i);
+          const top = this.getItemPosition(i);
+          item.style.transform = `translateY(${top}px)`;
+          container.appendChild(item);
+
+          // Observe the content element
+          const content = item.querySelector('.virtual-item-content');
+          if (content) {
+            requestAnimationFrame(() => {
+              resizeObserver.observe(content);
+            });
+          }
+        }
+      }
+
+      // Update stats
+      const statsElement = document.getElementById('stats');
+      if (statsElement) {
+        const state = scrollerStore.getState();
+        statsElement.textContent = `
+          Total Items: ${state.itemCount.toLocaleString()} |
+          Visible Items: ${this.querySelectorAll('.virtual-item').length} |
+          Scroll: ${Math.round(state.scrollPosition)}px |
+          Avg Height: ${Math.round(state.avgHeight)}px
+        `;
+      }
+    }
+
+    template() {
+      const state = scrollerStore.getState();
+      return html`
+        <div class="scroller-content" style="height: ${state.totalHeight}px;"></div>
+      `;
+    }
+  }
+
+  customElements.define("virtual-scroller", VirtualScroller);
+
+  window.regenerateItems = (count) => {
+    scrollerStore.dispatch("setItemCount", count);
+    const scroller = document.querySelector('virtual-scroller');
+    if (scroller) {
+      scroller.updateVisibleItems();
+    }
+  };
+
+  window.regenerateItems(1000);
+</script>  </body>
+</html>

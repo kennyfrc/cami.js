@@ -39,8 +39,13 @@ import { Type, validateType } from "../types.js";
  * await store.dispatch('addDepartment', { id: 1, name: 'HR' });
  * await store.dispatch('addEmployee', { id: 1, name: 'John Doe', department: 1 });
  */
+function generateRandomName() {
+  // Simple UUID-like random string generator
+  return "model_" + Math.random().toString(36).substr(2, 9);
+}
+
 class Model {
-  constructor(name, properties) {
+  constructor({ name = generateRandomName(), properties = {} } = {}) {
     this.name = name;
     this.schema = properties;
   }
@@ -134,7 +139,7 @@ class Model {
 
     if (errors.length > 0) {
       throw new Error(
-        `Validation error in ${this.name}:\n\n${errors.join("\n\n")}`
+        `Validation error in ${this.name}:\n\n${errors.join("\n\n")}`,
       );
     }
   }
@@ -157,7 +162,7 @@ class Model {
           Object.entries(type.schema).forEach(([key, subType]) => {
             if (subType.type !== "optional" && !(key in value)) {
               throw new Error(
-                `Missing required property: ${[...path, key].join(".")}`
+                `Missing required property: ${[...path, key].join(".")}`,
               );
             }
             if (key in value) {
@@ -175,7 +180,7 @@ class Model {
       const expectedType = this.__getExpectedTypeString(type);
       const actualType = this.__getActualTypeString(value);
       throw new Error(
-        `Property: ${path.join(".")}\n` + `Error: ${error.message}`
+        `Property: ${path.join(".")}\n` + `Error: ${error.message}`,
       );
     }
   }
