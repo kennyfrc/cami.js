@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application Shell</title>
+  </head>
+  <body
+    style="
+      box-sizing: content-box;
+      margin-inline: auto;
+      max-inline-size: 60vw;
+      margin-top: 10vh;
+    "
+  >
+<article>
+  <h1>Dispatch Test</h1>
+  <p>Open the console to see dispatch and state mutation logs</p>
+  <dispatch-test-component></dispatch-test-component>
+</article>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+/>
+<script src="./build/cami.cdn.js"></script>
+<script type="module">
+  const { html, ReactiveElement, store } = cami;
+  cami.debug.enable();
+
+  // Store 1 - Main store
+  const store1 = store({
+    state: {
+      counter: 0,
+      message: ''
+    },
+    name: "store-1"
+  });
+
+  // Store 2 - Secondary store
+  const store2 = store({
+    state: {
+      flag: false,
+      data: null
+    },
+    name: "store-2"
+  });
+
+  // Store 3 - Auxiliary store
+  const store3 = store({
+    state: {
+      status: 'idle',
+      value: 0
+    },
+    name: "store-3"
+  });
+
+  // Store 1 Actions
+  
+  // Scenario 1: Direct state mutation
+  store1.defineAction("incrementCounter", ({ state }) => {
+    console.log(`[${Date.now()}] Store 1: Starting incrementCounter`);
+    state.counter += 1;
+    console.log(`[${Date.now()}] Store 1: Completed incrementCounter - counter is now ${state.counter}`);
+  });
+
+  // Scenario 2: Dispatch to self
+  store1.defineAction("updateMessage", ({ state, dispatch }) => {
+    console.log(`[${Date.now()}] Store 1: Starting updateMessage`);
+    console.log(`[${Date.now()}] Store 1: About to mutate message`);
+    state.message = "Updated";
+    console.log(`[${Date.now()}] Store 1: Message mutated, about to dispatch incrementCounter`);
+    dispatch("incrementCounter");
+    console.log(`[${Date.now()}] Store 1: Completed updateMessage after dispatch`);
+  });
+
+  // Scenario 3: Cross-store dispatch
+  store1.defineAction("triggerCrossStoreUpdate", ({ dispatch }) => {
+    console.log(`[${Date.now()}] Store 1: Starting triggerCrossStoreUpdate`);
+    console.log(`[${Date.now()}] Store 1: About to dispatch to Store 2`);
+    store2.dispatch("setFlag", true);
+    console.log(`[${Date.now()}] Store 1: Completed Store 2 dispatch, about to dispatch to Store 3`);
+    store3.dispatch("updateStatus", "active");
+    console.log(`[${Date.now()}] Store 1: Completed triggerCrossStoreUpdate after both dispatches`);
+  });
+
+  // Store 2 Actions
+  store2.defineAction("setFlag", ({ state, payload }) => {
+    console.log(`[${Date.now()}] Store 2: Starting setFlag`);
+    console.log(`[${Date.now()}] Store 2: About to mutate state`);
+    state.flag = payload;
+    state.data = { timestamp: Date.now() };
+    console.log(`[${Date.now()}] Store 2: Completed setFlag mutations`);
+  });
+
+  // Store 3 Actions
+  store3.defineAction("updateStatus", ({ state, payload }) => {
+    console.log(`[${Date.now()}] Store 3: Starting updateStatus`);
+    console.log(`[${Date.now()}] Store 3: About to mutate state`);
+    state.status = payload;
+    state.value += 1;
+    console.log(`[${Date.now()}] Store 3: Completed updateStatus mutations`);
+  });
+
+  // Test Component
+  customElements.define("dispatch-test-component", 
+    class extends ReactiveElement {
+      template() {
+        const store1State = store1.getState();
+        const store2State = store2.getState();
+        const store3State = store3.getState();
+
+        return html`
+          <div>
+            <h3>Store States:</h3>
+            <pre>
+Store 1: ${JSON.stringify(store1State, null, 2)}
+Store 2: ${JSON.stringify(store2State, null, 2)}
+Store 3: ${JSON.stringify(store3State, null, 2)}
+            </pre>
+            
+            <button @click=${() => store1.dispatch("incrementCounter")}>
+              Test Direct Mutation
+            </button>
+            
+            <button @click=${() => store1.dispatch("updateMessage")}>
+              Test Self Dispatch
+            </button>
+            
+            <button @click=${() => store1.dispatch("triggerCrossStoreUpdate")}>
+              Test Cross-Store Dispatch
+            </button>
+          </div>
+        `;
+      }
+    }
+  );
+</script>
+  </body>
+</html>

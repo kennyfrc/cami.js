@@ -1,10 +1,6 @@
 import { Observable } from "./observable.js";
 import { produce } from "immer";
-<<<<<<< HEAD
-import { _deepEqual } from "../utils.js";
-=======
 import { _deepEqual } from "../utils";
->>>>>>> session/vitest
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
 
@@ -13,133 +9,6 @@ import { __trace } from "../trace.js";
  * inspired by signals and other reactive libraries
  */
 class DependencyTracker {
-<<<<<<< HEAD
-  static current = null;
-  static dependencyGraph = new Map();
-
-  static track(effectFn) {
-    const tracker = new DependencyTracker();
-    DependencyTracker.current = tracker;
-    effectFn();
-    DependencyTracker.current = null;
-    return tracker.dependencies;
-  }
-
-  constructor() {
-    this.dependencies = new Set();
-  }
-
-  addDependency(observable) {
-    this.dependencies.add(observable);
-    if (!DependencyTracker.dependencyGraph.has(observable)) {
-      DependencyTracker.dependencyGraph.set(observable, new Set());
-    }
-    DependencyTracker.dependencyGraph.get(observable).add(this);
-  }
-
-  static detectCycles() {
-    const visited = new Set();
-    const recursionStack = new Set();
-    const cyclePath = [];
-
-    const getNeighborType = (neighbor, visited, recursionStack) => {
-      if (!visited.has(neighbor)) return "unvisited";
-      if (recursionStack.has(neighbor)) return "cyclic";
-      return "visited";
-    };
-
-    const getNodeType = (node, visited) => {
-      if (!visited.has(node)) return "unvisited";
-      return "visited";
-    };
-
-    const processDependencyNode = (node, visited) => {
-      const nodeType = getNodeType(node, visited);
-
-      switch (nodeType) {
-        case "unvisited":
-          try {
-            if (dfs(node)) return "cycle-detected";
-          } catch (error) {
-            if (error.message.startsWith("Cyclic dependency detected:")) {
-              console.warn(error.message);
-              return "cycle-warned";
-            } else {
-              throw error; // Re-throw other errors
-            }
-          }
-          return "processed";
-
-        case "visited":
-          return "skipped";
-
-        default:
-          console.warn(`Unexpected node type: ${nodeType}`);
-          return "unknown";
-      }
-    };
-
-    function dfs(node) {
-      visited.add(node);
-      recursionStack.add(node);
-      cyclePath.push(node);
-
-      const neighbors =
-        DependencyTracker.dependencyGraph.get(node) || new Set();
-      for (const neighbor of neighbors) {
-        const neighborType = getNeighborType(neighbor, visited, recursionStack);
-
-        switch (neighborType) {
-          case "unvisited":
-            if (dfs(neighbor)) return true;
-            break;
-          case "cyclic":
-            // We've found a cycle, capture the cycle path
-            const cycleStart = cyclePath.indexOf(neighbor);
-            const cycle = cyclePath.slice(cycleStart);
-            console.warn(
-              `Cyclic dependency detected: ${cycle
-                .map((n) => n.__name || "unnamed")
-                .join(" -> ")}`
-            );
-            break;
-          case "visited":
-            // Do nothing for already visited nodes that are not in the recursion stack
-            break;
-          default:
-            console.warn(`Unexpected neighbor type: ${neighborType}`);
-        }
-      }
-
-      recursionStack.delete(node);
-      cyclePath.pop();
-      return false;
-    }
-
-    // Main loop
-    for (const node of DependencyTracker.dependencyGraph.keys()) {
-      const result = processDependencyNode(node, visited);
-      switch (result) {
-        case "cycle-detected":
-          return true;
-        case "cycle-warned":
-        case "processed":
-        case "skipped":
-          break;
-        case "unknown":
-          console.warn(`Unknown result for node processing`);
-          break;
-        default:
-          console.warn(`Unexpected result: ${result}`);
-      }
-    }
-
-    return false;
-  }
-
-  static clearGraph() {
-    DependencyTracker.dependencyGraph.clear();
-=======
   // Shared static context for tracking the current computation
   static current = null;
 
@@ -195,7 +64,6 @@ class DependencyTracker {
       // Track in map for fast existence checks
       this._depsMap.set(key, dep);
     }
->>>>>>> session/vitest
   }
 }
 
@@ -235,8 +103,6 @@ class ObservableState extends Observable {
     this.__name = name;
     this.__isUpdating = false;
     this.__updateStack = [];
-<<<<<<< HEAD
-=======
   }
 
   /**
@@ -267,7 +133,6 @@ class ObservableState extends Observable {
         }
       }
     };
->>>>>>> session/vitest
   }
 
   /**
@@ -578,14 +443,6 @@ class ObservableState extends Observable {
    * @private
    */
   __notifyObservers() {
-<<<<<<< HEAD
-    const observersWithLast = [...this.__observers, this.__lastObserver];
-    observersWithLast.forEach((observer) => {
-      if (observer && typeof observer === "function") {
-        observer(this.__value);
-      } else if (observer && observer.next) {
-        observer.next(this.__value);
-=======
     // Fast path: no observers
     if (this.__observers.length === 0 && !this.__lastObserver) {
       return;
@@ -607,7 +464,6 @@ class ObservableState extends Observable {
         } else if (observer.next) {
           observer.next(value);
         }
->>>>>>> session/vitest
       }
       return;
     }
@@ -646,18 +502,6 @@ class ObservableState extends Observable {
    * @private
    */
   __applyUpdates() {
-<<<<<<< HEAD
-    let oldValue = this.__value;
-    while (this.__pendingUpdates.length > 0) {
-      const updater = this.__pendingUpdates.shift();
-      if (
-        (typeof this.__value === "object" &&
-          this.__value !== null &&
-          this.__value.constructor === Object) ||
-        Array.isArray(this.__value)
-      ) {
-        this.__value = produce(this.__value, updater);
-=======
     // Skip the expensive _deepEqual check by tracking changes explicitly
     let hasChanged = false;
     
@@ -702,7 +546,6 @@ class ObservableState extends Observable {
             this.__value = newValue;
           }
         }
->>>>>>> session/vitest
       } else {
         // When multiple updates exist, apply them in sequence
         let currentValue = this.__value;
@@ -755,11 +598,6 @@ class ObservableState extends Observable {
         this.__value = currentValue;
       }
     }
-<<<<<<< HEAD
-    if (!_deepEqual(oldValue, this.__value)) {
-      this.__notifyObservers();
-
-=======
     
     // Clear the update queue - faster than multiple shift() calls
     updates.length = 0;
@@ -769,7 +607,6 @@ class ObservableState extends Observable {
       this.__notifyObservers();
       
       // Only emit events if necessary and configured
->>>>>>> session/vitest
       if (__config.events.isEnabled && typeof window !== "undefined") {
         const event = new CustomEvent("cami:elem:state:change", {
           detail: {
@@ -780,16 +617,11 @@ class ObservableState extends Observable {
         });
         window.dispatchEvent(event);
       }
-<<<<<<< HEAD
-
-      __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
-=======
       
       // Only trace if enabled
       if (needsEventOrTrace) {
         __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
       }
->>>>>>> session/vitest
     }
     
     this.__updateScheduled = false;
@@ -835,9 +667,6 @@ const effect = function (effectFn) {
         dependencies.add(observable);
         observable.onValue(_runEffect);
       }
-<<<<<<< HEAD
-    },
-=======
     }
 
     // Run the effect
@@ -846,7 +675,6 @@ const effect = function (effectFn) {
     } finally {
       DependencyTracker.current = null;
     }
->>>>>>> session/vitest
   };
 
   // Initial run
@@ -855,30 +683,6 @@ const effect = function (effectFn) {
   // Return dispose function
   return () => {
     cleanup();
-<<<<<<< HEAD
-    DependencyTracker.current = tracker;
-    try {
-      cleanup = effectFn() || (() => {});
-    } catch (error) {
-      console.warn(error.message);
-      // Optionally, you can add more detailed logging here
-    } finally {
-      DependencyTracker.current = null;
-    }
-
-    try {
-      DependencyTracker.detectCycles();
-    } catch (error) {
-      console.warn(error.message);
-    }
-  };
-
-  if (typeof window !== "undefined") {
-    requestAnimationFrame(_runEffect);
-  } else {
-    queueMicrotask(_runEffect);
-  }
-=======
     dependencies.forEach(dep => dep.__observers = dep.__observers.filter(obs => obs !== _runEffect));
     dependencies.clear();
   };
@@ -921,77 +725,6 @@ const derive = function (deriveFn) {
     } finally {
       DependencyTracker.current = null;
     }
-
-    try {
-      DependencyTracker.detectCycles();
-    } catch (error) {
-      console.warn(error.message);
-    }
-  };
-
-  _computeDerivedValue();
->>>>>>> session/vitest
-
-  const dispose = () => {
-    subscriptions.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-<<<<<<< HEAD
-    cleanup();
-    DependencyTracker.clearGraph();
-=======
-    subscriptions.clear();
-    dependencies.clear();
->>>>>>> session/vitest
-  };
-
-  return { value: currentValue, dispose };
-};
-
-<<<<<<< HEAD
-/**
- * @function
- * @param {Function} deriveFn - The function to compute the derived value
- * @returns {Object} An object containing the current derived value and a dispose function
- * @description This function creates a derived value that updates when its dependencies change
- * @example
- * const count = new ObservableState(0);
- * const { value: doubleCount, dispose } = derive(() => count.value * 2);
- * console.log(doubleCount); // 0
- * count.value = 5;
- * console.log(doubleCount); // 10
- * dispose(); // Clean up when no longer needed
- */
-const derive = function (deriveFn) {
-  let dependencies = new Set();
-  let subscriptions = new Map();
-  let currentValue;
-
-  const tracker = {
-    addDependency: (observable) => {
-      if (!dependencies.has(observable)) {
-        const subscription = observable.onValue(_computeDerivedValue);
-        dependencies.add(observable);
-        subscriptions.set(observable, subscription);
-      }
-    },
-  };
-
-  const _computeDerivedValue = () => {
-    DependencyTracker.current = tracker;
-    try {
-      currentValue = deriveFn();
-    } catch (error) {
-      console.warn("[Cami.js] Error in derive function:", error.message);
-    } finally {
-      DependencyTracker.current = null;
-    }
-
-    try {
-      DependencyTracker.detectCycles();
-    } catch (error) {
-      console.warn(error.message);
-    }
   };
 
   _computeDerivedValue();
@@ -1007,6 +740,4 @@ const derive = function (deriveFn) {
   return { value: currentValue, dispose };
 };
 
-=======
->>>>>>> session/vitest
 export { ObservableState, effect, derive, DependencyTracker };

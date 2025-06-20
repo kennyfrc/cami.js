@@ -9,10 +9,7 @@ import {
 } from "./observables/observable-state.js";
 import { ObservableProxy } from "./observables/observable-proxy.js";
 import { __trace } from "./trace.js";
-<<<<<<< HEAD
-=======
 import { _deepEqual } from "./utils";
->>>>>>> session/vitest
 
 /**
  * @typedef ObservableProperty
@@ -429,12 +426,6 @@ class ReactiveElement extends HTMLElement {
    */
   __setup(config) {
     if (config.infer === true) {
-<<<<<<< HEAD
-      Object.keys(this).forEach((key) => {
-        if (typeof this[key] !== "function" && !key.startsWith("__")) {
-          if (this[key] instanceof Observable) {
-            return;
-=======
       const keys = Object.keys(this);
       const keysLen = keys.length;
       
@@ -446,7 +437,6 @@ class ReactiveElement extends HTMLElement {
         if (typeof value !== "function" && !key.startsWith("__")) {
           if (value instanceof Observable) {
             continue;
->>>>>>> session/vitest
           } else {
             const observable = this.__observable(value, key);
             if (this.__isObjectOrArray(observable.value)) {
@@ -460,11 +450,7 @@ class ReactiveElement extends HTMLElement {
             }
           }
         }
-<<<<<<< HEAD
-      });
-=======
       }
->>>>>>> session/vitest
     }
   }
 
@@ -541,14 +527,6 @@ class ReactiveElement extends HTMLElement {
       );
     }
 
-<<<<<<< HEAD
-    // Only effects have a dispose method
-    this.__unsubscribers.set(observableState, () => {
-      if (typeof observableState.dispose === "function") {
-        observableState.dispose();
-      }
-    });
-=======
     // Only effects have a dispose method - use direct property access for speed
     this.__unsubscribers.set(observableState, () => {
       const dispose = observableState.dispose;
@@ -560,7 +538,6 @@ class ReactiveElement extends HTMLElement {
 
   afterRender() {
     // no-op. just a hook for the user.
->>>>>>> session/vitest
   }
 
   /**
@@ -571,10 +548,6 @@ class ReactiveElement extends HTMLElement {
    */
   render() {
     if (typeof this.template === "function") {
-<<<<<<< HEAD
-      const template = this.template();
-      __litRender(template, this);
-=======
       // Call template function and get the result
       const template = this.template();
 
@@ -600,7 +573,6 @@ class ReactiveElement extends HTMLElement {
     const missingProperties = properties.filter(prop => !(prop in this));
     if (missingProperties.length > 0) {
       console.warn(`Missing required properties: ${missingProperties.join(', ')}`);
->>>>>>> session/vitest
     }
   }
 }

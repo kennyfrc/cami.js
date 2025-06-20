@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { produce } from "immer";
-
-=======
->>>>>>> session/vitest
 /**
  * @typedef {Object} Observer
  * @description The observer object or function.
@@ -22,17 +17,6 @@ class Subscriber {
    * @param {Observer|Function} observer - The observer object or function.
    */
   constructor(observer) {
-<<<<<<< HEAD
-    if (typeof observer === "function") {
-      this.observer = { next: observer };
-    } else {
-      this.observer = observer;
-    }
-    this.teardowns = [];
-    if (typeof AbortController !== "undefined") {
-      this.controller = new AbortController();
-      this.signal = this.controller.signal;
-=======
     // Fast path for the common case: just a function (>90% of cases)
     if (typeof observer === "function") {
       this.next = observer;
@@ -69,7 +53,6 @@ class Subscriber {
       this.next = null;
       this.error = null;
       this.complete = null;
->>>>>>> session/vitest
     }
     
     // Most subscribers won't have teardowns, so initialize on first use
@@ -119,21 +102,6 @@ class Subscriber {
    * @description Unsubscribes from the observable, preventing any further notifications.
    */
   unsubscribe() {
-<<<<<<< HEAD
-    if (!this.isUnsubscribed) {
-      this.isUnsubscribed = true;
-      if (this.controller) {
-        this.controller.abort();
-      }
-      this.teardowns.forEach((teardown) => {
-        if (typeof teardown !== "function") {
-          throw new Error(
-            "[Cami.js] Teardown must be a function. Please implement a teardown function in your subscriber."
-          );
-        }
-        teardown();
-      });
-=======
     if (this.isUnsubscribed) return;
     
     this.isUnsubscribed = true;
@@ -145,7 +113,6 @@ class Subscriber {
       this.error = null;
       this.complete = null;
       return;
->>>>>>> session/vitest
     }
     
     // Execute teardowns with optimized while loop
@@ -193,23 +160,6 @@ class Observable {
    * @param {Function} complete - The complete function. Default is null.
    * @returns {Object} An object containing methods to manage the subscription.
    */
-<<<<<<< HEAD
-  subscribe(observerOrNext = () => {}, error = () => {}, complete = () => {}) {
-    let observer;
-
-    if (typeof observerOrNext === "function") {
-      observer = {
-        next: observerOrNext,
-        error,
-        complete,
-      };
-    } else if (typeof observerOrNext === "object") {
-      observer = observerOrNext;
-    } else {
-      throw new Error(
-        "[Cami.js] First argument to subscribe must be a next callback or an observer object"
-      );
-=======
   subscribe(observerOrNext, error, complete) {
     // Fast path for function observer (most common case)
     const subscriber = typeof observerOrNext === "function" 
@@ -224,7 +174,6 @@ class Observable {
       subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
       
       return this.__createSubscription(subscriber);
->>>>>>> session/vitest
     }
     
     // Path for subscribeCallback
@@ -233,13 +182,7 @@ class Observable {
       teardown = this.subscribeCallback(subscriber);
     } catch (err) {
       if (subscriber.error) {
-<<<<<<< HEAD
-        subscriber.error(error);
-      } else {
-        console.error("[Cami.js] Error in Subscriber:", error);
-=======
         subscriber.error(err);
->>>>>>> session/vitest
       }
       return { unsubscribe: () => {} };
     }
@@ -301,11 +244,6 @@ class Observable {
    * @param {*} value - The value to emit.
    */
   next(value) {
-<<<<<<< HEAD
-    this.__observers.forEach((observer) => {
-      observer.next(value);
-    });
-=======
     const observers = this.__observers;
     const len = observers.length;
     
@@ -330,7 +268,6 @@ class Observable {
         observer.next(value);
       }
     }
->>>>>>> session/vitest
   }
 
   /**
@@ -339,11 +276,6 @@ class Observable {
    * @param {*} error - The error to emit.
    */
   error(error) {
-<<<<<<< HEAD
-    this.__observers.forEach((observer) => {
-      observer.error(error);
-    });
-=======
     // Create a snapshot to prevent modification during iteration
     const observers = this.__observers.slice();
     const len = observers.length;
@@ -357,7 +289,6 @@ class Observable {
     
     // Clear all observers after error
     this.__observers.length = 0;
->>>>>>> session/vitest
   }
 
   /**
@@ -365,11 +296,6 @@ class Observable {
    * @description Notifies all observers that the Observable has completed.
    */
   complete() {
-<<<<<<< HEAD
-    this.__observers.forEach((observer) => {
-      observer.complete();
-    });
-=======
     // Create a snapshot to prevent modification during iteration
     const observers = this.__observers.slice();
     const len = observers.length;
@@ -383,7 +309,6 @@ class Observable {
     
     // Clear all observers after completion
     this.__observers.length = 0;
->>>>>>> session/vitest
   }
 
   /**
@@ -393,13 +318,7 @@ class Observable {
    * @returns {Object} Subscription object with unsubscribe method.
    */
   onValue(callbackFn) {
-<<<<<<< HEAD
-    return this.subscribe({
-      next: callbackFn,
-    });
-=======
     return this.subscribe(callbackFn);
->>>>>>> session/vitest
   }
 
   /**
@@ -409,13 +328,7 @@ class Observable {
    * @returns {Object} Subscription object with unsubscribe method.
    */
   onError(callbackFn) {
-<<<<<<< HEAD
-    return this.subscribe({
-      error: callbackFn,
-    });
-=======
     return this.subscribe(null, callbackFn);
->>>>>>> session/vitest
   }
 
   /**
@@ -425,13 +338,7 @@ class Observable {
    * @returns {Object} Subscription object with unsubscribe method.
    */
   onEnd(callbackFn) {
-<<<<<<< HEAD
-    return this.subscribe({
-      complete: callbackFn,
-    });
-=======
     return this.subscribe(null, null, callbackFn);
->>>>>>> session/vitest
   }
 
   /**
@@ -441,19 +348,6 @@ class Observable {
    */
   [Symbol.asyncIterator]() {
     let resolve;
-<<<<<<< HEAD
-    let promise = new Promise((r) => (resolve = r));
-
-    observer = {
-      next: (value) => {
-        resolve({ value, done: false });
-        promise = new Promise((r) => (resolve = r));
-      },
-      complete: () => {
-        resolve({ done: true });
-      },
-      error: (err) => {
-=======
     let promise = new Promise(r => resolve = r);
     let subscription;
     
@@ -473,7 +367,6 @@ class Observable {
       // Error handler
       err => {
         cleanup();
->>>>>>> session/vitest
         throw err;
       },
       // Complete handler

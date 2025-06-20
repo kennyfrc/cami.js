@@ -1,16 +1,5 @@
 import { Observable } from './observable.js';
 import { DependencyTracker } from './observable-state.js';
-<<<<<<< HEAD
-
-class URLStore extends Observable {
-  constructor() {
-    super();
-    this._state = this.__parseURL();
-    this.__name = 'URLStore';
-
-    window.addEventListener('load', () => this.__updateStore());
-    window.addEventListener('hashchange', () => this.__updateStore());
-=======
 import { _deepEqual } from '../utils';
 
 /**
@@ -111,7 +100,6 @@ class URLStore extends Observable {
         console.error('Error in URLStore initialization:', error);
       }
     }
->>>>>>> session/vitest
   }
 
   __parseURL() {
@@ -138,14 +126,6 @@ class URLStore extends Observable {
     return { params, hashPaths, hashParams };
   }
 
-<<<<<<< HEAD
-  __updateStore() {
-    const newState = this.__parseURL();
-    if (JSON.stringify(this._state) !== JSON.stringify(newState)) {
-      this._state = newState;
-      this.next(this._state);
-    }
-=======
   /**
    * Find a matching route for the given path segments
    */
@@ -289,7 +269,6 @@ class URLStore extends Observable {
         }
       })
     );
->>>>>>> session/vitest
   }
 
   getState() {
@@ -299,8 +278,6 @@ class URLStore extends Observable {
     return this._state;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * Check if currently in a loading state
    */
@@ -311,7 +288,6 @@ class URLStore extends Observable {
   /**
    * Navigate to a URL
    */
->>>>>>> session/vitest
   navigate(options = {}) {
     const {
       path,
@@ -324,12 +300,6 @@ class URLStore extends Observable {
       fullReplace = false
     } = options;
 
-<<<<<<< HEAD
-    let newUrl = new URL(window.location.href);
-    let newHash = '#';
-
-    // Preserve existing hashPaths if path is not provided
-=======
     // If navigation is pending, defer
     if (this.__navigationState.isPending) {
       setTimeout(() => this.navigate(options), 100);
@@ -340,7 +310,6 @@ class URLStore extends Observable {
     let newHash = '#';
 
     // Preserve existing hashPaths if path not provided
->>>>>>> session/vitest
     const currentState = this.getState();
     const hashPaths = path !== undefined
       ? path.split('/').filter(Boolean)
@@ -382,24 +351,6 @@ class URLStore extends Observable {
       newHash += '#' + hashSearchString;
     }
 
-<<<<<<< HEAD
-    newUrl.hash = newHash;
-
-    window.history.pushState(null, '', newUrl.toString());
-
-    this.__updateStore();
-
-    // Handle accessibility options
-    if (focusSelector) {
-      setTimeout(() => {
-        const targetElement = document.querySelector(focusSelector);
-        if (targetElement) {
-          targetElement.focus();
-        }
-      }, 0);
-    }
-
-=======
     // Skip if hash hasn't changed
     if (newUrl.hash === newHash) return;
 
@@ -418,7 +369,6 @@ class URLStore extends Observable {
     }
 
     // Set page title
->>>>>>> session/vitest
     if (pageTitle) {
       document.title = pageTitle;
     } else if (path) {
@@ -436,10 +386,7 @@ class URLStore extends Observable {
       document.title = `${formattedDomain} | ${formattedPath}`;
     }
 
-<<<<<<< HEAD
-=======
     // Handle screen reader announcement
->>>>>>> session/vitest
     if (announcement) {
       const liveRegion = document.getElementById('liveRegion');
       if (liveRegion) {
@@ -455,13 +402,9 @@ class URLStore extends Observable {
     }
 
     if (updateCurrentPage) {
-<<<<<<< HEAD
-      document.querySelectorAll('[aria-current="page"]').forEach(el => el.removeAttribute('aria-current'));
-=======
       document.querySelectorAll('[aria-current="page"]')
         .forEach(el => el.removeAttribute('aria-current'));
       
->>>>>>> session/vitest
       const currentPageLink = document.querySelector(`a[href="#/${path}"]`);
       if (currentPageLink) {
         currentPageLink.setAttribute('aria-current', 'page');
@@ -473,31 +416,12 @@ class URLStore extends Observable {
     const currentState = this.getState();
 
     for (const key in stateSlice) {
-<<<<<<< HEAD
-      if (stateSlice.hasOwnProperty(key)) {
-        if (key === 'hashPaths') {
-          // For hashPaths, check if the provided array is a prefix of the current hashPaths
-=======
       if (Object.hasOwn(stateSlice, key)) {
         if (key === 'hashPaths') {
->>>>>>> session/vitest
           if (!this._isArrayPrefix(currentState.hashPaths, stateSlice.hashPaths)) {
             return false;
           }
         } else if (['params', 'hashParams'].includes(key)) {
-<<<<<<< HEAD
-          // For params and hashParams, check if all provided key-value pairs match
-          for (const paramKey in stateSlice[key]) {
-            if (stateSlice[key].hasOwnProperty(paramKey)) {
-              if (currentState[key][paramKey] !== stateSlice[key][paramKey]) {
-                return false;
-              }
-            }
-          }
-        } else {
-          // For any other properties, perform a strict equality check
-          if (currentState[key] !== stateSlice[key]) {
-=======
           for (const paramKey in stateSlice[key]) {
             // Get values to compare
             const currentValue = currentState[key][paramKey];
@@ -524,7 +448,6 @@ class URLStore extends Observable {
               return false;
             }
           } else if (currentValue !== sliceValue) {
->>>>>>> session/vitest
             return false;
           }
         }
@@ -534,25 +457,8 @@ class URLStore extends Observable {
     return true;
   }
 
-<<<<<<< HEAD
-  /**
-   * @method isEmpty
-   * @memberof URLStore
-   * @returns {boolean} True if the store's state is effectively empty, false otherwise.
-   * @description Checks if the internal state is effectively empty by verifying if there's any meaningful content in hashPaths, params, or hashParams.
-   * @example
-   * ```javascript
-   * const urlStore = createURLStore();
-   * console.log(urlStore.isEmpty()); // true if the store is effectively empty
-   * ```
-   */
   isEmpty() {
     const { hashPaths, params, hashParams } = this.getState();
-
-=======
-  isEmpty() {
-    const { hashPaths, params, hashParams } = this.getState();
->>>>>>> session/vitest
     return (
       hashPaths.length === 0 &&
       Object.keys(params).length === 0 &&
@@ -562,20 +468,11 @@ class URLStore extends Observable {
   }
 
   _isArrayPrefix(arr, prefix) {
-<<<<<<< HEAD
-    if (prefix.length > arr.length) {
-      return false;
-    }
-=======
     if (prefix.length > arr.length) return false;
->>>>>>> session/vitest
     return prefix.every((value, index) => value === arr[index]);
   }
 }
 
-<<<<<<< HEAD
-const createURLStore = () => new URLStore();
-=======
 // Singleton instance
 let urlStoreInstance = null;
 
@@ -590,6 +487,5 @@ const createURLStore = (options = {}) => {
   }
   return urlStoreInstance;
 };
->>>>>>> session/vitest
 
 export { createURLStore };

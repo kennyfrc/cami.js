@@ -3024,11 +3024,6 @@ var derive = function(deriveFn) {
     } finally {
       DependencyTracker.current = null;
     }
-    try {
-      DependencyTracker.detectCycles();
-    } catch (error) {
-      console.warn(error.message);
-    }
   };
   _computeDerivedValue();
   const dispose = () => {
@@ -4101,14 +4096,14 @@ var ObservableStore = class extends Observable {
     try {
       const queue = this.dispatchQueue;
       if (queue.length === 1) {
-        const { action, payload } = queue.shift();
-        this._dispatch(action, payload);
+        const { action: action2, payload: payload2 } = queue.shift();
+        this._dispatch(action2, payload2);
         this.isDispatching = false;
         return;
       }
       while (queue.length > 0) {
-        const { action, payload } = queue.shift();
-        this._dispatch(action, payload);
+        const { action: action2, payload: payload2 } = queue.shift();
+        this._dispatch(action2, payload2);
       }
     } catch (error) {
       console.error(`[Cami.js] Error in dispatch queue:`, error);
@@ -4120,22 +4115,22 @@ var ObservableStore = class extends Observable {
   /**
    * Public API for dispatching actions
    */
-  dispatch(action, payload) {
-    return this._dispatch(action, payload);
+  dispatch(action2, payload2) {
+    return this._dispatch(action2, payload2);
   }
   /**
    * Main implementation of action dispatch
    * Critical performance path - heavily optimized
    */
-  _dispatch(action, payload) {
+  _dispatch(action2, payload2) {
     var _a3;
     if (this.__isDispatching) {
-      const cycle = [...this.__dispatchStack, action].join(" -> ");
+      const cycle = [...this.__dispatchStack, action2].join(" -> ");
       console.warn(`[Cami.js] Cyclic dispatch detected: ${cycle}`);
     }
     this.__isDispatching = true;
-    this.__dispatchStack.push(action);
-    if (action === void 0) {
+    this.__dispatchStack.push(action2);
+    if (action2 === void 0) {
       const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
       this.__dispatchStack.pop();
       this.__isDispatching = false;
@@ -4143,37 +4138,37 @@ var ObservableStore = class extends Observable {
         currentAction ? `[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".` : `[Cami.js] Attempted to dispatch undefined action in the global namespace.`
       );
     }
-    if (typeof action !== "string") {
+    if (typeof action2 !== "string") {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
-      throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+      throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action2}`);
     }
-    const reducer = this.reducers[action];
+    const reducer = this.reducers[action2];
     if (!reducer) {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
-      __trace("cami:store:warn", `No reducer found for action ${action}`);
-      throw new Error(`[Cami.js] No reducer found for action: ${action}`);
+      __trace("cami:store:warn", `No reducer found for action ${action2}`);
+      throw new Error(`[Cami.js] No reducer found for action: ${action2}`);
     }
     const originalState = _deepClone(this._state);
     try {
-      const spec = (_a3 = this.specs) == null ? void 0 : _a3.get(action);
+      const spec = (_a3 = this.specs) == null ? void 0 : _a3.get(action2);
       if (spec == null ? void 0 : spec.precondition) {
         const isPreconditionMet = spec.precondition({
           state: this._state,
-          payload,
-          action
+          payload: payload2,
+          action: action2
         });
         if (!isPreconditionMet) {
-          throw new Error(`Precondition not met for action ${action}`);
+          throw new Error(`Precondition not met for action ${action2}`);
         }
       }
       if (this.beforeHooks.length > 0) {
-        this.__applyHooks("before", { action, payload, state: this._state });
+        this.__applyHooks("before", { action: action2, payload: payload2, state: this._state });
       }
       const reducerContext = {
         state: this._state,
-        payload,
+        payload: payload2,
         dispatch: this.dispatch,
         query: this.query,
         mutate: this.mutate,
@@ -4191,12 +4186,12 @@ var ObservableStore = class extends Observable {
         if (spec == null ? void 0 : spec.postcondition) {
           const isPostconditionMet = spec.postcondition({
             state: nextState,
-            payload,
-            action,
+            payload: payload2,
+            action: action2,
             previousState: this._state
           });
           if (!isPostconditionMet) {
-            throw new Error(`Postcondition not met for action ${action}`);
+            throw new Error(`Postcondition not met for action ${action2}`);
           }
         }
         this._isDirty = true;
@@ -4213,15 +4208,15 @@ var ObservableStore = class extends Observable {
           }
           __trace(
             "cami:store:state:change",
-            `Changed store state via action: ${action}`,
+            `Changed store state via action: ${action2}`,
             inversePatches,
             patches
           );
         }
         if (this.afterHooks.length > 0) {
           this.__applyHooks("after", {
-            action,
-            payload,
+            action: action2,
+            payload: payload2,
             state: nextState,
             previousState: originalState,
             patches,
@@ -4291,6 +4286,7 @@ var ObservableStore = class extends Observable {
    * Optimized to skip empty hook arrays
    */
   __applyHooks(type, context) {
+    var _a3;
     if (type === "before") {
       const hooks = this.beforeHooks;
       const len = hooks.length;
@@ -4303,6 +4299,134 @@ var ObservableStore = class extends Observable {
       if (this.afterHooks.length === 0) return;
       this.throttledAfterHooks(context);
     }
+    this.__isDispatching = true;
+    this.__dispatchStack.push(action);
+    try {
+      if (action === void 0) {
+        const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
+        if (currentAction) {
+          throw new Error(
+            `[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`
+          );
+        } else {
+          throw new Error(
+            `[Cami.js] Attempted to dispatch undefined action in the global namespace.`
+          );
+        }
+      }
+      if (typeof action !== "string") {
+        throw new Error(
+          `[Cami.js] Action type must be a string. Got: ${typeof action}`
+        );
+      }
+      const reducer = this.reducers[action];
+      const spec = (_a3 = this.specs) == null ? void 0 : _a3.get(action);
+      if (!reducer) {
+        console.warn(`No reducer found for action ${action}`);
+        return _deepClone(this._state);
+      }
+      if (spec && spec.precondition) {
+        const isPreconditionMet = spec.precondition({
+          state: this._state,
+          payload,
+          action
+        });
+        if (!isPreconditionMet) {
+          throw new Error(`Precondition not met for action ${action}`);
+        }
+      }
+      this.__applyHooks("before", { action, payload, state: this._state });
+      const [nextState, patches, inversePatches] = produceWithPatches(
+        this._state,
+        (draft) => {
+          reducer({
+            state: draft,
+            payload,
+            dispatch: this.dispatch.bind(this),
+            query: this.query.bind(this),
+            mutate: this.mutate.bind(this),
+            invalidateQueries: this.invalidateQueries.bind(this),
+            memo: this.memo.bind(this),
+            trigger: this.trigger.bind(this)
+          });
+        }
+      );
+      if (spec && spec.postcondition) {
+        const isPostconditionMet = spec.postcondition({
+          state: nextState,
+          payload,
+          action,
+          previousState: _deepClone(this._state)
+        });
+        if (!isPostconditionMet) {
+          throw new Error(`Postcondition not met for action ${action}`);
+        }
+      }
+      this.__applyHooks("after", {
+        action,
+        payload,
+        state: nextState,
+        previousState: this._state,
+        patches,
+        inversePatches,
+        dispatch: this.dispatch.bind(this)
+      });
+      const hasChanged = patches.length > 0;
+      if (hasChanged) {
+        const stateHasChanged = !_deepEqual(this._state, nextState);
+        if (stateHasChanged) {
+          Object.keys(nextState).forEach((key) => {
+            this._state[key] = nextState[key];
+          });
+          this._notifyPatchListeners(patches);
+          if (this.devTools) {
+            this.devTools.send(action, this._state);
+          }
+          __trace(
+            "cami:store:state:change",
+            `Changed store state via action: ${action}`,
+            inversePatches,
+            patches
+          );
+          if (__config.events.isEnabled && typeof window !== "undefined") {
+            const event = new CustomEvent("cami:store:state:change", {
+              detail: {
+                action,
+                patches,
+                inversePatches
+              }
+            });
+            window.dispatchEvent(event);
+          }
+        }
+      }
+      this._validateState(this._state);
+      return _deepClone(this._state);
+    } finally {
+      this.__dispatchStack.pop();
+      this.__isDispatching = false;
+    }
+  }
+  beforeHook(hook) {
+    this.beforeHooks.push(hook);
+  }
+  afterHook(hook) {
+    this.afterHooks.push(hook);
+  }
+  __applyHooks(type, context) {
+    const hooks = type === "before" ? this.beforeHooks : this.afterHooks;
+    for (const hook of hooks) {
+      hook(context);
+    }
+  }
+  _notifyPatchListeners(patches) {
+    patches.forEach((patch) => {
+      const key = patch.path[0];
+      const listeners = this.patchListeners.get(key);
+      if (listeners) {
+        listeners.forEach((callback) => callback(patch));
+      }
+    });
   }
   /**
    * Execute after hooks with current context
@@ -4379,15 +4503,15 @@ var ObservableStore = class extends Observable {
    * });
    * ```
    */
-  defineAction(action, reducer) {
-    if (typeof action !== "string") {
-      throw new Error(`[Cami.js] Action name must be a string, got: ${typeof action}`);
+  defineAction(action2, reducer) {
+    if (typeof action2 !== "string") {
+      throw new Error(`[Cami.js] Action name must be a string, got: ${typeof action2}`);
     }
     if (typeof reducer !== "function") {
       throw new Error(`[Cami.js] Reducer must be a function, got: ${typeof reducer}`);
     }
-    if (this.reducers[action]) {
-      throw new Error(`[Cami.js] Action '${action}' is already defined in store '${this.name}'.`);
+    if (this.reducers[action2]) {
+      throw new Error(`[Cami.js] Action '${action2}' is already defined in store '${this.name}'.`);
     }
     const baseContext = {
       dispatch: this.dispatch,
@@ -4398,11 +4522,11 @@ var ObservableStore = class extends Observable {
       invalidateQueries: this.invalidateQueries,
       dispatchAsync: this.dispatchAsync
     };
-    this.reducers[action] = (context) => {
+    this.reducers[action2] = (context) => {
       const storeContext = Object.assign({}, baseContext, context);
       return reducer(storeContext);
     };
-    this.actions[action] = (payload) => this.dispatch(action, payload);
+    this.actions[action2] = (payload2) => this.dispatch(action2, payload2);
     return this;
   }
   /**
@@ -4447,7 +4571,7 @@ var ObservableStore = class extends Observable {
    * @returns {Promise} A promise that resolves with the result of the thunk
    * @description Dispatches an async thunk
    */
-  dispatchAsync(thunkName, payload) {
+  dispatchAsync(thunkName, payload2) {
     return __async(this, null, function* () {
       const thunk = this.thunks[thunkName];
       if (!thunk) {
@@ -4461,38 +4585,38 @@ var ObservableStore = class extends Observable {
         query: this.query.bind(this),
         mutate: this.mutate.bind(this),
         invalidateQueries: this.invalidateQueries.bind(this),
-        payload
+        payload: payload2
       };
       try {
-        return yield thunk(context, payload);
+        return yield thunk(context, payload2);
       } catch (error) {
         console.error(`Error in thunk ${thunkName}:`, error);
         throw error;
       }
     });
   }
-  query(queryName, payload) {
+  query(queryName, payload2) {
     return __async(this, null, function* () {
       const query = this.queryFunctions.get(queryName);
       if (!query) {
         throw new Error(`[Cami.js] No query found for name: ${queryName}`);
       }
       try {
-        return yield this._executeQuery(queryName, payload, query);
+        return yield this._executeQuery(queryName, payload2, query);
       } catch (error) {
         console.error(`Error in query ${queryName}:`, error);
         throw error;
       }
     });
   }
-  mutate(mutationName, payload) {
+  mutate(mutationName, payload2) {
     return __async(this, null, function* () {
       const mutation = this.mutationFunctions.get(mutationName);
       if (!mutation) {
         throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
       }
       try {
-        return yield this._executeMutation(mutationName, payload, mutation);
+        return yield this._executeMutation(mutationName, payload2, mutation);
       } catch (error) {
         console.error(`Error in mutation ${mutationName}:`, error);
         throw error;
@@ -4599,7 +4723,7 @@ var ObservableStore = class extends Observable {
     this.queryFunctions.set(queryName, config);
     this.queries[queryName] = (...args) => this.query(queryName, ...args);
   }
-  _executeQuery(queryName, payload, query) {
+  _executeQuery(queryName, payload2, query) {
     const {
       queryFn,
       queryKey,
@@ -4611,11 +4735,11 @@ var ObservableStore = class extends Observable {
       onError,
       onSettled
     } = query;
-    const cacheKey = typeof queryKey === "function" ? queryKey(payload).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
+    const cacheKey = typeof queryKey === "function" ? queryKey(payload2).join(":") : Array.isArray(queryKey) ? queryKey.join(":") : queryKey;
     const cachedData = this.queryCache.get(cacheKey);
     const storeContext = {
       state: this._state,
-      payload,
+      payload: payload2,
       dispatch: this.dispatch.bind(this),
       trigger: this.trigger.bind(this),
       memo: this.memo.bind(this),
@@ -4649,7 +4773,7 @@ var ObservableStore = class extends Observable {
       __trace(`query`, `onFetch callback invoked for: ${queryName}`);
       onFetch(storeContext);
     }
-    return this._fetchWithRetry(() => queryFn(payload), retry, retryDelay).then((data) => {
+    return this._fetchWithRetry(() => queryFn(payload2), retry, retryDelay).then((data) => {
       this.queryCache.set(cacheKey, {
         data,
         timestamp: Date.now(),
@@ -4864,12 +4988,12 @@ var ObservableStore = class extends Observable {
     this.mutationFunctions.set(mutationName, config);
     this.mutations[mutationName] = (...args) => this.mutate(mutationName, ...args);
   }
-  _executeMutation(mutationName, payload, mutation) {
+  _executeMutation(mutationName, payload2, mutation) {
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
     const previousState = _deepClone(this._state);
     const storeContext = {
       state: this._state,
-      payload,
+      payload: payload2,
       dispatch: this.dispatch.bind(this),
       trigger: this.trigger.bind(this),
       memo: this.memo.bind(this),
@@ -4885,7 +5009,7 @@ var ObservableStore = class extends Observable {
     }
     let result;
     let error;
-    return Promise.resolve(mutationFn(payload)).then((data) => {
+    return Promise.resolve(mutationFn(payload2)).then((data) => {
       result = data;
       if (onSuccess) {
         onSuccess(__spreadProps(__spreadValues({}, storeContext), { data }));
@@ -4947,10 +5071,10 @@ var ObservableStore = class extends Observable {
     this.machines[machineName] = machineDefinition;
     Object.entries(machineDefinition).forEach(([eventName, event]) => {
       const fullEventName = `${machineName}:${eventName}`;
-      this.defineAction(fullEventName, ({ state, payload }) => {
+      this.defineAction(fullEventName, ({ state, payload: payload2 }) => {
         if (this.isValidTransition(event.from, state)) {
           const previousState = _deepClone(state);
-          const newState = typeof event.to === "function" ? event.to({ state, payload }) : event.to;
+          const newState = typeof event.to === "function" ? event.to({ state, payload: payload2 }) : event.to;
           Object.entries(newState).forEach(([key, value]) => {
             if (typeof value === "object" && value !== null && !Array.isArray(value)) {
               state[key] = __spreadValues(__spreadValues({}, state[key]), value);
@@ -4959,7 +5083,7 @@ var ObservableStore = class extends Observable {
             }
           });
           if (event.onEntry) {
-            event.onEntry({ state, previousState, payload });
+            event.onEntry({ state, previousState, payload: payload2 });
           }
         } else {
           console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
@@ -4974,7 +5098,7 @@ var ObservableStore = class extends Observable {
    * @returns {Promise} A promise that resolves when the event is processed
    * @description Triggers a state machine event
    */
-  trigger(fullEventName, payload) {
+  trigger(fullEventName, payload2) {
     const [machineName, eventName] = fullEventName.split(":");
     if (!this.machines[machineName] || !this.machines[machineName][eventName]) {
       throw new Error(
@@ -4984,14 +5108,14 @@ var ObservableStore = class extends Observable {
     const event = this.machines[machineName][eventName];
     const currentState = __spreadValues({}, this._state);
     if (event.onExit) {
-      event.onExit({ state: currentState, payload });
+      event.onExit({ state: currentState, payload: payload2 });
     }
-    this.dispatch(fullEventName, payload);
+    this.dispatch(fullEventName, payload2);
     if (event.onTransition) {
       event.onTransition({
         from: currentState,
         to: this._state,
-        payload,
+        payload: payload2,
         data: event.data
       });
     }
@@ -5004,7 +5128,7 @@ var ObservableStore = class extends Observable {
    * @returns {*} The computed value of the memo
    * @description Computes and returns the value of a memoized property with efficient caching
    */
-  memo(memoName, payload) {
+  memo(memoName, payload2) {
     if (typeof memoName !== "string") {
       throw new Error(`[Cami.js] Memo name must be a string, got: ${typeof memoName}`);
     }
@@ -5018,12 +5142,12 @@ var ObservableStore = class extends Observable {
       this.memoCache.set(memoName, cache);
     }
     let cacheKey;
-    if (payload === void 0 || payload === null) {
+    if (payload2 === void 0 || payload2 === null) {
       cacheKey = "__undefined__";
-    } else if (typeof payload !== "object") {
-      cacheKey = payload;
+    } else if (typeof payload2 !== "object") {
+      cacheKey = payload2;
     } else {
-      cacheKey = JSON.stringify(payload);
+      cacheKey = JSON.stringify(payload2);
     }
     if (cache.has(cacheKey)) {
       const cached = cache.get(cacheKey);
@@ -5045,7 +5169,7 @@ var ObservableStore = class extends Observable {
     });
     const storeContext = {
       state: trackingProxy,
-      payload,
+      payload: payload2,
       dispatch: this.dispatch,
       trigger: this.trigger,
       memo: this.memo,
@@ -6386,7 +6510,7 @@ function persistToIdbThunk({
   fromStateKey,
   toIDBStore
 }) {
-  return (_0) => __async(null, [_0], function* ({ action, patches }) {
+  return (_0) => __async(null, [_0], function* ({ action: action2, patches }) {
     if (!Array.isArray(patches)) {
       throw new Error("patches must be an array");
     }
@@ -6538,7 +6662,7 @@ function createLocalStorage({
   };
 }
 function persistToLocalStorageThunk(toLocalStorage) {
-  return (_0) => __async(null, [_0], function* ({ action, state, previousState }) {
+  return (_0) => __async(null, [_0], function* ({ action: action2, state, previousState }) {
     if (state !== previousState) {
       yield toLocalStorage.setState(state);
       __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
