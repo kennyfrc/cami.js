@@ -1,0 +1,131 @@
+/**
+ * Observer interface for handling observable emissions
+ */
+export interface Observer<T> {
+    next?: (value: T) => void;
+    error?: (error: any) => void;
+    complete?: () => void;
+}
+/**
+ * Subscription interface for managing observable subscriptions
+ */
+export interface Subscription {
+    unsubscribe(): void;
+    complete(): void;
+    error(err: any): void;
+}
+/**
+ * Teardown function type
+ */
+export type TeardownFn = () => void;
+/**
+ * Subscribe callback function type
+ */
+export type SubscribeCallback<T> = (subscriber: Subscriber<T>) => TeardownFn | void;
+/**
+ * Observer or next function type
+ */
+export type ObserverOrNext<T> = Observer<T> | ((value: T) => void);
+/**
+ * High-performance Subscriber implementation
+ */
+export declare class Subscriber<T> implements Observer<T> {
+    next: ((value: T) => void) | null;
+    error: ((error: any) => void) | null;
+    complete: (() => void) | null;
+    private teardowns;
+    isUnsubscribed: boolean;
+    /**
+     * Creates a new Subscriber instance with optimized memory layout
+     * @param observer - The observer object or function
+     */
+    constructor(observer: ObserverOrNext<T>);
+    /**
+     * Notifies the observer that the observable has completed
+     */
+    notifyComplete(): void;
+    /**
+     * Notifies the observer that an error has occurred
+     * @param err - The error to pass to the observer's error method
+     */
+    notifyError(err: any): void;
+    /**
+     * Adds a teardown function to be executed when unsubscribing
+     * @param teardown - The teardown function
+     */
+    addTeardown(teardown: TeardownFn): void;
+    /**
+     * Unsubscribes from the observable, preventing any further notifications
+     */
+    unsubscribe(): void;
+}
+/**
+ * High-performance Observable implementation
+ */
+export declare class Observable<T> {
+    private __observers;
+    private subscribeCallback?;
+    /**
+     * Creates a new Observable instance with optimized internal structure
+     * @param subscribeCallback - The callback function to call when a new observer subscribes
+     */
+    constructor(subscribeCallback?: SubscribeCallback<T> | null);
+    /**
+     * Subscribes an observer to the observable with optimized paths
+     * @param observerOrNext - The observer to subscribe or the next function
+     * @param error - The error function. Default is null
+     * @param complete - The complete function. Default is null
+     * @returns An object containing methods to manage the subscription
+     */
+    subscribe(observerOrNext: ObserverOrNext<T>, error?: ((error: any) => void) | null, complete?: (() => void) | null): Subscription;
+    /**
+     * Creates a teardown function that removes a subscriber from the observers array
+     * @param subscriber - The subscriber to remove
+     * @returns A function that removes the subscriber when called
+     */
+    private __createRemoveTeardown;
+    /**
+     * Creates a subscription object with minimal properties
+     * @param subscriber - The subscriber
+     * @returns A subscription object
+     */
+    private __createSubscription;
+    /**
+     * Passes a value to all observers with maximum efficiency
+     * @param value - The value to emit
+     */
+    next(value: T): void;
+    /**
+     * Passes an error to all observers and terminates the stream
+     * @param error - The error to emit
+     */
+    error(error: any): void;
+    /**
+     * Notifies all observers that the Observable has completed
+     */
+    complete(): void;
+    /**
+     * Simplified method to subscribe to value emissions only
+     * @param callbackFn - The callback for each value
+     * @returns Subscription object with unsubscribe method
+     */
+    onValue(callbackFn: (value: T) => void): Subscription;
+    /**
+     * Simplified method to subscribe to errors only
+     * @param callbackFn - The callback for errors
+     * @returns Subscription object with unsubscribe method
+     */
+    onError(callbackFn: (error: any) => void): Subscription;
+    /**
+     * Simplified method to subscribe to completion only
+     * @param callbackFn - The callback for completion
+     * @returns Subscription object with unsubscribe method
+     */
+    onEnd(callbackFn: () => void): Subscription;
+    /**
+     * Returns an AsyncIterator for asynchronous iteration
+     * @returns AsyncIterator implementation
+     */
+    [Symbol.asyncIterator](): AsyncIterator<T>;
+}
+//# sourceMappingURL=observable.d.ts.map

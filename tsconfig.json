@@ -1,13 +1,28 @@
 {
   "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "target": "ESNext",
     "module": "ESNext",
-    "allowJs": true,
-    "checkJs": true,
-    "noEmit": true,
-    "strict": false,
     "moduleResolution": "node",
-    "lib": ["ESNext", "dom"]
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./build",
+    "rootDir": "./src",
+    "allowJs": true,
+    "checkJs": false
   },
-  "include": ["src/*.js"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "tests", "tests-v2", "examples"]
 }

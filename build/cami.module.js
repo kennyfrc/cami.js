@@ -4,6 +4,7 @@ var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __knownSymbol = (name, symbol) => (symbol = Symbol[name]) ? symbol : Symbol.for("Symbol." + name);
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __spreadValues = (a3, b3) => {
   for (var prop in b3 || (b3 = {}))
@@ -17,10 +18,7 @@ var __spreadValues = (a3, b3) => {
   return a3;
 };
 var __spreadProps = (a3, b3) => __defProps(a3, __getOwnPropDescs(b3));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -41,13 +39,28 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
+var __await = function(promise, isYieldStar) {
+  this[0] = promise;
+  this[1] = isYieldStar;
+};
+var __asyncGenerator = (__this, __arguments, generator) => {
+  var resume = (k3, v4, yes, no) => {
+    try {
+      var x3 = generator[k3](v4), isAwait = (v4 = x3.value) instanceof __await, done = x3.done;
+      Promise.resolve(isAwait ? v4[0] : v4).then((y3) => isAwait ? resume(k3 === "return" ? k3 : "next", v4[1] ? { done: y3.done, value: y3.value } : y3, yes, no) : yes({ value: y3, done })).catch((e5) => resume("throw", e5, yes, no));
+    } catch (e5) {
+      no(e5);
+    }
+  }, method = (k3) => it[k3] = (x3) => new Promise((yes, no) => resume(k3, x3, yes, no)), it = {};
+  return generator = generator.apply(__this, __arguments), it[__knownSymbol("asyncIterator")] = () => it, method("next"), method("throw"), method("return"), it;
+};
 
-// ../../../../node_modules/lit-html/lit-html.js
+// node_modules/lit-html/lit-html.js
 var t = globalThis;
 var i = t.trustedTypes;
 var s = i ? i.createPolicy("lit-html", { createHTML: (t5) => t5 }) : void 0;
 var e = "$lit$";
-var h = `lit$${(Math.random() + "").slice(9)}$`;
+var h = `lit$${Math.random().toFixed(9).slice(2)}$`;
 var o = "?" + h;
 var n = `<${o}>`;
 var r = document;
@@ -67,64 +80,56 @@ var $ = /^(?:script|style|textarea|title)$/i;
 var y = (t5) => (i5, ...s4) => ({ _$litType$: t5, strings: i5, values: s4 });
 var x = y(1);
 var b = y(2);
-var w = Symbol.for("lit-noChange");
-var T = Symbol.for("lit-nothing");
+var w = y(3);
+var T = Symbol.for("lit-noChange");
+var E = Symbol.for("lit-nothing");
 var A = /* @__PURE__ */ new WeakMap();
-var E = r.createTreeWalker(r, 129);
-function C(t5, i5) {
-  if (!Array.isArray(t5) || !t5.hasOwnProperty("raw"))
-    throw Error("invalid template strings array");
+var C = r.createTreeWalker(r, 129);
+function P(t5, i5) {
+  if (!a(t5) || !t5.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return void 0 !== s ? s.createHTML(i5) : i5;
 }
-var P = (t5, i5) => {
+var V = (t5, i5) => {
   const s4 = t5.length - 1, o4 = [];
-  let r4, l3 = 2 === i5 ? "<svg>" : "", c4 = f;
+  let r4, l3 = 2 === i5 ? "<svg>" : 3 === i5 ? "<math>" : "", c4 = f;
   for (let i6 = 0; i6 < s4; i6++) {
     const s5 = t5[i6];
     let a3, u5, d3 = -1, y3 = 0;
-    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); )
-      y3 = c4.lastIndex, c4 === f ? "!--" === u5[1] ? c4 = v : void 0 !== u5[1] ? c4 = _ : void 0 !== u5[2] ? ($.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m) : void 0 !== u5[3] && (c4 = m) : c4 === m ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m : '"' === u5[3] ? g : p) : c4 === g || c4 === p ? c4 = m : c4 === v || c4 === _ ? c4 = f : (c4 = m, r4 = void 0);
+    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); ) y3 = c4.lastIndex, c4 === f ? "!--" === u5[1] ? c4 = v : void 0 !== u5[1] ? c4 = _ : void 0 !== u5[2] ? ($.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m) : void 0 !== u5[3] && (c4 = m) : c4 === m ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m : '"' === u5[3] ? g : p) : c4 === g || c4 === p ? c4 = m : c4 === v || c4 === _ ? c4 = f : (c4 = m, r4 = void 0);
     const x3 = c4 === m && t5[i6 + 1].startsWith("/>") ? " " : "";
     l3 += c4 === f ? s5 + n : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e + s5.slice(d3) + h + x3) : s5 + h + (-2 === d3 ? i6 : x3);
   }
-  return [C(t5, l3 + (t5[s4] || "<?>") + (2 === i5 ? "</svg>" : "")), o4];
+  return [P(t5, l3 + (t5[s4] || "<?>") + (2 === i5 ? "</svg>" : 3 === i5 ? "</math>" : "")), o4];
 };
-var V = class _V {
+var N = class _N {
   constructor({ strings: t5, _$litType$: s4 }, n3) {
     let r4;
     this.parts = [];
     let c4 = 0, a3 = 0;
-    const u5 = t5.length - 1, d3 = this.parts, [f3, v4] = P(t5, s4);
-    if (this.el = _V.createElement(f3, n3), E.currentNode = this.el.content, 2 === s4) {
+    const u5 = t5.length - 1, d3 = this.parts, [f3, v4] = V(t5, s4);
+    if (this.el = _N.createElement(f3, n3), C.currentNode = this.el.content, 2 === s4 || 3 === s4) {
       const t6 = this.el.content.firstChild;
       t6.replaceWith(...t6.childNodes);
     }
-    for (; null !== (r4 = E.nextNode()) && d3.length < u5; ) {
+    for (; null !== (r4 = C.nextNode()) && d3.length < u5; ) {
       if (1 === r4.nodeType) {
-        if (r4.hasAttributes())
-          for (const t6 of r4.getAttributeNames())
-            if (t6.endsWith(e)) {
-              const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h), e5 = /([.?@])?(.*)/.exec(i5);
-              d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? k : "?" === e5[1] ? H : "@" === e5[1] ? I : R }), r4.removeAttribute(t6);
-            } else
-              t6.startsWith(h) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
+        if (r4.hasAttributes()) for (const t6 of r4.getAttributeNames()) if (t6.endsWith(e)) {
+          const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h), e5 = /([.?@])?(.*)/.exec(i5);
+          d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H : "?" === e5[1] ? I : "@" === e5[1] ? L : k }), r4.removeAttribute(t6);
+        } else t6.startsWith(h) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
         if ($.test(r4.tagName)) {
           const t6 = r4.textContent.split(h), s5 = t6.length - 1;
           if (s5 > 0) {
             r4.textContent = i ? i.emptyScript : "";
-            for (let i5 = 0; i5 < s5; i5++)
-              r4.append(t6[i5], l()), E.nextNode(), d3.push({ type: 2, index: ++c4 });
+            for (let i5 = 0; i5 < s5; i5++) r4.append(t6[i5], l()), C.nextNode(), d3.push({ type: 2, index: ++c4 });
             r4.append(t6[s5], l());
           }
         }
-      } else if (8 === r4.nodeType)
-        if (r4.data === o)
-          d3.push({ type: 2, index: c4 });
-        else {
-          let t6 = -1;
-          for (; -1 !== (t6 = r4.data.indexOf(h, t6 + 1)); )
-            d3.push({ type: 7, index: c4 }), t6 += h.length - 1;
-        }
+      } else if (8 === r4.nodeType) if (r4.data === o) d3.push({ type: 2, index: c4 });
+      else {
+        let t6 = -1;
+        for (; -1 !== (t6 = r4.data.indexOf(h, t6 + 1)); ) d3.push({ type: 7, index: c4 }), t6 += h.length - 1;
+      }
       c4++;
     }
   }
@@ -133,15 +138,14 @@ var V = class _V {
     return s4.innerHTML = t5, s4;
   }
 };
-function N(t5, i5, s4 = t5, e5) {
+function S(t5, i5, s4 = t5, e5) {
   var _a3, _b, _c;
-  if (i5 === w)
-    return i5;
-  let h4 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
+  if (i5 === T) return i5;
+  let h3 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
   const o4 = c(i5) ? void 0 : i5._$litDirective$;
-  return (h4 == null ? void 0 : h4.constructor) !== o4 && ((_b = h4 == null ? void 0 : h4._$AO) == null ? void 0 : _b.call(h4, false), void 0 === o4 ? h4 = void 0 : (h4 = new o4(t5), h4._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h4 : s4._$Cl = h4), void 0 !== h4 && (i5 = N(t5, h4._$AS(t5, i5.values), h4, e5)), i5;
+  return (h3 == null ? void 0 : h3.constructor) !== o4 && ((_b = h3 == null ? void 0 : h3._$AO) == null ? void 0 : _b.call(h3, false), void 0 === o4 ? h3 = void 0 : (h3 = new o4(t5), h3._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h3 : s4._$Cl = h3), void 0 !== h3 && (i5 = S(t5, h3._$AS(t5, i5.values), h3, e5)), i5;
 }
-var S = class {
+var M = class {
   constructor(t5, i5) {
     this._$AV = [], this._$AN = void 0, this._$AD = t5, this._$AM = i5;
   }
@@ -154,31 +158,30 @@ var S = class {
   u(t5) {
     var _a3;
     const { el: { content: i5 }, parts: s4 } = this._$AD, e5 = ((_a3 = t5 == null ? void 0 : t5.creationScope) != null ? _a3 : r).importNode(i5, true);
-    E.currentNode = e5;
-    let h4 = E.nextNode(), o4 = 0, n3 = 0, l3 = s4[0];
+    C.currentNode = e5;
+    let h3 = C.nextNode(), o4 = 0, n3 = 0, l3 = s4[0];
     for (; void 0 !== l3; ) {
       if (o4 === l3.index) {
         let i6;
-        2 === l3.type ? i6 = new M(h4, h4.nextSibling, this, t5) : 1 === l3.type ? i6 = new l3.ctor(h4, l3.name, l3.strings, this, t5) : 6 === l3.type && (i6 = new L(h4, this, t5)), this._$AV.push(i6), l3 = s4[++n3];
+        2 === l3.type ? i6 = new R(h3, h3.nextSibling, this, t5) : 1 === l3.type ? i6 = new l3.ctor(h3, l3.name, l3.strings, this, t5) : 6 === l3.type && (i6 = new z(h3, this, t5)), this._$AV.push(i6), l3 = s4[++n3];
       }
-      o4 !== (l3 == null ? void 0 : l3.index) && (h4 = E.nextNode(), o4++);
+      o4 !== (l3 == null ? void 0 : l3.index) && (h3 = C.nextNode(), o4++);
     }
-    return E.currentNode = r, e5;
+    return C.currentNode = r, e5;
   }
   p(t5) {
     let i5 = 0;
-    for (const s4 of this._$AV)
-      void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
+    for (const s4 of this._$AV) void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
   }
 };
-var M = class _M {
+var R = class _R {
   get _$AU() {
     var _a3, _b;
     return (_b = (_a3 = this._$AM) == null ? void 0 : _a3._$AU) != null ? _b : this._$Cv;
   }
   constructor(t5, i5, s4, e5) {
     var _a3;
-    this.type = 2, this._$AH = T, this._$AN = void 0, this._$AA = t5, this._$AB = i5, this._$AM = s4, this.options = e5, this._$Cv = (_a3 = e5 == null ? void 0 : e5.isConnected) != null ? _a3 : true;
+    this.type = 2, this._$AH = E, this._$AN = void 0, this._$AA = t5, this._$AB = i5, this._$AM = s4, this.options = e5, this._$Cv = (_a3 = e5 == null ? void 0 : e5.isConnected) != null ? _a3 : true;
   }
   get parentNode() {
     let t5 = this._$AA.parentNode;
@@ -192,37 +195,35 @@ var M = class _M {
     return this._$AB;
   }
   _$AI(t5, i5 = this) {
-    t5 = N(this, t5, i5), c(t5) ? t5 === T || null == t5 || "" === t5 ? (this._$AH !== T && this._$AR(), this._$AH = T) : t5 !== this._$AH && t5 !== w && this._(t5) : void 0 !== t5._$litType$ ? this.g(t5) : void 0 !== t5.nodeType ? this.$(t5) : u(t5) ? this.T(t5) : this._(t5);
+    t5 = S(this, t5, i5), c(t5) ? t5 === E || null == t5 || "" === t5 ? (this._$AH !== E && this._$AR(), this._$AH = E) : t5 !== this._$AH && t5 !== T && this._(t5) : void 0 !== t5._$litType$ ? this.$(t5) : void 0 !== t5.nodeType ? this.T(t5) : u(t5) ? this.k(t5) : this._(t5);
   }
-  k(t5) {
+  O(t5) {
     return this._$AA.parentNode.insertBefore(t5, this._$AB);
   }
-  $(t5) {
-    this._$AH !== t5 && (this._$AR(), this._$AH = this.k(t5));
+  T(t5) {
+    this._$AH !== t5 && (this._$AR(), this._$AH = this.O(t5));
   }
   _(t5) {
-    this._$AH !== T && c(this._$AH) ? this._$AA.nextSibling.data = t5 : this.$(r.createTextNode(t5)), this._$AH = t5;
+    this._$AH !== E && c(this._$AH) ? this._$AA.nextSibling.data = t5 : this.T(r.createTextNode(t5)), this._$AH = t5;
   }
-  g(t5) {
+  $(t5) {
     var _a3;
-    const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = V.createElement(C(s4.h, s4.h[0]), this.options)), s4);
-    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5)
-      this._$AH.p(i5);
+    const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = N.createElement(P(s4.h, s4.h[0]), this.options)), s4);
+    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5) this._$AH.p(i5);
     else {
-      const t6 = new S(e5, this), s5 = t6.u(this.options);
-      t6.p(i5), this.$(s5), this._$AH = t6;
+      const t6 = new M(e5, this), s5 = t6.u(this.options);
+      t6.p(i5), this.T(s5), this._$AH = t6;
     }
   }
   _$AC(t5) {
     let i5 = A.get(t5.strings);
-    return void 0 === i5 && A.set(t5.strings, i5 = new V(t5)), i5;
+    return void 0 === i5 && A.set(t5.strings, i5 = new N(t5)), i5;
   }
-  T(t5) {
+  k(t5) {
     a(this._$AH) || (this._$AH = [], this._$AR());
     const i5 = this._$AH;
     let s4, e5 = 0;
-    for (const h4 of t5)
-      e5 === i5.length ? i5.push(s4 = new _M(this.k(l()), this.k(l()), this, this.options)) : s4 = i5[e5], s4._$AI(h4), e5++;
+    for (const h3 of t5) e5 === i5.length ? i5.push(s4 = new _R(this.O(l()), this.O(l()), this, this.options)) : s4 = i5[e5], s4._$AI(h3), e5++;
     e5 < i5.length && (this._$AR(s4 && s4._$AB.nextSibling, e5), i5.length = e5);
   }
   _$AR(t5 = this._$AA.nextSibling, i5) {
@@ -237,66 +238,63 @@ var M = class _M {
     void 0 === this._$AM && (this._$Cv = t5, (_a3 = this._$AP) == null ? void 0 : _a3.call(this, t5));
   }
 };
-var R = class {
+var k = class {
   get tagName() {
     return this.element.tagName;
   }
   get _$AU() {
     return this._$AM._$AU;
   }
-  constructor(t5, i5, s4, e5, h4) {
-    this.type = 1, this._$AH = T, this._$AN = void 0, this.element = t5, this.name = i5, this._$AM = e5, this.options = h4, s4.length > 2 || "" !== s4[0] || "" !== s4[1] ? (this._$AH = Array(s4.length - 1).fill(new String()), this.strings = s4) : this._$AH = T;
+  constructor(t5, i5, s4, e5, h3) {
+    this.type = 1, this._$AH = E, this._$AN = void 0, this.element = t5, this.name = i5, this._$AM = e5, this.options = h3, s4.length > 2 || "" !== s4[0] || "" !== s4[1] ? (this._$AH = Array(s4.length - 1).fill(new String()), this.strings = s4) : this._$AH = E;
   }
   _$AI(t5, i5 = this, s4, e5) {
-    const h4 = this.strings;
+    const h3 = this.strings;
     let o4 = false;
-    if (void 0 === h4)
-      t5 = N(this, t5, i5, 0), o4 = !c(t5) || t5 !== this._$AH && t5 !== w, o4 && (this._$AH = t5);
+    if (void 0 === h3) t5 = S(this, t5, i5, 0), o4 = !c(t5) || t5 !== this._$AH && t5 !== T, o4 && (this._$AH = t5);
     else {
       const e6 = t5;
       let n3, r4;
-      for (t5 = h4[0], n3 = 0; n3 < h4.length - 1; n3++)
-        r4 = N(this, e6[s4 + n3], i5, n3), r4 === w && (r4 = this._$AH[n3]), o4 || (o4 = !c(r4) || r4 !== this._$AH[n3]), r4 === T ? t5 = T : t5 !== T && (t5 += (r4 != null ? r4 : "") + h4[n3 + 1]), this._$AH[n3] = r4;
+      for (t5 = h3[0], n3 = 0; n3 < h3.length - 1; n3++) r4 = S(this, e6[s4 + n3], i5, n3), r4 === T && (r4 = this._$AH[n3]), o4 || (o4 = !c(r4) || r4 !== this._$AH[n3]), r4 === E ? t5 = E : t5 !== E && (t5 += (r4 != null ? r4 : "") + h3[n3 + 1]), this._$AH[n3] = r4;
     }
     o4 && !e5 && this.j(t5);
   }
   j(t5) {
-    t5 === T ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t5 != null ? t5 : "");
+    t5 === E ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t5 != null ? t5 : "");
   }
 };
-var k = class extends R {
+var H = class extends k {
   constructor() {
     super(...arguments), this.type = 3;
   }
   j(t5) {
-    this.element[this.name] = t5 === T ? void 0 : t5;
+    this.element[this.name] = t5 === E ? void 0 : t5;
   }
 };
-var H = class extends R {
+var I = class extends k {
   constructor() {
     super(...arguments), this.type = 4;
   }
   j(t5) {
-    this.element.toggleAttribute(this.name, !!t5 && t5 !== T);
+    this.element.toggleAttribute(this.name, !!t5 && t5 !== E);
   }
 };
-var I = class extends R {
-  constructor(t5, i5, s4, e5, h4) {
-    super(t5, i5, s4, e5, h4), this.type = 5;
+var L = class extends k {
+  constructor(t5, i5, s4, e5, h3) {
+    super(t5, i5, s4, e5, h3), this.type = 5;
   }
   _$AI(t5, i5 = this) {
     var _a3;
-    if ((t5 = (_a3 = N(this, t5, i5, 0)) != null ? _a3 : T) === w)
-      return;
-    const s4 = this._$AH, e5 = t5 === T && s4 !== T || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h4 = t5 !== T && (s4 === T || e5);
-    e5 && this.element.removeEventListener(this.name, this, s4), h4 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
+    if ((t5 = (_a3 = S(this, t5, i5, 0)) != null ? _a3 : E) === T) return;
+    const s4 = this._$AH, e5 = t5 === E && s4 !== E || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h3 = t5 !== E && (s4 === E || e5);
+    e5 && this.element.removeEventListener(this.name, this, s4), h3 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
   }
   handleEvent(t5) {
     var _a3, _b;
     "function" == typeof this._$AH ? this._$AH.call((_b = (_a3 = this.options) == null ? void 0 : _a3.host) != null ? _b : this.element, t5) : this._$AH.handleEvent(t5);
   }
 };
-var L = class {
+var z = class {
   constructor(t5, i5, s4) {
     this.element = t5, this.type = 6, this._$AN = void 0, this._$AM = i5, this.options = s4;
   }
@@ -304,15 +302,15 @@ var L = class {
     return this._$AM._$AU;
   }
   _$AI(t5) {
-    N(this, t5);
+    S(this, t5);
   }
 };
-var z = { S: e, A: h, P: o, C: 1, M: P, L: S, R: u, V: N, D: M, I: R, H, N: I, U: k, B: L };
-var Z = t.litHtmlPolyfillSupport;
+var Z = { M: e, P: h, A: o, C: 1, L: V, R: M, D: u, V: S, I: R, H: k, N: I, U: L, B: H, F: z };
+var j = t.litHtmlPolyfillSupport;
 var _a;
-Z == null ? void 0 : Z(V, M), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.0.0");
+j == null ? void 0 : j(N, R), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.3.0");
 
-// ../../../../node_modules/lit-html/directive.js
+// node_modules/lit-html/directive.js
 var t2 = { ATTRIBUTE: 1, CHILD: 2, PROPERTY: 3, BOOLEAN_ATTRIBUTE: 4, EVENT: 5, ELEMENT: 6 };
 var e2 = (t5) => (...e5) => ({ _$litDirective$: t5, values: e5 });
 var i2 = class {
@@ -332,31 +330,26 @@ var i2 = class {
   }
 };
 
-// ../../../../node_modules/lit-html/directives/unsafe-html.js
+// node_modules/lit-html/directives/unsafe-html.js
 var e3 = class extends i2 {
   constructor(i5) {
-    if (super(i5), this.et = T, i5.type !== t2.CHILD)
-      throw Error(this.constructor.directiveName + "() can only be used in child bindings");
+    if (super(i5), this.it = E, i5.type !== t2.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
   }
   render(r4) {
-    if (r4 === T || null == r4)
-      return this.vt = void 0, this.et = r4;
-    if (r4 === w)
-      return r4;
-    if ("string" != typeof r4)
-      throw Error(this.constructor.directiveName + "() called with a non-string value");
-    if (r4 === this.et)
-      return this.vt;
-    this.et = r4;
+    if (r4 === E || null == r4) return this._t = void 0, this.it = r4;
+    if (r4 === T) return r4;
+    if ("string" != typeof r4) throw Error(this.constructor.directiveName + "() called with a non-string value");
+    if (r4 === this.it) return this._t;
+    this.it = r4;
     const s4 = [r4];
-    return s4.raw = s4, this.vt = { _$litType$: this.constructor.resultType, strings: s4, values: [] };
+    return s4.raw = s4, this._t = { _$litType$: this.constructor.resultType, strings: s4, values: [] };
   }
 };
 e3.directiveName = "unsafeHTML", e3.resultType = 1;
 var o2 = e2(e3);
 
-// ../../../../node_modules/lit-html/directive-helpers.js
-var { D: t3 } = z;
+// node_modules/lit-html/directive-helpers.js
+var { I: t3 } = Z;
 var s2 = () => document.createComment("");
 var r2 = (o4, i5, n3) => {
   var _a3;
@@ -384,7 +377,7 @@ var v2 = (o4, t5, i5 = o4) => (o4._$AI(t5, i5), o4);
 var u2 = {};
 var m2 = (o4, t5 = u2) => o4._$AH = t5;
 var p2 = (o4) => o4._$AH;
-var h2 = (o4) => {
+var M2 = (o4) => {
   var _a3;
   (_a3 = o4._$AP) == null ? void 0 : _a3.call(o4, false, true);
   let t5 = o4._$AA;
@@ -395,10 +388,10 @@ var h2 = (o4) => {
   }
 };
 
-// ../../../../node_modules/lit-html/directives/keyed.js
+// node_modules/lit-html/directives/keyed.js
 var i3 = e2(class extends i2 {
   constructor() {
-    super(...arguments), this.key = T;
+    super(...arguments), this.key = E;
   }
   render(r4, t5) {
     return this.key = r4, t5;
@@ -408,72 +401,57 @@ var i3 = e2(class extends i2 {
   }
 });
 
-// ../../../../node_modules/lit-html/directives/repeat.js
+// node_modules/lit-html/directives/repeat.js
 var u3 = (e5, s4, t5) => {
   const r4 = /* @__PURE__ */ new Map();
-  for (let l3 = s4; l3 <= t5; l3++)
-    r4.set(e5[l3], l3);
+  for (let l3 = s4; l3 <= t5; l3++) r4.set(e5[l3], l3);
   return r4;
 };
 var c2 = e2(class extends i2 {
   constructor(e5) {
-    if (super(e5), e5.type !== t2.CHILD)
-      throw Error("repeat() can only be used in text expressions");
+    if (super(e5), e5.type !== t2.CHILD) throw Error("repeat() can only be used in text expressions");
   }
-  ht(e5, s4, t5) {
+  dt(e5, s4, t5) {
     let r4;
     void 0 === t5 ? t5 = s4 : void 0 !== s4 && (r4 = s4);
     const l3 = [], o4 = [];
     let i5 = 0;
-    for (const s5 of e5)
-      l3[i5] = r4 ? r4(s5, i5) : i5, o4[i5] = t5(s5, i5), i5++;
+    for (const s5 of e5) l3[i5] = r4 ? r4(s5, i5) : i5, o4[i5] = t5(s5, i5), i5++;
     return { values: o4, keys: l3 };
   }
   render(e5, s4, t5) {
-    return this.ht(e5, s4, t5).values;
+    return this.dt(e5, s4, t5).values;
   }
   update(s4, [t5, r4, c4]) {
     var _a3;
-    const d3 = p2(s4), { values: p4, keys: a3 } = this.ht(t5, r4, c4);
-    if (!Array.isArray(d3))
-      return this.dt = a3, p4;
-    const h4 = (_a3 = this.dt) != null ? _a3 : this.dt = [], v4 = [];
-    let m4, y3, x3 = 0, j2 = d3.length - 1, k3 = 0, w3 = p4.length - 1;
-    for (; x3 <= j2 && k3 <= w3; )
-      if (null === d3[x3])
-        x3++;
-      else if (null === d3[j2])
-        j2--;
-      else if (h4[x3] === a3[k3])
-        v4[k3] = v2(d3[x3], p4[k3]), x3++, k3++;
-      else if (h4[j2] === a3[w3])
-        v4[w3] = v2(d3[j2], p4[w3]), j2--, w3--;
-      else if (h4[x3] === a3[w3])
-        v4[w3] = v2(d3[x3], p4[w3]), r2(s4, v4[w3 + 1], d3[x3]), x3++, w3--;
-      else if (h4[j2] === a3[k3])
-        v4[k3] = v2(d3[j2], p4[k3]), r2(s4, d3[x3], d3[j2]), j2--, k3++;
-      else if (void 0 === m4 && (m4 = u3(a3, k3, w3), y3 = u3(h4, x3, j2)), m4.has(h4[x3]))
-        if (m4.has(h4[j2])) {
-          const e5 = y3.get(a3[k3]), t6 = void 0 !== e5 ? d3[e5] : null;
-          if (null === t6) {
-            const e6 = r2(s4, d3[x3]);
-            v2(e6, p4[k3]), v4[k3] = e6;
-          } else
-            v4[k3] = v2(t6, p4[k3]), r2(s4, d3[x3], t6), d3[e5] = null;
-          k3++;
-        } else
-          h2(d3[j2]), j2--;
-      else
-        h2(d3[x3]), x3++;
+    const d3 = p2(s4), { values: p4, keys: a3 } = this.dt(t5, r4, c4);
+    if (!Array.isArray(d3)) return this.ut = a3, p4;
+    const h3 = (_a3 = this.ut) != null ? _a3 : this.ut = [], v4 = [];
+    let m4, y3, x3 = 0, j3 = d3.length - 1, k3 = 0, w3 = p4.length - 1;
+    for (; x3 <= j3 && k3 <= w3; ) if (null === d3[x3]) x3++;
+    else if (null === d3[j3]) j3--;
+    else if (h3[x3] === a3[k3]) v4[k3] = v2(d3[x3], p4[k3]), x3++, k3++;
+    else if (h3[j3] === a3[w3]) v4[w3] = v2(d3[j3], p4[w3]), j3--, w3--;
+    else if (h3[x3] === a3[w3]) v4[w3] = v2(d3[x3], p4[w3]), r2(s4, v4[w3 + 1], d3[x3]), x3++, w3--;
+    else if (h3[j3] === a3[k3]) v4[k3] = v2(d3[j3], p4[k3]), r2(s4, d3[x3], d3[j3]), j3--, k3++;
+    else if (void 0 === m4 && (m4 = u3(a3, k3, w3), y3 = u3(h3, x3, j3)), m4.has(h3[x3])) if (m4.has(h3[j3])) {
+      const e5 = y3.get(a3[k3]), t6 = void 0 !== e5 ? d3[e5] : null;
+      if (null === t6) {
+        const e6 = r2(s4, d3[x3]);
+        v2(e6, p4[k3]), v4[k3] = e6;
+      } else v4[k3] = v2(t6, p4[k3]), r2(s4, d3[x3], t6), d3[e5] = null;
+      k3++;
+    } else M2(d3[j3]), j3--;
+    else M2(d3[x3]), x3++;
     for (; k3 <= w3; ) {
       const e5 = r2(s4, v4[w3 + 1]);
       v2(e5, p4[k3]), v4[k3++] = e5;
     }
-    for (; x3 <= j2; ) {
+    for (; x3 <= j3; ) {
       const e5 = d3[x3++];
-      null !== e5 && h2(e5);
+      null !== e5 && M2(e5);
     }
-    return this.dt = a3, m2(s4, v4), w;
+    return this.ut = a3, m2(s4, v4), T;
   }
 });
 
@@ -872,14 +850,14 @@ var objectTraps = {
       return true;
     }
     if (!state.modified_) {
-      const current2 = peek(latest(state), prop);
-      const currentState = current2 == null ? void 0 : current2[DRAFT_STATE];
+      const current22 = peek(latest(state), prop);
+      const currentState = current22 == null ? void 0 : current22[DRAFT_STATE];
       if (currentState && currentState.base_ === value) {
         state.copy_[prop] = value;
         state.assigned_[prop] = false;
         return true;
       }
-      if (is(value, current2) && (value !== void 0 || has(state.base_, prop)))
+      if (is(value, current22) && (value !== void 0 || has(state.base_, prop)))
         return true;
       prepareCopy(state);
       markChanged(state);
@@ -1642,8 +1620,8 @@ var t4 = globalThis;
 var i4 = t4.trustedTypes;
 var s3 = i4 ? i4.createPolicy("lit-html", { createHTML: (t5) => t5 }) : void 0;
 var e4 = "$lit$";
-var h3 = `lit$${Math.random().toFixed(9).slice(2)}$`;
-var o3 = "?" + h3;
+var h2 = `lit$${Math.random().toFixed(9).slice(2)}$`;
+var o3 = "?" + h2;
 var n2 = `<${o3}>`;
 var r3 = document;
 var l2 = () => r3.createComment("");
@@ -1668,8 +1646,7 @@ var E2 = Symbol.for("lit-nothing");
 var A2 = /* @__PURE__ */ new WeakMap();
 var C2 = r3.createTreeWalker(r3, 129);
 function P2(t5, i5) {
-  if (!a2(t5) || !t5.hasOwnProperty("raw"))
-    throw Error("invalid template strings array");
+  if (!a2(t5) || !t5.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return void 0 !== s3 ? s3.createHTML(i5) : i5;
 }
 var V2 = (t5, i5) => {
@@ -1678,10 +1655,9 @@ var V2 = (t5, i5) => {
   for (let i6 = 0; i6 < s4; i6++) {
     const s5 = t5[i6];
     let a3, u5, d3 = -1, y3 = 0;
-    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); )
-      y3 = c4.lastIndex, c4 === f2 ? "!--" === u5[1] ? c4 = v3 : void 0 !== u5[1] ? c4 = _2 : void 0 !== u5[2] ? ($2.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m3) : void 0 !== u5[3] && (c4 = m3) : c4 === m3 ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f2, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m3 : '"' === u5[3] ? g2 : p3) : c4 === g2 || c4 === p3 ? c4 = m3 : c4 === v3 || c4 === _2 ? c4 = f2 : (c4 = m3, r4 = void 0);
+    for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); ) y3 = c4.lastIndex, c4 === f2 ? "!--" === u5[1] ? c4 = v3 : void 0 !== u5[1] ? c4 = _2 : void 0 !== u5[2] ? ($2.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m3) : void 0 !== u5[3] && (c4 = m3) : c4 === m3 ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f2, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m3 : '"' === u5[3] ? g2 : p3) : c4 === g2 || c4 === p3 ? c4 = m3 : c4 === v3 || c4 === _2 ? c4 = f2 : (c4 = m3, r4 = void 0);
     const x3 = c4 === m3 && t5[i6 + 1].startsWith("/>") ? " " : "";
-    l3 += c4 === f2 ? s5 + n2 : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e4 + s5.slice(d3) + h3 + x3) : s5 + h3 + (-2 === d3 ? i6 : x3);
+    l3 += c4 === f2 ? s5 + n2 : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e4 + s5.slice(d3) + h2 + x3) : s5 + h2 + (-2 === d3 ? i6 : x3);
   }
   return [P2(t5, l3 + (t5[s4] || "<?>") + (2 === i5 ? "</svg>" : 3 === i5 ? "</math>" : "")), o4];
 };
@@ -1697,30 +1673,23 @@ var N2 = class _N {
     }
     for (; null !== (r4 = C2.nextNode()) && d3.length < u5; ) {
       if (1 === r4.nodeType) {
-        if (r4.hasAttributes())
-          for (const t6 of r4.getAttributeNames())
-            if (t6.endsWith(e4)) {
-              const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h3), e5 = /([.?@])?(.*)/.exec(i5);
-              d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H2 : "?" === e5[1] ? I2 : "@" === e5[1] ? L2 : k2 }), r4.removeAttribute(t6);
-            } else
-              t6.startsWith(h3) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
+        if (r4.hasAttributes()) for (const t6 of r4.getAttributeNames()) if (t6.endsWith(e4)) {
+          const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h2), e5 = /([.?@])?(.*)/.exec(i5);
+          d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H2 : "?" === e5[1] ? I2 : "@" === e5[1] ? L2 : k2 }), r4.removeAttribute(t6);
+        } else t6.startsWith(h2) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
         if ($2.test(r4.tagName)) {
-          const t6 = r4.textContent.split(h3), s5 = t6.length - 1;
+          const t6 = r4.textContent.split(h2), s5 = t6.length - 1;
           if (s5 > 0) {
             r4.textContent = i4 ? i4.emptyScript : "";
-            for (let i5 = 0; i5 < s5; i5++)
-              r4.append(t6[i5], l2()), C2.nextNode(), d3.push({ type: 2, index: ++c4 });
+            for (let i5 = 0; i5 < s5; i5++) r4.append(t6[i5], l2()), C2.nextNode(), d3.push({ type: 2, index: ++c4 });
             r4.append(t6[s5], l2());
           }
         }
-      } else if (8 === r4.nodeType)
-        if (r4.data === o3)
-          d3.push({ type: 2, index: c4 });
-        else {
-          let t6 = -1;
-          for (; -1 !== (t6 = r4.data.indexOf(h3, t6 + 1)); )
-            d3.push({ type: 7, index: c4 }), t6 += h3.length - 1;
-        }
+      } else if (8 === r4.nodeType) if (r4.data === o3) d3.push({ type: 2, index: c4 });
+      else {
+        let t6 = -1;
+        for (; -1 !== (t6 = r4.data.indexOf(h2, t6 + 1)); ) d3.push({ type: 7, index: c4 }), t6 += h2.length - 1;
+      }
       c4++;
     }
   }
@@ -1731,13 +1700,12 @@ var N2 = class _N {
 };
 function S2(t5, i5, s4 = t5, e5) {
   var _a3, _b, _c;
-  if (i5 === T2)
-    return i5;
-  let h4 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
+  if (i5 === T2) return i5;
+  let h3 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
   const o4 = c3(i5) ? void 0 : i5._$litDirective$;
-  return (h4 == null ? void 0 : h4.constructor) !== o4 && ((_b = h4 == null ? void 0 : h4._$AO) == null ? void 0 : _b.call(h4, false), void 0 === o4 ? h4 = void 0 : (h4 = new o4(t5), h4._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h4 : s4._$Cl = h4), void 0 !== h4 && (i5 = S2(t5, h4._$AS(t5, i5.values), h4, e5)), i5;
+  return (h3 == null ? void 0 : h3.constructor) !== o4 && ((_b = h3 == null ? void 0 : h3._$AO) == null ? void 0 : _b.call(h3, false), void 0 === o4 ? h3 = void 0 : (h3 = new o4(t5), h3._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h3 : s4._$Cl = h3), void 0 !== h3 && (i5 = S2(t5, h3._$AS(t5, i5.values), h3, e5)), i5;
 }
-var M2 = class {
+var M3 = class {
   constructor(t5, i5) {
     this._$AV = [], this._$AN = void 0, this._$AD = t5, this._$AM = i5;
   }
@@ -1751,20 +1719,19 @@ var M2 = class {
     var _a3;
     const { el: { content: i5 }, parts: s4 } = this._$AD, e5 = ((_a3 = t5 == null ? void 0 : t5.creationScope) != null ? _a3 : r3).importNode(i5, true);
     C2.currentNode = e5;
-    let h4 = C2.nextNode(), o4 = 0, n3 = 0, l3 = s4[0];
+    let h3 = C2.nextNode(), o4 = 0, n3 = 0, l3 = s4[0];
     for (; void 0 !== l3; ) {
       if (o4 === l3.index) {
         let i6;
-        2 === l3.type ? i6 = new R2(h4, h4.nextSibling, this, t5) : 1 === l3.type ? i6 = new l3.ctor(h4, l3.name, l3.strings, this, t5) : 6 === l3.type && (i6 = new z2(h4, this, t5)), this._$AV.push(i6), l3 = s4[++n3];
+        2 === l3.type ? i6 = new R2(h3, h3.nextSibling, this, t5) : 1 === l3.type ? i6 = new l3.ctor(h3, l3.name, l3.strings, this, t5) : 6 === l3.type && (i6 = new z2(h3, this, t5)), this._$AV.push(i6), l3 = s4[++n3];
       }
-      o4 !== (l3 == null ? void 0 : l3.index) && (h4 = C2.nextNode(), o4++);
+      o4 !== (l3 == null ? void 0 : l3.index) && (h3 = C2.nextNode(), o4++);
     }
     return C2.currentNode = r3, e5;
   }
   p(t5) {
     let i5 = 0;
-    for (const s4 of this._$AV)
-      void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
+    for (const s4 of this._$AV) void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
   }
 };
 var R2 = class _R {
@@ -1802,10 +1769,9 @@ var R2 = class _R {
   $(t5) {
     var _a3;
     const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = N2.createElement(P2(s4.h, s4.h[0]), this.options)), s4);
-    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5)
-      this._$AH.p(i5);
+    if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5) this._$AH.p(i5);
     else {
-      const t6 = new M2(e5, this), s5 = t6.u(this.options);
+      const t6 = new M3(e5, this), s5 = t6.u(this.options);
       t6.p(i5), this.T(s5), this._$AH = t6;
     }
   }
@@ -1817,8 +1783,7 @@ var R2 = class _R {
     a2(this._$AH) || (this._$AH = [], this._$AR());
     const i5 = this._$AH;
     let s4, e5 = 0;
-    for (const h4 of t5)
-      e5 === i5.length ? i5.push(s4 = new _R(this.O(l2()), this.O(l2()), this, this.options)) : s4 = i5[e5], s4._$AI(h4), e5++;
+    for (const h3 of t5) e5 === i5.length ? i5.push(s4 = new _R(this.O(l2()), this.O(l2()), this, this.options)) : s4 = i5[e5], s4._$AI(h3), e5++;
     e5 < i5.length && (this._$AR(s4 && s4._$AB.nextSibling, e5), i5.length = e5);
   }
   _$AR(t5 = this._$AA.nextSibling, i5) {
@@ -1840,19 +1805,17 @@ var k2 = class {
   get _$AU() {
     return this._$AM._$AU;
   }
-  constructor(t5, i5, s4, e5, h4) {
-    this.type = 1, this._$AH = E2, this._$AN = void 0, this.element = t5, this.name = i5, this._$AM = e5, this.options = h4, s4.length > 2 || "" !== s4[0] || "" !== s4[1] ? (this._$AH = Array(s4.length - 1).fill(new String()), this.strings = s4) : this._$AH = E2;
+  constructor(t5, i5, s4, e5, h3) {
+    this.type = 1, this._$AH = E2, this._$AN = void 0, this.element = t5, this.name = i5, this._$AM = e5, this.options = h3, s4.length > 2 || "" !== s4[0] || "" !== s4[1] ? (this._$AH = Array(s4.length - 1).fill(new String()), this.strings = s4) : this._$AH = E2;
   }
   _$AI(t5, i5 = this, s4, e5) {
-    const h4 = this.strings;
+    const h3 = this.strings;
     let o4 = false;
-    if (void 0 === h4)
-      t5 = S2(this, t5, i5, 0), o4 = !c3(t5) || t5 !== this._$AH && t5 !== T2, o4 && (this._$AH = t5);
+    if (void 0 === h3) t5 = S2(this, t5, i5, 0), o4 = !c3(t5) || t5 !== this._$AH && t5 !== T2, o4 && (this._$AH = t5);
     else {
       const e6 = t5;
       let n3, r4;
-      for (t5 = h4[0], n3 = 0; n3 < h4.length - 1; n3++)
-        r4 = S2(this, e6[s4 + n3], i5, n3), r4 === T2 && (r4 = this._$AH[n3]), o4 || (o4 = !c3(r4) || r4 !== this._$AH[n3]), r4 === E2 ? t5 = E2 : t5 !== E2 && (t5 += (r4 != null ? r4 : "") + h4[n3 + 1]), this._$AH[n3] = r4;
+      for (t5 = h3[0], n3 = 0; n3 < h3.length - 1; n3++) r4 = S2(this, e6[s4 + n3], i5, n3), r4 === T2 && (r4 = this._$AH[n3]), o4 || (o4 = !c3(r4) || r4 !== this._$AH[n3]), r4 === E2 ? t5 = E2 : t5 !== E2 && (t5 += (r4 != null ? r4 : "") + h3[n3 + 1]), this._$AH[n3] = r4;
     }
     o4 && !e5 && this.j(t5);
   }
@@ -1877,15 +1840,14 @@ var I2 = class extends k2 {
   }
 };
 var L2 = class extends k2 {
-  constructor(t5, i5, s4, e5, h4) {
-    super(t5, i5, s4, e5, h4), this.type = 5;
+  constructor(t5, i5, s4, e5, h3) {
+    super(t5, i5, s4, e5, h3), this.type = 5;
   }
   _$AI(t5, i5 = this) {
     var _a3;
-    if ((t5 = (_a3 = S2(this, t5, i5, 0)) != null ? _a3 : E2) === T2)
-      return;
-    const s4 = this._$AH, e5 = t5 === E2 && s4 !== E2 || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h4 = t5 !== E2 && (s4 === E2 || e5);
-    e5 && this.element.removeEventListener(this.name, this, s4), h4 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
+    if ((t5 = (_a3 = S2(this, t5, i5, 0)) != null ? _a3 : E2) === T2) return;
+    const s4 = this._$AH, e5 = t5 === E2 && s4 !== E2 || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h3 = t5 !== E2 && (s4 === E2 || e5);
+    e5 && this.element.removeEventListener(this.name, this, s4), h3 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
   }
   handleEvent(t5) {
     var _a3, _b;
@@ -1903,28 +1865,32 @@ var z2 = class {
     S2(this, t5);
   }
 };
-var j = t4.litHtmlPolyfillSupport;
+var j2 = t4.litHtmlPolyfillSupport;
 var _a2;
-j == null ? void 0 : j(N2, R2), ((_a2 = t4.litHtmlVersions) != null ? _a2 : t4.litHtmlVersions = []).push("3.2.1");
+j2 == null ? void 0 : j2(N2, R2), ((_a2 = t4.litHtmlVersions) != null ? _a2 : t4.litHtmlVersions = []).push("3.2.1");
 var B = (t5, i5, s4) => {
   var _a3, _b;
   const e5 = (_a3 = s4 == null ? void 0 : s4.renderBefore) != null ? _a3 : i5;
-  let h4 = e5._$litPart$;
-  if (void 0 === h4) {
+  let h3 = e5._$litPart$;
+  if (void 0 === h3) {
     const t6 = (_b = s4 == null ? void 0 : s4.renderBefore) != null ? _b : null;
-    e5._$litPart$ = h4 = new R2(i5.insertBefore(l2(), t6), t6, void 0, s4 != null ? s4 : {});
+    e5._$litPart$ = h3 = new R2(i5.insertBefore(l2(), t6), t6, void 0, s4 != null ? s4 : {});
   }
-  return h4._$AI(t5), h4;
+  return h3._$AI(t5), h3;
 };
 
-// src/observables/observable.js
+// src/observables/observable.ts
 var Subscriber = class {
   /**
-   * @constructor
-   * @description Creates a new Subscriber instance with optimized memory layout.
-   * @param {Observer|Function} observer - The observer object or function.
+   * Creates a new Subscriber instance with optimized memory layout
+   * @param observer - The observer object or function
    */
   constructor(observer) {
+    __publicField(this, "next");
+    __publicField(this, "error");
+    __publicField(this, "complete");
+    __publicField(this, "teardowns");
+    __publicField(this, "isUnsubscribed");
     if (typeof observer === "function") {
       this.next = observer;
       this.error = null;
@@ -1954,30 +1920,27 @@ var Subscriber = class {
     this.isUnsubscribed = false;
   }
   /**
-   * @method
-   * @description Notifies the observer that the observable has completed.
+   * Notifies the observer that the observable has completed
    */
-  complete() {
+  notifyComplete() {
     if (!this.isUnsubscribed && this.complete) {
       this.complete();
       this.unsubscribe();
     }
   }
   /**
-   * @method
-   * @description Notifies the observer that an error has occurred.
-   * @param {Error} error - The error to pass to the observer's error method.
+   * Notifies the observer that an error has occurred
+   * @param err - The error to pass to the observer's error method
    */
-  error(error) {
+  notifyError(err) {
     if (!this.isUnsubscribed && this.error) {
-      this.error(error);
+      this.error(err);
       this.unsubscribe();
     }
   }
   /**
-   * @method
-   * @description Adds a teardown function to be executed when unsubscribing.
-   * @param {Function} teardown - The teardown function.
+   * Adds a teardown function to be executed when unsubscribing
+   * @param teardown - The teardown function
    */
   addTeardown(teardown) {
     if (!this.teardowns) {
@@ -1987,12 +1950,10 @@ var Subscriber = class {
     }
   }
   /**
-   * @method
-   * @description Unsubscribes from the observable, preventing any further notifications.
+   * Unsubscribes from the observable, preventing any further notifications
    */
   unsubscribe() {
-    if (this.isUnsubscribed)
-      return;
+    if (this.isUnsubscribed) return;
     this.isUnsubscribed = true;
     if (!this.teardowns) {
       this.next = null;
@@ -2016,23 +1977,23 @@ var Subscriber = class {
 };
 var Observable = class {
   /**
-   * @constructor
-   * @description Creates a new Observable instance with optimized internal structure.
-   * @param {Function} subscribeCallback - The callback function to call when a new observer subscribes.
+   * Creates a new Observable instance with optimized internal structure
+   * @param subscribeCallback - The callback function to call when a new observer subscribes
    */
-  constructor(subscribeCallback = null) {
+  constructor(subscribeCallback) {
+    __publicField(this, "__observers");
+    __publicField(this, "subscribeCallback");
     this.__observers = [];
     if (subscribeCallback) {
       this.subscribeCallback = subscribeCallback;
     }
   }
   /**
-   * @method
-   * @description Subscribes an observer to the observable with optimized paths.
-   * @param {Observer|Function} observerOrNext - The observer to subscribe or the next function.
-   * @param {Function} error - The error function. Default is null.
-   * @param {Function} complete - The complete function. Default is null.
-   * @returns {Object} An object containing methods to manage the subscription.
+   * Subscribes an observer to the observable with optimized paths
+   * @param observerOrNext - The observer to subscribe or the next function
+   * @param error - The error function. Default is null
+   * @param complete - The complete function. Default is null
+   * @returns An object containing methods to manage the subscription
    */
   subscribe(observerOrNext, error, complete) {
     const subscriber = typeof observerOrNext === "function" ? new Subscriber(observerOrNext) : new Subscriber({ next: observerOrNext, error, complete });
@@ -2049,6 +2010,8 @@ var Observable = class {
         subscriber.error(err);
       }
       return { unsubscribe: () => {
+      }, complete: () => {
+      }, error: () => {
       } };
     }
     if (teardown) {
@@ -2061,11 +2024,9 @@ var Observable = class {
     return this.__createSubscription(subscriber);
   }
   /**
-   * @private
-   * @method __createRemoveTeardown
-   * @description Creates a teardown function that removes a subscriber from the observers array
-   * @param {Subscriber} subscriber - The subscriber to remove
-   * @returns {Function} A function that removes the subscriber when called
+   * Creates a teardown function that removes a subscriber from the observers array
+   * @param subscriber - The subscriber to remove
+   * @returns A function that removes the subscriber when called
    */
   __createRemoveTeardown(subscriber) {
     return () => {
@@ -2081,30 +2042,26 @@ var Observable = class {
     };
   }
   /**
-   * @private
-   * @method __createSubscription
-   * @description Creates a subscription object with minimal properties
-   * @param {Subscriber} subscriber - The subscriber
-   * @returns {Object} A subscription object
+   * Creates a subscription object with minimal properties
+   * @param subscriber - The subscriber
+   * @returns A subscription object
    */
   __createSubscription(subscriber) {
     return {
       unsubscribe: () => subscriber.unsubscribe(),
       // Only add these methods if needed in the future:
-      complete: () => subscriber.complete(),
-      error: (err) => subscriber.error(err)
+      complete: () => subscriber.notifyComplete(),
+      error: (err) => subscriber.notifyError(err)
     };
   }
   /**
-   * @method
-   * @description Passes a value to all observers with maximum efficiency.
-   * @param {*} value - The value to emit.
+   * Passes a value to all observers with maximum efficiency
+   * @param value - The value to emit
    */
   next(value) {
     const observers = this.__observers;
     const len = observers.length;
-    if (len === 0)
-      return;
+    if (len === 0) return;
     if (len === 1) {
       const observer = observers[0];
       if (!observer.isUnsubscribed && observer.next) {
@@ -2121,9 +2078,8 @@ var Observable = class {
     }
   }
   /**
-   * @method
-   * @description Passes an error to all observers and terminates the stream.
-   * @param {*} error - The error to emit.
+   * Passes an error to all observers and terminates the stream
+   * @param error - The error to emit
    */
   error(error) {
     const observers = this.__observers.slice();
@@ -2137,8 +2093,7 @@ var Observable = class {
     this.__observers.length = 0;
   }
   /**
-   * @method
-   * @description Notifies all observers that the Observable has completed.
+   * Notifies all observers that the Observable has completed
    */
   complete() {
     const observers = this.__observers.slice();
@@ -2152,99 +2107,88 @@ var Observable = class {
     this.__observers.length = 0;
   }
   /**
-   * @method
-   * @description Simplified method to subscribe to value emissions only.
-   * @param {Function} callbackFn - The callback for each value.
-   * @returns {Object} Subscription object with unsubscribe method.
+   * Simplified method to subscribe to value emissions only
+   * @param callbackFn - The callback for each value
+   * @returns Subscription object with unsubscribe method
    */
   onValue(callbackFn) {
     return this.subscribe(callbackFn);
   }
   /**
-   * @method
-   * @description Simplified method to subscribe to errors only.
-   * @param {Function} callbackFn - The callback for errors.
-   * @returns {Object} Subscription object with unsubscribe method.
+   * Simplified method to subscribe to errors only
+   * @param callbackFn - The callback for errors
+   * @returns Subscription object with unsubscribe method
    */
   onError(callbackFn) {
     return this.subscribe(null, callbackFn);
   }
   /**
-   * @method
-   * @description Simplified method to subscribe to completion only.
-   * @param {Function} callbackFn - The callback for completion.
-   * @returns {Object} Subscription object with unsubscribe method.
+   * Simplified method to subscribe to completion only
+   * @param callbackFn - The callback for completion
+   * @returns Subscription object with unsubscribe method
    */
   onEnd(callbackFn) {
     return this.subscribe(null, null, callbackFn);
   }
   /**
-   * @method
-   * @description Returns an AsyncIterator for asynchronous iteration.
-   * @returns {AsyncIterator} AsyncIterator implementation.
+   * Returns an AsyncIterator for asynchronous iteration
+   * @returns AsyncIterator implementation
    */
   [Symbol.asyncIterator]() {
-    let resolve;
-    let promise = new Promise((r4) => resolve = r4);
-    let subscription;
-    const cleanup = () => {
-      if (subscription) {
-        subscription.unsubscribe();
-        subscription = null;
+    return __asyncGenerator(this, null, function* () {
+      let resolve;
+      let promise = new Promise((r4) => resolve = r4);
+      let subscription;
+      const cleanup = () => {
+        if (subscription) {
+          subscription.unsubscribe();
+          subscription = null;
+        }
+      };
+      subscription = this.subscribe(
+        // Next handler
+        (value) => {
+          resolve({ value, done: false });
+          promise = new Promise((r4) => resolve = r4);
+        },
+        // Error handler
+        (err) => {
+          cleanup();
+          throw err;
+        },
+        // Complete handler
+        () => {
+          cleanup();
+          resolve({ done: true });
+        }
+      );
+      try {
+        while (true) {
+          const result = yield new __await(promise);
+          if (result.done) break;
+          yield result.value;
+        }
+      } finally {
+        cleanup();
       }
-    };
-    subscription = this.subscribe(
-      // Next handler
-      (value) => {
-        resolve({ value, done: false });
-        promise = new Promise((r4) => resolve = r4);
-      },
-      // Error handler
-      (err) => {
-        cleanup();
-        throw err;
-      },
-      // Complete handler
-      () => {
-        cleanup();
-        resolve({ done: true });
-      }
-    );
-    return {
-      next: () => promise,
-      return: () => {
-        cleanup();
-        return Promise.resolve({ done: true });
-      },
-      throw: (err) => {
-        cleanup();
-        return Promise.reject(err);
-      }
-    };
+    });
   }
 };
 
 // src/utils.js
 var _deepEqual = (a3, b3) => {
-  if (a3 === b3)
-    return true;
-  if (a3 !== a3)
-    return b3 !== b3;
-  if (a3 == null || b3 == null)
-    return false;
-  if (typeof a3 !== "object" || typeof b3 !== "object")
-    return false;
+  if (a3 === b3) return true;
+  if (a3 !== a3) return b3 !== b3;
+  if (a3 == null || b3 == null) return false;
+  if (typeof a3 !== "object" || typeof b3 !== "object") return false;
   if (Array.isArray(a3)) {
-    if (!Array.isArray(b3) || a3.length !== b3.length)
-      return false;
+    if (!Array.isArray(b3) || a3.length !== b3.length) return false;
     for (let i5 = 0; i5 < a3.length; i5++) {
-      if (!_deepEqual(a3[i5], b3[i5]))
-        return false;
+      if (!_deepEqual(a3[i5], b3[i5])) return false;
     }
     return true;
   }
-  if (Array.isArray(b3))
-    return false;
+  if (Array.isArray(b3)) return false;
   if (a3 instanceof Date) {
     return b3 instanceof Date && a3.getTime() === b3.getTime();
   }
@@ -2252,29 +2196,25 @@ var _deepEqual = (a3, b3) => {
     return b3 instanceof RegExp && a3.source === b3.source && a3.flags === b3.flags;
   }
   if (a3 instanceof Map) {
-    if (!(b3 instanceof Map) || a3.size !== b3.size)
-      return false;
+    if (!(b3 instanceof Map) || a3.size !== b3.size) return false;
     for (const [key, val] of a3.entries()) {
-      if (!b3.has(key) || !_deepEqual(val, b3.get(key)))
-        return false;
+      if (!b3.has(key) || !_deepEqual(val, b3.get(key))) return false;
     }
     return true;
   }
   if (a3 instanceof Set) {
-    if (!(b3 instanceof Set) || a3.size !== b3.size)
-      return false;
+    if (!(b3 instanceof Set) || a3.size !== b3.size) return false;
     const aValues = Array.from(a3);
     const bValues = Array.from(b3);
     for (let i5 = 0; i5 < aValues.length; i5++) {
       let found = false;
-      for (let j2 = 0; j2 < bValues.length; j2++) {
-        if (_deepEqual(aValues[i5], bValues[j2])) {
+      for (let j3 = 0; j3 < bValues.length; j3++) {
+        if (_deepEqual(aValues[i5], bValues[j3])) {
           found = true;
           break;
         }
       }
-      if (!found)
-        return false;
+      if (!found) return false;
     }
     return true;
   }
@@ -2283,16 +2223,13 @@ var _deepEqual = (a3, b3) => {
       return false;
     }
     for (let i5 = 0; i5 < a3.length; i5++) {
-      if (a3[i5] !== b3[i5])
-        return false;
+      if (a3[i5] !== b3[i5]) return false;
     }
     return true;
   }
-  if (a3.constructor !== b3.constructor)
-    return false;
+  if (a3.constructor !== b3.constructor) return false;
   const keys = Object.keys(a3);
-  if (keys.length !== Object.keys(b3).length)
-    return false;
+  if (keys.length !== Object.keys(b3).length) return false;
   const hasOwn = Object.prototype.hasOwnProperty;
   for (let i5 = 0; i5 < keys.length; i5++) {
     const key = keys[i5];
@@ -2305,12 +2242,9 @@ var _deepEqual = (a3, b3) => {
 var _deepMerge = (target, source) => {
   const seen = /* @__PURE__ */ new WeakMap();
   function merge(target2, source2) {
-    if (source2 === void 0)
-      return target2;
-    if (source2 === null)
-      return null;
-    if (typeof source2 !== "object")
-      return source2;
+    if (source2 === void 0) return target2;
+    if (source2 === null) return null;
+    if (typeof source2 !== "object") return source2;
     if (target2 === null || typeof target2 !== "object") {
       if (Array.isArray(source2)) {
         const length = source2.length;
@@ -2356,10 +2290,8 @@ var _deepMerge = (target, source) => {
       return result2;
     }
     if (source2.constructor !== Object) {
-      if (source2 instanceof Date)
-        return new Date(source2.getTime());
-      if (source2 instanceof RegExp)
-        return new RegExp(source2.source, source2.flags);
+      if (source2 instanceof Date) return new Date(source2.getTime());
+      if (source2 instanceof RegExp) return new RegExp(source2.source, source2.flags);
       if (ArrayBuffer.isView(source2) && !(source2 instanceof DataView)) {
         if (typeof Buffer !== "undefined" && source2 instanceof Buffer) {
           return Buffer.from(source2);
@@ -2381,13 +2313,10 @@ var _deepMerge = (target, source) => {
     }
     seen.set(source2, result);
     for (const key in source2) {
-      if (!Object.prototype.hasOwnProperty.call(source2, key))
-        continue;
-      if (key === "__proto__" || key === "constructor")
-        continue;
+      if (!Object.prototype.hasOwnProperty.call(source2, key)) continue;
+      if (key === "__proto__" || key === "constructor") continue;
       const sourceValue = source2[key];
-      if (sourceValue === void 0)
-        continue;
+      if (sourceValue === void 0) continue;
       if (sourceValue === null || typeof sourceValue !== "object") {
         result[key] = sourceValue;
         continue;
@@ -2412,10 +2341,8 @@ var _deepMerge = (target, source) => {
   return merge(target, source);
 };
 var _deepClone = (value, cache = /* @__PURE__ */ new WeakMap()) => {
-  if (value === null || typeof value !== "object")
-    return value;
-  if (cache.has(value))
-    return cache.get(value);
+  if (value === null || typeof value !== "object") return value;
+  if (cache.has(value)) return cache.get(value);
   if (Array.isArray(value)) {
     const length = value.length;
     const result2 = new Array(length);
@@ -2472,7 +2399,7 @@ var _deepClone = (value, cache = /* @__PURE__ */ new WeakMap()) => {
   return result;
 };
 
-// src/config.js
+// src/config.ts
 var __config = {
   events: {
     __state: true,
@@ -2501,7 +2428,7 @@ var __config = {
   }
 };
 
-// src/trace.js
+// src/trace.ts
 function __trace(functionName, ...messages) {
   if (__config.debug.isEnabled) {
     const formattedMessages = messages.join("\n");
@@ -2519,13 +2446,15 @@ function __trace(functionName, ...messages) {
         "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
         `Changed store state: ${messages[0]}`
       );
+      const oldPatches = messages[1];
+      const newPatches = messages[2];
       console.log(
-        `oldValue of ${messages[1][0].path.join(".")}:`,
-        messages[1][0].value
+        `oldValue of ${oldPatches[0].path.join(".")}:`,
+        oldPatches[0].value
       );
       console.log(
-        `newValue of ${messages[2][0].path.join(".")}:`,
-        messages[2][0].value
+        `newValue of ${newPatches[0].path.join(".")}:`,
+        newPatches[0].value
       );
     } else {
       console.groupCollapsed(
@@ -2539,8 +2468,15 @@ function __trace(functionName, ...messages) {
   }
 }
 
-// src/observables/observable-state.js
+// src/observables/observable-state.ts
 var _DependencyTracker = class _DependencyTracker {
+  constructor() {
+    // For small dependency sets, arrays are faster than Sets in V8
+    // When dependency count grows large, we can switch to a Set
+    __publicField(this, "dependencies", []);
+    // For fast lookup to avoid duplicates (O(1) vs O(n))
+    __publicField(this, "_depsMap", /* @__PURE__ */ new Map());
+  }
   /**
    * Track dependencies used during the execution of an effect function
    * @param {Function} effectFn - Function to track
@@ -2556,10 +2492,6 @@ var _DependencyTracker = class _DependencyTracker {
     } finally {
       _DependencyTracker.current = previousTracker;
     }
-  }
-  constructor() {
-    this.dependencies = [];
-    this._depsMap = /* @__PURE__ */ new Map();
   }
   /**
    * Add a dependency to the current tracker
@@ -2590,18 +2522,26 @@ var ObservableState = class extends Observable {
    */
   constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
     super();
-    if (last) {
-      this.__lastObserver = subscriber;
-    } else {
-      this.__observers.push(subscriber);
+    __publicField(this, "__value");
+    __publicField(this, "__pendingUpdates", []);
+    __publicField(this, "__updateScheduled", false);
+    __publicField(this, "__name");
+    __publicField(this, "__isUpdating", false);
+    __publicField(this, "__updateStack", []);
+    __publicField(this, "__observers", []);
+    __publicField(this, "__lastObserver", null);
+    // Add _uid property to match the dependency tracking
+    __publicField(this, "_uid");
+    if (subscriber) {
+      if (last) {
+        this.__lastObserver = subscriber;
+      } else {
+        this.__observers.push(subscriber);
+      }
     }
     this.__value = produce(initialValue, (draft) => {
     });
-    this.__pendingUpdates = [];
-    this.__updateScheduled = false;
     this.__name = name;
-    this.__isUpdating = false;
-    this.__updateStack = [];
   }
   /**
    * @method
@@ -2651,7 +2591,7 @@ var ObservableState = class extends Observable {
       console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
     }
     this.__isUpdating = true;
-    this.__updateStack.push(this.__name);
+    this.__updateStack.push(this.__name || "unknown");
     try {
       if (!_deepEqual(newValue, this.__value)) {
         this.__value = newValue;
@@ -2690,11 +2630,11 @@ var ObservableState = class extends Observable {
     }
     this.update((state) => {
       const keys = key.split(".");
-      let current2 = state;
+      let current3 = state;
       for (let i5 = 0; i5 < keys.length - 1; i5++) {
-        current2 = current2[keys[i5]];
+        current3 = current3[keys[i5]];
       }
-      current2[keys[keys.length - 1]] = value;
+      current3[keys[keys.length - 1]] = value;
     });
   }
   /**
@@ -2711,11 +2651,11 @@ var ObservableState = class extends Observable {
     }
     this.update((state) => {
       const keys = key.split(".");
-      let current2 = state;
+      let current3 = state;
       for (let i5 = 0; i5 < keys.length - 1; i5++) {
-        current2 = current2[keys[i5]];
+        current3 = current3[keys[i5]];
       }
-      delete current2[keys[keys.length - 1]];
+      delete current3[keys[keys.length - 1]];
     });
   }
   /**
@@ -2840,12 +2780,13 @@ var ObservableState = class extends Observable {
    * @example
    * observable.fill('newElement', 0, 2);
    */
-  fill(value, start = 0, end = this.__value.length) {
+  fill(value, start = 0, end) {
     if (!Array.isArray(this.__value)) {
       throw new Error("[Cami.js] Observable value is not an array");
     }
+    const arrayEnd = end !== void 0 ? end : this.__value.length;
     this.update((arr) => {
-      arr.fill(value, start, end);
+      arr.fill(value, start, arrayEnd);
     });
   }
   /**
@@ -2857,12 +2798,13 @@ var ObservableState = class extends Observable {
    * @example
    * observable.copyWithin(0, 1, 2);
    */
-  copyWithin(target, start, end = this.__value.length) {
+  copyWithin(target, start, end) {
     if (!Array.isArray(this.__value)) {
       throw new Error("[Cami.js] Observable value is not an array");
     }
+    const arrayEnd = end !== void 0 ? end : this.__value.length;
     this.update((arr) => {
-      arr.copyWithin(target, start, end);
+      arr.copyWithin(target, start, arrayEnd);
     });
   }
   /**
@@ -2880,7 +2822,7 @@ var ObservableState = class extends Observable {
       console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
     }
     this.__isUpdating = true;
-    this.__updateStack.push(this.__name);
+    this.__updateStack.push(this.__name || "unknown");
     try {
       this.__pendingUpdates.push(updater);
       this.__scheduleupdate();
@@ -2895,15 +2837,6 @@ var ObservableState = class extends Observable {
       this.__applyUpdates();
     }
   }
-  /**
-   * @private
-   * @method
-   * @description This method notifies all observers of the observable with the current value.
-   * It first creates a list of observers by combining the regular observers and the last observer.
-   * Then, it iterates over this list and calls each observer with the current value.
-   * If the observer is a function, it is called directly.
-   * If the observer is an object with a 'next' method, the 'next' method is called.
-   */
   /**
    * High-performance notification method with optimized code paths
    * @private
@@ -2945,12 +2878,6 @@ var ObservableState = class extends Observable {
       }
     }
   }
-  /**
-   * @method
-   * @private
-   * @description This method applies all the pending updates to the value.
-   * It then notifies all the observers with the updated value.
-   */
   /**
    * Optimized update application with fast paths for common cases
    * @private
@@ -3006,7 +2933,8 @@ var ObservableState = class extends Observable {
       let currentValue = this.__value;
       for (let i5 = 0; i5 < updateCount; i5++) {
         const updater = updates[i5];
-        const newValue = updater(currentValue);
+        const result = updater(currentValue);
+        const newValue = result !== void 0 ? result : currentValue;
         if (newValue !== currentValue) {
           if (typeof newValue === "object" && newValue !== null && typeof currentValue === "object" && currentValue !== null) {
             if (!_deepEqual(newValue, currentValue)) {
@@ -3050,7 +2978,7 @@ var ObservableState = class extends Observable {
    */
   complete() {
     this.__observers.forEach((observer) => {
-      if (observer && typeof observer.complete === "function") {
+      if (observer && typeof observer !== "function" && typeof observer.complete === "function") {
         observer.complete();
       }
     });
@@ -3062,15 +2990,18 @@ var effect = function(effectFn) {
   let dependencies = /* @__PURE__ */ new Set();
   const _runEffect = () => {
     cleanup();
-    DependencyTracker.current = { addDependency };
-    function addDependency(observable) {
-      if (!dependencies.has(observable)) {
-        dependencies.add(observable);
-        observable.onValue(_runEffect);
+    const tracker = {
+      addDependency(observable) {
+        if (!dependencies.has(observable)) {
+          dependencies.add(observable);
+          observable.onValue(_runEffect);
+        }
       }
-    }
+    };
+    DependencyTracker.current = tracker;
     try {
-      cleanup = effectFn() || (() => {
+      const result = effectFn();
+      cleanup = result || (() => {
       });
     } finally {
       DependencyTracker.current = null;
@@ -3079,7 +3010,9 @@ var effect = function(effectFn) {
   _runEffect();
   return () => {
     cleanup();
-    dependencies.forEach((dep) => dep.__observers = dep.__observers.filter((obs) => obs !== _runEffect));
+    dependencies.forEach((dep) => {
+      dep["__observers"] = dep["__observers"].filter((obs) => obs !== _runEffect);
+    });
     dependencies.clear();
   };
 };
@@ -3117,59 +3050,22 @@ var derive = function(deriveFn) {
   return { value: currentValue, dispose };
 };
 
-// src/invariant.js
-var isProduction = function() {
-  var hostname = typeof window !== "undefined" && window.location && window.location.hostname || "";
-  return hostname.indexOf("localhost") === -1 && hostname !== "0.0.0.0";
-}();
-var alwaysEnabled = false;
-function captureStackTrace(error) {
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(error, invariant);
-  } else {
-    error.stack = new Error().stack;
-  }
-}
-var InvariantViolationError = class extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "InvariantViolationError";
-    captureStackTrace(this);
-  }
-};
-function invariant(message, callback) {
-  if (!alwaysEnabled && isProduction)
-    return;
-  if (!callback()) {
-    var error = new InvariantViolationError("Invariant Violation: " + message);
-    if (!isProduction) {
-      captureStackTrace(error);
-    }
-    throw error;
-  }
-}
-invariant.config = function(config) {
-  var development = config.development;
-  var production = config.production;
-  if (typeof development === "function" && typeof production === "function") {
-    var isDev = development();
-    var isProd = production();
-    isProduction = isProd && !isDev;
-    alwaysEnabled = false;
-  } else if (Object.hasOwn(config, "alwaysEnabled")) {
-    alwaysEnabled = config.alwaysEnabled;
-  }
-};
-
-// src/observables/observable-model.js
+// src/observables/observable-model.ts
 function generateRandomName() {
   return "model_" + Math.random().toString(36).substr(2, 9);
 }
 var Model = class {
   constructor({ name = generateRandomName(), properties = {} } = {}) {
+    __publicField(this, "name");
+    __publicField(this, "schema");
     this.name = name;
     this.schema = properties;
   }
+  /**
+   * Creates an observable store with the given configuration
+   * @param config - Configuration object containing state, actions, and other store features
+   * @returns An ObservableStore instance configured with this model's schema
+   */
   create(config) {
     const {
       state,
@@ -3230,11 +3126,16 @@ var Model = class {
     });
     return modelStore;
   }
+  /**
+   * Validates a state object against this model's schema
+   * @param state - The state object to validate
+   * @throws {Error} If validation fails
+   */
   validateState(state) {
     const errors2 = [];
     Object.entries(this.schema).forEach(([key, type]) => {
       if (!(key in state)) {
-        const expectedType = this.__getExpectedTypeString(type);
+        const expectedType = this._getExpectedTypeString(type);
         errors2.push(`Missing property: ${key}
 Expected type: ${expectedType}`);
       } else {
@@ -3253,24 +3154,33 @@ ${errors2.join("\n\n")}`
       );
     }
   }
+  /**
+   * Validates a single item against its type definition
+   * @param value - The value to validate
+   * @param type - The type definition to validate against
+   * @param path - The current path in the object for error reporting
+   * @param rootState - The root state object for reference validation
+   */
   validateItem(value, type, path, rootState) {
     const getTypeCategory = (type2, value2) => {
-      if (type2.type === "optional")
-        return "optional";
-      if (type2.type === "object" && typeof value2 === "object")
-        return "object";
+      if (typeof type2 === "object" && type2 !== null && "type" in type2) {
+        if (type2.type === "optional") return "optional";
+        if (type2.type === "object" && typeof value2 === "object") return "object";
+      }
       return "other";
     };
     try {
       const typeCategory = getTypeCategory(type, value);
       switch (typeCategory) {
         case "optional":
-          if (value === void 0 || value === null)
-            return;
-          return this.validateItem(value, type.optional, path, rootState);
+          if (value === void 0 || value === null) return;
+          const optionalType = type;
+          return this.validateItem(value, optionalType.optional, path, rootState);
         case "object":
-          Object.entries(type.schema).forEach(([key, subType]) => {
-            if (subType.type !== "optional" && !(key in value)) {
+          const objectType = type;
+          Object.entries(objectType.schema).forEach(([key, subType]) => {
+            const isOptional = typeof subType === "object" && subType !== null && "type" in subType && subType.type === "optional";
+            if (!isOptional && !(key in value)) {
               throw new Error(
                 `Missing required property: ${[...path, key].join(".")}`
               );
@@ -3287,27 +3197,27 @@ ${errors2.join("\n\n")}`
           throw new Error(`Unexpected type category: ${typeCategory}`);
       }
     } catch (error) {
-      const expectedType = this.__getExpectedTypeString(type);
-      const actualType = this.__getActualTypeString(value);
+      const expectedType = this._getExpectedTypeString(type);
       throw new Error(
         `Property: ${path.join(".")}
 Error: ${error.message}`
       );
     }
   }
-  // Below are just helper functions to express types when there are validation errors
-  __getExpectedTypeString(type) {
+  /**
+   * Helper function to get a human-readable string representation of expected type
+   * @param type - The type definition
+   * @returns A string representation of the expected type
+   */
+  _getExpectedTypeString(type) {
     const getTypeCategory = (type2) => {
-      if (typeof type2 === "string")
-        return "string";
-      if (typeof type2 === "object") {
-        if (type2.type) {
-          if (type2.type === "object" && type2.schema)
-            return "objectWithSchema";
-          if (type2.type === "array" && type2.itemType)
-            return "array";
-          if (type2.type === "enum" && type2.values)
-            return "enum";
+      if (typeof type2 === "string") return "string";
+      if (typeof type2 === "object" && type2 !== null) {
+        if ("type" in type2) {
+          if (type2.type === "object" && "schema" in type2) return "objectWithSchema";
+          if (type2.type === "array" && "itemType" in type2) return "array";
+          if (type2.type === "enum" && "values" in type2) return "enum";
+          if (type2.type === "optional") return "optional";
           return "simpleType";
         }
         return "typeConstructor";
@@ -3319,13 +3229,20 @@ Error: ${error.message}`
       case "string":
         return type;
       case "objectWithSchema":
-        return `Object(${Object.entries(type.schema).map(([k3, v4]) => `${k3}: ${this.__getExpectedTypeString(v4)}`).join(", ")})`;
+        const objectType = type;
+        return `Object(${Object.entries(objectType.schema).map(([k3, v4]) => `${k3}: ${this._getExpectedTypeString(v4)}`).join(", ")})`;
       case "array":
-        return `Array(${this.__getExpectedTypeString(type.itemType)})`;
+        const arrayType = type;
+        return `Array(${this._getExpectedTypeString(arrayType.itemType)})`;
       case "enum":
-        return `Enum(${type.values.join(" | ")})`;
+        const enumType = type;
+        return `Enum(${enumType.values.join(" | ")})`;
+      case "optional":
+        const optionalType = type;
+        return `Optional(${this._getExpectedTypeString(optionalType.optional)})`;
       case "simpleType":
-        return type.type;
+        const simpleType = type;
+        return simpleType.type;
       case "typeConstructor":
         for (const [key, value] of Object.entries(Type)) {
           if (value === type || typeof value === "function" && type instanceof value) {
@@ -3338,16 +3255,17 @@ Error: ${error.message}`
         return "Unknown";
     }
   }
-  __getActualTypeString(value) {
+  /**
+   * Helper function to get a human-readable string representation of actual value type
+   * @param value - The actual value
+   * @returns A string representation of the actual type
+   */
+  _getActualTypeString(value) {
     const getValueType = (value2) => {
-      if (value2 === null)
-        return "null";
-      if (Array.isArray(value2))
-        return "array";
-      if (value2 instanceof Date)
-        return "date";
-      if (typeof value2 === "object")
-        return "object";
+      if (value2 === null) return "null";
+      if (Array.isArray(value2)) return "array";
+      if (value2 instanceof Date) return "date";
+      if (typeof value2 === "object") return "object";
       return typeof value2;
     };
     const valueType = getValueType(value);
@@ -3367,7 +3285,7 @@ Error: ${error.message}`
   }
 };
 
-// src/types.js
+// src/types/index.ts
 var Type = {
   String: "string",
   Float: "float",
@@ -3378,18 +3296,33 @@ var Type = {
   BigInt: "bigint",
   Symbol: "symbol",
   Null: "null",
-  Object: (schema) => ({ type: "object", schema }),
+  Object: (schema) => ({
+    type: "object",
+    schema
+  }),
   Array: (itemType, options = {}) => ({
     type: "array",
     itemType,
     allowEmpty: options.allowEmpty !== false
     // Default to true
   }),
-  Sum: (...types) => ({ type: "sum", types }),
-  Product: (fields) => ({ type: "product", fields }),
+  Sum: (...types) => ({
+    type: "sum",
+    types
+  }),
+  Product: (fields) => ({
+    type: "product",
+    fields
+  }),
   Any: { type: "any" },
-  Enum: (...values) => ({ type: "enum", values }),
-  Optional: (type) => ({ type: "optional", optional: type }),
+  Enum: (...values) => ({
+    type: "enum",
+    values
+  }),
+  Optional: (type) => ({
+    type: "optional",
+    optional: type
+  }),
   Refinement: (baseType, refinementFn) => ({
     type: "refinement",
     baseType,
@@ -3406,10 +3339,23 @@ var Type = {
     validateFn
   }),
   Date: { type: "date" },
-  Vect: (length, elemType) => ({ type: "vect", length, elemType }),
-  Tree: (valueType) => ({ type: "tree", valueType }),
-  RoseTree: (valueType) => ({ type: "roseTree", valueType }),
-  Literal: (value) => ({ type: "literal", value }),
+  Vect: (length, elemType) => ({
+    type: "vect",
+    length,
+    elemType
+  }),
+  Tree: (valueType) => ({
+    type: "tree",
+    valueType
+  }),
+  RoseTree: (valueType) => ({
+    type: "roseTree",
+    valueType
+  }),
+  Literal: (value) => ({
+    type: "literal",
+    value
+  }),
   Function: (paramTypes, returnType) => ({
     type: "function",
     paramTypes,
@@ -3477,7 +3423,7 @@ var typeValidators = {
       }
       try {
         const itemTypeToValidate = type.itemType.type === "optional" ? type.itemType.optional : type.itemType;
-        validateType2(item, itemTypeToValidate, [...path, index], rootState);
+        validateType2(item, itemTypeToValidate, [...path, String(index)], rootState);
       } catch (error) {
         throw new Error(`Invalid item at index ${index}: ${error.message}`);
       }
@@ -3561,9 +3507,9 @@ var typeValidators = {
     if (!Array.isArray(value) || value.length !== 2) {
       throw new Error(`Expected dependent pair at ${path.join(".")}`);
     }
-    validateType2(value[0], type.fstType, [...path, 0], rootState);
+    validateType2(value[0], type.fstType, [...path, "0"], rootState);
     const sndType = type.sndTypeFn(value[0]);
-    validateType2(value[1], sndType, [...path, 1], rootState);
+    validateType2(value[1], sndType, [...path, "1"], rootState);
   },
   date: (value, type, path) => {
     if (!(value instanceof Date))
@@ -3602,7 +3548,7 @@ var typeValidators = {
       );
     }
     value.forEach((item, index) => {
-      validateType2(item, type.elemType, [...path, index], rootState);
+      validateType2(item, type.elemType, [...path, String(index)], rootState);
     });
   },
   tree: (value, type, path, rootState, validateType2) => {
@@ -3635,7 +3581,7 @@ var typeValidators = {
         )}.children`
       );
     value.children.forEach((child, index) => {
-      validateType2(child, type, [...path, "children", index], rootState);
+      validateType2(child, type, [...path, "children", String(index)], rootState);
     });
   },
   dependentRecord: (value, type, path, rootState, validateType2) => {
@@ -3683,7 +3629,7 @@ var typeValidators = {
     }
     value.forEach((item, index) => {
       const itemType = type.itemTypeFn(index, value);
-      validateType2(item, itemType, [...path, index], rootState);
+      validateType2(item, itemType, [...path, String(index)], rootState);
     });
   },
   dependentSum: (value, type, path, rootState, validateType2) => {
@@ -3771,7 +3717,7 @@ var validateType = (value, type, path = [], rootState = {}, currentKey = "") => 
       `Invalid type definition for key "${currentKey}" at ${path.join(".")}`
     );
   }
-  if (type.type === "optional") {
+  if (typeof type === "object" && type !== null && "type" in type && type.type === "optional") {
     if (value === void 0 || value === null) {
       return;
     }
@@ -3836,7 +3782,7 @@ var validateType = (value, type, path = [], rootState = {}, currentKey = "") => 
 var useValidationHook = (schema) => {
   return (state) => {
     const clonedState = _deepClone(state);
-    if (schema.type === "dependentRecord") {
+    if (typeof schema === "object" && "type" in schema && schema.type === "dependentRecord") {
       validateType(clonedState, schema, [], clonedState);
     } else {
       Object.entries(schema).forEach(([key, type]) => {
@@ -3848,7 +3794,7 @@ var useValidationHook = (schema) => {
 var useValidationThunk = (schema) => {
   return (state) => {
     const clonedState = _deepClone(state);
-    if (schema.type === "product") {
+    if (typeof schema === "object" && "type" in schema && schema.type === "product") {
       try {
         validateType(clonedState, schema, [], clonedState, "root");
       } catch (error) {
@@ -3861,7 +3807,7 @@ var useValidationThunk = (schema) => {
   };
 };
 
-// src/observables/observable-store.js
+// src/observables/observable-store.ts
 enablePatches();
 var ObservableStore = class extends Observable {
   constructor(initialState, options = {}) {
@@ -3871,6 +3817,49 @@ var ObservableStore = class extends Observable {
         this.__subscriber = null;
       };
     });
+    __publicField(this, "name");
+    __publicField(this, "schema");
+    // State management
+    __publicField(this, "_state");
+    __publicField(this, "_frozenState", null);
+    __publicField(this, "_isDirty", false);
+    __publicField(this, "_stateVersion", 0);
+    __publicField(this, "_proxy");
+    __publicField(this, "previousState");
+    // Core data structures
+    __publicField(this, "reducers", {});
+    __publicField(this, "actions", {});
+    __publicField(this, "dispatchQueue", []);
+    __publicField(this, "isDispatching", false);
+    __publicField(this, "currentDispatchPromise", null);
+    // Cache structures
+    __publicField(this, "queryCache", /* @__PURE__ */ new Map());
+    __publicField(this, "queryFunctions", /* @__PURE__ */ new Map());
+    __publicField(this, "queries", {});
+    __publicField(this, "memoCache", /* @__PURE__ */ new Map());
+    // Resource management
+    __publicField(this, "intervals", /* @__PURE__ */ new Map());
+    __publicField(this, "focusHandlers", /* @__PURE__ */ new Map());
+    __publicField(this, "reconnectHandlers", /* @__PURE__ */ new Map());
+    __publicField(this, "gcTimeouts", /* @__PURE__ */ new Map());
+    // Advanced features
+    __publicField(this, "mutationFunctions", /* @__PURE__ */ new Map());
+    __publicField(this, "mutations", {});
+    __publicField(this, "patchListeners", /* @__PURE__ */ new Map());
+    __publicField(this, "machines", {});
+    __publicField(this, "memos", {});
+    __publicField(this, "thunks", {});
+    __publicField(this, "specs", /* @__PURE__ */ new Map());
+    // Hooks for middleware-like functionality
+    __publicField(this, "beforeHooks", []);
+    __publicField(this, "afterHooks", []);
+    __publicField(this, "throttledAfterHooks");
+    // Dispatch tracking to prevent infinite loops
+    __publicField(this, "__isDispatching", false);
+    __publicField(this, "__dispatchStack", []);
+    // Internal state management
+    __publicField(this, "_stateTrapStore");
+    __publicField(this, "__subscriber", null);
     this.name = options.name || "cami-store";
     this.schema = options.schema || {};
     this._state = createDraft(initialState);
@@ -3879,31 +3868,6 @@ var ObservableStore = class extends Observable {
     this._stateVersion = 0;
     this._proxy = this._createProxy(this._state);
     this.previousState = initialState;
-    this.reducers = {};
-    this.actions = {};
-    this.dispatchQueue = [];
-    this.isDispatching = false;
-    this.currentDispatchPromise = null;
-    this.queryCache = /* @__PURE__ */ new Map();
-    this.queryFunctions = /* @__PURE__ */ new Map();
-    this.queries = {};
-    this.memoCache = /* @__PURE__ */ new Map();
-    this.intervals = /* @__PURE__ */ new Map();
-    this.focusHandlers = /* @__PURE__ */ new Map();
-    this.reconnectHandlers = /* @__PURE__ */ new Map();
-    this.gcTimeouts = /* @__PURE__ */ new Map();
-    this.mutationFunctions = /* @__PURE__ */ new Map();
-    this.mutations = {};
-    this.patchListeners = /* @__PURE__ */ new Map();
-    this.machines = {};
-    this.memos = {};
-    this.thunks = {};
-    this.specs = /* @__PURE__ */ new Map();
-    this.beforeHooks = [];
-    this.afterHooks = [];
-    this.throttledAfterHooks = this.__executeAfterHooks.bind(this);
-    this.__isDispatching = false;
-    this.__dispatchStack = [];
     this.dispatch = this.dispatch.bind(this);
     this.query = this.query.bind(this);
     this.mutate = this.mutate.bind(this);
@@ -3912,6 +3876,7 @@ var ObservableStore = class extends Observable {
     this.memo = this.memo.bind(this);
     this.invalidateQueries = this.invalidateQueries.bind(this);
     this.dispatchAsync = this.dispatchAsync.bind(this);
+    this.throttledAfterHooks = this.__executeAfterHooks.bind(this);
     this.afterHook(() => {
       this._stateVersion++;
     });
@@ -4076,8 +4041,7 @@ var ObservableStore = class extends Observable {
    * Only triggers if state has changed and batches notifications
    */
   _notifyObservers() {
-    if (!this._isDirty)
-      return;
+    if (!this._isDirty) return;
     if (this.__observers.length === 0 && !this.__subscriber) {
       this._isDirty = false;
       return;
@@ -4120,10 +4084,8 @@ var ObservableStore = class extends Observable {
   _createDeepSchema(state) {
     const typeCache = /* @__PURE__ */ new Map();
     const inferType = (value) => {
-      if (value === null)
-        return "null";
-      if (value === void 0)
-        return "undefined";
+      if (value === null) return "null";
+      if (value === void 0) return "undefined";
       if (typeCache.has(value)) {
         return typeCache.get(value);
       }
@@ -4149,15 +4111,13 @@ var ObservableStore = class extends Observable {
    * Validates a state object against a schema
    */
   _validateDeepState(schema, state, path = []) {
-    if (!schema || Object.keys(schema).length === 0)
-      return;
+    if (!schema || Object.keys(schema).length === 0) return;
     Object.keys(schema).forEach((key) => {
       const expectedType = schema[key];
       const actualValue = state[key];
       const currentPath = [...path, key];
       const actualType = this._inferType(actualValue);
-      if (actualType === "function")
-        return;
+      if (actualType === "function") return;
       if (typeof expectedType === "object" && expectedType !== null) {
         if (typeof actualValue !== "object" || actualValue === null) {
           throw new TypeError(
@@ -4180,20 +4140,16 @@ var ObservableStore = class extends Observable {
    * Determine the type of a value
    */
   _inferType(value) {
-    if (Array.isArray(value))
-      return "array";
-    if (value === null)
-      return "null";
-    if (value === void 0)
-      return "undefined";
+    if (Array.isArray(value)) return "array";
+    if (value === null) return "null";
+    if (value === void 0) return "undefined";
     return typeof value;
   }
   /**
    * Process the queue of actions to be dispatched
    */
   _processDispatchQueue() {
-    if (this.isDispatching)
-      return;
+    if (this.isDispatching) return;
     this.isDispatching = true;
     try {
       const queue = this.dispatchQueue;
@@ -4282,6 +4238,7 @@ var ObservableStore = class extends Observable {
         const [nextState, patches, inversePatches] = produceWithPatches(
           this._state,
           (draft) => {
+            reducerContext.state = draft;
             reducer(reducerContext);
           }
         );
@@ -4391,15 +4348,13 @@ var ObservableStore = class extends Observable {
     if (type === "before") {
       const hooks = this.beforeHooks;
       const len = hooks.length;
-      if (len === 0)
-        return;
+      if (len === 0) return;
       let i5 = len;
       while (i5--) {
         hooks[i5](context);
       }
     } else if (type === "after") {
-      if (this.afterHooks.length === 0)
-        return;
+      if (this.afterHooks.length === 0) return;
       this.throttledAfterHooks(context);
     }
   }
@@ -4409,8 +4364,7 @@ var ObservableStore = class extends Observable {
   __executeAfterHooks(context) {
     const hooks = this.afterHooks;
     const len = hooks.length;
-    if (len === 0)
-      return;
+    if (len === 0) return;
     let i5 = len;
     while (i5--) {
       try {
@@ -4426,16 +4380,14 @@ var ObservableStore = class extends Observable {
    * Optimized for performance with key-based targeting
    */
   _notifyPatchListeners(patches) {
-    if (this.patchListeners.size === 0)
-      return;
+    if (this.patchListeners.size === 0) return;
     const patchesByKey = /* @__PURE__ */ new Map();
     const patchesLen = patches.length;
     let i5 = patchesLen;
     while (i5--) {
       const patch = patches[i5];
       const key = patch.path[0];
-      if (!this.patchListeners.has(key))
-        continue;
+      if (!this.patchListeners.has(key)) continue;
       let keyPatches = patchesByKey.get(key);
       if (!keyPatches) {
         keyPatches = [];
@@ -4445,13 +4397,12 @@ var ObservableStore = class extends Observable {
     }
     for (const [key, keyPatches] of patchesByKey) {
       const listeners = this.patchListeners.get(key);
-      if (!listeners || listeners.length === 0)
-        continue;
+      if (!listeners || listeners.length === 0) continue;
       const listenersLen = listeners.length;
-      let j2 = listenersLen;
-      while (j2--) {
+      let j3 = listenersLen;
+      while (j3--) {
         try {
-          listeners[j2](keyPatches);
+          listeners[j3](keyPatches);
         } catch (error) {
           console.error(`[Cami.js] Error in patch listener for key "${key}":`, error);
         }
@@ -4460,27 +4411,10 @@ var ObservableStore = class extends Observable {
   }
   /**
    * @method defineAction
-   * @memberof ObservableStore
    * @param {string} action - The action type
-   * @param {Function} reducer - The reducer function for the action
+   * @param {ActionHandler} reducer - The reducer function for the action
    * @throws {Error} - Throws an error if the action type is already registered
    * @description This method registers a reducer function for a given action type. Useful if you like redux-style reducers.
-   * @example
-   * ```javascript
-   * // Creating a store with initial state and registering actions
-   * const CartStore = cami.store({
-   *   cartItems: [],
-   * });
-   *
-   * CartStore.defineAction('add', ({ state, product }) => { 
-   *   const cartItem = { ...product, cartItemId: Date.now() };
-   *   state.cartItems.push(cartItem);
-   * });
-   *
-   * CartStore.defineAction('remove', ({ state, payload }) => {
-   *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== payload.cartItemId);
-   * });
-   * ```
    */
   defineAction(action, reducer) {
     if (typeof action !== "string") {
@@ -4519,9 +4453,6 @@ var ObservableStore = class extends Observable {
     if (!spec || typeof spec !== "object") {
       throw new Error(`[Cami.js] Spec must be an object, got: ${typeof spec}`);
     }
-    if (!this.specs) {
-      this.specs = /* @__PURE__ */ new Map();
-    }
     if (spec.precondition && typeof spec.precondition !== "function") {
       throw new Error(`[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`);
     }
@@ -4534,7 +4465,7 @@ var ObservableStore = class extends Observable {
   /**
    * @method defineAsyncAction
    * @param {string} thunkName - The name of the thunk
-   * @param {Function} asyncCallback - The async function to be executed
+   * @param {AsyncActionHandler} asyncCallback - The async function to be executed
    * @description Defines a new thunk for the store
    */
   defineAsyncAction(thunkName, asyncCallback) {
@@ -4614,16 +4545,9 @@ var ObservableStore = class extends Observable {
   }
   /**
    * @method onPatch
-   * @memberof ObservableStore
    * @param {string} key - The state key to listen for patches.
-   * @param {Function} callback - The callback to invoke when patches are applied.
+   * @param {PatchListener} callback - The callback to invoke when patches are applied.
    * @description Registers a callback to be invoked whenever patches are applied to the specified state key.
-   * @example
-   * ```javascript
-   * appStore.onPatch('posts', (patch) => {
-   *   console.log('Patch applied:', patch);
-   * });
-   * ```
    */
   onPatch(key, callback) {
     if (!this.patchListeners.has(key)) {
@@ -4632,6 +4556,7 @@ var ObservableStore = class extends Observable {
     this.patchListeners.get(key).push(callback);
     return () => {
       const listeners = this.patchListeners.get(key);
+      if (!listeners) return;
       const index = listeners.indexOf(callback);
       if (index > -1) {
         const lastIndex = listeners.length - 1;
@@ -4644,54 +4569,18 @@ var ObservableStore = class extends Observable {
   }
   /**
    * @method applyPatch
-   * @memberof ObservableStore
-   * @param {Array} patches - The patches to apply to the state.
+   * @param {Patch[]} patches - The patches to apply to the state.
    * @description Applies the given patches to the store's state.
-   * @example
-   * ```javascript
-   * const patches = [{ op: 'replace', path: ['posts', 0, 'title'], value: 'New Title' }];
-   * appStore.applyPatch(patches);
-   * ```
    */
   applyPatch(patches) {
     this._state = applyPatches(this._state, patches);
     this.__observers.forEach((observer) => observer.next(this._state));
   }
   /**
-   * @method query
-   * @memberof ObservableStore
+   * @method defineQuery
    * @param {string} queryName - The name of the query to register.
-   * @param {Object} config - The configuration object for the query.
-   * @param {string|Array|Function} config.queryKey - The unique key for the query or a function to generate the key.
-   * @param {Function} config.queryFn - The function to fetch data for the query.
-   * @param {number} [config.staleTime=0] - The time in milliseconds before the query is considered stale.
-   * @param {boolean} [config.refetchOnWindowFocus=false] - Whether to refetch the query on window focus.
-   * @param {number|null} [config.refetchInterval=null] - The interval in milliseconds to refetch the query.
-   * @param {boolean} [config.refetchOnReconnect=true] - Whether to refetch the query on reconnect.
-   * @param {number} [config.gcTime=300000] - The time in milliseconds before garbage collecting the query.
-   * @param {number} [config.retry=1] - The number of retry attempts for the query.
-   * @param {Function} [config.retryDelay] - The function to calculate the delay between retries.
-   * @param {Function} [config.onSuccess] - The callback function to execute when the query succeeds. Receives a context object with `result`, `state`, `actions`, `mutations`, and `invalidateQueries`.
-   * @param {Function} [config.onError] - The callback function to execute when the query fails. Receives a context object with `error`, `state`, `actions`, `mutations`, and `invalidateQueries`.
-   * @param {Object} [config.actions=this.actions] - The actions available in the store.
-   * @description Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
-   * @example
-   * ```javascript
-   * appStore.defineAction('setPosts', (state, posts) => {
-   *   state.posts = posts;
-   * });
-   *
-   * appStore.defineQuery('fetchPosts', {
-   *   queryKey: (args) => ['posts', ...args],
-   *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
-   *   onSuccess: (ctx) => {
-   *     ctx.actions.setPosts(ctx.result);
-   *   },
-   *   onError: (ctx) => {
-   *     // console.error('Query failed:', ctx.error);
-   *   }
-   * });
-   * ```
+   * @param {QueryConfig} config - The configuration object for the query.
+   * @description Registers a query with the given configuration.
    */
   defineQuery(queryName, config) {
     if (this.queryFunctions.has(queryName)) {
@@ -4706,8 +4595,8 @@ var ObservableStore = class extends Observable {
     const {
       queryFn,
       queryKey,
-      staleTime,
-      retry,
+      staleTime = 0,
+      retry = 1,
       retryDelay,
       onFetch,
       onSuccess,
@@ -4774,29 +4663,22 @@ var ObservableStore = class extends Observable {
     const context = __spreadProps(__spreadValues({}, storeContext), { data, error });
     if (error) {
       __trace(`query`, `Fetch failed: ${queryName}`);
-      if (onError)
-        onError(context);
+      if (onError) onError(context);
     } else {
       __trace(`query`, `Fetch success: ${queryName}`);
-      if (onSuccess)
-        onSuccess(context);
+      if (onSuccess) onSuccess(context);
     }
     if (onSettled) {
       __trace(`query`, `Fetch settled: ${queryName}`);
       onSettled(context);
     }
-    if (error)
-      throw error;
+    if (error) throw error;
     return data;
   }
   /**
    * @method invalidateQueries
-   * @memberof ObservableStore
-   * @param {Object} options - The options for invalidating queries.
-   * @param {string[]} [options.queryKey] - The query key to invalidate.
-   * @param {Function} [options.predicate] - A predicate function to match queries to invalidate.
+   * @param {InvalidateQueriesOptions} options - The options for invalidating queries.
    * @description Invalidates the cache and any associated intervals or event listeners for the given queries.
-   * @throws {Error} Throws an error if neither queryKey nor predicate is provided.
    */
   invalidateQueries({ queryKey, predicate }) {
     if (!queryKey && !predicate) {
@@ -4833,11 +4715,10 @@ var ObservableStore = class extends Observable {
     );
     queriesToInvalidate.forEach((queryName) => {
       const query = this.queryFunctions.get(queryName);
-      if (!query)
-        return;
+      if (!query) return;
       let cacheKey;
       if (typeof query.queryKey === "function") {
-        cacheKey = query.queryKey().join(":");
+        cacheKey = query.queryKey({}).join(":");
       } else if (Array.isArray(query.queryKey)) {
         cacheKey = query.queryKey.join(":");
       } else {
@@ -4879,9 +4760,8 @@ var ObservableStore = class extends Observable {
    * @private
    * @method fetchWithRetry
    * @param {Function} queryFn - The query function to execute.
-   * @param {Array} args - The arguments to pass to the query function.
-   * @param {number} retries - The number of retries remaining.
-   * @param {Function} retryDelay - A function that returns the delay in milliseconds for each retry attempt.
+   * @param {number} retry - The number of retries remaining.
+   * @param {number | Function} retryDelay - The delay or function that returns the delay in milliseconds for each retry attempt.
    * @returns {Promise} A promise that resolves to the query result.
    * @description Executes the query function with retries and exponential backoff.
    */
@@ -4891,7 +4771,7 @@ var ObservableStore = class extends Observable {
       return queryFnWithContext().catch((error) => {
         if (attempts < retry) {
           attempts++;
-          const delay = typeof retryDelay === "function" ? retryDelay(attempts) : retryDelay;
+          const delay = typeof retryDelay === "function" ? retryDelay(attempts) : retryDelay || 1e3;
           return new Promise((resolve) => setTimeout(resolve, delay)).then(
             executeFetch
           );
@@ -4904,7 +4784,7 @@ var ObservableStore = class extends Observable {
   /**
    * @private
    * @method _isStale
-   * @param {Object} cachedData - The cached data object.
+   * @param {CachedQueryData} cachedData - The cached data object.
    * @param {number} staleTime - The stale time in milliseconds.
    * @returns {boolean} True if the cached data is stale, false otherwise.
    * @description Checks if the cached data is stale based on the stale time.
@@ -4928,39 +4808,10 @@ var ObservableStore = class extends Observable {
     return isDataStale || isManuallyInvalidated;
   }
   /**
-   * @method mutation
-   * @memberof ObservableStore
+   * @method defineMutation
    * @param {string} mutationName - The name of the mutation to register.
-   * @param {Object} config - The configuration object for the mutation.
-   * @param {Function} config.mutationFn - The function to perform the mutation.
-   * @param {Function} [config.onMutate] - The function to be called before the mutation is performed.
-   * @param {Function} [config.onError] - The function to be called if the mutation encounters an error.
-   * @param {Function} [config.onSuccess] - The function to be called if the mutation is successful.
-   * @param {Function} [config.onSettled] - The function to be called after the mutation has either succeeded or failed.
-   * @param {Object} [config.actions=this.actions] - The actions available in the store.
-   * @param {Object} [config.queries=this.queryFunctions] - The queries available in the store.
-   * @description Registers a mutation with the given configuration. This method sets up the mutation with the provided options and handles the mutation lifecycle.
-   * @example
-   * ```javascript
-   * appStore.defineMutation('deletePost', {
-   *   mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
-   *   onMutate: (context) => {
-   *     context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
-   *   },
-   *   onError: (context) => {
-   *     context.actions.setPosts(context.previousState.posts);
-   *   },
-   *   onSuccess: (context) => {
-   *     console.log('Mutation successful:', context);
-   *   },
-   *   onSettled: (context) => {
-   *     console.log('Mutation settled');
-   *     context.invalidateQueries('posts');
-   *   }
-   * });
-   *
-   * appStore.mutate('deletePost', id);
-   * ```
+   * @param {MutationConfig} config - The configuration object for the mutation.
+   * @description Registers a mutation with the given configuration.
    */
   defineMutation(mutationName, config) {
     if (this.mutationFunctions.has(mutationName)) {
@@ -5015,7 +4866,7 @@ var ObservableStore = class extends Observable {
   /**
    * @method defineMachine
    * @param {string} machineName - The name of the machine
-   * @param {Object} machineDefinition - The state machine definition
+   * @param {StateMachineDefinition} machineDefinition - The state machine definition
    * @description Defines or updates a state machine for the store
    */
   defineMachine(machineName, machineDefinition) {
@@ -5341,12 +5192,12 @@ var deepFreeze = (value, deep = true) => {
   return new Proxy(freeze(value, true), {
     set(target, prop, val) {
       throw new Error(
-        `Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`
+        `Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`
       );
     },
     deleteProperty(target, prop) {
       throw new Error(
-        `Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`
+        `Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`
       );
     }
   });
@@ -5907,8 +5758,7 @@ var ReactiveElement = class extends HTMLElement {
   render() {
     if (typeof this.template === "function") {
       const template = this.template();
-      if (this.__prevTemplate === template)
-        return;
+      if (this.__prevTemplate === template) return;
       if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
         return;
       }
@@ -6032,8 +5882,7 @@ var URLStore = class extends Observable {
    */
   __findMatchingRoute(pathSegments) {
     for (const [pattern, route] of this.__routes.entries()) {
-      if (route.segments.length !== pathSegments.length)
-        continue;
+      if (route.segments.length !== pathSegments.length) continue;
       let isMatch = true;
       const extractedParams = {};
       for (let i5 = 0; i5 < route.segments.length; i5++) {
@@ -6056,11 +5905,9 @@ var URLStore = class extends Observable {
   __updateStore() {
     return __async(this, null, function* () {
       var _a3, _b;
-      if (this.__navigationState.isPending)
-        return;
+      if (this.__navigationState.isPending) return;
       const urlState = this.__parseURL();
-      if (_deepEqual(this._state, urlState))
-        return;
+      if (_deepEqual(this._state, urlState)) return;
       this.__navigationState.isPending = true;
       try {
         const matchingRoute = this.__findMatchingRoute(urlState.hashPaths);
@@ -6113,8 +5960,7 @@ var URLStore = class extends Observable {
    */
   __loadResources(route, urlState) {
     return __async(this, null, function* () {
-      if (!route.resources || route.resources.length === 0)
-        return;
+      if (!route.resources || route.resources.length === 0) return;
       const context = {
         route,
         params: __spreadValues(__spreadValues({}, urlState.params), urlState.routeParams),
@@ -6123,8 +5969,7 @@ var URLStore = class extends Observable {
       yield Promise.all(
         route.resources.map((resourceName) => __async(this, null, function* () {
           const loader = this.__resourceLoaders.get(resourceName);
-          if (!loader)
-            return;
+          if (!loader) return;
           try {
             yield loader(context);
           } catch (error) {
@@ -6198,16 +6043,14 @@ var URLStore = class extends Observable {
     if (hashSearchString) {
       newHash += "#" + hashSearchString;
     }
-    if (newUrl.hash === newHash)
-      return;
+    if (newUrl.hash === newHash) return;
     newUrl.hash = newHash;
     window.history.pushState(null, "", newUrl.toString());
     this.__updateStore();
     if (focusSelector) {
       setTimeout(() => {
         const targetElement = document.querySelector(focusSelector);
-        if (targetElement)
-          targetElement.focus();
+        if (targetElement) targetElement.focus();
       }, 0);
     }
     if (pageTitle) {
@@ -6284,8 +6127,7 @@ var URLStore = class extends Observable {
     return hashPaths.length === 0 && Object.keys(params).length === 0 && Object.keys(hashParams).length === 0 && !hashPaths.some((path) => path.trim() !== "");
   }
   _isArrayPrefix(arr, prefix) {
-    if (prefix.length > arr.length)
-      return false;
+    if (prefix.length > arr.length) return false;
     return prefix.every((value, index) => value === arr[index]);
   }
 };
@@ -6302,10 +6144,8 @@ var createURLStore = (options = {}) => {
 // src/storage/adapters.js
 function unproxify(obj) {
   const getType = (value) => {
-    if (typeof value !== "object" || value === null)
-      return "primitive";
-    if (Array.isArray(value))
-      return "array";
+    if (typeof value !== "object" || value === null) return "primitive";
+    if (Array.isArray(value)) return "array";
     return "object";
   };
   switch (getType(obj)) {
@@ -6399,7 +6239,7 @@ function createIdbPromise({
          * - Count records: { type: 'count', range: IDBKeyRange.lowerBound(18) }
          * - Get keys: { type: 'keys', index: 'dateIndex', range: IDBKeyRange.bound('2023-01-01', '2023-12-31') }
          */
-        getState: (..._0) => __async(this, [..._0], function* (options = { type: "all" }) {
+        getState: (..._0) => __async(null, [..._0], function* (options = { type: "all" }) {
           const buildIdbRequest = ({ store: store2, options: options2 }) => {
             switch (options2.type) {
               case "key":
@@ -6438,8 +6278,7 @@ function createIdbPromise({
               case "keys":
                 return options2.index ? store2.index(options2.index).getAllKeys(options2.range) : store2.getAllKeys(options2.range);
               case "unique":
-                if (!options2.index)
-                  throw new Error("Index must be specified for unique query");
+                if (!options2.index) throw new Error("Index must be specified for unique query");
                 return store2.index(options2.index).getAll(options2.range, options2.limit);
               default:
                 throw new Error(`Unsupported query type: ${options2.type}`);
@@ -6461,10 +6300,8 @@ function createIdbPromise({
       const db = event.target.result;
       const oldVersion = event.oldVersion;
       const upgradeType = (() => {
-        if (oldVersion === 0)
-          return "create";
-        if (oldVersion < version)
-          return "recreate";
+        if (oldVersion === 0) return "create";
+        if (oldVersion < version) return "recreate";
         return "update";
       })();
       switch (upgradeType) {
@@ -6489,7 +6326,7 @@ function persistToIdbThunk({
   fromStateKey,
   toIDBStore
 }) {
-  return (_0) => __async(this, [_0], function* ({ action, patches }) {
+  return (_0) => __async(null, [_0], function* ({ action, patches }) {
     if (!Array.isArray(patches)) {
       throw new Error("patches must be an array");
     }
@@ -6517,15 +6354,12 @@ function persistToIdbThunk({
         }
         return Promise.resolve(state);
       };
-      const applyPatches2 = () => __async(this, null, function* () {
+      const applyPatches2 = () => __async(null, null, function* () {
         const getOperationType = (patch, relativePath) => {
-          if (relativePath.length === 0)
-            return patch.op === "remove" ? "removeAll" : "replaceAll";
+          if (relativePath.length === 0) return patch.op === "remove" ? "removeAll" : "replaceAll";
           const index = parseInt(relativePath[0], 10);
-          if (isNaN(index))
-            return "invalid";
-          if (relativePath.length === 1)
-            return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
+          if (isNaN(index)) return "invalid";
+          if (relativePath.length === 1) return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
           return "modifyNested";
         };
         for (const patch of relevantPatches) {
@@ -6627,13 +6461,13 @@ function createLocalStorage({
     __trace(`localStorage:version`, `Created ${name} with version ${version}`);
   }
   return {
-    getState: () => __async(this, null, function* () {
+    getState: () => __async(null, null, function* () {
       return new Promise((resolve) => {
         const data = localStorage.getItem(name);
         resolve(data ? JSON.parse(data) : null);
       });
     }),
-    setState: (state) => __async(this, null, function* () {
+    setState: (state) => __async(null, null, function* () {
       return new Promise((resolve) => {
         localStorage.setItem(name, JSON.stringify(state));
         resolve();
@@ -6644,7 +6478,7 @@ function createLocalStorage({
   };
 }
 function persistToLocalStorageThunk(toLocalStorage) {
-  return (_0) => __async(this, [_0], function* ({ action, state, previousState }) {
+  return (_0) => __async(null, [_0], function* ({ action, state, previousState }) {
     if (state !== previousState) {
       yield toLocalStorage.setState(state);
       __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
@@ -6693,20 +6527,9 @@ export {
 /*! Bundled license information:
 
 lit-html/lit-html.js:
-  (**
-   * @license
-   * Copyright 2017 Google LLC
-   * SPDX-License-Identifier: BSD-3-Clause
-   *)
-
 lit-html/directive.js:
-  (**
-   * @license
-   * Copyright 2017 Google LLC
-   * SPDX-License-Identifier: BSD-3-Clause
-   *)
-
 lit-html/directives/unsafe-html.js:
+lit-html/directives/repeat.js:
   (**
    * @license
    * Copyright 2017 Google LLC
@@ -6724,13 +6547,6 @@ lit-html/directives/keyed.js:
   (**
    * @license
    * Copyright 2021 Google LLC
-   * SPDX-License-Identifier: BSD-3-Clause
-   *)
-
-lit-html/directives/repeat.js:
-  (**
-   * @license
-   * Copyright 2017 Google LLC
    * SPDX-License-Identifier: BSD-3-Clause
    *)
 */
