@@ -1,9 +1,10 @@
-import { ObservableState } from "./observable-state.js";
+import { ObservableState } from "./observable-state";
 import { _deepClone, _deepEqual } from "../utils";
 /**
- * @typedef ObservableProxy
- * @property {function(): any} get - A getter function that returns a copy of the current value of the property.
- * @property {function(any): void} set - A setter function that updates the value of the property.
+ * ObservableProxy class that creates a proxy wrapper around ObservableState
+ * to enable direct property access and modification with reactive updates.
+ *
+ * @template T The type of the observable value
  */
 class ObservableProxy {
     constructor(observable) {
@@ -30,85 +31,90 @@ class ObservableProxy {
                 return observable.value;
             }
         };
-        return new Proxy(observable, {
-            get: (target, property, receiver) => {
-                // Handle conversion methods first
-                if (property === 'valueOf' ||
-                    property === 'toString' ||
-                    property === 'toJSON' ||
-                    property === Symbol.toPrimitive) {
-                    return conversionMethods[property];
-                }
-                // Inline property type check for better performance
-                let propertyType;
-                if (typeof target[property] === "function") {
-                    propertyType = "targetFunction";
-                }
-                else if (property in target) {
-                    propertyType = "targetProperty";
-                }
-                else if (typeof target.value[property] === "function") {
-                    propertyType = "valueFunction";
-                }
-                else {
-                    propertyType = "valueProperty";
-                }
-                switch (propertyType) {
-                    case "targetFunction":
-                        return target[property].bind(target);
-                    case "targetProperty":
-                        return _deepClone(target[property]);
-                    case "valueFunction":
-                        return (...args) => target.value[property](...args);
-                    case "valueProperty":
-                        return _deepClone(target.value[property]);
-                    default:
-                        console.warn(`Unexpected property type: ${propertyType}`);
-                        return undefined;
-                }
-            },
-            set: (target, property, value, receiver) => {
-                if (property in target) {
-                    // Check if the value is actually different before updating
-                    if (typeof target[property] === 'object' && target[property] !== null &&
-                        typeof value === 'object' && value !== null) {
-                        // Deep equality check for objects
-                        if (_deepEqual(target[property], value)) {
-                            return true; // Skip update if they're equal
-                        }
+        const proxyGetHandler = (target, property, receiver) => {
+            // Handle conversion methods first
+            if (property === 'valueOf' ||
+                property === 'toString' ||
+                property === 'toJSON' ||
+                property === Symbol.toPrimitive) {
+                return conversionMethods[property];
+            }
+            // Inline property type check for better performance
+            let propertyType;
+            const propKey = property;
+            if (typeof target[propKey] === "function") {
+                propertyType = "targetFunction";
+            }
+            else if (property in target) {
+                propertyType = "targetProperty";
+            }
+            else if (target.value && typeof target.value[property] === "function") {
+                propertyType = "valueFunction";
+            }
+            else {
+                propertyType = "valueProperty";
+            }
+            switch (propertyType) {
+                case "targetFunction":
+                    return target[propKey].bind(target);
+                case "targetProperty":
+                    return _deepClone(target[propKey]);
+                case "valueFunction":
+                    return (...args) => target.value[property](...args);
+                case "valueProperty":
+                    return _deepClone(target.value[property]);
+                default:
+                    console.warn(`Unexpected property type: ${propertyType}`);
+                    return undefined;
+            }
+        };
+        const proxySetHandler = (target, property, value, receiver) => {
+            const propKey = property;
+            if (property in target) {
+                // Check if the value is actually different before updating
+                if (typeof target[propKey] === 'object' && target[propKey] !== null &&
+                    typeof value === 'object' && value !== null) {
+                    // Deep equality check for objects
+                    if (_deepEqual(target[propKey], value)) {
+                        return true; // Skip update if they're equal
                     }
-                    else if (target[property] === value) {
-                        return true; // Skip update if primitive values are equal
-                    }
-                    target[property] = value;
                 }
-                else {
-                    // For properties on target.value
-                    const oldValue = target.value[property];
-                    // Check if the value is actually different before updating
-                    if (typeof oldValue === 'object' && oldValue !== null &&
-                        typeof value === 'object' && value !== null) {
-                        // Deep equality check for objects
-                        if (_deepEqual(oldValue, value)) {
-                            return true; // Skip update if they're equal
-                        }
-                    }
-                    else if (oldValue === value) {
-                        return true; // Skip update if primitive values are equal
-                    }
-                    target.value[property] = value;
+                else if (target[propKey] === value) {
+                    return true; // Skip update if primitive values are equal
                 }
+                target[property] = value;
+            }
+            else {
+                // For properties on target.value
+                const oldValue = target.value[property];
+                // Check if the value is actually different before updating
+                if (typeof oldValue === 'object' && oldValue !== null &&
+                    typeof value === 'object' && value !== null) {
+                    // Deep equality check for objects
+                    if (_deepEqual(oldValue, value)) {
+                        return true; // Skip update if they're equal
+                    }
+                }
+                else if (oldValue === value) {
+                    return true; // Skip update if primitive values are equal
+                }
+                target.value[property] = value;
+            }
+            target.update(() => target.value);
+            return true;
+        };
+        const proxyDeleteHandler = (target, property) => {
+            if (property in target.value) {
+                delete target.value[property];
                 target.update(() => target.value);
                 return true;
-            },
-            deleteProperty: (target, property) => {
-                if (property in target.value) {
-                    delete target.value[property];
-                    target.update(() => target.value);
-                    return true;
-                }
-                return false;
-            },
+            }
+            return false;
+        };
+        return new Proxy(observable, {
+            get: proxyGetHandler,
+            set: proxySetHandler,
+            deleteProperty: proxyDeleteHandler,
             ownKeys: (target) => {
                 return Reflect.ownKeys(target.value);
             },

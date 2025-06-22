@@ -1,5 +1,5 @@
 import { _deepClone, _deepMerge } from "../utils";
-import { Model } from "../observables/observable-model";
+import { Model } from "../observables/observable-model.js";
 // Type constructors
 const Type = {
     String: "string",

@@ -126,6 +126,34 @@ export class Observable {
     __observers;
     subscribeCallback;
     /**
+     * Protected method to check if there are any observers
+     * @returns true if there are observers, false otherwise
+     */
+    get hasObservers() {
+        return this.__observers.length > 0;
+    }
+    /**
+     * Protected method to get observer count
+     * @returns number of observers
+     */
+    get observerCount() {
+        return this.__observers.length;
+    }
+    /**
+     * Protected method to notify all observers
+     * @param value - The value to emit to observers
+     */
+    notifyObservers(value) {
+        const observers = this.__observers;
+        const length = observers.length;
+        for (let i = 0; i < length; i++) {
+            const observer = observers[i];
+            if (observer.next && !observer.isUnsubscribed) {
+                observer.next(value);
+            }
+        }
+    }
+    /**
      * Creates a new Observable instance with optimized internal structure
      * @param subscribeCallback - The callback function to call when a new observer subscribes
      */

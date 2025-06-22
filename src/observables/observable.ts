@@ -35,9 +35,9 @@ export type ObserverOrNext<T> = Observer<T> | ((value: T) => void);
  * High-performance Subscriber implementation
  */
 export class Subscriber<T> implements Observer<T> {
-  public next: ((value: T) => void) | null;
-  public error: ((error: any) => void) | null;
-  public complete: (() => void) | null;
+  public next: ((value: T) => void) | undefined;
+  public error: ((error: any) => void) | undefined;
+  public complete: (() => void) | undefined;
   private teardowns: TeardownFn[] | null;
   public isUnsubscribed: boolean;
 
@@ -49,39 +49,39 @@ export class Subscriber<T> implements Observer<T> {
     // Fast path for the common case: just a function (>90% of cases)
     if (typeof observer === "function") {
       this.next = observer;
-      this.error = null;
-      this.complete = null;
+      this.error = undefined;
+      this.complete = undefined;
     } else if (observer && typeof observer === "object") {
       // Avoid unnecessary binding for performance
       if (observer.next) {
         this.next = typeof observer.next === "function" ? 
           (observer.next.bind ? observer.next.bind(observer) : observer.next) : 
-          null;
+          undefined;
       } else {
-        this.next = null;
+        this.next = undefined;
       }
       
       // Only create these properties if they exist
       if (observer.error) {
         this.error = typeof observer.error === "function" ? 
           (observer.error.bind ? observer.error.bind(observer) : observer.error) : 
-          null;
+          undefined;
       } else {
-        this.error = null;
+        this.error = undefined;
       }
       
       if (observer.complete) {
         this.complete = typeof observer.complete === "function" ? 
           (observer.complete.bind ? observer.complete.bind(observer) : observer.complete) : 
-          null;
+          undefined;
       } else {
-        this.complete = null;
+        this.complete = undefined;
       }
     } else {
       // Handle edge case - null or primitive
-      this.next = null;
-      this.error = null;
-      this.complete = null;
+      this.next = undefined;
+      this.error = undefined;
+      this.complete = undefined;
     }
     
     // Most subscribers won't have teardowns, so initialize on first use
@@ -134,9 +134,9 @@ export class Subscriber<T> implements Observer<T> {
     // Fast path if no teardowns
     if (!this.teardowns) {
       // Clear references to aid GC
-      this.next = null;
-      this.error = null;
-      this.complete = null;
+      this.next = undefined;
+      this.error = undefined;
+      this.complete = undefined;
       return;
     }
     
@@ -152,9 +152,9 @@ export class Subscriber<T> implements Observer<T> {
     
     // Clear references to aid garbage collection
     this.teardowns = null;
-    this.next = null;
-    this.error = null;
-    this.complete = null;
+    this.next = undefined;
+    this.error = undefined;
+    this.complete = undefined;
   }
 }
 
@@ -162,8 +162,39 @@ export class Subscriber<T> implements Observer<T> {
  * High-performance Observable implementation
  */
 export class Observable<T> {
-  private __observers: Subscriber<T>[];
+  protected __observers: Subscriber<T>[];
   private subscribeCallback?: SubscribeCallback<T>;
+
+  /**
+   * Protected method to check if there are any observers
+   * @returns true if there are observers, false otherwise
+   */
+  protected get hasObservers(): boolean {
+    return this.__observers.length > 0;
+  }
+
+  /**
+   * Protected method to get observer count
+   * @returns number of observers
+   */
+  protected get observerCount(): number {
+    return this.__observers.length;
+  }
+
+  /**
+   * Protected method to notify all observers
+   * @param value - The value to emit to observers
+   */
+  protected notifyObservers(value: T): void {
+    const observers = this.__observers;
+    const length = observers.length;
+    for (let i = 0; i < length; i++) {
+      const observer = observers[i];
+      if (observer.next && !observer.isUnsubscribed) {
+        observer.next(value);
+      }
+    }
+  }
 
   /**
    * Creates a new Observable instance with optimized internal structure
@@ -189,7 +220,11 @@ export class Observable<T> {
     // Fast path for function observer (most common case)
     const subscriber = typeof observerOrNext === "function" 
       ? new Subscriber<T>(observerOrNext)
-      : new Subscriber<T>({ next: observerOrNext as any, error, complete });
+      : new Subscriber<T>({ 
+          next: observerOrNext as any, 
+          error: error || undefined, 
+          complete: complete || undefined 
+        });
     
     // Fast path for no subscribeCallback (common case)
     if (!this.subscribeCallback) {

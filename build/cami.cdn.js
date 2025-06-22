@@ -10,18 +10,18 @@ var cami = (() => {
   var __propIsEnum = Object.prototype.propertyIsEnumerable;
   var __knownSymbol = (name, symbol) => (symbol = Symbol[name]) ? symbol : Symbol.for("Symbol." + name);
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-  var __spreadValues = (a3, b3) => {
-    for (var prop in b3 || (b3 = {}))
-      if (__hasOwnProp.call(b3, prop))
-        __defNormalProp(a3, prop, b3[prop]);
+  var __spreadValues = (a2, b2) => {
+    for (var prop in b2 || (b2 = {}))
+      if (__hasOwnProp.call(b2, prop))
+        __defNormalProp(a2, prop, b2[prop]);
     if (__getOwnPropSymbols)
-      for (var prop of __getOwnPropSymbols(b3)) {
-        if (__propIsEnum.call(b3, prop))
-          __defNormalProp(a3, prop, b3[prop]);
+      for (var prop of __getOwnPropSymbols(b2)) {
+        if (__propIsEnum.call(b2, prop))
+          __defNormalProp(a2, prop, b2[prop]);
       }
-    return a3;
+    return a2;
   };
-  var __spreadProps = (a3, b3) => __defProps(a3, __getOwnPropDescs(b3));
+  var __spreadProps = (a2, b2) => __defProps(a2, __getOwnPropDescs(b2));
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
@@ -35,24 +35,23 @@ var cami = (() => {
     return to;
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
   var __async = (__this, __arguments, generator) => {
     return new Promise((resolve, reject) => {
       var fulfilled = (value) => {
         try {
           step(generator.next(value));
-        } catch (e5) {
-          reject(e5);
+        } catch (e4) {
+          reject(e4);
         }
       };
       var rejected = (value) => {
         try {
           step(generator.throw(value));
-        } catch (e5) {
-          reject(e5);
+        } catch (e4) {
+          reject(e4);
         }
       };
-      var step = (x3) => x3.done ? resolve(x3.value) : Promise.resolve(x3.value).then(fulfilled, rejected);
+      var step = (x2) => x2.done ? resolve(x2.value) : Promise.resolve(x2.value).then(fulfilled, rejected);
       step((generator = generator.apply(__this, __arguments)).next());
     });
   };
@@ -61,18 +60,18 @@ var cami = (() => {
     this[1] = isYieldStar;
   };
   var __asyncGenerator = (__this, __arguments, generator) => {
-    var resume = (k3, v4, yes, no) => {
+    var resume = (k2, v3, yes, no) => {
       try {
-        var x3 = generator[k3](v4), isAwait = (v4 = x3.value) instanceof __await, done = x3.done;
-        Promise.resolve(isAwait ? v4[0] : v4).then((y3) => isAwait ? resume(k3 === "return" ? k3 : "next", v4[1] ? { done: y3.done, value: y3.value } : y3, yes, no) : yes({ value: y3, done })).catch((e5) => resume("throw", e5, yes, no));
-      } catch (e5) {
-        no(e5);
+        var x2 = generator[k2](v3), isAwait = (v3 = x2.value) instanceof __await, done = x2.done;
+        Promise.resolve(isAwait ? v3[0] : v3).then((y2) => isAwait ? resume(k2 === "return" ? k2 : "next", v3[1] ? { done: y2.done, value: y2.value } : y2, yes, no) : yes({ value: y2, done })).catch((e4) => resume("throw", e4, yes, no));
+      } catch (e4) {
+        no(e4);
       }
-    }, method = (k3) => it[k3] = (x3) => new Promise((yes, no) => resume(k3, x3, yes, no)), it = {};
+    }, method = (k2) => it[k2] = (x2) => new Promise((yes, no) => resume(k2, x2, yes, no)), it = {};
     return generator = generator.apply(__this, __arguments), it[__knownSymbol("asyncIterator")] = () => it, method("next"), method("throw"), method("return"), it;
   };
 
-  // src/cami.js
+  // src/cami.ts
   var cami_exports = {};
   __export(cami_exports, {
     Model: () => Model,
@@ -81,6 +80,10 @@ var cami = (() => {
     ObservableStore: () => ObservableStore,
     ReactiveElement: () => ReactiveElement,
     Type: () => Type,
+    _deepClone: () => _deepClone,
+    _deepEqual: () => _deepEqual,
+    _deepMerge: () => _deepMerge,
+    clearStoreCache: () => clearStoreCache,
     createIdbPromise: () => createIdbPromise,
     createLocalStorage: () => createLocalStorage,
     createURLStore: () => createURLStore,
@@ -88,6 +91,7 @@ var cami = (() => {
     effect: () => effect,
     events: () => events,
     html: () => x,
+    invariant: () => invariant_default,
     keyed: () => i3,
     persistToIdbThunk: () => persistToIdbThunk,
     persistToLocalStorageThunk: () => persistToLocalStorageThunk,
@@ -102,16 +106,16 @@ var cami = (() => {
   // node_modules/lit-html/lit-html.js
   var t = globalThis;
   var i = t.trustedTypes;
-  var s = i ? i.createPolicy("lit-html", { createHTML: (t5) => t5 }) : void 0;
+  var s = i ? i.createPolicy("lit-html", { createHTML: (t4) => t4 }) : void 0;
   var e = "$lit$";
   var h = `lit$${Math.random().toFixed(9).slice(2)}$`;
   var o = "?" + h;
   var n = `<${o}>`;
   var r = document;
   var l = () => r.createComment("");
-  var c = (t5) => null === t5 || "object" != typeof t5 && "function" != typeof t5;
+  var c = (t4) => null === t4 || "object" != typeof t4 && "function" != typeof t4;
   var a = Array.isArray;
-  var u = (t5) => a(t5) || "function" == typeof (t5 == null ? void 0 : t5[Symbol.iterator]);
+  var u = (t4) => a(t4) || "function" == typeof (t4 == null ? void 0 : t4[Symbol.iterator]);
   var d = "[ 	\n\f\r]";
   var f = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
   var v = /-->/g;
@@ -121,7 +125,7 @@ var cami = (() => {
   var p = /'/g;
   var g = /"/g;
   var $ = /^(?:script|style|textarea|title)$/i;
-  var y = (t5) => (i5, ...s4) => ({ _$litType$: t5, strings: i5, values: s4 });
+  var y = (t4) => (i4, ...s3) => ({ _$litType$: t4, strings: i4, values: s3 });
   var x = y(1);
   var b = y(2);
   var w = y(3);
@@ -129,69 +133,69 @@ var cami = (() => {
   var E = Symbol.for("lit-nothing");
   var A = /* @__PURE__ */ new WeakMap();
   var C = r.createTreeWalker(r, 129);
-  function P(t5, i5) {
-    if (!a(t5) || !t5.hasOwnProperty("raw")) throw Error("invalid template strings array");
-    return void 0 !== s ? s.createHTML(i5) : i5;
+  function P(t4, i4) {
+    if (!a(t4) || !t4.hasOwnProperty("raw")) throw Error("invalid template strings array");
+    return void 0 !== s ? s.createHTML(i4) : i4;
   }
-  var V = (t5, i5) => {
-    const s4 = t5.length - 1, o4 = [];
-    let r4, l3 = 2 === i5 ? "<svg>" : 3 === i5 ? "<math>" : "", c4 = f;
-    for (let i6 = 0; i6 < s4; i6++) {
-      const s5 = t5[i6];
-      let a3, u5, d3 = -1, y3 = 0;
-      for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); ) y3 = c4.lastIndex, c4 === f ? "!--" === u5[1] ? c4 = v : void 0 !== u5[1] ? c4 = _ : void 0 !== u5[2] ? ($.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m) : void 0 !== u5[3] && (c4 = m) : c4 === m ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m : '"' === u5[3] ? g : p) : c4 === g || c4 === p ? c4 = m : c4 === v || c4 === _ ? c4 = f : (c4 = m, r4 = void 0);
-      const x3 = c4 === m && t5[i6 + 1].startsWith("/>") ? " " : "";
-      l3 += c4 === f ? s5 + n : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e + s5.slice(d3) + h + x3) : s5 + h + (-2 === d3 ? i6 : x3);
+  var V = (t4, i4) => {
+    const s3 = t4.length - 1, o3 = [];
+    let r3, l2 = 2 === i4 ? "<svg>" : 3 === i4 ? "<math>" : "", c3 = f;
+    for (let i5 = 0; i5 < s3; i5++) {
+      const s4 = t4[i5];
+      let a2, u4, d2 = -1, y2 = 0;
+      for (; y2 < s4.length && (c3.lastIndex = y2, u4 = c3.exec(s4), null !== u4); ) y2 = c3.lastIndex, c3 === f ? "!--" === u4[1] ? c3 = v : void 0 !== u4[1] ? c3 = _ : void 0 !== u4[2] ? ($.test(u4[2]) && (r3 = RegExp("</" + u4[2], "g")), c3 = m) : void 0 !== u4[3] && (c3 = m) : c3 === m ? ">" === u4[0] ? (c3 = r3 != null ? r3 : f, d2 = -1) : void 0 === u4[1] ? d2 = -2 : (d2 = c3.lastIndex - u4[2].length, a2 = u4[1], c3 = void 0 === u4[3] ? m : '"' === u4[3] ? g : p) : c3 === g || c3 === p ? c3 = m : c3 === v || c3 === _ ? c3 = f : (c3 = m, r3 = void 0);
+      const x2 = c3 === m && t4[i5 + 1].startsWith("/>") ? " " : "";
+      l2 += c3 === f ? s4 + n : d2 >= 0 ? (o3.push(a2), s4.slice(0, d2) + e + s4.slice(d2) + h + x2) : s4 + h + (-2 === d2 ? i5 : x2);
     }
-    return [P(t5, l3 + (t5[s4] || "<?>") + (2 === i5 ? "</svg>" : 3 === i5 ? "</math>" : "")), o4];
+    return [P(t4, l2 + (t4[s3] || "<?>") + (2 === i4 ? "</svg>" : 3 === i4 ? "</math>" : "")), o3];
   };
   var N = class _N {
-    constructor({ strings: t5, _$litType$: s4 }, n3) {
-      let r4;
+    constructor({ strings: t4, _$litType$: s3 }, n2) {
+      let r3;
       this.parts = [];
-      let c4 = 0, a3 = 0;
-      const u5 = t5.length - 1, d3 = this.parts, [f3, v4] = V(t5, s4);
-      if (this.el = _N.createElement(f3, n3), C.currentNode = this.el.content, 2 === s4 || 3 === s4) {
-        const t6 = this.el.content.firstChild;
-        t6.replaceWith(...t6.childNodes);
+      let c3 = 0, a2 = 0;
+      const u4 = t4.length - 1, d2 = this.parts, [f2, v3] = V(t4, s3);
+      if (this.el = _N.createElement(f2, n2), C.currentNode = this.el.content, 2 === s3 || 3 === s3) {
+        const t5 = this.el.content.firstChild;
+        t5.replaceWith(...t5.childNodes);
       }
-      for (; null !== (r4 = C.nextNode()) && d3.length < u5; ) {
-        if (1 === r4.nodeType) {
-          if (r4.hasAttributes()) for (const t6 of r4.getAttributeNames()) if (t6.endsWith(e)) {
-            const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h), e5 = /([.?@])?(.*)/.exec(i5);
-            d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H : "?" === e5[1] ? I : "@" === e5[1] ? L : k }), r4.removeAttribute(t6);
-          } else t6.startsWith(h) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
-          if ($.test(r4.tagName)) {
-            const t6 = r4.textContent.split(h), s5 = t6.length - 1;
-            if (s5 > 0) {
-              r4.textContent = i ? i.emptyScript : "";
-              for (let i5 = 0; i5 < s5; i5++) r4.append(t6[i5], l()), C.nextNode(), d3.push({ type: 2, index: ++c4 });
-              r4.append(t6[s5], l());
+      for (; null !== (r3 = C.nextNode()) && d2.length < u4; ) {
+        if (1 === r3.nodeType) {
+          if (r3.hasAttributes()) for (const t5 of r3.getAttributeNames()) if (t5.endsWith(e)) {
+            const i4 = v3[a2++], s4 = r3.getAttribute(t5).split(h), e4 = /([.?@])?(.*)/.exec(i4);
+            d2.push({ type: 1, index: c3, name: e4[2], strings: s4, ctor: "." === e4[1] ? H : "?" === e4[1] ? I : "@" === e4[1] ? L : k }), r3.removeAttribute(t5);
+          } else t5.startsWith(h) && (d2.push({ type: 6, index: c3 }), r3.removeAttribute(t5));
+          if ($.test(r3.tagName)) {
+            const t5 = r3.textContent.split(h), s4 = t5.length - 1;
+            if (s4 > 0) {
+              r3.textContent = i ? i.emptyScript : "";
+              for (let i4 = 0; i4 < s4; i4++) r3.append(t5[i4], l()), C.nextNode(), d2.push({ type: 2, index: ++c3 });
+              r3.append(t5[s4], l());
             }
           }
-        } else if (8 === r4.nodeType) if (r4.data === o) d3.push({ type: 2, index: c4 });
+        } else if (8 === r3.nodeType) if (r3.data === o) d2.push({ type: 2, index: c3 });
         else {
-          let t6 = -1;
-          for (; -1 !== (t6 = r4.data.indexOf(h, t6 + 1)); ) d3.push({ type: 7, index: c4 }), t6 += h.length - 1;
+          let t5 = -1;
+          for (; -1 !== (t5 = r3.data.indexOf(h, t5 + 1)); ) d2.push({ type: 7, index: c3 }), t5 += h.length - 1;
         }
-        c4++;
+        c3++;
       }
     }
-    static createElement(t5, i5) {
-      const s4 = r.createElement("template");
-      return s4.innerHTML = t5, s4;
+    static createElement(t4, i4) {
+      const s3 = r.createElement("template");
+      return s3.innerHTML = t4, s3;
     }
   };
-  function S(t5, i5, s4 = t5, e5) {
-    var _a3, _b, _c;
-    if (i5 === T) return i5;
-    let h3 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
-    const o4 = c(i5) ? void 0 : i5._$litDirective$;
-    return (h3 == null ? void 0 : h3.constructor) !== o4 && ((_b = h3 == null ? void 0 : h3._$AO) == null ? void 0 : _b.call(h3, false), void 0 === o4 ? h3 = void 0 : (h3 = new o4(t5), h3._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h3 : s4._$Cl = h3), void 0 !== h3 && (i5 = S(t5, h3._$AS(t5, i5.values), h3, e5)), i5;
+  function S(t4, i4, s3 = t4, e4) {
+    var _a2, _b, _c;
+    if (i4 === T) return i4;
+    let h2 = void 0 !== e4 ? (_a2 = s3._$Co) == null ? void 0 : _a2[e4] : s3._$Cl;
+    const o3 = c(i4) ? void 0 : i4._$litDirective$;
+    return (h2 == null ? void 0 : h2.constructor) !== o3 && ((_b = h2 == null ? void 0 : h2._$AO) == null ? void 0 : _b.call(h2, false), void 0 === o3 ? h2 = void 0 : (h2 = new o3(t4), h2._$AT(t4, s3, e4)), void 0 !== e4 ? ((_c = s3._$Co) != null ? _c : s3._$Co = [])[e4] = h2 : s3._$Cl = h2), void 0 !== h2 && (i4 = S(t4, h2._$AS(t4, i4.values), h2, e4)), i4;
   }
   var M = class {
-    constructor(t5, i5) {
-      this._$AV = [], this._$AN = void 0, this._$AD = t5, this._$AM = i5;
+    constructor(t4, i4) {
+      this._$AV = [], this._$AN = void 0, this._$AD = t4, this._$AM = i4;
     }
     get parentNode() {
       return this._$AM.parentNode;
@@ -199,38 +203,38 @@ var cami = (() => {
     get _$AU() {
       return this._$AM._$AU;
     }
-    u(t5) {
-      var _a3;
-      const { el: { content: i5 }, parts: s4 } = this._$AD, e5 = ((_a3 = t5 == null ? void 0 : t5.creationScope) != null ? _a3 : r).importNode(i5, true);
-      C.currentNode = e5;
-      let h3 = C.nextNode(), o4 = 0, n3 = 0, l3 = s4[0];
-      for (; void 0 !== l3; ) {
-        if (o4 === l3.index) {
-          let i6;
-          2 === l3.type ? i6 = new R(h3, h3.nextSibling, this, t5) : 1 === l3.type ? i6 = new l3.ctor(h3, l3.name, l3.strings, this, t5) : 6 === l3.type && (i6 = new z(h3, this, t5)), this._$AV.push(i6), l3 = s4[++n3];
+    u(t4) {
+      var _a2;
+      const { el: { content: i4 }, parts: s3 } = this._$AD, e4 = ((_a2 = t4 == null ? void 0 : t4.creationScope) != null ? _a2 : r).importNode(i4, true);
+      C.currentNode = e4;
+      let h2 = C.nextNode(), o3 = 0, n2 = 0, l2 = s3[0];
+      for (; void 0 !== l2; ) {
+        if (o3 === l2.index) {
+          let i5;
+          2 === l2.type ? i5 = new R(h2, h2.nextSibling, this, t4) : 1 === l2.type ? i5 = new l2.ctor(h2, l2.name, l2.strings, this, t4) : 6 === l2.type && (i5 = new z(h2, this, t4)), this._$AV.push(i5), l2 = s3[++n2];
         }
-        o4 !== (l3 == null ? void 0 : l3.index) && (h3 = C.nextNode(), o4++);
+        o3 !== (l2 == null ? void 0 : l2.index) && (h2 = C.nextNode(), o3++);
       }
-      return C.currentNode = r, e5;
+      return C.currentNode = r, e4;
     }
-    p(t5) {
-      let i5 = 0;
-      for (const s4 of this._$AV) void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
+    p(t4) {
+      let i4 = 0;
+      for (const s3 of this._$AV) void 0 !== s3 && (void 0 !== s3.strings ? (s3._$AI(t4, s3, i4), i4 += s3.strings.length - 2) : s3._$AI(t4[i4])), i4++;
     }
   };
   var R = class _R {
     get _$AU() {
-      var _a3, _b;
-      return (_b = (_a3 = this._$AM) == null ? void 0 : _a3._$AU) != null ? _b : this._$Cv;
+      var _a2, _b;
+      return (_b = (_a2 = this._$AM) == null ? void 0 : _a2._$AU) != null ? _b : this._$Cv;
     }
-    constructor(t5, i5, s4, e5) {
-      var _a3;
-      this.type = 2, this._$AH = E, this._$AN = void 0, this._$AA = t5, this._$AB = i5, this._$AM = s4, this.options = e5, this._$Cv = (_a3 = e5 == null ? void 0 : e5.isConnected) != null ? _a3 : true;
+    constructor(t4, i4, s3, e4) {
+      var _a2;
+      this.type = 2, this._$AH = E, this._$AN = void 0, this._$AA = t4, this._$AB = i4, this._$AM = s3, this.options = e4, this._$Cv = (_a2 = e4 == null ? void 0 : e4.isConnected) != null ? _a2 : true;
     }
     get parentNode() {
-      let t5 = this._$AA.parentNode;
-      const i5 = this._$AM;
-      return void 0 !== i5 && 11 === (t5 == null ? void 0 : t5.nodeType) && (t5 = i5.parentNode), t5;
+      let t4 = this._$AA.parentNode;
+      const i4 = this._$AM;
+      return void 0 !== i4 && 11 === (t4 == null ? void 0 : t4.nodeType) && (t4 = i4.parentNode), t4;
     }
     get startNode() {
       return this._$AA;
@@ -238,48 +242,48 @@ var cami = (() => {
     get endNode() {
       return this._$AB;
     }
-    _$AI(t5, i5 = this) {
-      t5 = S(this, t5, i5), c(t5) ? t5 === E || null == t5 || "" === t5 ? (this._$AH !== E && this._$AR(), this._$AH = E) : t5 !== this._$AH && t5 !== T && this._(t5) : void 0 !== t5._$litType$ ? this.$(t5) : void 0 !== t5.nodeType ? this.T(t5) : u(t5) ? this.k(t5) : this._(t5);
+    _$AI(t4, i4 = this) {
+      t4 = S(this, t4, i4), c(t4) ? t4 === E || null == t4 || "" === t4 ? (this._$AH !== E && this._$AR(), this._$AH = E) : t4 !== this._$AH && t4 !== T && this._(t4) : void 0 !== t4._$litType$ ? this.$(t4) : void 0 !== t4.nodeType ? this.T(t4) : u(t4) ? this.k(t4) : this._(t4);
     }
-    O(t5) {
-      return this._$AA.parentNode.insertBefore(t5, this._$AB);
+    O(t4) {
+      return this._$AA.parentNode.insertBefore(t4, this._$AB);
     }
-    T(t5) {
-      this._$AH !== t5 && (this._$AR(), this._$AH = this.O(t5));
+    T(t4) {
+      this._$AH !== t4 && (this._$AR(), this._$AH = this.O(t4));
     }
-    _(t5) {
-      this._$AH !== E && c(this._$AH) ? this._$AA.nextSibling.data = t5 : this.T(r.createTextNode(t5)), this._$AH = t5;
+    _(t4) {
+      this._$AH !== E && c(this._$AH) ? this._$AA.nextSibling.data = t4 : this.T(r.createTextNode(t4)), this._$AH = t4;
     }
-    $(t5) {
-      var _a3;
-      const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = N.createElement(P(s4.h, s4.h[0]), this.options)), s4);
-      if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5) this._$AH.p(i5);
+    $(t4) {
+      var _a2;
+      const { values: i4, _$litType$: s3 } = t4, e4 = "number" == typeof s3 ? this._$AC(t4) : (void 0 === s3.el && (s3.el = N.createElement(P(s3.h, s3.h[0]), this.options)), s3);
+      if (((_a2 = this._$AH) == null ? void 0 : _a2._$AD) === e4) this._$AH.p(i4);
       else {
-        const t6 = new M(e5, this), s5 = t6.u(this.options);
-        t6.p(i5), this.T(s5), this._$AH = t6;
+        const t5 = new M(e4, this), s4 = t5.u(this.options);
+        t5.p(i4), this.T(s4), this._$AH = t5;
       }
     }
-    _$AC(t5) {
-      let i5 = A.get(t5.strings);
-      return void 0 === i5 && A.set(t5.strings, i5 = new N(t5)), i5;
+    _$AC(t4) {
+      let i4 = A.get(t4.strings);
+      return void 0 === i4 && A.set(t4.strings, i4 = new N(t4)), i4;
     }
-    k(t5) {
+    k(t4) {
       a(this._$AH) || (this._$AH = [], this._$AR());
-      const i5 = this._$AH;
-      let s4, e5 = 0;
-      for (const h3 of t5) e5 === i5.length ? i5.push(s4 = new _R(this.O(l()), this.O(l()), this, this.options)) : s4 = i5[e5], s4._$AI(h3), e5++;
-      e5 < i5.length && (this._$AR(s4 && s4._$AB.nextSibling, e5), i5.length = e5);
+      const i4 = this._$AH;
+      let s3, e4 = 0;
+      for (const h2 of t4) e4 === i4.length ? i4.push(s3 = new _R(this.O(l()), this.O(l()), this, this.options)) : s3 = i4[e4], s3._$AI(h2), e4++;
+      e4 < i4.length && (this._$AR(s3 && s3._$AB.nextSibling, e4), i4.length = e4);
     }
-    _$AR(t5 = this._$AA.nextSibling, i5) {
-      var _a3;
-      for ((_a3 = this._$AP) == null ? void 0 : _a3.call(this, false, true, i5); t5 && t5 !== this._$AB; ) {
-        const i6 = t5.nextSibling;
-        t5.remove(), t5 = i6;
+    _$AR(t4 = this._$AA.nextSibling, i4) {
+      var _a2;
+      for ((_a2 = this._$AP) == null ? void 0 : _a2.call(this, false, true, i4); t4 && t4 !== this._$AB; ) {
+        const i5 = t4.nextSibling;
+        t4.remove(), t4 = i5;
       }
     }
-    setConnected(t5) {
-      var _a3;
-      void 0 === this._$AM && (this._$Cv = t5, (_a3 = this._$AP) == null ? void 0 : _a3.call(this, t5));
+    setConnected(t4) {
+      var _a2;
+      void 0 === this._$AM && (this._$Cv = t4, (_a2 = this._$AP) == null ? void 0 : _a2.call(this, t4));
     }
   };
   var k = class {
@@ -289,104 +293,114 @@ var cami = (() => {
     get _$AU() {
       return this._$AM._$AU;
     }
-    constructor(t5, i5, s4, e5, h3) {
-      this.type = 1, this._$AH = E, this._$AN = void 0, this.element = t5, this.name = i5, this._$AM = e5, this.options = h3, s4.length > 2 || "" !== s4[0] || "" !== s4[1] ? (this._$AH = Array(s4.length - 1).fill(new String()), this.strings = s4) : this._$AH = E;
+    constructor(t4, i4, s3, e4, h2) {
+      this.type = 1, this._$AH = E, this._$AN = void 0, this.element = t4, this.name = i4, this._$AM = e4, this.options = h2, s3.length > 2 || "" !== s3[0] || "" !== s3[1] ? (this._$AH = Array(s3.length - 1).fill(new String()), this.strings = s3) : this._$AH = E;
     }
-    _$AI(t5, i5 = this, s4, e5) {
-      const h3 = this.strings;
-      let o4 = false;
-      if (void 0 === h3) t5 = S(this, t5, i5, 0), o4 = !c(t5) || t5 !== this._$AH && t5 !== T, o4 && (this._$AH = t5);
+    _$AI(t4, i4 = this, s3, e4) {
+      const h2 = this.strings;
+      let o3 = false;
+      if (void 0 === h2) t4 = S(this, t4, i4, 0), o3 = !c(t4) || t4 !== this._$AH && t4 !== T, o3 && (this._$AH = t4);
       else {
-        const e6 = t5;
-        let n3, r4;
-        for (t5 = h3[0], n3 = 0; n3 < h3.length - 1; n3++) r4 = S(this, e6[s4 + n3], i5, n3), r4 === T && (r4 = this._$AH[n3]), o4 || (o4 = !c(r4) || r4 !== this._$AH[n3]), r4 === E ? t5 = E : t5 !== E && (t5 += (r4 != null ? r4 : "") + h3[n3 + 1]), this._$AH[n3] = r4;
+        const e5 = t4;
+        let n2, r3;
+        for (t4 = h2[0], n2 = 0; n2 < h2.length - 1; n2++) r3 = S(this, e5[s3 + n2], i4, n2), r3 === T && (r3 = this._$AH[n2]), o3 || (o3 = !c(r3) || r3 !== this._$AH[n2]), r3 === E ? t4 = E : t4 !== E && (t4 += (r3 != null ? r3 : "") + h2[n2 + 1]), this._$AH[n2] = r3;
       }
-      o4 && !e5 && this.j(t5);
+      o3 && !e4 && this.j(t4);
     }
-    j(t5) {
-      t5 === E ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t5 != null ? t5 : "");
+    j(t4) {
+      t4 === E ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t4 != null ? t4 : "");
     }
   };
   var H = class extends k {
     constructor() {
       super(...arguments), this.type = 3;
     }
-    j(t5) {
-      this.element[this.name] = t5 === E ? void 0 : t5;
+    j(t4) {
+      this.element[this.name] = t4 === E ? void 0 : t4;
     }
   };
   var I = class extends k {
     constructor() {
       super(...arguments), this.type = 4;
     }
-    j(t5) {
-      this.element.toggleAttribute(this.name, !!t5 && t5 !== E);
+    j(t4) {
+      this.element.toggleAttribute(this.name, !!t4 && t4 !== E);
     }
   };
   var L = class extends k {
-    constructor(t5, i5, s4, e5, h3) {
-      super(t5, i5, s4, e5, h3), this.type = 5;
+    constructor(t4, i4, s3, e4, h2) {
+      super(t4, i4, s3, e4, h2), this.type = 5;
     }
-    _$AI(t5, i5 = this) {
-      var _a3;
-      if ((t5 = (_a3 = S(this, t5, i5, 0)) != null ? _a3 : E) === T) return;
-      const s4 = this._$AH, e5 = t5 === E && s4 !== E || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h3 = t5 !== E && (s4 === E || e5);
-      e5 && this.element.removeEventListener(this.name, this, s4), h3 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
+    _$AI(t4, i4 = this) {
+      var _a2;
+      if ((t4 = (_a2 = S(this, t4, i4, 0)) != null ? _a2 : E) === T) return;
+      const s3 = this._$AH, e4 = t4 === E && s3 !== E || t4.capture !== s3.capture || t4.once !== s3.once || t4.passive !== s3.passive, h2 = t4 !== E && (s3 === E || e4);
+      e4 && this.element.removeEventListener(this.name, this, s3), h2 && this.element.addEventListener(this.name, this, t4), this._$AH = t4;
     }
-    handleEvent(t5) {
-      var _a3, _b;
-      "function" == typeof this._$AH ? this._$AH.call((_b = (_a3 = this.options) == null ? void 0 : _a3.host) != null ? _b : this.element, t5) : this._$AH.handleEvent(t5);
+    handleEvent(t4) {
+      var _a2, _b;
+      "function" == typeof this._$AH ? this._$AH.call((_b = (_a2 = this.options) == null ? void 0 : _a2.host) != null ? _b : this.element, t4) : this._$AH.handleEvent(t4);
     }
   };
   var z = class {
-    constructor(t5, i5, s4) {
-      this.element = t5, this.type = 6, this._$AN = void 0, this._$AM = i5, this.options = s4;
+    constructor(t4, i4, s3) {
+      this.element = t4, this.type = 6, this._$AN = void 0, this._$AM = i4, this.options = s3;
     }
     get _$AU() {
       return this._$AM._$AU;
     }
-    _$AI(t5) {
-      S(this, t5);
+    _$AI(t4) {
+      S(this, t4);
     }
   };
   var Z = { M: e, P: h, A: o, C: 1, L: V, R: M, D: u, V: S, I: R, H: k, N: I, U: L, B: H, F: z };
   var j = t.litHtmlPolyfillSupport;
   var _a;
   j == null ? void 0 : j(N, R), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.3.0");
+  var B = (t4, i4, s3) => {
+    var _a2, _b;
+    const e4 = (_a2 = s3 == null ? void 0 : s3.renderBefore) != null ? _a2 : i4;
+    let h2 = e4._$litPart$;
+    if (void 0 === h2) {
+      const t5 = (_b = s3 == null ? void 0 : s3.renderBefore) != null ? _b : null;
+      e4._$litPart$ = h2 = new R(i4.insertBefore(l(), t5), t5, void 0, s3 != null ? s3 : {});
+    }
+    return h2._$AI(t4), h2;
+  };
 
   // node_modules/lit-html/directive.js
   var t2 = { ATTRIBUTE: 1, CHILD: 2, PROPERTY: 3, BOOLEAN_ATTRIBUTE: 4, EVENT: 5, ELEMENT: 6 };
-  var e2 = (t5) => (...e5) => ({ _$litDirective$: t5, values: e5 });
+  var e2 = (t4) => (...e4) => ({ _$litDirective$: t4, values: e4 });
   var i2 = class {
-    constructor(t5) {
+    constructor(t4) {
     }
     get _$AU() {
       return this._$AM._$AU;
     }
-    _$AT(t5, e5, i5) {
-      this._$Ct = t5, this._$AM = e5, this._$Ci = i5;
+    _$AT(t4, e4, i4) {
+      this._$Ct = t4, this._$AM = e4, this._$Ci = i4;
     }
-    _$AS(t5, e5) {
-      return this.update(t5, e5);
+    _$AS(t4, e4) {
+      return this.update(t4, e4);
     }
-    update(t5, e5) {
-      return this.render(...e5);
+    update(t4, e4) {
+      return this.render(...e4);
     }
   };
 
   // node_modules/lit-html/directives/unsafe-html.js
   var e3 = class extends i2 {
-    constructor(i5) {
-      if (super(i5), this.it = E, i5.type !== t2.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
+    constructor(i4) {
+      if (super(i4), this.it = E, i4.type !== t2.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
     }
-    render(r4) {
-      if (r4 === E || null == r4) return this._t = void 0, this.it = r4;
-      if (r4 === T) return r4;
-      if ("string" != typeof r4) throw Error(this.constructor.directiveName + "() called with a non-string value");
-      if (r4 === this.it) return this._t;
-      this.it = r4;
-      const s4 = [r4];
-      return s4.raw = s4, this._t = { _$litType$: this.constructor.resultType, strings: s4, values: [] };
+    render(r3) {
+      if (r3 === E || null == r3) return this._t = void 0, this.it = r3;
+      if (r3 === T) return r3;
+      if ("string" != typeof r3) throw Error(this.constructor.directiveName + "() called with a non-string value");
+      if (r3 === this.it) return this._t;
+      this.it = r3;
+      const s3 = [r3];
+      return s3.raw = s3, this._t = { _$litType$: this.constructor.resultType, strings: s3, values: [] };
     }
   };
   e3.directiveName = "unsafeHTML", e3.resultType = 1;
@@ -395,40 +409,40 @@ var cami = (() => {
   // node_modules/lit-html/directive-helpers.js
   var { I: t3 } = Z;
   var s2 = () => document.createComment("");
-  var r2 = (o4, i5, n3) => {
-    var _a3;
-    const e5 = o4._$AA.parentNode, l3 = void 0 === i5 ? o4._$AB : i5._$AA;
-    if (void 0 === n3) {
-      const i6 = e5.insertBefore(s2(), l3), c4 = e5.insertBefore(s2(), l3);
-      n3 = new t3(i6, c4, o4, o4.options);
+  var r2 = (o3, i4, n2) => {
+    var _a2;
+    const e4 = o3._$AA.parentNode, l2 = void 0 === i4 ? o3._$AB : i4._$AA;
+    if (void 0 === n2) {
+      const i5 = e4.insertBefore(s2(), l2), c3 = e4.insertBefore(s2(), l2);
+      n2 = new t3(i5, c3, o3, o3.options);
     } else {
-      const t5 = n3._$AB.nextSibling, i6 = n3._$AM, c4 = i6 !== o4;
-      if (c4) {
-        let t6;
-        (_a3 = n3._$AQ) == null ? void 0 : _a3.call(n3, o4), n3._$AM = o4, void 0 !== n3._$AP && (t6 = o4._$AU) !== i6._$AU && n3._$AP(t6);
+      const t4 = n2._$AB.nextSibling, i5 = n2._$AM, c3 = i5 !== o3;
+      if (c3) {
+        let t5;
+        (_a2 = n2._$AQ) == null ? void 0 : _a2.call(n2, o3), n2._$AM = o3, void 0 !== n2._$AP && (t5 = o3._$AU) !== i5._$AU && n2._$AP(t5);
       }
-      if (t5 !== l3 || c4) {
-        let o5 = n3._$AA;
-        for (; o5 !== t5; ) {
-          const t6 = o5.nextSibling;
-          e5.insertBefore(o5, l3), o5 = t6;
+      if (t4 !== l2 || c3) {
+        let o4 = n2._$AA;
+        for (; o4 !== t4; ) {
+          const t5 = o4.nextSibling;
+          e4.insertBefore(o4, l2), o4 = t5;
         }
       }
     }
-    return n3;
+    return n2;
   };
-  var v2 = (o4, t5, i5 = o4) => (o4._$AI(t5, i5), o4);
+  var v2 = (o3, t4, i4 = o3) => (o3._$AI(t4, i4), o3);
   var u2 = {};
-  var m2 = (o4, t5 = u2) => o4._$AH = t5;
-  var p2 = (o4) => o4._$AH;
-  var M2 = (o4) => {
-    var _a3;
-    (_a3 = o4._$AP) == null ? void 0 : _a3.call(o4, false, true);
-    let t5 = o4._$AA;
-    const i5 = o4._$AB.nextSibling;
-    for (; t5 !== i5; ) {
-      const o5 = t5.nextSibling;
-      t5.remove(), t5 = o5;
+  var m2 = (o3, t4 = u2) => o3._$AH = t4;
+  var p2 = (o3) => o3._$AH;
+  var M2 = (o3) => {
+    var _a2;
+    (_a2 = o3._$AP) == null ? void 0 : _a2.call(o3, false, true);
+    let t4 = o3._$AA;
+    const i4 = o3._$AB.nextSibling;
+    for (; t4 !== i4; ) {
+      const o4 = t4.nextSibling;
+      t4.remove(), t4 = o4;
     }
   };
 
@@ -437,65 +451,65 @@ var cami = (() => {
     constructor() {
       super(...arguments), this.key = E;
     }
-    render(r4, t5) {
-      return this.key = r4, t5;
+    render(r3, t4) {
+      return this.key = r3, t4;
     }
-    update(r4, [t5, e5]) {
-      return t5 !== this.key && (m2(r4), this.key = t5), e5;
+    update(r3, [t4, e4]) {
+      return t4 !== this.key && (m2(r3), this.key = t4), e4;
     }
   });
 
   // node_modules/lit-html/directives/repeat.js
-  var u3 = (e5, s4, t5) => {
-    const r4 = /* @__PURE__ */ new Map();
-    for (let l3 = s4; l3 <= t5; l3++) r4.set(e5[l3], l3);
-    return r4;
+  var u3 = (e4, s3, t4) => {
+    const r3 = /* @__PURE__ */ new Map();
+    for (let l2 = s3; l2 <= t4; l2++) r3.set(e4[l2], l2);
+    return r3;
   };
   var c2 = e2(class extends i2 {
-    constructor(e5) {
-      if (super(e5), e5.type !== t2.CHILD) throw Error("repeat() can only be used in text expressions");
+    constructor(e4) {
+      if (super(e4), e4.type !== t2.CHILD) throw Error("repeat() can only be used in text expressions");
     }
-    dt(e5, s4, t5) {
-      let r4;
-      void 0 === t5 ? t5 = s4 : void 0 !== s4 && (r4 = s4);
-      const l3 = [], o4 = [];
-      let i5 = 0;
-      for (const s5 of e5) l3[i5] = r4 ? r4(s5, i5) : i5, o4[i5] = t5(s5, i5), i5++;
-      return { values: o4, keys: l3 };
+    dt(e4, s3, t4) {
+      let r3;
+      void 0 === t4 ? t4 = s3 : void 0 !== s3 && (r3 = s3);
+      const l2 = [], o3 = [];
+      let i4 = 0;
+      for (const s4 of e4) l2[i4] = r3 ? r3(s4, i4) : i4, o3[i4] = t4(s4, i4), i4++;
+      return { values: o3, keys: l2 };
     }
-    render(e5, s4, t5) {
-      return this.dt(e5, s4, t5).values;
+    render(e4, s3, t4) {
+      return this.dt(e4, s3, t4).values;
     }
-    update(s4, [t5, r4, c4]) {
-      var _a3;
-      const d3 = p2(s4), { values: p4, keys: a3 } = this.dt(t5, r4, c4);
-      if (!Array.isArray(d3)) return this.ut = a3, p4;
-      const h3 = (_a3 = this.ut) != null ? _a3 : this.ut = [], v4 = [];
-      let m4, y3, x3 = 0, j3 = d3.length - 1, k3 = 0, w3 = p4.length - 1;
-      for (; x3 <= j3 && k3 <= w3; ) if (null === d3[x3]) x3++;
-      else if (null === d3[j3]) j3--;
-      else if (h3[x3] === a3[k3]) v4[k3] = v2(d3[x3], p4[k3]), x3++, k3++;
-      else if (h3[j3] === a3[w3]) v4[w3] = v2(d3[j3], p4[w3]), j3--, w3--;
-      else if (h3[x3] === a3[w3]) v4[w3] = v2(d3[x3], p4[w3]), r2(s4, v4[w3 + 1], d3[x3]), x3++, w3--;
-      else if (h3[j3] === a3[k3]) v4[k3] = v2(d3[j3], p4[k3]), r2(s4, d3[x3], d3[j3]), j3--, k3++;
-      else if (void 0 === m4 && (m4 = u3(a3, k3, w3), y3 = u3(h3, x3, j3)), m4.has(h3[x3])) if (m4.has(h3[j3])) {
-        const e5 = y3.get(a3[k3]), t6 = void 0 !== e5 ? d3[e5] : null;
-        if (null === t6) {
-          const e6 = r2(s4, d3[x3]);
-          v2(e6, p4[k3]), v4[k3] = e6;
-        } else v4[k3] = v2(t6, p4[k3]), r2(s4, d3[x3], t6), d3[e5] = null;
-        k3++;
-      } else M2(d3[j3]), j3--;
-      else M2(d3[x3]), x3++;
-      for (; k3 <= w3; ) {
-        const e5 = r2(s4, v4[w3 + 1]);
-        v2(e5, p4[k3]), v4[k3++] = e5;
+    update(s3, [t4, r3, c3]) {
+      var _a2;
+      const d2 = p2(s3), { values: p3, keys: a2 } = this.dt(t4, r3, c3);
+      if (!Array.isArray(d2)) return this.ut = a2, p3;
+      const h2 = (_a2 = this.ut) != null ? _a2 : this.ut = [], v3 = [];
+      let m3, y2, x2 = 0, j2 = d2.length - 1, k2 = 0, w2 = p3.length - 1;
+      for (; x2 <= j2 && k2 <= w2; ) if (null === d2[x2]) x2++;
+      else if (null === d2[j2]) j2--;
+      else if (h2[x2] === a2[k2]) v3[k2] = v2(d2[x2], p3[k2]), x2++, k2++;
+      else if (h2[j2] === a2[w2]) v3[w2] = v2(d2[j2], p3[w2]), j2--, w2--;
+      else if (h2[x2] === a2[w2]) v3[w2] = v2(d2[x2], p3[w2]), r2(s3, v3[w2 + 1], d2[x2]), x2++, w2--;
+      else if (h2[j2] === a2[k2]) v3[k2] = v2(d2[j2], p3[k2]), r2(s3, d2[x2], d2[j2]), j2--, k2++;
+      else if (void 0 === m3 && (m3 = u3(a2, k2, w2), y2 = u3(h2, x2, j2)), m3.has(h2[x2])) if (m3.has(h2[j2])) {
+        const e4 = y2.get(a2[k2]), t5 = void 0 !== e4 ? d2[e4] : null;
+        if (null === t5) {
+          const e5 = r2(s3, d2[x2]);
+          v2(e5, p3[k2]), v3[k2] = e5;
+        } else v3[k2] = v2(t5, p3[k2]), r2(s3, d2[x2], t5), d2[e4] = null;
+        k2++;
+      } else M2(d2[j2]), j2--;
+      else M2(d2[x2]), x2++;
+      for (; k2 <= w2; ) {
+        const e4 = r2(s3, v3[w2 + 1]);
+        v2(e4, p3[k2]), v3[k2++] = e4;
       }
-      for (; x3 <= j3; ) {
-        const e5 = d3[x3++];
-        null !== e5 && M2(e5);
+      for (; x2 <= j2; ) {
+        const e4 = d2[x2++];
+        null !== e4 && M2(e4);
       }
-      return this.ut = a3, m2(s4, v4), T;
+      return this.ut = a2, m2(s3, v3), T;
     }
   });
 
@@ -536,8 +550,8 @@ var cami = (() => {
   ] : [];
   function die(error, ...args) {
     if (true) {
-      const e5 = errors[error];
-      const msg = typeof e5 === "function" ? e5.apply(null, args) : e5;
+      const e4 = errors[error];
+      const msg = typeof e4 === "function" ? e4.apply(null, args) : e4;
       throw new Error(`[Immer] ${msg}`);
     }
     throw new Error(
@@ -549,10 +563,10 @@ var cami = (() => {
     return !!value && !!value[DRAFT_STATE];
   }
   function isDraftable(value) {
-    var _a3;
+    var _a2;
     if (!value)
       return false;
-    return isPlainObject(value) || Array.isArray(value) || !!value[DRAFTABLE] || !!((_a3 = value.constructor) == null ? void 0 : _a3[DRAFTABLE]) || isMap(value) || isSet(value);
+    return isPlainObject(value) || Array.isArray(value) || !!value[DRAFTABLE] || !!((_a2 = value.constructor) == null ? void 0 : _a2[DRAFTABLE]) || isMap(value) || isSet(value);
   }
   var objectCtorString = Object.prototype.constructor.toString();
   function isPlainObject(value) {
@@ -587,19 +601,19 @@ var cami = (() => {
     return getArchtype(thing) === 2 ? thing.get(prop) : thing[prop];
   }
   function set(thing, propOrOldValue, value) {
-    const t5 = getArchtype(thing);
-    if (t5 === 2)
+    const t4 = getArchtype(thing);
+    if (t4 === 2)
       thing.set(propOrOldValue, value);
-    else if (t5 === 3) {
+    else if (t4 === 3) {
       thing.add(value);
     } else
       thing[propOrOldValue] = value;
   }
-  function is(x3, y3) {
-    if (x3 === y3) {
-      return x3 !== 0 || 1 / x3 === 1 / y3;
+  function is(x2, y2) {
+    if (x2 === y2) {
+      return x2 !== 0 || 1 / x2 === 1 / y2;
     } else {
-      return x3 !== x3 && y3 !== y3;
+      return x2 !== x2 && y2 !== y2;
     }
   }
   function isMap(target) {
@@ -625,8 +639,8 @@ var cami = (() => {
       const descriptors = Object.getOwnPropertyDescriptors(base);
       delete descriptors[DRAFT_STATE];
       let keys = Reflect.ownKeys(descriptors);
-      for (let i5 = 0; i5 < keys.length; i5++) {
-        const key = keys[i5];
+      for (let i4 = 0; i4 < keys.length; i4++) {
+        const key = keys[i4];
         const desc = descriptors[key];
         if (desc.writable === false) {
           desc.writable = true;
@@ -894,14 +908,14 @@ var cami = (() => {
         return true;
       }
       if (!state.modified_) {
-        const current22 = peek(latest(state), prop);
-        const currentState = current22 == null ? void 0 : current22[DRAFT_STATE];
+        const current2 = peek(latest(state), prop);
+        const currentState = current2 == null ? void 0 : current2[DRAFT_STATE];
         if (currentState && currentState.base_ === value) {
           state.copy_[prop] = value;
           state.assigned_[prop] = false;
           return true;
         }
-        if (is(value, current22) && (value !== void 0 || has(state.base_, prop)))
+        if (is(value, current2) && (value !== void 0 || has(state.base_, prop)))
           return true;
         prepareCopy(state);
         markChanged(state);
@@ -974,12 +988,12 @@ var cami = (() => {
     return source[prop];
   }
   function readPropFromProto(state, source, prop) {
-    var _a3;
+    var _a2;
     const desc = getDescriptorFromProto(source, prop);
     return desc ? `value` in desc ? desc.value : (
       // This is a very special case, if the prop is a getter defined by the
       // prototype, we should invoke it with the draft as context!
-      (_a3 = desc.get) == null ? void 0 : _a3.call(state.draft_)
+      (_a2 = desc.get) == null ? void 0 : _a2.call(state.draft_)
     ) : void 0;
   }
   function getDescriptorFromProto(source, prop) {
@@ -1052,10 +1066,10 @@ var cami = (() => {
           if (this.autoFreeze_)
             freeze(result, true);
           if (patchListener) {
-            const p4 = [];
+            const p3 = [];
             const ip = [];
-            getPlugin("Patches").generateReplacementPatches_(base, result, p4, ip);
-            patchListener(p4, ip);
+            getPlugin("Patches").generateReplacementPatches_(base, result, p3, ip);
+            patchListener(p3, ip);
           }
           return result;
         } else
@@ -1066,8 +1080,8 @@ var cami = (() => {
           return (state, ...args) => this.produceWithPatches(state, (draft) => base(draft, ...args));
         }
         let patches, inversePatches;
-        const result = this.produce(base, recipe, (p4, ip) => {
-          patches = p4;
+        const result = this.produce(base, recipe, (p3, ip) => {
+          patches = p3;
           inversePatches = ip;
         });
         return [result, patches, inversePatches];
@@ -1113,16 +1127,16 @@ var cami = (() => {
       this.useStrictShallowCopy_ = value;
     }
     applyPatches(base, patches) {
-      let i5;
-      for (i5 = patches.length - 1; i5 >= 0; i5--) {
-        const patch = patches[i5];
+      let i4;
+      for (i4 = patches.length - 1; i4 >= 0; i4--) {
+        const patch = patches[i4];
         if (patch.path.length === 0 && patch.op === "replace") {
           base = patch.value;
           break;
         }
       }
-      if (i5 > -1) {
-        patches = patches.slice(i5 + 1);
+      if (i4 > -1) {
+        patches = patches.slice(i4 + 1);
       }
       const applyPatchesImpl = getPlugin("Patches").applyPatches_;
       if (isDraft(base)) {
@@ -1212,35 +1226,35 @@ var cami = (() => {
         [base_, copy_] = [copy_, base_];
         [patches, inversePatches] = [inversePatches, patches];
       }
-      for (let i5 = 0; i5 < base_.length; i5++) {
-        if (assigned_[i5] && copy_[i5] !== base_[i5]) {
-          const path = basePath.concat([i5]);
+      for (let i4 = 0; i4 < base_.length; i4++) {
+        if (assigned_[i4] && copy_[i4] !== base_[i4]) {
+          const path = basePath.concat([i4]);
           patches.push({
             op: REPLACE,
             path,
             // Need to maybe clone it, as it can in fact be the original value
             // due to the base/copy inversion at the start of this function
-            value: clonePatchValueIfNeeded(copy_[i5])
+            value: clonePatchValueIfNeeded(copy_[i4])
           });
           inversePatches.push({
             op: REPLACE,
             path,
-            value: clonePatchValueIfNeeded(base_[i5])
+            value: clonePatchValueIfNeeded(base_[i4])
           });
         }
       }
-      for (let i5 = base_.length; i5 < copy_.length; i5++) {
-        const path = basePath.concat([i5]);
+      for (let i4 = base_.length; i4 < copy_.length; i4++) {
+        const path = basePath.concat([i4]);
         patches.push({
           op: ADD,
           path,
           // Need to maybe clone it, as it can in fact be the original value
           // due to the base/copy inversion at the start of this function
-          value: clonePatchValueIfNeeded(copy_[i5])
+          value: clonePatchValueIfNeeded(copy_[i4])
         });
       }
-      for (let i5 = copy_.length - 1; base_.length <= i5; --i5) {
-        const path = basePath.concat([i5]);
+      for (let i4 = copy_.length - 1; base_.length <= i4; --i4) {
+        const path = basePath.concat([i4]);
         inversePatches.push({
           op: REMOVE,
           path
@@ -1264,10 +1278,10 @@ var cami = (() => {
     }
     function generateSetPatches(state, basePath, patches, inversePatches) {
       let { base_, copy_ } = state;
-      let i5 = 0;
+      let i4 = 0;
       base_.forEach((value) => {
         if (!copy_.has(value)) {
-          const path = basePath.concat([i5]);
+          const path = basePath.concat([i4]);
           patches.push({
             op: REMOVE,
             path,
@@ -1279,12 +1293,12 @@ var cami = (() => {
             value
           });
         }
-        i5++;
+        i4++;
       });
-      i5 = 0;
+      i4 = 0;
       copy_.forEach((value) => {
         if (!base_.has(value)) {
-          const path = basePath.concat([i5]);
+          const path = basePath.concat([i4]);
           patches.push({
             op: ADD,
             path,
@@ -1296,7 +1310,7 @@ var cami = (() => {
             value
           });
         }
-        i5++;
+        i4++;
       });
     }
     function generateReplacementPatches_(baseValue, replacement, patches, inversePatches) {
@@ -1315,17 +1329,17 @@ var cami = (() => {
       patches.forEach((patch) => {
         const { path, op } = patch;
         let base = draft;
-        for (let i5 = 0; i5 < path.length - 1; i5++) {
+        for (let i4 = 0; i4 < path.length - 1; i4++) {
           const parentType = getArchtype(base);
-          let p4 = path[i5];
-          if (typeof p4 !== "string" && typeof p4 !== "number") {
-            p4 = "" + p4;
+          let p3 = path[i4];
+          if (typeof p3 !== "string" && typeof p3 !== "number") {
+            p3 = "" + p3;
           }
-          if ((parentType === 0 || parentType === 1) && (p4 === "__proto__" || p4 === "constructor"))
+          if ((parentType === 0 || parentType === 1) && (p3 === "__proto__" || p3 === "constructor"))
             die(errorOffset + 3);
-          if (typeof base === "function" && p4 === "prototype")
+          if (typeof base === "function" && p3 === "prototype")
             die(errorOffset + 3);
-          base = get(base, p4);
+          base = get(base, p3);
           if (typeof base !== "object")
             die(errorOffset + 2, path.join("/"));
         }
@@ -1377,7 +1391,7 @@ var cami = (() => {
         return obj.map(deepClonePatchValue);
       if (isMap(obj))
         return new Map(
-          Array.from(obj.entries()).map(([k3, v4]) => [k3, deepClonePatchValue(v4)])
+          Array.from(obj.entries()).map(([k2, v3]) => [k2, deepClonePatchValue(v3)])
         );
       if (isSet(obj))
         return new Set(Array.from(obj).map(deepClonePatchValue));
@@ -1494,10 +1508,10 @@ var cami = (() => {
         return {
           [Symbol.iterator]: () => this.values(),
           next: () => {
-            const r4 = iterator.next();
-            if (r4.done)
-              return r4;
-            const value = this.get(r4.value);
+            const r3 = iterator.next();
+            if (r3.done)
+              return r3;
+            const value = this.get(r3.value);
             return {
               done: false,
               value
@@ -1510,13 +1524,13 @@ var cami = (() => {
         return {
           [Symbol.iterator]: () => this.entries(),
           next: () => {
-            const r4 = iterator.next();
-            if (r4.done)
-              return r4;
-            const value = this.get(r4.value);
+            const r3 = iterator.next();
+            if (r3.done)
+              return r3;
+            const value = this.get(r3.value);
             return {
               done: false,
-              value: [r4.value, value]
+              value: [r3.value, value]
             };
           }
         };
@@ -1659,270 +1673,6 @@ var cami = (() => {
   var createDraft = immer.createDraft.bind(immer);
   var finishDraft = immer.finishDraft.bind(immer);
 
-  // src/html.js
-  var t4 = globalThis;
-  var i4 = t4.trustedTypes;
-  var s3 = i4 ? i4.createPolicy("lit-html", { createHTML: (t5) => t5 }) : void 0;
-  var e4 = "$lit$";
-  var h2 = `lit$${Math.random().toFixed(9).slice(2)}$`;
-  var o3 = "?" + h2;
-  var n2 = `<${o3}>`;
-  var r3 = document;
-  var l2 = () => r3.createComment("");
-  var c3 = (t5) => null === t5 || "object" != typeof t5 && "function" != typeof t5;
-  var a2 = Array.isArray;
-  var u4 = (t5) => a2(t5) || "function" == typeof (t5 == null ? void 0 : t5[Symbol.iterator]);
-  var d2 = "[ 	\n\f\r]";
-  var f2 = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
-  var v3 = /-->/g;
-  var _2 = />/g;
-  var m3 = RegExp(`>|${d2}(?:([^\\s"'>=/]+)(${d2}*=${d2}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g");
-  var p3 = /'/g;
-  var g2 = /"/g;
-  var $2 = /^(?:script|style|textarea|title)$/i;
-  var y2 = (t5) => (i5, ...s4) => ({ _$litType$: t5, strings: i5, values: s4 });
-  var x2 = y2(1);
-  var b2 = y2(2);
-  var w2 = y2(3);
-  var T2 = Symbol.for("lit-noChange");
-  var E2 = Symbol.for("lit-nothing");
-  var A2 = /* @__PURE__ */ new WeakMap();
-  var C2 = r3.createTreeWalker(r3, 129);
-  function P2(t5, i5) {
-    if (!a2(t5) || !t5.hasOwnProperty("raw")) throw Error("invalid template strings array");
-    return void 0 !== s3 ? s3.createHTML(i5) : i5;
-  }
-  var V2 = (t5, i5) => {
-    const s4 = t5.length - 1, o4 = [];
-    let r4, l3 = 2 === i5 ? "<svg>" : 3 === i5 ? "<math>" : "", c4 = f2;
-    for (let i6 = 0; i6 < s4; i6++) {
-      const s5 = t5[i6];
-      let a3, u5, d3 = -1, y3 = 0;
-      for (; y3 < s5.length && (c4.lastIndex = y3, u5 = c4.exec(s5), null !== u5); ) y3 = c4.lastIndex, c4 === f2 ? "!--" === u5[1] ? c4 = v3 : void 0 !== u5[1] ? c4 = _2 : void 0 !== u5[2] ? ($2.test(u5[2]) && (r4 = RegExp("</" + u5[2], "g")), c4 = m3) : void 0 !== u5[3] && (c4 = m3) : c4 === m3 ? ">" === u5[0] ? (c4 = r4 != null ? r4 : f2, d3 = -1) : void 0 === u5[1] ? d3 = -2 : (d3 = c4.lastIndex - u5[2].length, a3 = u5[1], c4 = void 0 === u5[3] ? m3 : '"' === u5[3] ? g2 : p3) : c4 === g2 || c4 === p3 ? c4 = m3 : c4 === v3 || c4 === _2 ? c4 = f2 : (c4 = m3, r4 = void 0);
-      const x3 = c4 === m3 && t5[i6 + 1].startsWith("/>") ? " " : "";
-      l3 += c4 === f2 ? s5 + n2 : d3 >= 0 ? (o4.push(a3), s5.slice(0, d3) + e4 + s5.slice(d3) + h2 + x3) : s5 + h2 + (-2 === d3 ? i6 : x3);
-    }
-    return [P2(t5, l3 + (t5[s4] || "<?>") + (2 === i5 ? "</svg>" : 3 === i5 ? "</math>" : "")), o4];
-  };
-  var N2 = class _N {
-    constructor({ strings: t5, _$litType$: s4 }, n3) {
-      let r4;
-      this.parts = [];
-      let c4 = 0, a3 = 0;
-      const u5 = t5.length - 1, d3 = this.parts, [f3, v4] = V2(t5, s4);
-      if (this.el = _N.createElement(f3, n3), C2.currentNode = this.el.content, 2 === s4 || 3 === s4) {
-        const t6 = this.el.content.firstChild;
-        t6.replaceWith(...t6.childNodes);
-      }
-      for (; null !== (r4 = C2.nextNode()) && d3.length < u5; ) {
-        if (1 === r4.nodeType) {
-          if (r4.hasAttributes()) for (const t6 of r4.getAttributeNames()) if (t6.endsWith(e4)) {
-            const i5 = v4[a3++], s5 = r4.getAttribute(t6).split(h2), e5 = /([.?@])?(.*)/.exec(i5);
-            d3.push({ type: 1, index: c4, name: e5[2], strings: s5, ctor: "." === e5[1] ? H2 : "?" === e5[1] ? I2 : "@" === e5[1] ? L2 : k2 }), r4.removeAttribute(t6);
-          } else t6.startsWith(h2) && (d3.push({ type: 6, index: c4 }), r4.removeAttribute(t6));
-          if ($2.test(r4.tagName)) {
-            const t6 = r4.textContent.split(h2), s5 = t6.length - 1;
-            if (s5 > 0) {
-              r4.textContent = i4 ? i4.emptyScript : "";
-              for (let i5 = 0; i5 < s5; i5++) r4.append(t6[i5], l2()), C2.nextNode(), d3.push({ type: 2, index: ++c4 });
-              r4.append(t6[s5], l2());
-            }
-          }
-        } else if (8 === r4.nodeType) if (r4.data === o3) d3.push({ type: 2, index: c4 });
-        else {
-          let t6 = -1;
-          for (; -1 !== (t6 = r4.data.indexOf(h2, t6 + 1)); ) d3.push({ type: 7, index: c4 }), t6 += h2.length - 1;
-        }
-        c4++;
-      }
-    }
-    static createElement(t5, i5) {
-      const s4 = r3.createElement("template");
-      return s4.innerHTML = t5, s4;
-    }
-  };
-  function S2(t5, i5, s4 = t5, e5) {
-    var _a3, _b, _c;
-    if (i5 === T2) return i5;
-    let h3 = void 0 !== e5 ? (_a3 = s4._$Co) == null ? void 0 : _a3[e5] : s4._$Cl;
-    const o4 = c3(i5) ? void 0 : i5._$litDirective$;
-    return (h3 == null ? void 0 : h3.constructor) !== o4 && ((_b = h3 == null ? void 0 : h3._$AO) == null ? void 0 : _b.call(h3, false), void 0 === o4 ? h3 = void 0 : (h3 = new o4(t5), h3._$AT(t5, s4, e5)), void 0 !== e5 ? ((_c = s4._$Co) != null ? _c : s4._$Co = [])[e5] = h3 : s4._$Cl = h3), void 0 !== h3 && (i5 = S2(t5, h3._$AS(t5, i5.values), h3, e5)), i5;
-  }
-  var M3 = class {
-    constructor(t5, i5) {
-      this._$AV = [], this._$AN = void 0, this._$AD = t5, this._$AM = i5;
-    }
-    get parentNode() {
-      return this._$AM.parentNode;
-    }
-    get _$AU() {
-      return this._$AM._$AU;
-    }
-    u(t5) {
-      var _a3;
-      const { el: { content: i5 }, parts: s4 } = this._$AD, e5 = ((_a3 = t5 == null ? void 0 : t5.creationScope) != null ? _a3 : r3).importNode(i5, true);
-      C2.currentNode = e5;
-      let h3 = C2.nextNode(), o4 = 0, n3 = 0, l3 = s4[0];
-      for (; void 0 !== l3; ) {
-        if (o4 === l3.index) {
-          let i6;
-          2 === l3.type ? i6 = new R2(h3, h3.nextSibling, this, t5) : 1 === l3.type ? i6 = new l3.ctor(h3, l3.name, l3.strings, this, t5) : 6 === l3.type && (i6 = new z2(h3, this, t5)), this._$AV.push(i6), l3 = s4[++n3];
-        }
-        o4 !== (l3 == null ? void 0 : l3.index) && (h3 = C2.nextNode(), o4++);
-      }
-      return C2.currentNode = r3, e5;
-    }
-    p(t5) {
-      let i5 = 0;
-      for (const s4 of this._$AV) void 0 !== s4 && (void 0 !== s4.strings ? (s4._$AI(t5, s4, i5), i5 += s4.strings.length - 2) : s4._$AI(t5[i5])), i5++;
-    }
-  };
-  var R2 = class _R {
-    get _$AU() {
-      var _a3, _b;
-      return (_b = (_a3 = this._$AM) == null ? void 0 : _a3._$AU) != null ? _b : this._$Cv;
-    }
-    constructor(t5, i5, s4, e5) {
-      var _a3;
-      this.type = 2, this._$AH = E2, this._$AN = void 0, this._$AA = t5, this._$AB = i5, this._$AM = s4, this.options = e5, this._$Cv = (_a3 = e5 == null ? void 0 : e5.isConnected) != null ? _a3 : true;
-    }
-    get parentNode() {
-      let t5 = this._$AA.parentNode;
-      const i5 = this._$AM;
-      return void 0 !== i5 && 11 === (t5 == null ? void 0 : t5.nodeType) && (t5 = i5.parentNode), t5;
-    }
-    get startNode() {
-      return this._$AA;
-    }
-    get endNode() {
-      return this._$AB;
-    }
-    _$AI(t5, i5 = this) {
-      t5 = S2(this, t5, i5), c3(t5) ? t5 === E2 || null == t5 || "" === t5 ? (this._$AH !== E2 && this._$AR(), this._$AH = E2) : t5 !== this._$AH && t5 !== T2 && this._(t5) : void 0 !== t5._$litType$ ? this.$(t5) : void 0 !== t5.nodeType ? this.T(t5) : u4(t5) ? this.k(t5) : this._(t5);
-    }
-    O(t5) {
-      return this._$AA.parentNode.insertBefore(t5, this._$AB);
-    }
-    T(t5) {
-      this._$AH !== t5 && (this._$AR(), this._$AH = this.O(t5));
-    }
-    _(t5) {
-      this._$AH !== E2 && c3(this._$AH) ? this._$AA.nextSibling.data = t5 : this.T(r3.createTextNode(t5)), this._$AH = t5;
-    }
-    $(t5) {
-      var _a3;
-      const { values: i5, _$litType$: s4 } = t5, e5 = "number" == typeof s4 ? this._$AC(t5) : (void 0 === s4.el && (s4.el = N2.createElement(P2(s4.h, s4.h[0]), this.options)), s4);
-      if (((_a3 = this._$AH) == null ? void 0 : _a3._$AD) === e5) this._$AH.p(i5);
-      else {
-        const t6 = new M3(e5, this), s5 = t6.u(this.options);
-        t6.p(i5), this.T(s5), this._$AH = t6;
-      }
-    }
-    _$AC(t5) {
-      let i5 = A2.get(t5.strings);
-      return void 0 === i5 && A2.set(t5.strings, i5 = new N2(t5)), i5;
-    }
-    k(t5) {
-      a2(this._$AH) || (this._$AH = [], this._$AR());
-      const i5 = this._$AH;
-      let s4, e5 = 0;
-      for (const h3 of t5) e5 === i5.length ? i5.push(s4 = new _R(this.O(l2()), this.O(l2()), this, this.options)) : s4 = i5[e5], s4._$AI(h3), e5++;
-      e5 < i5.length && (this._$AR(s4 && s4._$AB.nextSibling, e5), i5.length = e5);
-    }
-    _$AR(t5 = this._$AA.nextSibling, i5) {
-      var _a3;
-      for ((_a3 = this._$AP) == null ? void 0 : _a3.call(this, false, true, i5); t5 && t5 !== this._$AB; ) {
-        const i6 = t5.nextSibling;
-        t5.remove(), t5 = i6;
-      }
-    }
-    setConnected(t5) {
-      var _a3;
-      void 0 === this._$AM && (this._$Cv = t5, (_a3 = this._$AP) == null ? void 0 : _a3.call(this, t5));
-    }
-  };
-  var k2 = class {
-    get tagName() {
-      return this.element.tagName;
-    }
-    get _$AU() {
-      return this._$AM._$AU;
-    }
-    constructor(t5, i5, s4, e5, h3) {
-      this.type = 1, this._$AH = E2, this._$AN = void 0, this.element = t5, this.name = i5, this._$AM = e5, this.options = h3, s4.length > 2 || "" !== s4[0] || "" !== s4[1] ? (this._$AH = Array(s4.length - 1).fill(new String()), this.strings = s4) : this._$AH = E2;
-    }
-    _$AI(t5, i5 = this, s4, e5) {
-      const h3 = this.strings;
-      let o4 = false;
-      if (void 0 === h3) t5 = S2(this, t5, i5, 0), o4 = !c3(t5) || t5 !== this._$AH && t5 !== T2, o4 && (this._$AH = t5);
-      else {
-        const e6 = t5;
-        let n3, r4;
-        for (t5 = h3[0], n3 = 0; n3 < h3.length - 1; n3++) r4 = S2(this, e6[s4 + n3], i5, n3), r4 === T2 && (r4 = this._$AH[n3]), o4 || (o4 = !c3(r4) || r4 !== this._$AH[n3]), r4 === E2 ? t5 = E2 : t5 !== E2 && (t5 += (r4 != null ? r4 : "") + h3[n3 + 1]), this._$AH[n3] = r4;
-      }
-      o4 && !e5 && this.j(t5);
-    }
-    j(t5) {
-      t5 === E2 ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t5 != null ? t5 : "");
-    }
-  };
-  var H2 = class extends k2 {
-    constructor() {
-      super(...arguments), this.type = 3;
-    }
-    j(t5) {
-      this.element[this.name] = t5 === E2 ? void 0 : t5;
-    }
-  };
-  var I2 = class extends k2 {
-    constructor() {
-      super(...arguments), this.type = 4;
-    }
-    j(t5) {
-      this.element.toggleAttribute(this.name, !!t5 && t5 !== E2);
-    }
-  };
-  var L2 = class extends k2 {
-    constructor(t5, i5, s4, e5, h3) {
-      super(t5, i5, s4, e5, h3), this.type = 5;
-    }
-    _$AI(t5, i5 = this) {
-      var _a3;
-      if ((t5 = (_a3 = S2(this, t5, i5, 0)) != null ? _a3 : E2) === T2) return;
-      const s4 = this._$AH, e5 = t5 === E2 && s4 !== E2 || t5.capture !== s4.capture || t5.once !== s4.once || t5.passive !== s4.passive, h3 = t5 !== E2 && (s4 === E2 || e5);
-      e5 && this.element.removeEventListener(this.name, this, s4), h3 && this.element.addEventListener(this.name, this, t5), this._$AH = t5;
-    }
-    handleEvent(t5) {
-      var _a3, _b;
-      "function" == typeof this._$AH ? this._$AH.call((_b = (_a3 = this.options) == null ? void 0 : _a3.host) != null ? _b : this.element, t5) : this._$AH.handleEvent(t5);
-    }
-  };
-  var z2 = class {
-    constructor(t5, i5, s4) {
-      this.element = t5, this.type = 6, this._$AN = void 0, this._$AM = i5, this.options = s4;
-    }
-    get _$AU() {
-      return this._$AM._$AU;
-    }
-    _$AI(t5) {
-      S2(this, t5);
-    }
-  };
-  var j2 = t4.litHtmlPolyfillSupport;
-  var _a2;
-  j2 == null ? void 0 : j2(N2, R2), ((_a2 = t4.litHtmlVersions) != null ? _a2 : t4.litHtmlVersions = []).push("3.2.1");
-  var B = (t5, i5, s4) => {
-    var _a3, _b;
-    const e5 = (_a3 = s4 == null ? void 0 : s4.renderBefore) != null ? _a3 : i5;
-    let h3 = e5._$litPart$;
-    if (void 0 === h3) {
-      const t6 = (_b = s4 == null ? void 0 : s4.renderBefore) != null ? _b : null;
-      e5._$litPart$ = h3 = new R2(i5.insertBefore(l2(), t6), t6, void 0, s4 != null ? s4 : {});
-    }
-    return h3._$AI(t5), h3;
-  };
-
   // src/observables/observable.ts
   var Subscriber = class {
     /**
@@ -1930,11 +1680,6 @@ var cami = (() => {
      * @param observer - The observer object or function
      */
     constructor(observer) {
-      __publicField(this, "next");
-      __publicField(this, "error");
-      __publicField(this, "complete");
-      __publicField(this, "teardowns");
-      __publicField(this, "isUnsubscribed");
       if (typeof observer === "function") {
         this.next = observer;
         this.error = null;
@@ -2006,9 +1751,9 @@ var cami = (() => {
         return;
       }
       const teardowns = this.teardowns;
-      let i5 = teardowns.length;
-      while (i5--) {
-        const teardown = teardowns[i5];
+      let i4 = teardowns.length;
+      while (i4--) {
+        const teardown = teardowns[i4];
         if (typeof teardown === "function") {
           teardown();
         }
@@ -2021,12 +1766,38 @@ var cami = (() => {
   };
   var Observable = class {
     /**
+     * Protected method to check if there are any observers
+     * @returns true if there are observers, false otherwise
+     */
+    get hasObservers() {
+      return this.__observers.length > 0;
+    }
+    /**
+     * Protected method to get observer count
+     * @returns number of observers
+     */
+    get observerCount() {
+      return this.__observers.length;
+    }
+    /**
+     * Protected method to notify all observers
+     * @param value - The value to emit to observers
+     */
+    notifyObservers(value) {
+      const observers = this.__observers;
+      const length = observers.length;
+      for (let i4 = 0; i4 < length; i4++) {
+        const observer = observers[i4];
+        if (observer.next && !observer.isUnsubscribed) {
+          observer.next(value);
+        }
+      }
+    }
+    /**
      * Creates a new Observable instance with optimized internal structure
      * @param subscribeCallback - The callback function to call when a new observer subscribes
      */
     constructor(subscribeCallback) {
-      __publicField(this, "__observers");
-      __publicField(this, "subscribeCallback");
       this.__observers = [];
       if (subscribeCallback) {
         this.subscribeCallback = subscribeCallback;
@@ -2113,9 +1884,9 @@ var cami = (() => {
         }
         return;
       }
-      let i5 = len;
-      while (i5--) {
-        const observer = observers[i5];
+      let i4 = len;
+      while (i4--) {
+        const observer = observers[i4];
         if (!observer.isUnsubscribed && observer.next) {
           observer.next(value);
         }
@@ -2128,8 +1899,8 @@ var cami = (() => {
     error(error) {
       const observers = this.__observers.slice();
       const len = observers.length;
-      for (let i5 = 0; i5 < len; i5++) {
-        const observer = observers[i5];
+      for (let i4 = 0; i4 < len; i4++) {
+        const observer = observers[i4];
         if (!observer.isUnsubscribed && observer.error) {
           observer.error(error);
         }
@@ -2142,8 +1913,8 @@ var cami = (() => {
     complete() {
       const observers = this.__observers.slice();
       const len = observers.length;
-      for (let i5 = 0; i5 < len; i5++) {
-        const observer = observers[i5];
+      for (let i4 = 0; i4 < len; i4++) {
+        const observer = observers[i4];
         if (!observer.isUnsubscribed && observer.complete) {
           observer.complete();
         }
@@ -2181,7 +1952,7 @@ var cami = (() => {
     [Symbol.asyncIterator]() {
       return __asyncGenerator(this, null, function* () {
         let resolve;
-        let promise = new Promise((r4) => resolve = r4);
+        let promise = new Promise((r3) => resolve = r3);
         let subscription;
         const cleanup = () => {
           if (subscription) {
@@ -2193,7 +1964,7 @@ var cami = (() => {
           // Next handler
           (value) => {
             resolve({ value, done: false });
-            promise = new Promise((r4) => resolve = r4);
+            promise = new Promise((r3) => resolve = r3);
           },
           // Error handler
           (err) => {
@@ -2219,41 +1990,41 @@ var cami = (() => {
     }
   };
 
-  // src/utils.js
-  var _deepEqual = (a3, b3) => {
-    if (a3 === b3) return true;
-    if (a3 !== a3) return b3 !== b3;
-    if (a3 == null || b3 == null) return false;
-    if (typeof a3 !== "object" || typeof b3 !== "object") return false;
-    if (Array.isArray(a3)) {
-      if (!Array.isArray(b3) || a3.length !== b3.length) return false;
-      for (let i5 = 0; i5 < a3.length; i5++) {
-        if (!_deepEqual(a3[i5], b3[i5])) return false;
+  // src/utils.ts
+  var _deepEqual = (a2, b2) => {
+    if (a2 === b2) return true;
+    if (a2 !== a2) return b2 !== b2;
+    if (a2 == null || b2 == null) return false;
+    if (typeof a2 !== "object" || typeof b2 !== "object") return false;
+    if (Array.isArray(a2)) {
+      if (!Array.isArray(b2) || a2.length !== b2.length) return false;
+      for (let i4 = 0; i4 < a2.length; i4++) {
+        if (!_deepEqual(a2[i4], b2[i4])) return false;
       }
       return true;
     }
-    if (Array.isArray(b3)) return false;
-    if (a3 instanceof Date) {
-      return b3 instanceof Date && a3.getTime() === b3.getTime();
+    if (Array.isArray(b2)) return false;
+    if (a2 instanceof Date) {
+      return b2 instanceof Date && a2.getTime() === b2.getTime();
     }
-    if (a3 instanceof RegExp) {
-      return b3 instanceof RegExp && a3.source === b3.source && a3.flags === b3.flags;
+    if (a2 instanceof RegExp) {
+      return b2 instanceof RegExp && a2.source === b2.source && a2.flags === b2.flags;
     }
-    if (a3 instanceof Map) {
-      if (!(b3 instanceof Map) || a3.size !== b3.size) return false;
-      for (const [key, val] of a3.entries()) {
-        if (!b3.has(key) || !_deepEqual(val, b3.get(key))) return false;
+    if (a2 instanceof Map) {
+      if (!(b2 instanceof Map) || a2.size !== b2.size) return false;
+      for (const [key, val] of a2.entries()) {
+        if (!b2.has(key) || !_deepEqual(val, b2.get(key))) return false;
       }
       return true;
     }
-    if (a3 instanceof Set) {
-      if (!(b3 instanceof Set) || a3.size !== b3.size) return false;
-      const aValues = Array.from(a3);
-      const bValues = Array.from(b3);
-      for (let i5 = 0; i5 < aValues.length; i5++) {
+    if (a2 instanceof Set) {
+      if (!(b2 instanceof Set) || a2.size !== b2.size) return false;
+      const aValues = Array.from(a2);
+      const bValues = Array.from(b2);
+      for (let i4 = 0; i4 < aValues.length; i4++) {
         let found = false;
-        for (let j3 = 0; j3 < bValues.length; j3++) {
-          if (_deepEqual(aValues[i5], bValues[j3])) {
+        for (let j2 = 0; j2 < bValues.length; j2++) {
+          if (_deepEqual(aValues[i4], bValues[j2])) {
             found = true;
             break;
           }
@@ -2262,22 +2033,24 @@ var cami = (() => {
       }
       return true;
     }
-    if (ArrayBuffer.isView(a3) && !(a3 instanceof DataView)) {
-      if (!ArrayBuffer.isView(b3) || a3.length !== b3.length || a3.constructor !== b3.constructor) {
+    if (ArrayBuffer.isView(a2) && !(a2 instanceof DataView)) {
+      const typedA = a2;
+      const typedB = b2;
+      if (!ArrayBuffer.isView(b2) || typedA.length !== typedB.length || a2.constructor !== b2.constructor) {
         return false;
       }
-      for (let i5 = 0; i5 < a3.length; i5++) {
-        if (a3[i5] !== b3[i5]) return false;
+      for (let i4 = 0; i4 < typedA.length; i4++) {
+        if (typedA[i4] !== typedB[i4]) return false;
       }
       return true;
     }
-    if (a3.constructor !== b3.constructor) return false;
-    const keys = Object.keys(a3);
-    if (keys.length !== Object.keys(b3).length) return false;
+    if (a2.constructor !== b2.constructor) return false;
+    const keys = Object.keys(a2);
+    if (keys.length !== Object.keys(b2).length) return false;
     const hasOwn = Object.prototype.hasOwnProperty;
-    for (let i5 = 0; i5 < keys.length; i5++) {
-      const key = keys[i5];
-      if (!hasOwn.call(b3, key) || !_deepEqual(a3[key], b3[key])) {
+    for (let i4 = 0; i4 < keys.length; i4++) {
+      const key = keys[i4];
+      if (!hasOwn.call(b2, key) || !_deepEqual(a2[key], b2[key])) {
         return false;
       }
     }
@@ -2286,6 +2059,7 @@ var cami = (() => {
   var _deepMerge = (target, source) => {
     const seen = /* @__PURE__ */ new WeakMap();
     function merge(target2, source2) {
+      var _a2;
       if (source2 === void 0) return target2;
       if (source2 === null) return null;
       if (typeof source2 !== "object") return source2;
@@ -2293,9 +2067,9 @@ var cami = (() => {
         if (Array.isArray(source2)) {
           const length = source2.length;
           const result2 = new Array(length);
-          for (let i6 = 0; i6 < length; i6++) {
-            const item = source2[i6];
-            result2[i6] = item === null || typeof item !== "object" ? item : merge(void 0, item);
+          for (let i5 = 0; i5 < length; i5++) {
+            const item = source2[i5];
+            result2[i5] = item === null || typeof item !== "object" ? item : merge(void 0, item);
           }
           return result2;
         }
@@ -2308,9 +2082,9 @@ var cami = (() => {
         const length = source2.length;
         const result2 = new Array(length);
         seen.set(source2, result2);
-        for (let i6 = 0; i6 < length; i6++) {
-          const item = source2[i6];
-          result2[i6] = item === null || typeof item !== "object" ? item : merge(void 0, item);
+        for (let i5 = 0; i5 < length; i5++) {
+          const item = source2[i5];
+          result2[i5] = item === null || typeof item !== "object" ? item : merge(void 0, item);
         }
         return result2;
       }
@@ -2337,7 +2111,7 @@ var cami = (() => {
         if (source2 instanceof Date) return new Date(source2.getTime());
         if (source2 instanceof RegExp) return new RegExp(source2.source, source2.flags);
         if (ArrayBuffer.isView(source2) && !(source2 instanceof DataView)) {
-          if (typeof Buffer !== "undefined" && source2 instanceof Buffer) {
+          if (typeof Buffer !== "undefined" && ((_a2 = Buffer == null ? void 0 : Buffer.isBuffer) == null ? void 0 : _a2.call(Buffer, source2))) {
             return Buffer.from(source2);
           }
           return new source2.constructor(
@@ -2350,9 +2124,9 @@ var cami = (() => {
       }
       const result = Object.create(Object.getPrototypeOf(target2));
       const targetKeys = Object.keys(target2);
-      let i5 = targetKeys.length;
-      while (i5--) {
-        const key = targetKeys[i5];
+      let i4 = targetKeys.length;
+      while (i4--) {
+        const key = targetKeys[i4];
         result[key] = target2[key];
       }
       seen.set(source2, result);
@@ -2385,15 +2159,16 @@ var cami = (() => {
     return merge(target, source);
   };
   var _deepClone = (value, cache = /* @__PURE__ */ new WeakMap()) => {
+    var _a2;
     if (value === null || typeof value !== "object") return value;
     if (cache.has(value)) return cache.get(value);
     if (Array.isArray(value)) {
       const length = value.length;
       const result2 = new Array(length);
       cache.set(value, result2);
-      for (let i5 = 0; i5 < length; i5++) {
-        const item = value[i5];
-        result2[i5] = item === null || typeof item !== "object" ? item : _deepClone(item, cache);
+      for (let i4 = 0; i4 < length; i4++) {
+        const item = value[i4];
+        result2[i4] = item === null || typeof item !== "object" ? item : _deepClone(item, cache);
       }
       return result2;
     }
@@ -2404,7 +2179,7 @@ var cami = (() => {
       return new RegExp(value.source, value.flags);
     }
     if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
-      if (typeof Buffer !== "undefined" && value instanceof Buffer) {
+      if (typeof Buffer !== "undefined" && ((_a2 = Buffer == null ? void 0 : Buffer.isBuffer) == null ? void 0 : _a2.call(Buffer, value))) {
         return Buffer.from(value);
       }
       return new value.constructor(
@@ -2517,9 +2292,9 @@ var cami = (() => {
     constructor() {
       // For small dependency sets, arrays are faster than Sets in V8
       // When dependency count grows large, we can switch to a Set
-      __publicField(this, "dependencies", []);
+      this.dependencies = [];
       // For fast lookup to avoid duplicates (O(1) vs O(n))
-      __publicField(this, "_depsMap", /* @__PURE__ */ new Map());
+      this._depsMap = /* @__PURE__ */ new Map();
     }
     /**
      * Track dependencies used during the execution of an effect function
@@ -2552,7 +2327,7 @@ var cami = (() => {
     }
   };
   // Shared static context for tracking the current computation
-  __publicField(_DependencyTracker, "current", null);
+  _DependencyTracker.current = null;
   var DependencyTracker = _DependencyTracker;
   var ObservableState = class extends Observable {
     /**
@@ -2566,24 +2341,21 @@ var cami = (() => {
      */
     constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
       super();
-      __publicField(this, "__value");
-      __publicField(this, "__pendingUpdates", []);
-      __publicField(this, "__updateScheduled", false);
-      __publicField(this, "__name");
-      __publicField(this, "__isUpdating", false);
-      __publicField(this, "__updateStack", []);
-      __publicField(this, "__observers", []);
-      __publicField(this, "__lastObserver", null);
-      // Add _uid property to match the dependency tracking
-      __publicField(this, "_uid");
+      this.__pendingUpdates = [];
+      this.__updateScheduled = false;
+      this.__isUpdating = false;
+      this.__updateStack = [];
+      this.__observers = [];
+      this.__lastObserver = null;
       if (subscriber) {
         if (last) {
           this.__lastObserver = subscriber;
         } else {
-          this.__observers.push(subscriber);
+          const sub = new Subscriber(subscriber);
+          this.__observers.push(sub);
         }
       }
-      this.__value = produce(initialValue, (draft) => {
+      this.__value = produce(initialValue, (_draft) => {
       });
       this.__name = name;
     }
@@ -2594,20 +2366,26 @@ var cami = (() => {
      * @description High-performance subscription method with O(1) unsubscribe
      */
     onValue(callback) {
+      const subscriber = new Subscriber(callback);
       const index = this.__observers.length;
-      this.__observers.push(callback);
+      this.__observers.push(subscriber);
       return {
         unsubscribe: () => {
-          if (this.__observers[index] === callback) {
+          if (this.__observers[index] === subscriber) {
             const lastIndex = this.__observers.length - 1;
             if (index < lastIndex) {
-              this.__observers[index] = this.__observers[lastIndex];
+              const lastObserver = this.__observers[lastIndex];
+              if (lastObserver !== void 0) {
+                this.__observers[index] = lastObserver;
+              }
             }
             this.__observers.pop();
           } else {
-            this.__observers = this.__observers.filter((obs) => obs !== callback);
+            this.__observers = this.__observers.filter((obs) => obs !== subscriber);
           }
-        }
+        },
+        complete: () => subscriber.notifyComplete(),
+        error: (err) => subscriber.notifyError(err)
       };
     }
     /**
@@ -2674,11 +2452,17 @@ var cami = (() => {
       }
       this.update((state) => {
         const keys = key.split(".");
-        let current3 = state;
-        for (let i5 = 0; i5 < keys.length - 1; i5++) {
-          current3 = current3[keys[i5]];
+        let current2 = state;
+        for (let i4 = 0; i4 < keys.length - 1; i4++) {
+          const key2 = keys[i4];
+          if (key2 !== void 0) {
+            current2 = current2[key2];
+          }
         }
-        current3[keys[keys.length - 1]] = value;
+        const lastKey = keys[keys.length - 1];
+        if (lastKey !== void 0) {
+          current2[lastKey] = value;
+        }
       });
     }
     /**
@@ -2695,11 +2479,17 @@ var cami = (() => {
       }
       this.update((state) => {
         const keys = key.split(".");
-        let current3 = state;
-        for (let i5 = 0; i5 < keys.length - 1; i5++) {
-          current3 = current3[keys[i5]];
+        let current2 = state;
+        for (let i4 = 0; i4 < keys.length - 1; i4++) {
+          const key2 = keys[i4];
+          if (key2 !== void 0) {
+            current2 = current2[key2];
+          }
         }
-        delete current3[keys[keys.length - 1]];
+        const lastKey = keys[keys.length - 1];
+        if (lastKey !== void 0) {
+          delete current2[lastKey];
+        }
       });
     }
     /**
@@ -2894,24 +2684,16 @@ var cami = (() => {
       const len = observers.length;
       if (len === 1 && !this.__lastObserver) {
         const observer = observers[0];
-        if (observer) {
-          if (typeof observer === "function") {
-            observer(value);
-          } else if (observer.next) {
-            observer.next(value);
-          }
+        if (observer && observer.next && !observer.isUnsubscribed) {
+          observer.next(value);
         }
         return;
       }
-      let i5 = len;
-      while (i5--) {
-        const observer = observers[i5];
-        if (observer) {
-          if (typeof observer === "function") {
-            observer(value);
-          } else if (observer.next) {
-            observer.next(value);
-          }
+      let i4 = len;
+      while (i4--) {
+        const observer = observers[i4];
+        if (observer && observer.next && !observer.isUnsubscribed) {
+          observer.next(value);
         }
       }
       if (this.__lastObserver) {
@@ -2928,7 +2710,7 @@ var cami = (() => {
      */
     __applyUpdates() {
       let hasChanged = false;
-      const needsEventOrTrace = __config.events.isEnabled || __trace.isEnabled;
+      const needsEventOrTrace = __config.events.isEnabled || __config.debug.isEnabled;
       const oldValue = needsEventOrTrace ? this.__value : void 0;
       const updates = this.__pendingUpdates;
       const updateCount = updates.length;
@@ -2940,6 +2722,9 @@ var cami = (() => {
       if (isComplexValue) {
         if (updateCount === 1) {
           const updater = updates[0];
+          if (updater === void 0) {
+            return;
+          }
           const newValue = produce(this.__value, updater);
           if (newValue !== this.__value) {
             if (typeof newValue === "object" && newValue !== null && typeof this.__value === "object" && this.__value !== null) {
@@ -2954,8 +2739,11 @@ var cami = (() => {
           }
         } else {
           let currentValue = this.__value;
-          for (let i5 = 0; i5 < updateCount; i5++) {
-            const updater = updates[i5];
+          for (let i4 = 0; i4 < updateCount; i4++) {
+            const updater = updates[i4];
+            if (updater === void 0) {
+              continue;
+            }
             const newValue = produce(currentValue, updater);
             if (newValue !== currentValue) {
               if (typeof newValue === "object" && newValue !== null && typeof currentValue === "object" && currentValue !== null) {
@@ -2975,8 +2763,11 @@ var cami = (() => {
         }
       } else {
         let currentValue = this.__value;
-        for (let i5 = 0; i5 < updateCount; i5++) {
-          const updater = updates[i5];
+        for (let i4 = 0; i4 < updateCount; i4++) {
+          const updater = updates[i4];
+          if (updater === void 0) {
+            continue;
+          }
           const result = updater(currentValue);
           const newValue = result !== void 0 ? result : currentValue;
           if (newValue !== currentValue) {
@@ -3022,7 +2813,7 @@ var cami = (() => {
      */
     complete() {
       this.__observers.forEach((observer) => {
-        if (observer && typeof observer !== "function" && typeof observer.complete === "function") {
+        if (observer && observer.complete && !observer.isUnsubscribed) {
           observer.complete();
         }
       });
@@ -3094,14 +2885,523 @@ var cami = (() => {
     return { value: currentValue, dispose };
   };
 
+  // src/observables/observable-proxy.ts
+  var ObservableProxy = class {
+    constructor(observable) {
+      if (!(observable instanceof ObservableState)) {
+        throw new TypeError(
+          "Expected observable to be an instance of ObservableState"
+        );
+      }
+      const conversionMethods = {
+        valueOf() {
+          return observable.value;
+        },
+        toString() {
+          return String(observable.value);
+        },
+        toJSON() {
+          return observable.value;
+        },
+        [Symbol.toPrimitive](hint) {
+          if (hint === "number") {
+            return Number(observable.value);
+          }
+          if (hint === "string") {
+            return String(observable.value);
+          }
+          return observable.value;
+        }
+      };
+      const proxyGetHandler = (target, property, _receiver) => {
+        if (property === "valueOf" || property === "toString" || property === "toJSON" || property === Symbol.toPrimitive) {
+          return conversionMethods[property];
+        }
+        let propertyType;
+        const propKey = property;
+        if (typeof target[propKey] === "function") {
+          propertyType = "targetFunction";
+        } else if (property in target) {
+          propertyType = "targetProperty";
+        } else if (target.value && typeof target.value[property] === "function") {
+          propertyType = "valueFunction";
+        } else {
+          propertyType = "valueProperty";
+        }
+        switch (propertyType) {
+          case "targetFunction":
+            return target[propKey].bind(target);
+          case "targetProperty":
+            return _deepClone(target[propKey]);
+          case "valueFunction":
+            return (...args) => target.value[property](...args);
+          case "valueProperty":
+            return _deepClone(target.value[property]);
+          default:
+            console.warn(`Unexpected property type: ${propertyType}`);
+            return void 0;
+        }
+      };
+      const proxySetHandler = (target, property, value, _receiver) => {
+        const propKey = property;
+        if (property in target) {
+          if (typeof target[propKey] === "object" && target[propKey] !== null && typeof value === "object" && value !== null) {
+            if (_deepEqual(target[propKey], value)) {
+              return true;
+            }
+          } else if (target[propKey] === value) {
+            return true;
+          }
+          target[property] = value;
+        } else {
+          const oldValue = target.value[property];
+          if (typeof oldValue === "object" && oldValue !== null && typeof value === "object" && value !== null) {
+            if (_deepEqual(oldValue, value)) {
+              return true;
+            }
+          } else if (oldValue === value) {
+            return true;
+          }
+          target.value[property] = value;
+        }
+        target.update(() => target.value);
+        return true;
+      };
+      const proxyDeleteHandler = (target, property) => {
+        if (property in target.value) {
+          delete target.value[property];
+          target.update(() => target.value);
+          return true;
+        }
+        return false;
+      };
+      return new Proxy(observable, {
+        get: proxyGetHandler,
+        set: proxySetHandler,
+        deleteProperty: proxyDeleteHandler,
+        ownKeys: (target) => {
+          return Reflect.ownKeys(target.value);
+        },
+        has: (target, property) => {
+          return property in target.value || property in target;
+        },
+        defineProperty: (target, property, descriptor) => {
+          if (property in target) {
+            return Reflect.defineProperty(target, property, descriptor);
+          } else {
+            const result = Reflect.defineProperty(target.value, property, descriptor);
+            if (result) {
+              target.update(() => target.value);
+            }
+            return result;
+          }
+        },
+        getOwnPropertyDescriptor: (target, property) => {
+          if (property in target) {
+            return Reflect.getOwnPropertyDescriptor(target, property);
+          }
+          return Reflect.getOwnPropertyDescriptor(target.value, property);
+        }
+      });
+    }
+  };
+
+  // src/reactive-element.ts
+  var ReactiveElement = class extends HTMLElement {
+    /**
+     * Constructs a new instance of ReactiveElement.
+     */
+    constructor() {
+      super();
+      this.onCreate();
+      this.__unsubscribers = /* @__PURE__ */ new Map();
+      this.effect = this.__effect.bind(this);
+      this.derive = this.__derive.bind(this);
+    }
+    /**
+     * Creates ObservableProperty or ObservableProxy instances for all properties in the provided object.
+     * @param attributes - An object with attribute names as keys and optional parsing functions as values.
+     * @example
+     * // In _009_dataFromProps.html, the todos attribute is parsed as JSON and the data property is extracted:
+     * this.observableAttributes({
+     *   todos: (v) => JSON.parse(v).data
+     * });
+     */
+    observableAttributes(attributes) {
+      Object.entries(attributes).forEach(([attrName, parseFn]) => {
+        let attrValue = this.getAttribute(attrName);
+        const transformFn = typeof parseFn === "function" ? parseFn : (v3) => v3;
+        const transformedValue = produce(attrValue, transformFn);
+        const observable = this.__observable(transformedValue, attrName);
+        if (this.__isObjectOrArray(observable.value)) {
+          this.__createObservablePropertyForObjOrArr(
+            this,
+            attrName,
+            observable,
+            true
+          );
+        } else {
+          this.__createObservablePropertyForPrimitive(
+            this,
+            attrName,
+            observable,
+            true
+          );
+        }
+      });
+    }
+    /**
+     * Creates an effect and registers its dispose function. The effect is used to perform side effects in response to state changes.
+     * This method is useful when working with ObservableProperties or ObservableProxies because it triggers the effect whenever the value of the underlying ObservableState changes.
+     * @param effectFn - The function to create the effect
+     * @example
+     * // Assuming `this.count` is an ObservableProperty
+     * this.effect(() => {
+     *   console.log(`The count is now: ${this.count}`);
+     * });
+     * // The console will log the current count whenever `this.count` changes
+     */
+    __effect(effectFn) {
+      const dispose = effect(effectFn);
+      this.__unsubscribers.set(effectFn, dispose);
+    }
+    /**
+     * Creates a derived value that updates when its dependencies change.
+     * @param deriveFn - The function to compute the derived value
+     * @returns The derived value
+     * @example
+     * // Assuming `this.count` is an ObservableProperty
+     * this.doubleCount = this.derive(() => this.count * 2);
+     * console.log(this.doubleCount); // If this.count is 5, this will log 10
+     */
+    __derive(deriveFn) {
+      const { value, dispose } = derive(deriveFn);
+      this.__unsubscribers.set(deriveFn, dispose);
+      return value;
+    }
+    /**
+     * Called when the component is created. Can be overridden by subclasses to add initialization logic.
+     * This method is a hook for the connectedCallback, which is invoked each time the custom element is appended into a document-connected element.
+     */
+    onCreate() {
+    }
+    /**
+     * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
+     * This is typically used to initialize component state, fetch data, and set up event listeners.
+     *
+     * @example
+     * // In a TodoList component
+     * connectedCallback() {
+     *   super.connectedCallback();
+     *   this.fetchTodos(); // Fetch todos when the component is added to the DOM
+     * }
+     */
+    connectedCallback() {
+      this.__setup({ infer: true });
+      this.effect(() => {
+        this.render();
+      });
+      this.render();
+      this.onConnect();
+    }
+    /**
+     * Invoked when the custom element is connected to the document's DOM.
+     * Subclasses can override this to add initialization logic when the component is added to the DOM.
+     *
+     * @example
+     * // In a UserCard component
+     * onConnect() {
+     *   this.showUserDetails(); // Display user details when the component is connected
+     * }
+     */
+    onConnect() {
+    }
+    /**
+     * Invoked when the custom element is disconnected from the document's DOM.
+     * This is a good place to remove event listeners, cancel any ongoing network requests, or clean up any resources.
+     * @example
+     * // In a Modal component
+     * disconnectedCallback() {
+     *   super.disconnectedCallback();
+     *   this.close(); // Close the modal when it's disconnected from the DOM
+     * }
+     */
+    disconnectedCallback() {
+      this.onDisconnect();
+      this.__unsubscribers.forEach((unsubscribe) => unsubscribe());
+    }
+    /**
+     * Invoked when the custom element is disconnected from the document's DOM.
+     * Subclasses can override this to add cleanup logic when the component is removed from the DOM.
+     *
+     * @example
+     * // In a VideoPlayer component
+     * onDisconnect() {
+     *   this.stopPlayback(); // Stop video playback when the component is removed
+     * }
+     */
+    onDisconnect() {
+    }
+    /**
+     * Invoked when an attribute of the custom element is added, removed, updated, or replaced.
+     * This can be used to react to attribute changes, such as updating the component state or modifying its appearance.
+     *
+     * @param name - The name of the attribute that changed
+     * @param oldValue - The old value of the attribute
+     * @param newValue - The new value of the attribute
+     * @example
+     * // In a ThemeSwitcher component
+     * attributeChangedCallback(name, oldValue, newValue) {
+     *   super.attributeChangedCallback(name, oldValue, newValue);
+     *   if (name === 'theme') {
+     *     this.updateTheme(newValue); // Update the theme when the `theme` attribute changes
+     *   }
+     * }
+     */
+    attributeChangedCallback(name, oldValue, newValue) {
+      this.onAttributeChange(name, oldValue, newValue);
+    }
+    /**
+     * Invoked when an attribute of the custom element is added, removed, updated, or replaced.
+     * Subclasses can override this to add logic that should run when an attribute changes.
+     *
+     * @param name - The name of the attribute that changed
+     * @param oldValue - The old value of the attribute
+     * @param newValue - The new value of the attribute
+     * @example
+     * // In a CollapsiblePanel component
+     * onAttributeChange(name, oldValue, newValue) {
+     *   if (name === 'collapsed') {
+     *     this.toggleCollapse(newValue === 'true'); // Toggle collapse when the `collapsed` attribute changes
+     *   }
+     * }
+     */
+    onAttributeChange(name, oldValue, newValue) {
+    }
+    /**
+     * Invoked when the custom element is moved to a new document.
+     * This can be used to update bindings or perform re-initialization as needed when the component is adopted into a new DOM context.
+     * @example
+     * // In a DragDropContainer component
+     * adoptedCallback() {
+     *   super.adoptedCallback();
+     *   this.updateDragDropContext(); // Update context when the component is moved to a new document
+     * }
+     */
+    adoptedCallback() {
+      this.onAdopt();
+    }
+    /**
+     * Invoked when the custom element is moved to a new document.
+     * Subclasses can override this to add logic that should run when the component is moved to a new document.
+     * @example
+     * // In a DataGrid component
+     * onAdopt() {
+     *   this.refreshData(); // Refresh data when the component is adopted into a new document
+     * }
+     */
+    onAdopt() {
+    }
+    /**
+     * Checks if the provided value is an object or an array.
+     * @param value - The value to check.
+     * @returns True if the value is an object or an array, false otherwise.
+     */
+    __isObjectOrArray(value) {
+      return value !== null && (typeof value === "object" || Array.isArray(value));
+    }
+    /**
+     * Private method. Creates an ObservableProperty for the provided key in the given context when the provided value is an object or an array.
+     * @param context - The context in which the property is defined.
+     * @param key - The property key.
+     * @param observable - The observable to bind to the property.
+     * @param isAttribute - Whether the property is an attribute.
+     * @throws {TypeError} If observable is not an instance of ObservableState.
+     */
+    __createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
+      if (!(observable instanceof ObservableState)) {
+        throw new TypeError(
+          "Expected observable to be an instance of ObservableState"
+        );
+      }
+      const proxy = this.__observableProxy(observable);
+      Object.defineProperty(context, key, {
+        get: () => proxy,
+        set: (newValue) => {
+          observable.update(() => newValue);
+          if (isAttribute) {
+            this.setAttribute(key, newValue);
+          }
+        }
+      });
+    }
+    /**
+     * Private method. Handles the case when the provided value is not an object or an array.
+     * This method creates an ObservableProperty for the provided key in the given context.
+     * An ObservableProperty is a special type of property that can notify about changes in its state.
+     * This is achieved by defining a getter and a setter for the property using Object.defineProperty.
+     * The getter simply returns the current value of the observable.
+     * The setter updates the observable with the new value and, if the property is an attribute, also updates the attribute.
+     * @param context - The context in which the property is defined.
+     * @param key - The property key.
+     * @param observable - The observable to bind to the property.
+     * @param isAttribute - Whether the property is an attribute.
+     * @throws {TypeError} If observable is not an instance of ObservableState.
+     */
+    __createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
+      if (!(observable instanceof ObservableState)) {
+        throw new TypeError(
+          "Expected observable to be an instance of ObservableState"
+        );
+      }
+      Object.defineProperty(context, key, {
+        get: () => observable.value,
+        set: (newValue) => {
+          observable.update(() => newValue);
+          if (isAttribute) {
+            this.setAttribute(key, newValue);
+          }
+        }
+      });
+    }
+    /**
+     * Creates a proxy for the observable.
+     * @param observable - The observable for which a proxy is to be created.
+     * @throws {TypeError} If observable is not an instance of ObservableState.
+     * @returns The created proxy.
+     */
+    __observableProxy(observable) {
+      return new ObservableProxy(observable);
+    }
+    /**
+     * Defines the observables, effects, and attributes for the element.
+     * @param config - The configuration object.
+     */
+    __setup(config) {
+      if (config.infer === true) {
+        const keys = Object.keys(this);
+        const keysLen = keys.length;
+        for (let i4 = 0; i4 < keysLen; i4++) {
+          const key = keys[i4];
+          const value = this[key];
+          if (typeof value !== "function" && !key.startsWith("__")) {
+            if (value instanceof Observable) {
+              continue;
+            } else {
+              const observable = this.__observable(value, key);
+              if (this.__isObjectOrArray(observable.value)) {
+                this.__createObservablePropertyForObjOrArr(this, key, observable);
+              } else {
+                this.__createObservablePropertyForPrimitive(
+                  this,
+                  key,
+                  observable
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+    /**
+     * Creates an observable with an initial value.
+     * @param initialValue - The initial value for the observable.
+     * @param name - The name of the observable.
+     * @throws {Error} If the type of initialValue is not allowed in observables.
+     * @returns The created observable state.
+     */
+    __observable(initialValue, name) {
+      if (!this.__isAllowedType(initialValue)) {
+        const type = Object.prototype.toString.call(initialValue);
+        throw new Error(
+          `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
+        );
+      }
+      const observable = new ObservableState(initialValue, null, { name });
+      this.__registerObservables(observable);
+      return observable;
+    }
+    /**
+     * Checks if the provided value is of an allowed type
+     * @param value - The value to check
+     * @returns True if the value is of an allowed type, false otherwise
+     */
+    __isAllowedType(value) {
+      const allowedTypes = ["number", "string", "boolean", "object", "undefined"];
+      const valueType = typeof value;
+      if (valueType === "object") {
+        return value === null || Array.isArray(value) || this.__isPlainObject(value);
+      }
+      return allowedTypes.includes(valueType);
+    }
+    /**
+     * Checks if the provided value is a plain object
+     * @param value - The value to check
+     * @returns True if the value is a plain object, false otherwise
+     */
+    __isPlainObject(value) {
+      if (Object.prototype.toString.call(value) !== "[object Object]") {
+        return false;
+      }
+      const prototype = Object.getPrototypeOf(value);
+      return prototype === null || prototype === Object.prototype;
+    }
+    /**
+     * Registers an observable state to the list of unsubscribers
+     * @param observableState - The observable state to register
+     */
+    __registerObservables(observableState) {
+      if (!(observableState instanceof ObservableState)) {
+        throw new TypeError(
+          "Expected observableState to be an instance of ObservableState"
+        );
+      }
+      this.__unsubscribers.set(observableState, () => {
+        const dispose = observableState.dispose;
+        if (typeof dispose === "function") {
+          dispose.call(observableState);
+        }
+      });
+    }
+    /**
+     * Hook called after rendering. Can be overridden by subclasses.
+     */
+    afterRender() {
+    }
+    /**
+     * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+     * Uses memoization to avoid unnecessary rendering when the template result hasn't changed.
+     */
+    render() {
+      if (typeof this.template === "function") {
+        const template = this.template();
+        if (this.__prevTemplate === template) return;
+        if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
+          return;
+        }
+        this.__prevTemplate = template;
+        B(template, this);
+        this.afterRender();
+      }
+    }
+    /**
+     * Warns if required properties are missing from the component.
+     * @param properties - Array of property names to check
+     */
+    warnIfMissingProperties(properties) {
+      const missingProperties = properties.filter((prop) => !(prop in this));
+      if (missingProperties.length > 0) {
+        console.warn(`Missing required properties: ${missingProperties.join(", ")}`);
+      }
+    }
+  };
+
   // src/observables/observable-model.ts
   function generateRandomName() {
     return "model_" + Math.random().toString(36).substr(2, 9);
   }
   var Model = class {
     constructor({ name = generateRandomName(), properties = {} } = {}) {
-      __publicField(this, "name");
-      __publicField(this, "schema");
       this.name = name;
       this.schema = properties;
     }
@@ -3241,7 +3541,6 @@ ${errors2.join("\n\n")}`
             throw new Error(`Unexpected type category: ${typeCategory}`);
         }
       } catch (error) {
-        const expectedType = this._getExpectedTypeString(type);
         throw new Error(
           `Property: ${path.join(".")}
 Error: ${error.message}`
@@ -3274,7 +3573,7 @@ Error: ${error.message}`
           return type;
         case "objectWithSchema":
           const objectType = type;
-          return `Object(${Object.entries(objectType.schema).map(([k3, v4]) => `${k3}: ${this._getExpectedTypeString(v4)}`).join(", ")})`;
+          return `Object(${Object.entries(objectType.schema).map(([k2, v3]) => `${k2}: ${this._getExpectedTypeString(v3)}`).join(", ")})`;
         case "array":
           const arrayType = type;
           return `Array(${this._getExpectedTypeString(arrayType.itemType)})`;
@@ -3297,34 +3596,6 @@ Error: ${error.message}`
         case "unknown":
         default:
           return "Unknown";
-      }
-    }
-    /**
-     * Helper function to get a human-readable string representation of actual value type
-     * @param value - The actual value
-     * @returns A string representation of the actual type
-     */
-    _getActualTypeString(value) {
-      const getValueType = (value2) => {
-        if (value2 === null) return "null";
-        if (Array.isArray(value2)) return "array";
-        if (value2 instanceof Date) return "date";
-        if (typeof value2 === "object") return "object";
-        return typeof value2;
-      };
-      const valueType = getValueType(value);
-      switch (valueType) {
-        case "null":
-          return "null";
-        case "array":
-          return "Array";
-        case "date":
-          return "Date";
-        case "object":
-          const constructor = value.constructor.name;
-          return constructor !== "Object" ? constructor : "object";
-        default:
-          return valueType;
       }
     }
   };
@@ -3489,8 +3760,8 @@ Error: ${error.message}`
         try {
           validateType2(value, subType, path, rootState);
           return true;
-        } catch (e5) {
-          errors2.push(e5.message);
+        } catch (e4) {
+          errors2.push(e4.message);
           return false;
         }
       })) {
@@ -3520,11 +3791,11 @@ Error: ${error.message}`
         }
       });
       let currentObj = rootState;
-      for (let i5 = 0; i5 < path.length - 1; i5++) {
-        if (currentObj[path[i5]] === void 0) {
-          currentObj[path[i5]] = {};
+      for (let i4 = 0; i4 < path.length - 1; i4++) {
+        if (currentObj[path[i4]] === void 0) {
+          currentObj[path[i4]] = {};
         }
-        currentObj = currentObj[path[i5]];
+        currentObj = currentObj[path[i4]];
       }
       currentObj[path[path.length - 1]] = mergedValue;
       return mergedValue;
@@ -3684,8 +3955,8 @@ Error: ${error.message}`
         try {
           validateType2(value, subType, path, rootState);
           break;
-        } catch (e5) {
-          errors2.push(e5.message);
+        } catch (e4) {
+          errors2.push(e4.message);
         }
       }
       if (possibleTypes.length === errors2.length) {
@@ -3785,7 +4056,7 @@ Error: ${error.message}`
         type,
         path,
         rootState,
-        (v4, t5, p4, r4, k3) => validateType(v4, t5, p4, r4, k3)
+        (v3, t4, p3, r3, k2) => validateType(v3, t4, p3, r3, k2)
       );
     }
     if (typeof type === "string") {
@@ -3796,7 +4067,7 @@ Error: ${error.message}`
           type,
           path,
           rootState,
-          (v4, t5, p4, r4, k3) => validateType(v4, t5, p4, r4, k3)
+          (v3, t4, p3, r3, k2) => validateType(v3, t4, p3, r3, k2)
         );
       } else {
         throw new Error(
@@ -3813,7 +4084,7 @@ Error: ${error.message}`
         type,
         path,
         rootState,
-        (v4, t5, p4, r4, k3) => validateType(v4, t5, p4, r4, k3)
+        (v3, t4, p3, r3, k2) => validateType(v3, t4, p3, r3, k2)
       );
     } else {
       throw new Error(
@@ -3853,59 +4124,53 @@ Error: ${error.message}`
 
   // src/observables/observable-store.ts
   enablePatches();
+  setAutoFreeze(false);
   var ObservableStore = class extends Observable {
     constructor(initialState, options = {}) {
       super((subscriber) => {
-        this.__subscriber = subscriber;
+        this.__subscriber = subscriber.next ? { next: subscriber.next } : null;
         return () => {
           this.__subscriber = null;
         };
       });
-      __publicField(this, "name");
-      __publicField(this, "schema");
-      // State management
-      __publicField(this, "_state");
-      __publicField(this, "_frozenState", null);
-      __publicField(this, "_isDirty", false);
-      __publicField(this, "_stateVersion", 0);
-      __publicField(this, "_proxy");
-      __publicField(this, "previousState");
+      this._frozenState = null;
+      // Used in proxy handlers
+      this._isDirty = false;
+      this._stateVersion = 0;
       // Core data structures
-      __publicField(this, "reducers", {});
-      __publicField(this, "actions", {});
-      __publicField(this, "dispatchQueue", []);
-      __publicField(this, "isDispatching", false);
-      __publicField(this, "currentDispatchPromise", null);
+      this.reducers = {};
+      this.actions = {};
+      this.dispatchQueue = [];
+      this.isDispatching = false;
+      this.currentDispatchPromise = null;
       // Cache structures
-      __publicField(this, "queryCache", /* @__PURE__ */ new Map());
-      __publicField(this, "queryFunctions", /* @__PURE__ */ new Map());
-      __publicField(this, "queries", {});
-      __publicField(this, "memoCache", /* @__PURE__ */ new Map());
+      this.queryCache = /* @__PURE__ */ new Map();
+      this.queryFunctions = /* @__PURE__ */ new Map();
+      this.queries = {};
+      this.memoCache = /* @__PURE__ */ new Map();
       // Resource management
-      __publicField(this, "intervals", /* @__PURE__ */ new Map());
-      __publicField(this, "focusHandlers", /* @__PURE__ */ new Map());
-      __publicField(this, "reconnectHandlers", /* @__PURE__ */ new Map());
-      __publicField(this, "gcTimeouts", /* @__PURE__ */ new Map());
+      this.intervals = /* @__PURE__ */ new Map();
+      this.focusHandlers = /* @__PURE__ */ new Map();
+      this.reconnectHandlers = /* @__PURE__ */ new Map();
+      this.gcTimeouts = /* @__PURE__ */ new Map();
       // Advanced features
-      __publicField(this, "mutationFunctions", /* @__PURE__ */ new Map());
-      __publicField(this, "mutations", {});
-      __publicField(this, "patchListeners", /* @__PURE__ */ new Map());
-      __publicField(this, "machines", {});
-      __publicField(this, "memos", {});
-      __publicField(this, "thunks", {});
-      __publicField(this, "specs", /* @__PURE__ */ new Map());
+      this.mutationFunctions = /* @__PURE__ */ new Map();
+      this.mutations = {};
+      this.patchListeners = /* @__PURE__ */ new Map();
+      this.machines = {};
+      this.memos = {};
+      this.thunks = {};
+      this.specs = /* @__PURE__ */ new Map();
       // Hooks for middleware-like functionality
-      __publicField(this, "beforeHooks", []);
-      __publicField(this, "afterHooks", []);
-      __publicField(this, "throttledAfterHooks");
+      this.beforeHooks = [];
+      this.afterHooks = [];
       // Dispatch tracking to prevent infinite loops
-      __publicField(this, "__isDispatching", false);
-      __publicField(this, "__dispatchStack", []);
-      // Internal state management
-      __publicField(this, "_stateTrapStore");
-      __publicField(this, "__subscriber", null);
+      this.__isDispatching = false;
+      this.__dispatchStack = [];
+      this.__subscriber = null;
       this.name = options.name || "cami-store";
       this.schema = options.schema || {};
+      this._uid = this.name;
       this._state = createDraft(initialState);
       this._frozenState = null;
       this._isDirty = false;
@@ -3929,18 +4194,14 @@ Error: ${error.message}`
       }
     }
     /**
-     * Returns a frozen snapshot of the current state
+     * Returns a snapshot of the current state
      * Automatically tracks dependencies for reactive computations
      */
     get state() {
       if (DependencyTracker.current) {
         DependencyTracker.current.addDependency(this);
       }
-      if (!this._frozenState) {
-        const cleanState = _deepClone(this._state);
-        this._frozenState = deepFreeze(cleanState);
-      }
-      return this._frozenState;
+      return JSON.parse(JSON.stringify(this._state));
     }
     /**
      * Alternative to 'state' getter that follows standard getState pattern
@@ -3950,11 +4211,7 @@ Error: ${error.message}`
       if (DependencyTracker.current) {
         DependencyTracker.current.addDependency(this);
       }
-      if (!this._frozenState) {
-        const cleanState = _deepClone(this._state);
-        this._frozenState = deepFreeze(cleanState);
-      }
-      return this._frozenState;
+      return JSON.parse(JSON.stringify(this._state));
     }
     /**
      * Creates a proxy that tracks property access for dependency tracking
@@ -4086,7 +4343,7 @@ Error: ${error.message}`
      */
     _notifyObservers() {
       if (!this._isDirty) return;
-      if (this.__observers.length === 0 && !this.__subscriber) {
+      if (!this.hasObservers && !this.__subscriber) {
         this._isDirty = false;
         return;
       }
@@ -4096,16 +4353,10 @@ Error: ${error.message}`
       }
       this.memoCache.clear();
       this._frozenState = null;
-      const stateToEmit = deepFreeze(_deepClone(this._state));
-      const observerCount = this.__observers.length;
+      const stateToEmit = _deepClone(this._state);
+      const observerCount = this.observerCount;
       if (observerCount > 0) {
-        let i5 = observerCount;
-        while (i5--) {
-          const observer = this.__observers[i5];
-          if (observer && typeof observer.next === "function") {
-            observer.next(stateToEmit);
-          }
-        }
+        this.notifyObservers(stateToEmit);
       }
       if (this.__subscriber && typeof this.__subscriber.next === "function") {
         this.__subscriber.next(stateToEmit);
@@ -4192,6 +4443,7 @@ Error: ${error.message}`
     /**
      * Process the queue of actions to be dispatched
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _processDispatchQueue() {
       if (this.isDispatching) return;
       this.isDispatching = true;
@@ -4225,7 +4477,7 @@ Error: ${error.message}`
      * Critical performance path - heavily optimized
      */
     _dispatch(action, payload) {
-      var _a3;
+      var _a2;
       if (this.__isDispatching) {
         const cycle = [...this.__dispatchStack, action].join(" -> ");
         console.warn(`[Cami.js] Cyclic dispatch detected: ${cycle}`);
@@ -4254,7 +4506,7 @@ Error: ${error.message}`
       }
       const originalState = _deepClone(this._state);
       try {
-        const spec = (_a3 = this.specs) == null ? void 0 : _a3.get(action);
+        const spec = (_a2 = this.specs) == null ? void 0 : _a2.get(action);
         if (spec == null ? void 0 : spec.precondition) {
           const isPreconditionMet = spec.precondition({
             state: this._state,
@@ -4393,9 +4645,9 @@ Error: ${error.message}`
         const hooks = this.beforeHooks;
         const len = hooks.length;
         if (len === 0) return;
-        let i5 = len;
-        while (i5--) {
-          hooks[i5](context);
+        let i4 = len;
+        while (i4--) {
+          hooks[i4](context);
         }
       } else if (type === "after") {
         if (this.afterHooks.length === 0) return;
@@ -4409,12 +4661,12 @@ Error: ${error.message}`
       const hooks = this.afterHooks;
       const len = hooks.length;
       if (len === 0) return;
-      let i5 = len;
-      while (i5--) {
+      let i4 = len;
+      while (i4--) {
         try {
-          hooks[i5](context);
+          hooks[i4](context);
         } catch (error) {
-          console.error(`[Cami.js] Error in afterHook[${i5}]:`, error);
+          console.error(`[Cami.js] Error in afterHook[${i4}]:`, error);
           throw error;
         }
       }
@@ -4427,9 +4679,9 @@ Error: ${error.message}`
       if (this.patchListeners.size === 0) return;
       const patchesByKey = /* @__PURE__ */ new Map();
       const patchesLen = patches.length;
-      let i5 = patchesLen;
-      while (i5--) {
-        const patch = patches[i5];
+      let i4 = patchesLen;
+      while (i4--) {
+        const patch = patches[i4];
         const key = patch.path[0];
         if (!this.patchListeners.has(key)) continue;
         let keyPatches = patchesByKey.get(key);
@@ -4443,10 +4695,10 @@ Error: ${error.message}`
         const listeners = this.patchListeners.get(key);
         if (!listeners || listeners.length === 0) continue;
         const listenersLen = listeners.length;
-        let j3 = listenersLen;
-        while (j3--) {
+        let j2 = listenersLen;
+        while (j2--) {
           try {
-            listeners[j3](keyPatches);
+            listeners[j2](keyPatches);
           } catch (error) {
             console.error(`[Cami.js] Error in patch listener for key "${key}":`, error);
           }
@@ -4618,7 +4870,7 @@ Error: ${error.message}`
      */
     applyPatch(patches) {
       this._state = applyPatches(this._state, patches);
-      this.__observers.forEach((observer) => observer.next(this._state));
+      this.notifyObservers(this._state);
     }
     /**
      * @method defineQuery
@@ -5096,8 +5348,8 @@ Error: ${error.message}`
       }
       const deps = Array.from(dependencies);
       const len = deps.length;
-      for (let i5 = 0; i5 < len; i5++) {
-        const dep = deps[i5];
+      for (let i4 = 0; i4 < len; i4++) {
+        const dep = deps[i4];
         if (this._state[dep] !== this.previousState[dep]) {
           if (typeof this._state[dep] === "object" && this._state[dep] !== null && typeof this.previousState[dep] === "object" && this.previousState[dep] !== null) {
             if (!_deepEqual(this._state[dep], this.previousState[dep])) {
@@ -5217,12 +5469,13 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       return actionName in this.thunks;
     }
     _validateState(state) {
+      const mutableState = _deepClone(state);
       Object.entries(this.schema).forEach(([key, type]) => {
         try {
           if (type.type === "optional" && (state[key] === void 0 || state[key] === null)) {
             return;
           }
-          validateType(state[key], type, [key], state);
+          validateType(state[key], type, [key], mutableState);
         } catch (error) {
           throw new Error(`Validation error in ${this.name}: ${error.message}`);
         }
@@ -5271,555 +5524,11 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     }
     return storeInstance;
   };
-
-  // src/observables/observable-proxy.js
-  var ObservableProxy = class {
-    constructor(observable) {
-      if (!(observable instanceof ObservableState)) {
-        throw new TypeError(
-          "Expected observable to be an instance of ObservableState"
-        );
-      }
-      const conversionMethods = {
-        valueOf() {
-          return observable.value;
-        },
-        toString() {
-          return String(observable.value);
-        },
-        toJSON() {
-          return observable.value;
-        },
-        [Symbol.toPrimitive](hint) {
-          if (hint === "number") {
-            return Number(observable.value);
-          }
-          if (hint === "string") {
-            return String(observable.value);
-          }
-          return observable.value;
-        }
-      };
-      return new Proxy(observable, {
-        get: (target, property, receiver) => {
-          if (property === "valueOf" || property === "toString" || property === "toJSON" || property === Symbol.toPrimitive) {
-            return conversionMethods[property];
-          }
-          let propertyType;
-          if (typeof target[property] === "function") {
-            propertyType = "targetFunction";
-          } else if (property in target) {
-            propertyType = "targetProperty";
-          } else if (typeof target.value[property] === "function") {
-            propertyType = "valueFunction";
-          } else {
-            propertyType = "valueProperty";
-          }
-          switch (propertyType) {
-            case "targetFunction":
-              return target[property].bind(target);
-            case "targetProperty":
-              return _deepClone(target[property]);
-            case "valueFunction":
-              return (...args) => target.value[property](...args);
-            case "valueProperty":
-              return _deepClone(target.value[property]);
-            default:
-              console.warn(`Unexpected property type: ${propertyType}`);
-              return void 0;
-          }
-        },
-        set: (target, property, value, receiver) => {
-          if (property in target) {
-            if (typeof target[property] === "object" && target[property] !== null && typeof value === "object" && value !== null) {
-              if (_deepEqual(target[property], value)) {
-                return true;
-              }
-            } else if (target[property] === value) {
-              return true;
-            }
-            target[property] = value;
-          } else {
-            const oldValue = target.value[property];
-            if (typeof oldValue === "object" && oldValue !== null && typeof value === "object" && value !== null) {
-              if (_deepEqual(oldValue, value)) {
-                return true;
-              }
-            } else if (oldValue === value) {
-              return true;
-            }
-            target.value[property] = value;
-          }
-          target.update(() => target.value);
-          return true;
-        },
-        deleteProperty: (target, property) => {
-          if (property in target.value) {
-            delete target.value[property];
-            target.update(() => target.value);
-            return true;
-          }
-          return false;
-        },
-        ownKeys: (target) => {
-          return Reflect.ownKeys(target.value);
-        },
-        has: (target, property) => {
-          return property in target.value || property in target;
-        },
-        defineProperty: (target, property, descriptor) => {
-          if (property in target) {
-            return Reflect.defineProperty(target, property, descriptor);
-          } else {
-            const result = Reflect.defineProperty(target.value, property, descriptor);
-            if (result) {
-              target.update(() => target.value);
-            }
-            return result;
-          }
-        },
-        getOwnPropertyDescriptor: (target, property) => {
-          if (property in target) {
-            return Reflect.getOwnPropertyDescriptor(target, property);
-          }
-          return Reflect.getOwnPropertyDescriptor(target.value, property);
-        }
-      });
-    }
+  var clearStoreCache = () => {
+    storeInstances.clear();
   };
 
-  // src/reactive-element.js
-  var ReactiveElement = class extends HTMLElement {
-    /**
-     * @constructor
-     * @description Constructs a new instance of ReactiveElement.
-     */
-    constructor() {
-      super();
-      this.onCreate();
-      this.__unsubscribers = /* @__PURE__ */ new Map();
-      this.effect = effect.bind(this);
-      this.derive = this.__derive.bind(this);
-    }
-    /**
-     * @method
-     * @description Creates ObservableProperty or ObservableProxy instances for all properties in the provided object.
-     * @param {Object} attributes - An object with attribute names as keys and optional parsing functions as values.
-     * @example
-     * // In _009_dataFromProps.html, the todos attribute is parsed as JSON and the data property is extracted:
-     * this.observableAttributes({
-     *   todos: (v) => JSON.parse(v).data
-     * });
-     * @returns {void}
-     */
-    observableAttributes(attributes) {
-      Object.entries(attributes).forEach(([attrName, parseFn]) => {
-        let attrValue = this.getAttribute(attrName);
-        const transformFn = typeof parseFn === "function" ? parseFn : (v4) => v4;
-        attrValue = produce(attrValue, transformFn);
-        const observable = this.__observable(attrValue, attrName);
-        if (this.__isObjectOrArray(observable.value)) {
-          this.__createObservablePropertyForObjOrArr(
-            this,
-            attrName,
-            observable,
-            true
-          );
-        } else {
-          this.__createObservablePropertyForPrimitive(
-            this,
-            attrName,
-            observable,
-            true
-          );
-        }
-      });
-    }
-    /**
-     * @method
-     * @description Creates an effect and registers its dispose function. The effect is used to perform side effects in response to state changes.
-     * This method is useful when working with ObservableProperties or ObservableProxies because it triggers the effect whenever the value of the underlying ObservableState changes.
-     * @example
-     * // Assuming `this.count` is an ObservableProperty
-     * this.effect(() => {
-     *   console.log(`The count is now: ${this.count}`);
-     * });
-     * // The console will log the current count whenever `this.count` changes
-     *
-     * @param {Function} effectFn - The function to create the effect
-     * @returns {void}
-     */
-    effect(effectFn) {
-      const dispose = super.effect(effectFn);
-      this.__unsubscribers.set(effectFn, dispose);
-    }
-    /**
-     * @method
-     * @description Creates a derived value that updates when its dependencies change.
-     * @param {Function} deriveFn - The function to compute the derived value
-     * @returns {any} The derived value
-     * @example
-     * // Assuming `this.count` is an ObservableProperty
-     * this.doubleCount = this.derive(() => this.count * 2);
-     * console.log(this.doubleCount); // If this.count is 5, this will log 10
-     */
-    __derive(deriveFn) {
-      const { value, dispose } = derive(deriveFn);
-      this.__unsubscribers.set(deriveFn, dispose);
-      return value;
-    }
-    /**
-     * @method
-     * @description Called when the component is created. Can be overridden by subclasses to add initialization logic.
-     * This method is a hook for the connectedCallback, which is invoked each time the custom element is appended into a document-connected element.
-     * @returns {void}
-     */
-    onCreate() {
-    }
-    /**
-     * @method
-     * @description Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
-     * This is typically used to initialize component state, fetch data, and set up event listeners.
-     *
-     * @example
-     * // In a TodoList component
-     * connectedCallback() {
-     *   super.connectedCallback();
-     *   this.fetchTodos(); // Fetch todos when the component is added to the DOM
-     * }
-     * @returns {void}
-     */
-    connectedCallback() {
-      this.__setup({ infer: true });
-      this.effect(() => {
-        this.render();
-      });
-      this.render();
-      this.onConnect();
-    }
-    /**
-     * @method
-     * @description Invoked when the custom element is connected to the document's DOM.
-     * @returns {void}
-     * Subclasses can override this to add initialization logic when the component is added to the DOM.
-     *
-     * @example
-     * // In a UserCard component
-     * onConnect() {
-     *   this.showUserDetails(); // Display user details when the component is connected
-     * }
-     */
-    onConnect() {
-    }
-    /**
-     * @method
-     * @description Invoked when the custom element is disconnected from the document's DOM.
-     * This is a good place to remove event listeners, cancel any ongoing network requests, or clean up any resources.
-     * @returns {void}
-     * @example
-     * // In a Modal component
-     * disconnectedCallback() {
-     *   super.disconnectedCallback();
-     *   this.close(); // Close the modal when it's disconnected from the DOM
-     * }
-     * @returns {void}
-     */
-    disconnectedCallback() {
-      this.onDisconnect();
-      this.__unsubscribers.forEach((unsubscribe) => unsubscribe());
-    }
-    /**
-     * @method
-     * @description Invoked when the custom element is disconnected from the document's DOM.
-     * Subclasses can override this to add cleanup logic when the component is removed from the DOM.
-     * @returns {void}
-     *
-     * @example
-     * // In a VideoPlayer component
-     * onDisconnect() {
-     *   this.stopPlayback(); // Stop video playback when the component is removed
-     * }
-     **/
-    onDisconnect() {
-    }
-    /**
-     * @method
-     * @description Invoked when an attribute of the custom element is added, removed, updated, or replaced.
-     * This can be used to react to attribute changes, such as updating the component state or modifying its appearance.
-     *
-     * @example
-     * // In a ThemeSwitcher component
-     * attributeChangedCallback(name, oldValue, newValue) {
-     *   super.attributeChangedCallback(name, oldValue, newValue);
-     *   if (name === 'theme') {
-     *     this.updateTheme(newValue); // Update the theme when the `theme` attribute changes
-     *   }
-     * }
-     * @param {string} name - The name of the attribute that changed
-     * @param {string} oldValue - The old value of the attribute
-     * @param {string} newValue - The new value of the attribute
-     * @returns {void}
-     */
-    attributeChangedCallback(name, oldValue, newValue) {
-      this.onAttributeChange(name, oldValue, newValue);
-    }
-    /**
-     * @method
-     * @description Invoked when an attribute of the custom element is added, removed, updated, or replaced.
-     * @returns {void}
-     * Subclasses can override this to add logic that should run when an attribute changes.
-     *
-     * @example
-     * // In a CollapsiblePanel component
-     * onAttributeChange(name, oldValue, newValue) {
-     *   if (name === 'collapsed') {
-     *     this.toggleCollapse(newValue === 'true'); // Toggle collapse when the `collapsed` attribute changes
-     *   }
-     * }
-     **/
-    onAttributeChange(name, oldValue, newValue) {
-    }
-    /**
-     * @method
-     * @description Invoked when the custom element is moved to a new document.
-     * This can be used to update bindings or perform re-initialization as needed when the component is adopted into a new DOM context.
-     * @returns {void}
-     * @example
-     * // In a DragDropContainer component
-     * adoptedCallback() {
-     *   super.adoptedCallback();
-     *   this.updateDragDropContext(); // Update context when the component is moved to a new document
-     * }
-     * @returns {void}
-     */
-    adoptedCallback() {
-      this.onAdopt();
-    }
-    /**
-     * @method
-     * @description Invoked when the custom element is moved to a new document.
-     * Subclasses can override this to add logic that should run when the component is moved to a new document.
-     * @returns {void}
-     * @example
-     * // In a DataGrid component
-     * onAdopt() {
-     *   this.refreshData(); // Refresh data when the component is adopted into a new document
-     * }
-     **/
-    onAdopt() {
-    }
-    /**
-     * @private
-     * @method
-     * @description Checks if the provided value is an object or an array.
-     * @param {any} value - The value to check.
-     * @returns {boolean} True if the value is an object or an array, false otherwise.
-     */
-    __isObjectOrArray(value) {
-      return value !== null && (typeof value === "object" || Array.isArray(value));
-    }
-    /**
-     * @private
-     * @method
-     * @description Private method. Creates an ObservableProperty for the provided key in the given context when the provided value is an object or an array.
-     * @param {Object} context - The context in which the property is defined.
-     * @param {string} key - The property key.
-     * @param {ObservableState} observable - The observable to bind to the property.
-     * @param {boolean} [isAttribute=false] - Whether the property is an attribute.
-     * @throws {TypeError} If observable is not an instance of ObservableState.
-     * @returns {void}
-     */
-    __createObservablePropertyForObjOrArr(context, key, observable, isAttribute = false) {
-      if (!(observable instanceof ObservableState)) {
-        throw new TypeError(
-          "Expected observable to be an instance of ObservableState"
-        );
-      }
-      const proxy = this.__observableProxy(observable);
-      Object.defineProperty(context, key, {
-        get: () => proxy,
-        set: (newValue) => {
-          observable.update(() => newValue);
-          if (isAttribute) {
-            this.setAttribute(key, newValue);
-          }
-        }
-      });
-    }
-    /**
-     * @private
-     * @method
-     * @description Private method. Handles the case when the provided value is not an object or an array.
-     * This method creates an ObservableProperty for the provided key in the given context.
-     * An ObservableProperty is a special type of property that can notify about changes in its state.
-     * This is achieved by defining a getter and a setter for the property using Object.defineProperty.
-     * The getter simply returns the current value of the observable.
-     * The setter updates the observable with the new value and, if the property is an attribute, also updates the attribute.
-     * @param {Object} context - The context in which the property is defined.
-     * @param {string} key - The property key.
-     * @param {ObservableState} observable - The observable to bind to the property.
-     * @param {boolean} [isAttribute=false] - Whether the property is an attribute.
-     * @throws {TypeError} If observable is not an instance of ObservableState.
-     * @returns {void}
-     */
-    __createObservablePropertyForPrimitive(context, key, observable, isAttribute = false) {
-      if (!(observable instanceof ObservableState)) {
-        throw new TypeError(
-          "Expected observable to be an instance of ObservableState"
-        );
-      }
-      Object.defineProperty(context, key, {
-        get: () => observable.value,
-        set: (newValue) => {
-          observable.update(() => newValue);
-          if (isAttribute) {
-            this.setAttribute(key, newValue);
-          }
-        }
-      });
-    }
-    /**
-     * @private
-     * @method
-     * @description Creates a proxy for the observable.
-     * @param {ObservableState} observable - The observable for which a proxy is to be created.
-     * @throws {TypeError} If observable is not an instance of ObservableState.
-     * @returns {ObservableProxy} The created proxy.
-     */
-    __observableProxy(observable) {
-      return new ObservableProxy(observable);
-    }
-    /**
-     * @private
-     * @method
-     * @description Defines the observables, effects, and attributes for the element.
-     * @param {Object} config - The configuration object.
-     * @returns {void}
-     */
-    __setup(config) {
-      if (config.infer === true) {
-        const keys = Object.keys(this);
-        const keysLen = keys.length;
-        for (let i5 = 0; i5 < keysLen; i5++) {
-          const key = keys[i5];
-          const value = this[key];
-          if (typeof value !== "function" && !key.startsWith("__")) {
-            if (value instanceof Observable) {
-              continue;
-            } else {
-              const observable = this.__observable(value, key);
-              if (this.__isObjectOrArray(observable.value)) {
-                this.__createObservablePropertyForObjOrArr(this, key, observable);
-              } else {
-                this.__createObservablePropertyForPrimitive(
-                  this,
-                  key,
-                  observable
-                );
-              }
-            }
-          }
-        }
-      }
-    }
-    /**
-     * @private
-     * @method
-     * @description Creates an observable with an initial value.
-     * @param {any} initialValue - The initial value for the observable.
-     * @param {string} [name] - The name of the observable.
-     * @throws {Error} If the type of initialValue is not allowed in observables.
-     * @returns {ObservableState} The created observable state.
-     */
-    __observable(initialValue, _name) {
-      if (!this.__isAllowedType(initialValue)) {
-        const type = Object.prototype.toString.call(initialValue);
-        throw new Error(
-          `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
-        );
-      }
-      const observable = new ObservableState(initialValue, null, { name: _name });
-      this.__registerObservables(observable);
-      return observable;
-    }
-    /**
-     * @private
-     * @method
-     * @description Checks if the provided value is of an allowed type
-     * @param {any} value - The value to check
-     * @returns {boolean} True if the value is of an allowed type, false otherwise
-     */
-    __isAllowedType(value) {
-      const allowedTypes = ["number", "string", "boolean", "object", "undefined"];
-      const valueType = typeof value;
-      if (valueType === "object") {
-        return value === null || Array.isArray(value) || this.__isPlainObject(value);
-      }
-      return allowedTypes.includes(valueType);
-    }
-    /**
-     * @private
-     * @method
-     * @description Checks if the provided value is a plain object
-     * @param {any} value - The value to check
-     * @returns {boolean} True if the value is a plain object, false otherwise
-     */
-    __isPlainObject(value) {
-      if (Object.prototype.toString.call(value) !== "[object Object]") {
-        return false;
-      }
-      const prototype = Object.getPrototypeOf(value);
-      return prototype === null || prototype === Object.prototype;
-    }
-    /**
-     * @private
-     * @method
-     * @description Registers an observable state to the list of unsubscribers
-     * @param {ObservableState} observableState - The observable state to register
-     * @returns {void}
-     */
-    __registerObservables(observableState) {
-      if (!(observableState instanceof ObservableState)) {
-        throw new TypeError(
-          "Expected observableState to be an instance of ObservableState"
-        );
-      }
-      this.__unsubscribers.set(observableState, () => {
-        const dispose = observableState.dispose;
-        if (typeof dispose === "function") {
-          dispose.call(observableState);
-        }
-      });
-    }
-    afterRender() {
-    }
-    /**
-     * @method
-     * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
-     * Uses memoization to avoid unnecessary rendering when the template result hasn't changed.
-     * @returns {void}
-     */
-    render() {
-      if (typeof this.template === "function") {
-        const template = this.template();
-        if (this.__prevTemplate === template) return;
-        if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
-          return;
-        }
-        this.__prevTemplate = template;
-        B(template, this);
-        this.afterRender();
-      }
-    }
-    warnIfMissingProperties(properties) {
-      const missingProperties = properties.filter((prop) => !(prop in this));
-      if (missingProperties.length > 0) {
-        console.warn(`Missing required properties: ${missingProperties.join(", ")}`);
-      }
-    }
-  };
-
-  // src/observables/url-store.js
+  // src/observables/url-store.ts
   var URLStore = class extends Observable {
     constructor({ onInit = null, onChange = null } = {}) {
       super();
@@ -5929,9 +5638,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         if (route.segments.length !== pathSegments.length) continue;
         let isMatch = true;
         const extractedParams = {};
-        for (let i5 = 0; i5 < route.segments.length; i5++) {
-          const routeSegment = route.segments[i5];
-          const pathSegment = pathSegments[i5];
+        for (let i4 = 0; i4 < route.segments.length; i4++) {
+          const routeSegment = route.segments[i4];
+          const pathSegment = pathSegments[i4];
           if (routeSegment.startsWith(":")) {
             const paramName = routeSegment.substring(1);
             extractedParams[paramName] = pathSegment;
@@ -5948,7 +5657,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     }
     __updateStore() {
       return __async(this, null, function* () {
-        var _a3, _b;
+        var _a2, _b;
         if (this.__navigationState.isPending) return;
         const urlState = this.__parseURL();
         if (_deepEqual(this._state, urlState)) return;
@@ -5962,7 +5671,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
               route: matchingRoute
             });
           }
-          if (((_a3 = matchingRoute == null ? void 0 : matchingRoute.resources) == null ? void 0 : _a3.length) > 0) {
+          if (((_a2 = matchingRoute == null ? void 0 : matchingRoute.resources) == null ? void 0 : _a2.length) > 0) {
             this.__navigationState.isLoading = true;
             urlState.routeParams = __spreadValues({}, matchingRoute.extractedParams);
             this._state = __spreadValues({}, urlState);
@@ -5981,7 +5690,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
           if (matchingRoute == null ? void 0 : matchingRoute.onEnter) {
             yield matchingRoute.onEnter({
               state: urlState,
-              params: matchingRoute.extractedParams
+              params: matchingRoute.extractedParams || {}
             });
           }
           for (const hook of this.__afterNavigateHooks) {
@@ -6140,9 +5849,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
               return false;
             }
           } else if (["params", "hashParams"].includes(key)) {
-            for (const paramKey in stateSlice[key]) {
-              const currentValue = currentState[key][paramKey];
-              const sliceValue = stateSlice[key][paramKey];
+            const stateSliceKey = key;
+            for (const paramKey in stateSlice[stateSliceKey]) {
+              const currentValue = currentState[stateSliceKey][paramKey];
+              const sliceValue = stateSlice[stateSliceKey][paramKey];
               if (typeof currentValue === "object" && currentValue !== null && typeof sliceValue === "object" && sliceValue !== null) {
                 if (!_deepEqual(currentValue, sliceValue)) {
                   return false;
@@ -6185,7 +5895,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     return urlStoreInstance;
   };
 
-  // src/storage/adapters.js
+  // src/storage/adapters.ts
   function unproxify(obj) {
     const getType = (value) => {
       if (typeof value !== "object" || value === null) return "primitive";
@@ -6253,30 +5963,30 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         resolve({
           /**
            * Retrieves data from the IndexedDB store based on the provided options.
-           * @param {Object} [options={}] - Query options for retrieving data.
-           * @param {string} [options.type='all'] - The type of query to perform. Can be one of:
+           * @param options - Query options for retrieving data.
+           * @param options.type - The type of query to perform. Can be one of:
            *   'key', 'index', 'all', 'range', 'cursor', 'count', 'keys', or 'unique'.
-           * @param {*} [options.key] - The key to retrieve when type is 'key'.
+           * @param options.key - The key to retrieve when type is 'key'.
            *   Example: { type: 'key', key: 123 }
-           * @param {string} [options.index] - The name of the index to use for 'index', 'range', 'cursor', 'count', 'keys', or 'unique' queries.
+           * @param options.index - The name of the index to use for 'index', 'range', 'cursor', 'count', 'keys', or 'unique' queries.
            *   Example: { type: 'index', index: 'nameIndex', value: 'John' }
-           * @param {*} [options.value] - The value to search for in an index query.
+           * @param options.value - The value to search for in an index query.
            *   Example: { type: 'index', index: 'ageIndex', value: 30 }
-           * @param {*} [options.lower] - The lower bound for a range query.
+           * @param options.lower - The lower bound for a range query.
            *   Example: { type: 'range', index: 'dateIndex', lower: '2023-01-01', upper: '2023-12-31' }
-           * @param {*} [options.upper] - The upper bound for a range query.
+           * @param options.upper - The upper bound for a range query.
            *   Example: { type: 'range', index: 'priceIndex', lower: 10, upper: 100 }
-           * @param {boolean} [options.lowerOpen] - Whether the lower bound is open in a range query.
+           * @param options.lowerOpen - Whether the lower bound is open in a range query.
            *   Example: { type: 'range', index: 'scoreIndex', lower: 50, upper: 100, lowerOpen: true }
-           * @param {boolean} [options.upperOpen] - Whether the upper bound is open in a range query.
+           * @param options.upperOpen - Whether the upper bound is open in a range query.
            *   Example: { type: 'range', index: 'scoreIndex', lower: 50, upper: 100, upperOpen: true }
-           * @param {IDBKeyRange} [options.range] - The key range for cursor, count, or keys queries.
+           * @param options.range - The key range for cursor, count, or keys queries.
            *   Example: { type: 'cursor', range: IDBKeyRange.bound(50, 100) }
-           * @param {IDBCursorDirection} [options.direction] - The direction for a cursor query.
+           * @param options.direction - The direction for a cursor query.
            *   Example: { type: 'cursor', range: IDBKeyRange.lowerBound(50), direction: 'prev' }
-           * @param {number} [options.limit] - The maximum number of results to return for a unique query.
+           * @param options.limit - The maximum number of results to return for a unique query.
            *   Example: { type: 'unique', index: 'categoryIndex', limit: 5 }
-           * @returns {Promise<*>} A promise that resolves with the query results.
+           * @returns A promise that resolves with the query results.
            *
            * Examples:
            * - Get all records: { type: 'all' }
@@ -6332,8 +6042,12 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
               const tx = db.transaction(storeName, "readonly");
               const store2 = tx.objectStore(storeName);
               const request2 = buildIdbRequest({ store: store2, options });
-              request2.onsuccess = (event2) => resolveQuery(event2.target.result);
-              request2.onerror = (event2) => rejectQuery(event2.target.error);
+              if (request2 instanceof Promise) {
+                request2.then(resolveQuery).catch(rejectQuery);
+              } else {
+                request2.onsuccess = (event2) => resolveQuery(event2.target.result);
+                request2.onerror = (event2) => rejectQuery(event2.target.error);
+              }
             });
           }),
           transaction: (mode) => db.transaction(storeName, mode),
@@ -6355,7 +6069,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
             break;
           case "recreate":
             db.deleteObjectStore(storeName);
-            upgradeActions.create();
+            const recreatedStore = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+            recreatedStore.createIndex(indexName, indexName, { unique: false });
             break;
           case "update":
             console.log("Database is up to date");
@@ -6390,7 +6105,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         const getState = () => {
           if (state === null) {
             return new Promise((resolveState) => {
-              store2.getAll().onsuccess = (event) => {
+              const getAllRequest = store2.getAll();
+              getAllRequest.onsuccess = (event) => {
                 state = event.target.result;
                 resolveState(state);
               };
@@ -6453,12 +6169,12 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
           }
           yield new Promise((resolveDelete) => {
             const deleteRequest = store2.clear();
-            deleteRequest.onsuccess = resolveDelete;
+            deleteRequest.onsuccess = () => resolveDelete();
           });
           for (const item of state) {
             yield new Promise((resolvePut) => {
               const putRequest = store2.put(item);
-              putRequest.onsuccess = resolvePut;
+              putRequest.onsuccess = () => resolvePut();
             });
           }
         });
@@ -6530,7 +6246,51 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     });
   }
 
-  // src/cami.js
+  // src/invariant.ts
+  var isProduction = function() {
+    const hostname = typeof window !== "undefined" && window.location && window.location.hostname || "";
+    return hostname.indexOf("localhost") === -1 && hostname !== "0.0.0.0";
+  }();
+  var alwaysEnabled = false;
+  function captureStackTrace(error) {
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(error, invariant);
+    } else {
+      error.stack = new Error().stack;
+    }
+  }
+  var InvariantViolationError = class extends Error {
+    constructor(message) {
+      super(message);
+      this.name = "InvariantViolationError";
+      captureStackTrace(this);
+    }
+  };
+  function invariant(message, callback) {
+    if (!alwaysEnabled && isProduction) return;
+    if (!callback()) {
+      const error = new InvariantViolationError("Invariant Violation: " + message);
+      if (!isProduction) {
+        captureStackTrace(error);
+      }
+      throw error;
+    }
+  }
+  invariant.config = function(config) {
+    const development = config.development;
+    const production = config.production;
+    if (typeof development === "function" && typeof production === "function") {
+      const isDev = development();
+      const isProd = production();
+      isProduction = isProd && !isDev;
+      alwaysEnabled = false;
+    } else if ("alwaysEnabled" in config) {
+      alwaysEnabled = config.alwaysEnabled;
+    }
+  };
+  var invariant_default = invariant;
+
+  // src/cami.ts
   enableMapSet();
   var { debug, events } = __config;
   return __toCommonJS(cami_exports);

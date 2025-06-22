@@ -1,27 +1,27 @@
-import { Observable } from "./observable";
+import { Observable, Subscriber as BaseSubscriber, Subscription as BaseSubscription } from "./observable";
 import { produce, Draft } from "immer";
 import { _deepEqual } from "../utils";
 import { __config } from "../config";
 import { __trace } from "../trace";
 
 // Type definitions
-type Subscriber<T> = ((value: T) => void) | {
+type ObserverFunction<T> = (value: T) => void;
+type ObserverObject<T> = {
   next: (value: T) => void;
   complete?: () => void;
 };
+type ObserverOrNext<T> = ObserverFunction<T> | ObserverObject<T>;
 
 type Dependency = {
-  store: ObservableState<any>;
+  store: ObservableState<any> | { _uid?: string };
   property?: string;
 };
 
-type UpdaterFunction<T> = (draft: Draft<T>) => void | T;
+type UpdaterFunction<T> = (draft: Draft<T>) => void;
 
 type EffectCleanup = void | (() => void);
 
-interface Subscription {
-  unsubscribe: () => void;
-}
+// Use Subscription from observable.ts
 
 interface DeriveResult<T> {
   value: T;
@@ -71,7 +71,7 @@ class DependencyTracker {
    * @param {Object} store - The store to track
    * @param {string} [property] - Optional property to track
    */
-  addDependency(store: ObservableState<any>, property?: string): void {
+  addDependency(store: ObservableState<any> | { _uid?: string }, property?: string): void {
     // Create a unique key for the dependency
     const key = property ? `${store._uid || 'store'}.${property}` : (store._uid || 'store');
     
@@ -98,15 +98,15 @@ class DependencyTracker {
  * const observable = new ObservableState(10);
  * console.log(observable.value); // 10
  */
-class ObservableState<T = any> extends Observable {
+class ObservableState<T = any> extends Observable<T> {
   private __value: T;
   private __pendingUpdates: UpdaterFunction<T>[] = [];
   private __updateScheduled: boolean = false;
   private __name: string | null;
   private __isUpdating: boolean = false;
   private __updateStack: string[] = [];
-  protected __observers: Subscriber<T>[] = [];
-  protected __lastObserver: Subscriber<T> | null = null;
+  protected override __observers: BaseSubscriber<T>[] = [];
+  protected __lastObserver: ObserverOrNext<T> | null = null;
   // Add _uid property to match the dependency tracking
   _uid?: string;
 
@@ -121,7 +121,7 @@ class ObservableState<T = any> extends Observable {
    */
   constructor(
     initialValue: T = null as T,
-    subscriber: Subscriber<T> | null = null,
+    subscriber: ObserverOrNext<T> | null = null,
     { last = false, name = null }: { last?: boolean; name?: string | null } = {}
   ) {
     super();
@@ -129,10 +129,11 @@ class ObservableState<T = any> extends Observable {
       if (last) {
         this.__lastObserver = subscriber;
       } else {
-        this.__observers.push(subscriber);
+        const sub = new BaseSubscriber(subscriber);
+        this.__observers.push(sub);
       }
     }
-    this.__value = produce(initialValue, (draft) => {}) as T;
+    this.__value = produce(initialValue, (_draft) => {}) as T;
     this.__name = name;
   }
 
@@ -142,27 +143,33 @@ class ObservableState<T = any> extends Observable {
    * @returns {Object} A subscription object with an unsubscribe method
    * @description High-performance subscription method with O(1) unsubscribe
    */
-  onValue(callback: Subscriber<T>): Subscription {
+  override onValue(callback: (value: T) => void): BaseSubscription {
     // Add observer to array - O(1) operation
+    const subscriber = new BaseSubscriber(callback);
     const index = this.__observers.length;
-    this.__observers.push(callback);
+    this.__observers.push(subscriber);
     
     // Return subscription with direct index removal for O(1) unsubscribe when possible
     return {
       unsubscribe: () => {
-        // Fast path: if the callback is still at the original index, use direct removal
-        if (this.__observers[index] === callback) {
+        // Fast path: if the subscriber is still at the original index, use direct removal
+        if (this.__observers[index] === subscriber) {
           // Fast removal by swapping with last element and popping - O(1)
           const lastIndex = this.__observers.length - 1;
           if (index < lastIndex) {
-            this.__observers[index] = this.__observers[lastIndex];
+            const lastObserver = this.__observers[lastIndex];
+            if (lastObserver !== undefined) {
+              this.__observers[index] = lastObserver;
+            }
           }
           this.__observers.pop();
         } else {
           // Fallback to filter only when needed - O(n)
-          this.__observers = this.__observers.filter(obs => obs !== callback);
+          this.__observers = this.__observers.filter(obs => obs !== subscriber);
         }
-      }
+      },
+      complete: () => subscriber.notifyComplete(),
+      error: (err: any) => subscriber.notifyError(err)
     };
   }
 
@@ -239,9 +246,15 @@ class ObservableState<T = any> extends Observable {
       const keys = key.split(".");
       let current: any = state;
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
+        const key = keys[i];
+        if (key !== undefined) {
+          current = current[key];
+        }
       }
-      current[keys[keys.length - 1]] = value;
+      const lastKey = keys[keys.length - 1];
+      if (lastKey !== undefined) {
+        current[lastKey] = value;
+      }
     });
   }
 
@@ -261,9 +274,15 @@ class ObservableState<T = any> extends Observable {
       const keys = key.split(".");
       let current: any = state;
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
+        const key = keys[i];
+        if (key !== undefined) {
+          current = current[key];
+        }
       }
-      delete current[keys[keys.length - 1]];
+      const lastKey = keys[keys.length - 1];
+      if (lastKey !== undefined) {
+        delete current[lastKey];
+      }
     });
   }
 
@@ -482,12 +501,8 @@ class ObservableState<T = any> extends Observable {
     // Highly optimized path for single observer (common case)
     if (len === 1 && !this.__lastObserver) {
       const observer = observers[0];
-      if (observer) {
-        if (typeof observer === "function") {
-          observer(value);
-        } else if (observer.next) {
-          observer.next(value);
-        }
+      if (observer && observer.next && !observer.isUnsubscribed) {
+        observer.next(value);
       }
       return;
     }
@@ -496,12 +511,8 @@ class ObservableState<T = any> extends Observable {
     let i = len;
     while (i--) {
       const observer = observers[i];
-      if (observer) {
-        if (typeof observer === "function") {
-          observer(value);
-        } else if (observer.next) {
-          observer.next(value);
-        }
+      if (observer && observer.next && !observer.isUnsubscribed) {
+        observer.next(value);
       }
     }
     
@@ -524,7 +535,7 @@ class ObservableState<T = any> extends Observable {
     let hasChanged = false;
     
     // Cache the old value only if needed for event emission
-    const needsEventOrTrace = __config.events.isEnabled || __trace.isEnabled;
+    const needsEventOrTrace = __config.events.isEnabled || __config.debug.isEnabled;
     const oldValue = needsEventOrTrace ? this.__value : undefined;
     
     // Process all pending updates at once
@@ -548,6 +559,9 @@ class ObservableState<T = any> extends Observable {
       if (updateCount === 1) {
         // Fast path for single update (common case)
         const updater = updates[0];
+        if (updater === undefined) {
+          return;
+        }
         const newValue = produce(this.__value, updater) as T;
         
         // First try reference equality (fast)
@@ -569,6 +583,9 @@ class ObservableState<T = any> extends Observable {
         let currentValue = this.__value;
         for (let i = 0; i < updateCount; i++) {
           const updater = updates[i];
+          if (updater === undefined) {
+            continue;
+          }
           const newValue = produce(currentValue, updater) as T;
           // First try reference equality (fast)
           if (newValue !== currentValue) {
@@ -595,6 +612,9 @@ class ObservableState<T = any> extends Observable {
       let currentValue = this.__value;
       for (let i = 0; i < updateCount; i++) {
         const updater = updates[i];
+        if (updater === undefined) {
+          continue;
+        }
         const result = updater(currentValue as any);
         const newValue = (result !== undefined ? result : currentValue) as T;
         // First try reference equality (fast)
@@ -652,9 +672,9 @@ class ObservableState<T = any> extends Observable {
    * @example
    * observable.complete();
    */
-  complete(): void {
+  override complete(): void {
     this.__observers.forEach((observer) => {
-      if (observer && typeof observer !== 'function' && typeof observer.complete === "function") {
+      if (observer && observer.complete && !observer.isUnsubscribed) {
         observer.complete();
       }
     });
@@ -728,7 +748,7 @@ const effect = function (effectFn: () => EffectCleanup): () => void {
  */
 const derive = function <T>(deriveFn: () => T): DeriveResult<T> {
   let dependencies = new Set<ObservableState<any>>();
-  let subscriptions = new Map<ObservableState<any>, Subscription>();
+  let subscriptions = new Map<ObservableState<any>, BaseSubscription>();
   let currentValue: T;
 
   const tracker = {
@@ -766,4 +786,4 @@ const derive = function <T>(deriveFn: () => T): DeriveResult<T> {
 };
 
 export { ObservableState, effect, derive, DependencyTracker };
-export type { Subscriber, Dependency, UpdaterFunction, EffectCleanup, Subscription, DeriveResult };
+export type { ObserverOrNext as Subscriber, Dependency, UpdaterFunction, EffectCleanup, BaseSubscription as Subscription, DeriveResult };

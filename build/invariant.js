@@ -5,12 +5,12 @@
  * The invariant message will be stripped in production, but the invariant
  * will remain to ensure logic does not differ in production.
  *
- * @param {string} message - The error message.
- * @param {function} callback - The function that returns a boolean.
+ * @param message - The error message.
+ * @param callback - The function that returns a boolean.
  * @throws Will throw an error if the callback returns false.
  */
 let isProduction = (function () {
-    var hostname = (typeof window !== "undefined" &&
+    const hostname = (typeof window !== "undefined" &&
         window.location &&
         window.location.hostname) ||
         "";
@@ -36,7 +36,7 @@ function invariant(message, callback) {
     if (!alwaysEnabled && isProduction)
         return; // No-op in production unless alwaysEnabled is true
     if (!callback()) {
-        var error = new InvariantViolationError("Invariant Violation: " + message);
+        const error = new InvariantViolationError("Invariant Violation: " + message);
         // In non-production environments, capture the stack trace
         if (!isProduction) {
             captureStackTrace(error);
@@ -45,11 +45,11 @@ function invariant(message, callback) {
     }
 }
 invariant.config = function (config) {
-    var development = config.development;
-    var production = config.production;
+    const development = config.development;
+    const production = config.production;
     if (typeof development === "function" && typeof production === "function") {
-        var isDev = development();
-        var isProd = production();
+        const isDev = development();
+        const isProd = production();
         isProduction = isProd && !isDev; // Cache the result
         alwaysEnabled = false; // Disable alwaysEnabled if both development and production are defined
     }

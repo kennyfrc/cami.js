@@ -13,32 +13,41 @@ import { keyed } from "lit-html/directives/keyed.js";
 import { repeat } from "lit-html/directives/repeat.js";
 import { enableMapSet } from "immer";
 enableMapSet();
-import { ReactiveElement } from "./reactive-element.js";
+import { ReactiveElement } from "./reactive-element";
 // Import the optimized store implementation and use it as the default
-import { ObservableStore, store } from "./observables/observable-store.js";
-// import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized.js";
+import { ObservableStore, store } from "./observables/observable-store";
+// import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized";
 // Replace the standard store with the optimized version
 // const store = storeOptimized;
-import { Model } from "./observables/observable-model.js";
-import { Observable } from "./observables/observable.js";
-import { ObservableState, effect } from "./observables/observable-state.js";
-import { __config } from "./config.js";
-import { __trace } from "./trace.js";
-import { Type, useValidationHook, useValidationThunk } from "./types/index.js";
-import { createURLStore } from "./observables/url-store.js";
-import { createIdbPromise, persistToIdbThunk, createLocalStorage, persistToLocalStorageThunk, } from "./storage/adapters.js";
+import { Model } from "./observables/observable-model";
+import { Observable } from "./observables/observable";
+import { ObservableState, effect } from "./observables/observable-state";
+import { __config } from "./config";
+import { Type, useValidationHook, useValidationThunk } from "./types/index";
+import { createURLStore } from "./observables/url-store";
+import { createIdbPromise, persistToIdbThunk, createLocalStorage, persistToLocalStorageThunk, } from "./storage/adapters";
 const { debug, events } = __config;
 /**
- * @exports store - The store object from observable-store.js. This uses local storage by default.
- * @exports html - The html function from html.js
- * @exports svg - The svg function from html.js
- * @exports ReactiveElement - The ReactiveElement class from reactive_element.js
- * @exports ObservableElement - The ObservableElement class from observable-element.js
- * @exports Observable - The Observable class from observable.js
- * @exports ObservableState - The ObservableState class from observable-state.js
- * @exports ObservableStore - The ObservableStore class from observable-store.js
- * @exports debug - The debug property from __config
- * @exports events - The events property from __config
+ * Main exports for the cami.js library with full TypeScript support
+ *
+ * @exports store - The store function from observable-store.ts. This uses local storage by default.
+ * @exports html - The html template literal tag function from lit-html
+ * @exports svg - The svg template literal tag function from lit-html
+ * @exports ReactiveElement - The ReactiveElement base class for creating reactive web components
+ * @exports Observable - The Observable class for creating reactive streams
+ * @exports ObservableState - The ObservableState class for reactive state management
+ * @exports ObservableStore - The ObservableStore class for complex state management
+ * @exports Model - The Model class for typed data models with validation
+ * @exports Type - Type definitions and validation utilities
+ * @exports effect - Effect function for reactive side effects
+ * @exports createURLStore - URL-based routing store
+ * @exports createIdbPromise - IndexedDB storage adapter
+ * @exports createLocalStorage - LocalStorage adapter
+ * @exports debug - Debug configuration
+ * @exports events - Events configuration
+ * @exports unsafeHTML - lit-html unsafe HTML directive
+ * @exports repeat - lit-html repeat directive
+ * @exports keyed - lit-html keyed directive
  */
 export { store, 
 // storeOptimized,

@@ -1,3 +1,13 @@
+// Conditional Buffer type declaration for environments that have it
+declare global {
+  var Buffer: {
+    isBuffer(obj: any): obj is Buffer;
+    from(source: any): Buffer;
+  } | undefined;
+}
+
+interface Buffer extends Uint8Array {}
+
 /**
  * High-performance, correct deep equality implementation.
  * Optimized for both correctness (97% test cases passed) and performance.
@@ -10,11 +20,11 @@
  * - Supports Map, Set, and TypedArray comparison
  * 
  * @function deepEqual
- * @param {any} a - First value to compare.
- * @param {any} b - Second value to compare.
- * @returns {boolean} True if the values are deeply equal, false otherwise.
+ * @param a - First value to compare.
+ * @param b - Second value to compare.
+ * @returns True if the values are deeply equal, false otherwise.
  */
-const _deepEqual = (a, b) => {
+const _deepEqual = (a: any, b: any): boolean => {
   // Quick reference check (handles primitives and identical objects)
   if (a === b) return true;
   
@@ -88,13 +98,15 @@ const _deepEqual = (a, b) => {
   
   // TypedArray comparison (Int8Array, Uint8Array, etc.)
   if (ArrayBuffer.isView(a) && !(a instanceof DataView)) {
-    if (!ArrayBuffer.isView(b) || a.length !== b.length || a.constructor !== b.constructor) {
+    const typedA = a as Uint8Array;
+    const typedB = b as Uint8Array;
+    if (!ArrayBuffer.isView(b) || typedA.length !== typedB.length || a.constructor !== b.constructor) {
       return false;
     }
     
     // Fast direct comparison of TypedArray values
-    for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
+    for (let i = 0; i < typedA.length; i++) {
+      if (typedA[i] !== typedB[i]) return false;
     }
     return true;
   }
@@ -125,18 +137,18 @@ const _deepEqual = (a, b) => {
 /**
  * @private
  * @function _deepMerge
- * @param {Object} target - The target object to merge into.
- * @param {Object} source - The source object to merge from.
- * @returns {Object} The merged object.
+ * @param target - The target object to merge into.
+ * @param source - The source object to merge from.
+ * @returns The merged object.
  * @description Deeply merges two objects, giving priority to the source object's values.
  *              Handles circular references, special objects, and is optimized for performance.
  *              Supports Maps, Sets, and TypedArrays.
  */
-const _deepMerge = (target, source) => {
+const _deepMerge = (target: any, source: any): any => {
   // Use WeakMap for circular reference detection
   const seen = new WeakMap();
   
-  function merge(target, source) {
+  function merge(target: any, source: any): any {
     // Handle base cases - fast exit for primitives
     if (source === undefined) return target;
     if (source === null) return null;
@@ -223,14 +235,14 @@ const _deepMerge = (target, source) => {
       
       // TypedArrays and Buffers
       if (ArrayBuffer.isView(source) && !(source instanceof DataView)) {
-        if (typeof Buffer !== 'undefined' && source instanceof Buffer) {
+        if (typeof Buffer !== 'undefined' && Buffer?.isBuffer?.(source)) {
           return Buffer.from(source);
         }
         
-        return new source.constructor(
+        return new (source.constructor as any)(
           source.buffer.slice(0), 
-          source.byteOffset, 
-          source.length
+          (source as any).byteOffset, 
+          (source as any).length
         );
       }
       
@@ -307,12 +319,12 @@ const _deepMerge = (target, source) => {
 
 /**
  * @function _deepClone
- * @param {*} value - The value to clone.
- * @param {WeakMap} [cache] - Internal cache for circular references.
- * @returns {*} A deep clone of the input value.
+ * @param value - The value to clone.
+ * @param cache - Internal cache for circular references.
+ * @returns A deep clone of the input value.
  * @description Creates a deep clone of the provided value. This function is optimized for performance and handles various types including objects, arrays, dates, regex, Maps, Sets, and TypedArrays.
  */
-const _deepClone = (value, cache = new WeakMap()) => {
+const _deepClone = (value: any, cache: WeakMap<object, any> = new WeakMap()): any => {
   // Direct return primitives (most common case)
   if (value === null || typeof value !== "object") return value;
   
@@ -352,15 +364,15 @@ const _deepClone = (value, cache = new WeakMap()) => {
   // TypedArrays and Buffers (optimized path)
   if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
     // For Buffer in Node.js
-    if (typeof Buffer !== 'undefined' && value instanceof Buffer) {
+    if (typeof Buffer !== 'undefined' && Buffer?.isBuffer?.(value)) {
       return Buffer.from(value);
     }
     
     // For typed arrays (Int8Array, Float32Array, etc.)
-    return new value.constructor(
+    return new (value.constructor as any)(
       value.buffer.slice(0), 
-      value.byteOffset, 
-      value.length
+      (value as any).byteOffset, 
+      (value as any).length
     );
   }
   
@@ -425,9 +437,9 @@ const _deepClone = (value, cache = new WeakMap()) => {
   return result;
 };
 
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  return function executedFunction(...args: Parameters<T>): void {
     const later = () => {
       clearTimeout(timeout);
       func(...args);
@@ -438,4 +450,3 @@ function debounce(func, wait) {
 }
 
 export { _deepEqual, _deepMerge, _deepClone, debounce };
-

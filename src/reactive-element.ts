@@ -1,14 +1,14 @@
-import { html, render as __litRender, TemplateResult } from "./html.js";
+import { html, render as __litRender, TemplateResult } from "./html";
 import { produce } from "immer";
-import { Observable } from "./observables/observable.js";
-import { ObservableStore } from "./observables/observable-store.js";
+import { Observable } from "./observables/observable";
+import { ObservableStore } from "./observables/observable-store";
 import {
   ObservableState,
   effect,
   derive,
-} from "./observables/observable-state.js";
-import { ObservableProxy } from "./observables/observable-proxy.js";
-import { __trace } from "./trace.js";
+} from "./observables/observable-state";
+import { ObservableProxy } from "./observables/observable-proxy";
+import { __trace } from "./trace";
 import { _deepEqual } from "./utils";
 
 // Type definitions for ReactiveElement

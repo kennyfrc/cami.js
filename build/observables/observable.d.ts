@@ -66,6 +66,21 @@ export declare class Observable<T> {
     private __observers;
     private subscribeCallback?;
     /**
+     * Protected method to check if there are any observers
+     * @returns true if there are observers, false otherwise
+     */
+    protected get hasObservers(): boolean;
+    /**
+     * Protected method to get observer count
+     * @returns number of observers
+     */
+    protected get observerCount(): number;
+    /**
+     * Protected method to notify all observers
+     * @param value - The value to emit to observers
+     */
+    protected notifyObservers(value: T): void;
+    /**
      * Creates a new Observable instance with optimized internal structure
      * @param subscribeCallback - The callback function to call when a new observer subscribes
      */

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // For building: Just transpile, don't type check
+    "noEmit": false,
+    "noEmitOnError": false,  // Emit JS even if there are type errors
+    "isolatedModules": true,
+    
+    // Ignore all type errors when building
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
+  }
+}

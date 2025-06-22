@@ -8,7 +8,7 @@ type Dependency = {
     store: ObservableState<any>;
     property?: string;
 };
-type UpdaterFunction<T> = (draft: Draft<T>) => void | T;
+type UpdaterFunction<T> = (draft: Draft<T>) => void;
 type EffectCleanup = void | (() => void);
 interface Subscription {
     unsubscribe: () => void;
@@ -47,7 +47,7 @@ declare class DependencyTracker {
  * const observable = new ObservableState(10);
  * console.log(observable.value); // 10
  */
-declare class ObservableState<T = any> extends Observable {
+declare class ObservableState<T = any> extends Observable<T> {
     private __value;
     private __pendingUpdates;
     private __updateScheduled;

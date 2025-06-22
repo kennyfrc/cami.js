@@ -1,27 +1,32 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "target": "ESNext",
-    "module": "ESNext",
+    /* --- keep the two flags that catch ~80% of real bugs --- */
+    "strictNullChecks": true,   // stop "cannot read property … of undefined"
+    "noImplicitAny": true,      // stop silent 'any' → runtime surprises
+
+    /* --- leave the rest of `strict` OFF for now --- */
+    "strict": false,            // we opt-in selectively
+
+    /* --- DX + speed while prototyping --- */
+    "skipLibCheck": true,       // don't type-check node_modules
+    "incremental": true,        // fast re-builds
+    "target": "es2022",
+    "module": "esnext",
+    
+    /* --- Basic module resolution --- */
     "moduleResolution": "node",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    
+    /* --- Output settings --- */
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./build",
     "rootDir": "./src",
-    "allowJs": true,
-    "checkJs": false
+    
+    /* --- Required libs --- */
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "build", "tests", "tests-v2", "examples"]

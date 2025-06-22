@@ -76,7 +76,7 @@ class ObservableProxy<T = any> {
     const proxyGetHandler: ProxyGetHandler<T> = (
       target: ObservableState<T>,
       property: string | symbol,
-      receiver: any
+      _receiver: any
     ): any => {
       // Handle conversion methods first
       if (property === 'valueOf' ||
@@ -119,7 +119,7 @@ class ObservableProxy<T = any> {
       target: ObservableState<T>,
       property: string | symbol,
       value: any,
-      receiver: any
+      _receiver: any
     ): boolean => {
       const propKey = property as keyof ObservableState<T>;
       

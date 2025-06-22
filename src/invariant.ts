@@ -5,13 +5,13 @@
  * The invariant message will be stripped in production, but the invariant
  * will remain to ensure logic does not differ in production.
  *
- * @param {string} message - The error message.
- * @param {function} callback - The function that returns a boolean.
+ * @param message - The error message.
+ * @param callback - The function that returns a boolean.
  * @throws Will throw an error if the callback returns false.
  */
 
-let isProduction = (function () {
-  var hostname =
+let isProduction = (function (): boolean {
+  const hostname =
     (typeof window !== "undefined" &&
       window.location &&
       window.location.hostname) ||
@@ -21,27 +21,38 @@ let isProduction = (function () {
 
 let alwaysEnabled = false;
 
-function captureStackTrace(error) {
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(error, invariant);
+function captureStackTrace(error: Error): void {
+  if ((Error as any).captureStackTrace) {
+    (Error as any).captureStackTrace(error, invariant);
   } else {
     error.stack = new Error().stack;
   }
 }
 
 class InvariantViolationError extends Error {
-  constructor(message) {
+  constructor(message: string) {
     super(message);
     this.name = "InvariantViolationError";
     captureStackTrace(this);
   }
 }
 
-function invariant(message, callback) {
+interface InvariantConfig {
+  development?: () => boolean;
+  production?: () => boolean;
+  alwaysEnabled?: boolean;
+}
+
+interface InvariantFunction {
+  (message: string, callback: () => boolean): void;
+  config(config: InvariantConfig): void;
+}
+
+function invariant(message: string, callback: () => boolean): void {
   if (!alwaysEnabled && isProduction) return; // No-op in production unless alwaysEnabled is true
 
   if (!callback()) {
-    var error = new InvariantViolationError("Invariant Violation: " + message);
+    const error = new InvariantViolationError("Invariant Violation: " + message);
 
     // In non-production environments, capture the stack trace
     if (!isProduction) {
@@ -52,18 +63,19 @@ function invariant(message, callback) {
   }
 }
 
-invariant.config = function (config) {
-  var development = config.development;
-  var production = config.production;
+(invariant as InvariantFunction).config = function (config: InvariantConfig): void {
+  const development = config.development;
+  const production = config.production;
 
   if (typeof development === "function" && typeof production === "function") {
-    var isDev = development();
-    var isProd = production();
+    const isDev = development();
+    const isProd = production();
     isProduction = isProd && !isDev; // Cache the result
     alwaysEnabled = false; // Disable alwaysEnabled if both development and production are defined
-  } else if (Object.hasOwn(config, "alwaysEnabled")) {
-    alwaysEnabled = config.alwaysEnabled;
+  } else if ("alwaysEnabled" in config) {
+    alwaysEnabled = config.alwaysEnabled!;
   }
 };
 
-export default invariant;
+export default invariant as InvariantFunction;
+export type { InvariantConfig, InvariantFunction };

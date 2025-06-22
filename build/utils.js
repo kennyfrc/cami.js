@@ -10,9 +10,9 @@
  * - Supports Map, Set, and TypedArray comparison
  *
  * @function deepEqual
- * @param {any} a - First value to compare.
- * @param {any} b - Second value to compare.
- * @returns {boolean} True if the values are deeply equal, false otherwise.
+ * @param a - First value to compare.
+ * @param b - Second value to compare.
+ * @returns True if the values are deeply equal, false otherwise.
  */
 const _deepEqual = (a, b) => {
     // Quick reference check (handles primitives and identical objects)
@@ -85,12 +85,14 @@ const _deepEqual = (a, b) => {
     }
     // TypedArray comparison (Int8Array, Uint8Array, etc.)
     if (ArrayBuffer.isView(a) && !(a instanceof DataView)) {
-        if (!ArrayBuffer.isView(b) || a.length !== b.length || a.constructor !== b.constructor) {
+        const typedA = a;
+        const typedB = b;
+        if (!ArrayBuffer.isView(b) || typedA.length !== typedB.length || a.constructor !== b.constructor) {
             return false;
         }
         // Fast direct comparison of TypedArray values
-        for (let i = 0; i < a.length; i++) {
-            if (a[i] !== b[i])
+        for (let i = 0; i < typedA.length; i++) {
+            if (typedA[i] !== typedB[i])
                 return false;
         }
         return true;
@@ -117,9 +119,9 @@ const _deepEqual = (a, b) => {
 /**
  * @private
  * @function _deepMerge
- * @param {Object} target - The target object to merge into.
- * @param {Object} source - The source object to merge from.
- * @returns {Object} The merged object.
+ * @param target - The target object to merge into.
+ * @param source - The source object to merge from.
+ * @returns The merged object.
  * @description Deeply merges two objects, giving priority to the source object's values.
  *              Handles circular references, special objects, and is optimized for performance.
  *              Supports Maps, Sets, and TypedArrays.
@@ -206,7 +208,7 @@ const _deepMerge = (target, source) => {
                 return new RegExp(source.source, source.flags);
             // TypedArrays and Buffers
             if (ArrayBuffer.isView(source) && !(source instanceof DataView)) {
-                if (typeof Buffer !== 'undefined' && source instanceof Buffer) {
+                if (typeof Buffer !== 'undefined' && Buffer?.isBuffer?.(source)) {
                     return Buffer.from(source);
                 }
                 return new source.constructor(source.buffer.slice(0), source.byteOffset, source.length);
@@ -273,9 +275,9 @@ const _deepMerge = (target, source) => {
 };
 /**
  * @function _deepClone
- * @param {*} value - The value to clone.
- * @param {WeakMap} [cache] - Internal cache for circular references.
- * @returns {*} A deep clone of the input value.
+ * @param value - The value to clone.
+ * @param cache - Internal cache for circular references.
+ * @returns A deep clone of the input value.
  * @description Creates a deep clone of the provided value. This function is optimized for performance and handles various types including objects, arrays, dates, regex, Maps, Sets, and TypedArrays.
  */
 const _deepClone = (value, cache = new WeakMap()) => {
@@ -312,7 +314,7 @@ const _deepClone = (value, cache = new WeakMap()) => {
     // TypedArrays and Buffers (optimized path)
     if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
         // For Buffer in Node.js
-        if (typeof Buffer !== 'undefined' && value instanceof Buffer) {
+        if (typeof Buffer !== 'undefined' && Buffer?.isBuffer?.(value)) {
             return Buffer.from(value);
         }
         // For typed arrays (Int8Array, Float32Array, etc.)

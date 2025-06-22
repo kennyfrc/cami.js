@@ -1,9 +1,25 @@
 import { store } from "./observable-store.js";
 import { Type, validateType } from "../types/index.js";
+// =============================================================================
+// Utility Functions
+// =============================================================================
 /**
- * Represents a Model in the application.
+ * Generates a random model name for anonymous models
+ * @returns {string} A unique model name
+ */
+function generateRandomName() {
+    return "model_" + Math.random().toString(36).substr(2, 9);
+}
+// =============================================================================
+// Model Class
+// =============================================================================
+/**
+ * Represents a Model with schema-based validation in the application.
+ *
+ * @template TSchema - The schema definition for the model
  *
  * @example
+ * ```typescript
  * const Department = Type.Model("Department", {
  *   id: Type.Integer,
  *   name: Type.String
@@ -12,7 +28,7 @@ import { Type, validateType } from "../types/index.js";
  * const Employee = Type.Model("Employee", {
  *   id: Type.Integer,
  *   name: Type.String,
- *   department: Type.Reference(Department)
+ *   department: Type.Reference("Department")
  * });
  *
  * const RootStore = Type.Model("RootStore", {
@@ -37,40 +53,50 @@ import { Type, validateType } from "../types/index.js";
  *
  * await store.dispatch('addDepartment', { id: 1, name: 'HR' });
  * await store.dispatch('addEmployee', { id: 1, name: 'John Doe', department: 1 });
+ * ```
  */
-function generateRandomName() {
-    // Simple UUID-like random string generator
-    return "model_" + Math.random().toString(36).substr(2, 9);
-}
-class Model {
+export class Model {
+    name;
+    schema;
     constructor({ name = generateRandomName(), properties = {} } = {}) {
         this.name = name;
         this.schema = properties;
     }
+    /**
+     * Creates an observable store with the given configuration
+     * @param config - Configuration object containing state, actions, and other store features
+     * @returns An ObservableStore instance configured with this model's schema
+     */
     create(config) {
         const { state, actions = {}, asyncActions = {}, machines = {}, queries = {}, mutations = {}, specs = {}, memos = {}, options = {}, } = config;
+        // Validate the initial state against the schema
         this.validateState(state);
+        // Create the observable store with schema information
         const modelStore = store({
             state,
             name: this.name,
             schema: this.schema,
             ...options,
         });
+        // Register actions with validation
         Object.entries(actions).forEach(([actionName, actionFn]) => {
             modelStore.defineAction(actionName, (context) => {
                 actionFn(context);
                 this.validateState(context.state);
             });
         });
+        // Register async actions with validation
         Object.entries(asyncActions).forEach(([thunkName, thunkFn]) => {
             modelStore.defineAsyncAction(thunkName, async (context) => {
                 await thunkFn(context);
                 this.validateState(context.state);
             });
         });
+        // Register state machines
         Object.entries(machines).forEach(([machineName, machineDefinition]) => {
             modelStore.defineMachine(machineName, machineDefinition);
         });
+        // Register queries
         Object.entries(queries).forEach(([queryName, queryConfig]) => {
             modelStore.defineQuery(queryName, {
                 queryKey: queryConfig.queryKey,
@@ -81,6 +107,7 @@ class Model {
                 onSettled: queryConfig.onSettled,
             });
         });
+        // Register mutations
         Object.entries(mutations).forEach(([mutationName, mutationConfig]) => {
             modelStore.defineMutation(mutationName, {
                 mutationFn: mutationConfig.mutationFn,
@@ -90,19 +117,26 @@ class Model {
                 onSettled: mutationConfig.onSettled,
             });
         });
+        // Register action specifications
         Object.entries(specs).forEach(([actionName, spec]) => {
             modelStore.defineSpec(actionName, spec);
         });
+        // Register memos
         Object.entries(memos).forEach(([memoName, memoFn]) => {
             modelStore.defineMemo(memoName, memoFn);
         });
         return modelStore;
     }
+    /**
+     * Validates a state object against this model's schema
+     * @param state - The state object to validate
+     * @throws {Error} If validation fails
+     */
     validateState(state) {
         const errors = [];
         Object.entries(this.schema).forEach(([key, type]) => {
             if (!(key in state)) {
-                const expectedType = this.__getExpectedTypeString(type);
+                const expectedType = this._getExpectedTypeString(type);
                 errors.push(`Missing property: ${key}\nExpected type: ${expectedType}`);
             }
             else {
@@ -118,12 +152,21 @@ class Model {
             throw new Error(`Validation error in ${this.name}:\n\n${errors.join("\n\n")}`);
         }
     }
+    /**
+     * Validates a single item against its type definition
+     * @param value - The value to validate
+     * @param type - The type definition to validate against
+     * @param path - The current path in the object for error reporting
+     * @param rootState - The root state object for reference validation
+     */
     validateItem(value, type, path, rootState) {
         const getTypeCategory = (type, value) => {
-            if (type.type === "optional")
-                return "optional";
-            if (type.type === "object" && typeof value === "object")
-                return "object";
+            if (typeof type === "object" && type !== null && "type" in type) {
+                if (type.type === "optional")
+                    return "optional";
+                if (type.type === "object" && typeof value === "object")
+                    return "object";
+            }
             return "other";
         };
         try {
@@ -132,10 +175,13 @@ class Model {
                 case "optional":
                     if (value === undefined || value === null)
                         return;
-                    return this.validateItem(value, type.optional, path, rootState);
+                    const optionalType = type;
+                    return this.validateItem(value, optionalType.optional, path, rootState);
                 case "object":
-                    Object.entries(type.schema).forEach(([key, subType]) => {
-                        if (subType.type !== "optional" && !(key in value)) {
+                    const objectType = type;
+                    Object.entries(objectType.schema).forEach(([key, subType]) => {
+                        const isOptional = typeof subType === "object" && subType !== null && "type" in subType && subType.type === "optional";
+                        if (!isOptional && !(key in value)) {
                             throw new Error(`Missing required property: ${[...path, key].join(".")}`);
                         }
                         if (key in value) {
@@ -151,24 +197,29 @@ class Model {
             }
         }
         catch (error) {
-            const expectedType = this.__getExpectedTypeString(type);
-            const actualType = this.__getActualTypeString(value);
+            const expectedType = this._getExpectedTypeString(type);
             throw new Error(`Property: ${path.join(".")}\n` + `Error: ${error.message}`);
         }
     }
-    // Below are just helper functions to express types when there are validation errors
-    __getExpectedTypeString(type) {
+    /**
+     * Helper function to get a human-readable string representation of expected type
+     * @param type - The type definition
+     * @returns A string representation of the expected type
+     */
+    _getExpectedTypeString(type) {
         const getTypeCategory = (type) => {
             if (typeof type === "string")
                 return "string";
-            if (typeof type === "object") {
-                if (type.type) {
-                    if (type.type === "object" && type.schema)
+            if (typeof type === "object" && type !== null) {
+                if ("type" in type) {
+                    if (type.type === "object" && "schema" in type)
                         return "objectWithSchema";
-                    if (type.type === "array" && type.itemType)
+                    if (type.type === "array" && "itemType" in type)
                         return "array";
-                    if (type.type === "enum" && type.values)
+                    if (type.type === "enum" && "values" in type)
                         return "enum";
+                    if (type.type === "optional")
+                        return "optional";
                     return "simpleType";
                 }
                 return "typeConstructor";
@@ -180,16 +231,24 @@ class Model {
             case "string":
                 return type;
             case "objectWithSchema":
-                return `Object(${Object.entries(type.schema)
-                    .map(([k, v]) => `${k}: ${this.__getExpectedTypeString(v)}`)
+                const objectType = type;
+                return `Object(${Object.entries(objectType.schema)
+                    .map(([k, v]) => `${k}: ${this._getExpectedTypeString(v)}`)
                     .join(", ")})`;
             case "array":
-                return `Array(${this.__getExpectedTypeString(type.itemType)})`;
+                const arrayType = type;
+                return `Array(${this._getExpectedTypeString(arrayType.itemType)})`;
             case "enum":
-                return `Enum(${type.values.join(" | ")})`;
+                const enumType = type;
+                return `Enum(${enumType.values.join(" | ")})`;
+            case "optional":
+                const optionalType = type;
+                return `Optional(${this._getExpectedTypeString(optionalType.optional)})`;
             case "simpleType":
-                return type.type;
+                const simpleType = type;
+                return simpleType.type;
             case "typeConstructor":
+                // Look for the type in the Type object
                 for (const [key, value] of Object.entries(Type)) {
                     if (value === type ||
                         (typeof value === "function" && type instanceof value)) {
@@ -202,7 +261,12 @@ class Model {
                 return "Unknown";
         }
     }
-    __getActualTypeString(value) {
+    /**
+     * Helper function to get a human-readable string representation of actual value type
+     * @param value - The actual value
+     * @returns A string representation of the actual type
+     */
+    _getActualTypeString(value) {
         const getValueType = (value) => {
             if (value === null)
                 return "null";
@@ -230,5 +294,8 @@ class Model {
         }
     }
 }
-export { Model };
+// =============================================================================
+// Exports
+// =============================================================================
+export { Model as default };
 //# sourceMappingURL=observable-model.js.map

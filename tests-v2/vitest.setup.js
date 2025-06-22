@@ -41,6 +41,11 @@ afterEach(() => {
   document.body.innerHTML = '';
   document.head.innerHTML = '';
   
+  // Clear the store cache to prevent test interference
+  if (cami.clearStoreCache) {
+    cami.clearStoreCache();
+  }
+  
   // Clear any custom elements that might have been defined
   // This helps prevent pollution between tests
   if (window.customElements && window.customElements._registry) {

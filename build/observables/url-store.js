@@ -6,6 +6,16 @@ import { _deepEqual } from '../utils';
  * Solves race conditions by defining route dependencies and loading resources before navigation completes
  */
 class URLStore extends Observable {
+    _state;
+    __name;
+    __onChange;
+    __routes;
+    __resourceLoaders;
+    __activeRoute;
+    __navigationState;
+    __persistentParams;
+    __beforeNavigateHooks;
+    __afterNavigateHooks;
     constructor({ onInit = null, onChange = null } = {}) {
         super();
         this._state = this.__parseURL();
@@ -146,7 +156,6 @@ class URLStore extends Observable {
         // Parse the current URL
         const urlState = this.__parseURL();
         // Skip if URL hasn't changed - use proper deep equality check
-        // Import _deepEqual at the top of the file if not already imported
         if (_deepEqual(this._state, urlState))
             return;
         // Set navigation state
@@ -189,7 +198,7 @@ class URLStore extends Observable {
             if (matchingRoute?.onEnter) {
                 await matchingRoute.onEnter({
                     state: urlState,
-                    params: matchingRoute.extractedParams
+                    params: matchingRoute.extractedParams || {}
                 });
             }
             // Execute after navigate hooks
@@ -357,10 +366,11 @@ class URLStore extends Observable {
                     }
                 }
                 else if (['params', 'hashParams'].includes(key)) {
-                    for (const paramKey in stateSlice[key]) {
+                    const stateSliceKey = key;
+                    for (const paramKey in stateSlice[stateSliceKey]) {
                         // Get values to compare
-                        const currentValue = currentState[key][paramKey];
-                        const sliceValue = stateSlice[key][paramKey];
+                        const currentValue = currentState[stateSliceKey][paramKey];
+                        const sliceValue = stateSlice[stateSliceKey][paramKey];
                         // Use deep equality for objects
                         if (typeof currentValue === 'object' && currentValue !== null &&
                             typeof sliceValue === 'object' && sliceValue !== null) {

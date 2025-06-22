@@ -231,10 +231,10 @@ export declare class ObservableStore<TState = any> extends Observable<TState> {
     readonly queryFunctions: Map<string, QueryConfig<any, any>>;
     readonly queries: Record<string, (...args: any[]) => Promise<any>>;
     readonly memoCache: Map<string, Map<any, CachedMemoData<any>>>;
-    readonly intervals: Map<string, NodeJS.Timeout>;
+    readonly intervals: Map<string, number>;
     readonly focusHandlers: Map<string, () => void>;
     readonly reconnectHandlers: Map<string, () => void>;
-    readonly gcTimeouts: Map<string, NodeJS.Timeout>;
+    readonly gcTimeouts: Map<string, number>;
     readonly mutationFunctions: Map<string, MutationConfig<any, any>>;
     readonly mutations: Record<string, (...args: any[]) => Promise<any>>;
     readonly patchListeners: Map<string, PatchListener[]>;

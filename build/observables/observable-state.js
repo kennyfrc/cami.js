@@ -1,8 +1,8 @@
-import { Observable } from "./observable.js";
+import { Observable } from "./observable";
 import { produce } from "immer";
 import { _deepEqual } from "../utils";
-import { __config } from "../config.js";
-import { __trace } from "../trace.js";
+import { __config } from "../config";
+import { __trace } from "../trace";
 /**
  * High-performance dependency tracking implementation
  * inspired by signals and other reactive libraries
@@ -10,6 +10,11 @@ import { __trace } from "../trace.js";
 class DependencyTracker {
     // Shared static context for tracking the current computation
     static current = null;
+    // For small dependency sets, arrays are faster than Sets in V8
+    // When dependency count grows large, we can switch to a Set
+    dependencies = [];
+    // For fast lookup to avoid duplicates (O(1) vs O(n))
+    _depsMap = new Map();
     /**
      * Track dependencies used during the execution of an effect function
      * @param {Function} effectFn - Function to track
@@ -30,13 +35,6 @@ class DependencyTracker {
             // Restore previous context
             DependencyTracker.current = previousTracker;
         }
-    }
-    constructor() {
-        // For small dependency sets, arrays are faster than Sets in V8
-        // When dependency count grows large, we can switch to a Set
-        this.dependencies = [];
-        // For fast lookup to avoid duplicates (O(1) vs O(n))
-        this._depsMap = new Map();
     }
     /**
      * Add a dependency to the current tracker
@@ -67,6 +65,16 @@ class DependencyTracker {
  * console.log(observable.value); // 10
  */
 class ObservableState extends Observable {
+    __value;
+    __pendingUpdates = [];
+    __updateScheduled = false;
+    __name;
+    __isUpdating = false;
+    __updateStack = [];
+    __observers = [];
+    __lastObserver = null;
+    // Add _uid property to match the dependency tracking
+    _uid;
     /**
      * @constructor
      * @param {any} initialValue - The initial value of the observable
@@ -78,18 +86,16 @@ class ObservableState extends Observable {
      */
     constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
         super();
-        if (last) {
-            this.__lastObserver = subscriber;
-        }
-        else {
-            this.__observers.push(subscriber);
+        if (subscriber) {
+            if (last) {
+                this.__lastObserver = subscriber;
+            }
+            else {
+                this.__observers.push(subscriber);
+            }
         }
         this.__value = produce(initialValue, (draft) => { });
-        this.__pendingUpdates = [];
-        this.__updateScheduled = false;
         this.__name = name;
-        this.__isUpdating = false;
-        this.__updateStack = [];
     }
     /**
      * @method
@@ -147,7 +153,7 @@ class ObservableState extends Observable {
             // return;
         }
         this.__isUpdating = true;
-        this.__updateStack.push(this.__name);
+        this.__updateStack.push(this.__name || 'unknown');
         try {
             if (!_deepEqual(newValue, this.__value)) {
                 this.__value = newValue;
@@ -337,12 +343,13 @@ class ObservableState extends Observable {
      * @example
      * observable.fill('newElement', 0, 2);
      */
-    fill(value, start = 0, end = this.__value.length) {
+    fill(value, start = 0, end) {
         if (!Array.isArray(this.__value)) {
             throw new Error("[Cami.js] Observable value is not an array");
         }
+        const arrayEnd = end !== undefined ? end : this.__value.length;
         this.update((arr) => {
-            arr.fill(value, start, end);
+            arr.fill(value, start, arrayEnd);
         });
     }
     /**
@@ -354,12 +361,13 @@ class ObservableState extends Observable {
      * @example
      * observable.copyWithin(0, 1, 2);
      */
-    copyWithin(target, start, end = this.__value.length) {
+    copyWithin(target, start, end) {
         if (!Array.isArray(this.__value)) {
             throw new Error("[Cami.js] Observable value is not an array");
         }
+        const arrayEnd = end !== undefined ? end : this.__value.length;
         this.update((arr) => {
-            arr.copyWithin(target, start, end);
+            arr.copyWithin(target, start, arrayEnd);
         });
     }
     /**
@@ -379,7 +387,7 @@ class ObservableState extends Observable {
             // return;
         }
         this.__isUpdating = true;
-        this.__updateStack.push(this.__name);
+        this.__updateStack.push(this.__name || 'unknown');
         try {
             this.__pendingUpdates.push(updater);
             this.__scheduleupdate();
@@ -395,15 +403,6 @@ class ObservableState extends Observable {
             this.__applyUpdates();
         }
     }
-    /**
-     * @private
-     * @method
-     * @description This method notifies all observers of the observable with the current value.
-     * It first creates a list of observers by combining the regular observers and the last observer.
-     * Then, it iterates over this list and calls each observer with the current value.
-     * If the observer is a function, it is called directly.
-     * If the observer is an object with a 'next' method, the 'next' method is called.
-     */
     /**
      * High-performance notification method with optimized code paths
      * @private
@@ -455,12 +454,6 @@ class ObservableState extends Observable {
         }
     }
     /**
-     * @method
-     * @private
-     * @description This method applies all the pending updates to the value.
-     * It then notifies all the observers with the updated value.
-     */
-    /**
      * Optimized update application with fast paths for common cases
      * @private
      */
@@ -468,7 +461,7 @@ class ObservableState extends Observable {
         // Skip the expensive _deepEqual check by tracking changes explicitly
         let hasChanged = false;
         // Cache the old value only if needed for event emission
-        const needsEventOrTrace = __config.events.isEnabled || __trace.isEnabled;
+        const needsEventOrTrace = __config.events.isEnabled || __config.debug.isEnabled;
         const oldValue = needsEventOrTrace ? this.__value : undefined;
         // Process all pending updates at once
         const updates = this.__pendingUpdates;
@@ -537,7 +530,8 @@ class ObservableState extends Observable {
             let currentValue = this.__value;
             for (let i = 0; i < updateCount; i++) {
                 const updater = updates[i];
-                const newValue = updater(currentValue);
+                const result = updater(currentValue);
+                const newValue = (result !== undefined ? result : currentValue);
                 // First try reference equality (fast)
                 if (newValue !== currentValue) {
                     // For objects/arrays, do deep equality check to avoid unnecessary updates
@@ -589,7 +583,7 @@ class ObservableState extends Observable {
      */
     complete() {
         this.__observers.forEach((observer) => {
-            if (observer && typeof observer.complete === "function") {
+            if (observer && typeof observer !== 'function' && typeof observer.complete === "function") {
                 observer.complete();
             }
         });
@@ -610,17 +604,21 @@ const effect = function (effectFn) {
     const _runEffect = () => {
         // Clean up previous effect
         cleanup();
-        // Track dependencies with optimized object allocation
-        DependencyTracker.current = { addDependency }; // Reuse the same function reference
-        function addDependency(observable) {
-            if (!dependencies.has(observable)) {
-                dependencies.add(observable);
-                observable.onValue(_runEffect);
+        // Create a custom tracker for this effect
+        const tracker = {
+            addDependency(observable) {
+                if (!dependencies.has(observable)) {
+                    dependencies.add(observable);
+                    observable.onValue(_runEffect);
+                }
             }
-        }
+        };
+        // Track dependencies
+        DependencyTracker.current = tracker;
         // Run the effect
         try {
-            cleanup = effectFn() || (() => { });
+            const result = effectFn();
+            cleanup = result || (() => { });
         }
         finally {
             DependencyTracker.current = null;
@@ -631,7 +629,9 @@ const effect = function (effectFn) {
     // Return dispose function
     return () => {
         cleanup();
-        dependencies.forEach(dep => dep.__observers = dep.__observers.filter(obs => obs !== _runEffect));
+        dependencies.forEach(dep => {
+            dep['__observers'] = dep['__observers'].filter((obs) => obs !== _runEffect);
+        });
         dependencies.clear();
     };
 };

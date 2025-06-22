@@ -14,26 +14,28 @@ import { keyed } from "lit-html/directives/keyed.js"
 import { repeat } from "lit-html/directives/repeat.js"
 import { enableMapSet } from "immer";
 enableMapSet();
-import { ReactiveElement } from "./reactive-element.js";
+import { ReactiveElement } from "./reactive-element";
 // Import the optimized store implementation and use it as the default
-import { ObservableStore, store } from "./observables/observable-store.js";
-// import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized.js";
+import { ObservableStore, store, clearStoreCache } from "./observables/observable-store";
+// import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized";
 
 // Replace the standard store with the optimized version
 // const store = storeOptimized;
-import { Model } from "./observables/observable-model.js";
-import { Observable } from "./observables/observable.js";
-import { ObservableState, effect } from "./observables/observable-state.js";
-import { __config } from "./config.js";
-import { __trace } from "./trace.js";
-import { Type, useValidationHook, useValidationThunk } from "./types/index.js";
-import { createURLStore } from "./observables/url-store.js";
+import { Model } from "./observables/observable-model";
+import { Observable } from "./observables/observable";
+import { ObservableState, effect } from "./observables/observable-state";
+import { __config } from "./config";
+import { __trace } from "./trace";
+import { Type, useValidationHook, useValidationThunk } from "./types/index";
+import { createURLStore } from "./observables/url-store";
 import {
   createIdbPromise,
   persistToIdbThunk,
   createLocalStorage,
   persistToLocalStorageThunk,
-} from "./storage/adapters.js";
+} from "./storage/adapters";
+import invariant from "./invariant";
+import { _deepEqual, _deepMerge, _deepClone } from "./utils";
 
 const { debug, events } = __config;
 
@@ -61,6 +63,7 @@ const { debug, events } = __config;
  */
 export {
   store,
+  clearStoreCache,
   // storeOptimized,
   html,
   svg,
@@ -85,7 +88,11 @@ export {
   createURLStore,
   unsafeHTML,
   repeat,
-  keyed
+  keyed,
+  invariant,
+  _deepEqual,
+  _deepMerge,
+  _deepClone
 };
 
 // Export types for TypeScript users
@@ -93,25 +100,25 @@ export type {
   // Observable types
   Observer,
   Subscription
-} from "./observables/observable.js";
+} from "./observables/observable";
 
 export type {
   // Observable State types
   EffectCleanup,
   DependencyTracker
-} from "./observables/observable-state.js";
+} from "./observables/observable-state";
 
 export type {
   // Observable Store types
   StoreConfig,
   StoreFactoryConfig
-} from "./observables/observable-store.js";
+} from "./observables/observable-store";
 
 export type {
   // Model types
   ModelConfig,
   InferModelState
-} from "./observables/observable-model.js";
+} from "./observables/observable-model";
 
 export type {
   // ReactiveElement types
@@ -123,7 +130,7 @@ export type {
   DeriveFunction as ReactiveElementDeriveFunction,
   UnsubscribeFunction,
   DeriveResult
-} from "./reactive-element.js";
+} from "./reactive-element";
 
 export type {
   // Type system types
@@ -152,7 +159,7 @@ export type {
   DependentArrayType,
   DependentSumType,
   ReferenceType
-} from "./types/index.js";
+} from "./types/index";
 
 export type {
   // URL Store types
@@ -168,4 +175,4 @@ export type {
   URLStoreOptions,
   NavigationHook,
   ResourceLoader
-} from "./observables/url-store.js";
+} from "./observables/url-store";

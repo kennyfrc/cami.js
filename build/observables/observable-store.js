@@ -1,49 +1,87 @@
 import { Observable } from "./observable.js";
 import { DependencyTracker } from "./observable-state.js";
-import { current, createDraft, finishDraft, original, produce, produceWithPatches, applyPatches, enablePatches, freeze, } from "immer";
-import { _deepMerge, _deepClone, _deepEqual, debounce } from "../utils";
+import { createDraft, produceWithPatches, applyPatches, enablePatches, freeze, } from "immer";
+import { _deepClone, _deepEqual } from "../utils";
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
-import invariant from "../invariant.js";
 import { validateType } from "../types/index.js";
 // Enable immer patches for our store implementation
 enablePatches();
+// =============================================================================
+// Main ObservableStore Class
+// =============================================================================
 /**
  * @class ObservableStore
  * @extends {Observable}
  * @description This class is used to create a store that can be observed for changes. It supports registering actions and middleware, making it flexible for various use cases.
  * @example
- * ```javascript
+ * ```typescript
  * // Creating a store with initial state and registering actions
- * const CartStore = cami.store({
- *   cartItems: [],
+ * interface CartState {
+ *   cartItems: Array<{ id: string; name: string; price: number }>;
+ * }
+ *
+ * const CartStore = store<CartState>({
+ *   state: { cartItems: [] },
  * });
  *
- * CartStore.defineAction('add', (state, product) => {
- *   const cartItem = { ...product, cartItemId: Date.now() };
+ * CartStore.defineAction('add', ({ state, payload }) => {
+ *   const cartItem = { ...payload, cartItemId: Date.now().toString() };
  *   state.cartItems.push(cartItem);
  * });
  *
- * CartStore.defineAction('remove', (state, product) => {
- *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
+ * CartStore.defineAction('remove', ({ state, payload }) => {
+ *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== payload.cartItemId);
  * });
- *
- * // Using middleware for logging
- * const loggerMiddleware = (context) => {
- *   console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
- * };
- * CartStore.use(loggerMiddleware);
  * ```
  */
-/**
- * ObservableStore - A high-performance state management implementation that uses
- * proxies and immer for efficient state updates with immutability guarantees.
- * Optimized for speed while maintaining compatibility with the original API.
- */
-class ObservableStore extends Observable {
+export class ObservableStore extends Observable {
+    name;
+    schema;
+    // State management
+    _state;
+    _frozenState = null;
+    _isDirty = false;
+    _stateVersion = 0;
+    _proxy;
+    previousState;
+    // Core data structures
+    reducers = {};
+    actions = {};
+    dispatchQueue = [];
+    isDispatching = false;
+    currentDispatchPromise = null;
+    // Cache structures
+    queryCache = new Map();
+    queryFunctions = new Map();
+    queries = {};
+    memoCache = new Map();
+    // Resource management
+    intervals = new Map();
+    focusHandlers = new Map();
+    reconnectHandlers = new Map();
+    gcTimeouts = new Map();
+    // Advanced features
+    mutationFunctions = new Map();
+    mutations = {};
+    patchListeners = new Map();
+    machines = {};
+    memos = {};
+    thunks = {};
+    specs = new Map();
+    // Hooks for middleware-like functionality
+    beforeHooks = [];
+    afterHooks = [];
+    throttledAfterHooks;
+    // Dispatch tracking to prevent infinite loops
+    __isDispatching = false;
+    __dispatchStack = [];
+    // Internal state management
+    _stateTrapStore;
+    __subscriber = null;
     constructor(initialState, options = {}) {
         super((subscriber) => {
-            this.__subscriber = subscriber;
+            this.__subscriber = subscriber.next ? { next: subscriber.next } : null;
             return () => {
                 this.__subscriber = null;
             };
@@ -53,47 +91,15 @@ class ObservableStore extends Observable {
         // Use immer's draft for immutable state tracking with efficient updates
         this._state = createDraft(initialState);
         // Keep a frozen snapshot of current state for reads
-        // We don't deep clone to avoid unnecessary object creation
         this._frozenState = null;
         // Track whether state has changed to avoid unnecessary notifications
         this._isDirty = false;
-        // State version for internal tracking of changes (not in state object)
+        // State version for internal tracking of changes
         this._stateVersion = 0;
         // Create the proxy for state access tracking
         this._proxy = this._createProxy(this._state);
         // Store original state for change detection
         this.previousState = initialState;
-        // Core data structures for store functionality
-        this.reducers = {};
-        this.actions = {};
-        this.dispatchQueue = [];
-        this.isDispatching = false;
-        this.currentDispatchPromise = null;
-        // Cache structures
-        this.queryCache = new Map();
-        this.queryFunctions = new Map();
-        this.queries = {};
-        this.memoCache = new Map();
-        // Resource management
-        this.intervals = new Map();
-        this.focusHandlers = new Map();
-        this.reconnectHandlers = new Map();
-        this.gcTimeouts = new Map();
-        // Advanced features
-        this.mutationFunctions = new Map();
-        this.mutations = {};
-        this.patchListeners = new Map();
-        this.machines = {};
-        this.memos = {};
-        this.thunks = {};
-        this.specs = new Map();
-        // Hooks for middleware-like functionality
-        this.beforeHooks = [];
-        this.afterHooks = [];
-        this.throttledAfterHooks = this.__executeAfterHooks.bind(this);
-        // Dispatch tracking to prevent infinite loops
-        this.__isDispatching = false;
-        this.__dispatchStack = [];
         // Bind methods to ensure consistent this context
         this.dispatch = this.dispatch.bind(this);
         this.query = this.query.bind(this);
@@ -103,6 +109,8 @@ class ObservableStore extends Observable {
         this.memo = this.memo.bind(this);
         this.invalidateQueries = this.invalidateQueries.bind(this);
         this.dispatchAsync = this.dispatchAsync.bind(this);
+        // Create throttled after hooks
+        this.throttledAfterHooks = this.__executeAfterHooks.bind(this);
         // Add hook to update state version after changes
         this.afterHook(() => {
             this._stateVersion++;
@@ -216,7 +224,6 @@ class ObservableStore extends Observable {
                 // For objects and arrays, use deep equality check
                 if (typeof value === 'object' && value !== null &&
                     typeof oldValue === 'object' && oldValue !== null) {
-                    // Import _deepEqual at the top of the file if not already imported
                     if (_deepEqual(oldValue, value)) {
                         return true;
                     }
@@ -311,7 +318,7 @@ class ObservableStore extends Observable {
         if (!this._isDirty)
             return;
         // Fast path: If there are no observers and no subscriber
-        if (this.__observers.length === 0 && !this.__subscriber) {
+        if (!this.hasObservers && !this.__subscriber) {
             this._isDirty = false;
             return;
         }
@@ -322,28 +329,16 @@ class ObservableStore extends Observable {
             this._isDirty = false;
             return;
         }
-        // When using immer, we should always notify upon dispatch completion
-        // This ensures consistent behavior with the original implementation
-        // and maintains compatibility with tests and existing code
         // Clear memo cache for consistent derived calculations
         this.memoCache.clear();
         this._frozenState = null;
         // Get a stable snapshot of the current state 
-        // Using a frozen state here is critical for maintaining immutability
-        // while allowing efficient access to nested properties
-        const stateToEmit = deepFreeze(_deepClone(this._state));
+        const stateToEmit = _deepClone(this._state);
         // Use a local reference to avoid issues if observers modify the collection
-        // And avoid allocating a new array if possible by checking for emptiness first
-        const observerCount = this.__observers.length;
-        // Notify all observers - using a while loop counting down for better performance
+        const observerCount = this.observerCount;
+        // Notify all observers
         if (observerCount > 0) {
-            let i = observerCount;
-            while (i--) {
-                const observer = this.__observers[i];
-                if (observer && typeof observer.next === "function") {
-                    observer.next(stateToEmit);
-                }
-            }
+            this.notifyObservers(stateToEmit);
         }
         // Notify subscriber if exists
         if (this.__subscriber && typeof this.__subscriber.next === "function") {
@@ -521,7 +516,6 @@ class ObservableStore extends Observable {
             throw new Error(`[Cami.js] No reducer found for action: ${action}`);
         }
         // Store original state for potential rollback - only clone when needed
-        // This is an expensive operation, so we do it after early-exit checks
         const originalState = _deepClone(this._state);
         try {
             // Fast path 4: Skip spec check if no specs defined
@@ -554,6 +548,7 @@ class ObservableStore extends Observable {
             try {
                 // Use immer's produceWithPatches for efficient immutable updates
                 const [nextState, patches, inversePatches] = produceWithPatches(this._state, (draft) => {
+                    reducerContext.state = draft;
                     reducer(reducerContext);
                 });
                 // Fast path 6: Skip postcondition if not defined
@@ -724,7 +719,6 @@ class ObservableStore extends Observable {
         if (this.patchListeners.size === 0)
             return;
         // Create a map of keys to an array of patches for that key
-        // This way we notify each listener only once with all applicable patches
         const patchesByKey = new Map();
         // Group patches by key - use while loop counting down for better performance
         const patchesLen = patches.length;
@@ -744,7 +738,6 @@ class ObservableStore extends Observable {
             keyPatches.push(patch);
         }
         // Notify listeners with grouped patches
-        // Notify listeners with grouped patches - optimized iteration
         for (const [key, keyPatches] of patchesByKey) {
             const listeners = this.patchListeners.get(key);
             if (!listeners || listeners.length === 0)
@@ -764,27 +757,10 @@ class ObservableStore extends Observable {
     }
     /**
      * @method defineAction
-     * @memberof ObservableStore
      * @param {string} action - The action type
-     * @param {Function} reducer - The reducer function for the action
+     * @param {ActionHandler} reducer - The reducer function for the action
      * @throws {Error} - Throws an error if the action type is already registered
      * @description This method registers a reducer function for a given action type. Useful if you like redux-style reducers.
-     * @example
-     * ```javascript
-     * // Creating a store with initial state and registering actions
-     * const CartStore = cami.store({
-     *   cartItems: [],
-     * });
-     *
-     * CartStore.defineAction('add', ({ state, product }) => {
-     *   const cartItem = { ...product, cartItemId: Date.now() };
-     *   state.cartItems.push(cartItem);
-     * });
-     *
-     * CartStore.defineAction('remove', ({ state, payload }) => {
-     *   state.cartItems = state.cartItems.filter(item => item.cartItemId !== payload.cartItemId);
-     * });
-     * ```
      */
     defineAction(action, reducer) {
         // Validation
@@ -795,13 +771,10 @@ class ObservableStore extends Observable {
             throw new Error(`[Cami.js] Reducer must be a function, got: ${typeof reducer}`);
         }
         // Check for existing action in THIS store instance, not globally
-        // This fixes the URL Store test which needs to create 
-        // multiple stores with same action names
         if (this.reducers[action]) {
             throw new Error(`[Cami.js] Action '${action}' is already defined in store '${this.name}'.`);
         }
         // Create context once when defining the action
-        // This is more efficient than recreating it on every dispatch
         const baseContext = {
             dispatch: this.dispatch,
             query: this.query,
@@ -814,7 +787,6 @@ class ObservableStore extends Observable {
         // Store the reducer with a wrapper that adds context
         this.reducers[action] = (context) => {
             // Merge provided context with base context
-            // This is faster than re-binding methods every time
             const storeContext = Object.assign({}, baseContext, context);
             return reducer(storeContext);
         };
@@ -834,9 +806,6 @@ class ObservableStore extends Observable {
         if (!spec || typeof spec !== 'object') {
             throw new Error(`[Cami.js] Spec must be an object, got: ${typeof spec}`);
         }
-        if (!this.specs) {
-            this.specs = new Map();
-        }
         // Validate spec content
         if (spec.precondition && typeof spec.precondition !== 'function') {
             throw new Error(`[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`);
@@ -851,7 +820,7 @@ class ObservableStore extends Observable {
     /**
      * @method defineAsyncAction
      * @param {string} thunkName - The name of the thunk
-     * @param {Function} asyncCallback - The async function to be executed
+     * @param {AsyncActionHandler} asyncCallback - The async function to be executed
      * @description Defines a new thunk for the store
      */
     defineAsyncAction(thunkName, asyncCallback) {
@@ -928,16 +897,9 @@ class ObservableStore extends Observable {
     }
     /**
      * @method onPatch
-     * @memberof ObservableStore
      * @param {string} key - The state key to listen for patches.
-     * @param {Function} callback - The callback to invoke when patches are applied.
+     * @param {PatchListener} callback - The callback to invoke when patches are applied.
      * @description Registers a callback to be invoked whenever patches are applied to the specified state key.
-     * @example
-     * ```javascript
-     * appStore.onPatch('posts', (patch) => {
-     *   console.log('Patch applied:', patch);
-     * });
-     * ```
      */
     onPatch(key, callback) {
         if (!this.patchListeners.has(key)) {
@@ -946,6 +908,8 @@ class ObservableStore extends Observable {
         this.patchListeners.get(key).push(callback);
         return () => {
             const listeners = this.patchListeners.get(key);
+            if (!listeners)
+                return;
             const index = listeners.indexOf(callback);
             if (index > -1) {
                 // Faster removal by swapping with last element and popping - O(1)
@@ -959,54 +923,18 @@ class ObservableStore extends Observable {
     }
     /**
      * @method applyPatch
-     * @memberof ObservableStore
-     * @param {Array} patches - The patches to apply to the state.
+     * @param {Patch[]} patches - The patches to apply to the state.
      * @description Applies the given patches to the store's state.
-     * @example
-     * ```javascript
-     * const patches = [{ op: 'replace', path: ['posts', 0, 'title'], value: 'New Title' }];
-     * appStore.applyPatch(patches);
-     * ```
      */
     applyPatch(patches) {
         this._state = applyPatches(this._state, patches);
-        this.__observers.forEach((observer) => observer.next(this._state));
+        this.notifyObservers(this._state);
     }
     /**
-     * @method query
-     * @memberof ObservableStore
+     * @method defineQuery
      * @param {string} queryName - The name of the query to register.
-     * @param {Object} config - The configuration object for the query.
-     * @param {string|Array|Function} config.queryKey - The unique key for the query or a function to generate the key.
-     * @param {Function} config.queryFn - The function to fetch data for the query.
-     * @param {number} [config.staleTime=0] - The time in milliseconds before the query is considered stale.
-     * @param {boolean} [config.refetchOnWindowFocus=false] - Whether to refetch the query on window focus.
-     * @param {number|null} [config.refetchInterval=null] - The interval in milliseconds to refetch the query.
-     * @param {boolean} [config.refetchOnReconnect=true] - Whether to refetch the query on reconnect.
-     * @param {number} [config.gcTime=300000] - The time in milliseconds before garbage collecting the query.
-     * @param {number} [config.retry=1] - The number of retry attempts for the query.
-     * @param {Function} [config.retryDelay] - The function to calculate the delay between retries.
-     * @param {Function} [config.onSuccess] - The callback function to execute when the query succeeds. Receives a context object with `result`, `state`, `actions`, `mutations`, and `invalidateQueries`.
-     * @param {Function} [config.onError] - The callback function to execute when the query fails. Receives a context object with `error`, `state`, `actions`, `mutations`, and `invalidateQueries`.
-     * @param {Object} [config.actions=this.actions] - The actions available in the store.
-     * @description Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
-     * @example
-     * ```javascript
-     * appStore.defineAction('setPosts', (state, posts) => {
-     *   state.posts = posts;
-     * });
-     *
-     * appStore.defineQuery('fetchPosts', {
-     *   queryKey: (args) => ['posts', ...args],
-     *   queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
-     *   onSuccess: (ctx) => {
-     *     ctx.actions.setPosts(ctx.result);
-     *   },
-     *   onError: (ctx) => {
-     *     // console.error('Query failed:', ctx.error);
-     *   }
-     * });
-     * ```
+     * @param {QueryConfig} config - The configuration object for the query.
+     * @description Registers a query with the given configuration.
      */
     defineQuery(queryName, config) {
         if (this.queryFunctions.has(queryName)) {
@@ -1016,7 +944,7 @@ class ObservableStore extends Observable {
         this.queries[queryName] = (...args) => this.query(queryName, ...args);
     }
     _executeQuery(queryName, payload, query) {
-        const { queryFn, queryKey, staleTime, retry, retryDelay, onFetch, onSuccess, onError, onSettled, } = query;
+        const { queryFn, queryKey, staleTime = 0, retry = 1, retryDelay, onFetch, onSuccess, onError, onSettled, } = query;
         const cacheKey = typeof queryKey === "function"
             ? queryKey(payload).join(":")
             : Array.isArray(queryKey)
@@ -1086,12 +1014,8 @@ class ObservableStore extends Observable {
     }
     /**
      * @method invalidateQueries
-     * @memberof ObservableStore
-     * @param {Object} options - The options for invalidating queries.
-     * @param {string[]} [options.queryKey] - The query key to invalidate.
-     * @param {Function} [options.predicate] - A predicate function to match queries to invalidate.
+     * @param {InvalidateQueriesOptions} options - The options for invalidating queries.
      * @description Invalidates the cache and any associated intervals or event listeners for the given queries.
-     * @throws {Error} Throws an error if neither queryKey nor predicate is provided.
      */
     invalidateQueries({ queryKey, predicate }) {
         if (!queryKey && !predicate) {
@@ -1102,7 +1026,6 @@ class ObservableStore extends Observable {
                 const storedQueryKey = this.queryFunctions.get(queryName).queryKey;
                 if (typeof storedQueryKey === "function") {
                     // If storedQueryKey is a function, we need to call it and compare the result
-                    // Pass an empty object as default argument to prevent destructuring errors
                     try {
                         const generatedKey = storedQueryKey({});
                         return JSON.stringify(generatedKey) === JSON.stringify(queryKey);
@@ -1130,7 +1053,7 @@ class ObservableStore extends Observable {
                 return;
             let cacheKey;
             if (typeof query.queryKey === "function") {
-                cacheKey = query.queryKey().join(":");
+                cacheKey = query.queryKey({}).join(":");
             }
             else if (Array.isArray(query.queryKey)) {
                 cacheKey = query.queryKey.join(":");
@@ -1170,9 +1093,8 @@ class ObservableStore extends Observable {
      * @private
      * @method fetchWithRetry
      * @param {Function} queryFn - The query function to execute.
-     * @param {Array} args - The arguments to pass to the query function.
-     * @param {number} retries - The number of retries remaining.
-     * @param {Function} retryDelay - A function that returns the delay in milliseconds for each retry attempt.
+     * @param {number} retry - The number of retries remaining.
+     * @param {number | Function} retryDelay - The delay or function that returns the delay in milliseconds for each retry attempt.
      * @returns {Promise} A promise that resolves to the query result.
      * @description Executes the query function with retries and exponential backoff.
      */
@@ -1184,7 +1106,7 @@ class ObservableStore extends Observable {
                     attempts++;
                     const delay = typeof retryDelay === "function"
                         ? retryDelay(attempts)
-                        : retryDelay;
+                        : retryDelay || 1000;
                     return new Promise((resolve) => setTimeout(resolve, delay)).then(executeFetch);
                 }
                 throw error;
@@ -1195,7 +1117,7 @@ class ObservableStore extends Observable {
     /**
      * @private
      * @method _isStale
-     * @param {Object} cachedData - The cached data object.
+     * @param {CachedQueryData} cachedData - The cached data object.
      * @param {number} staleTime - The stale time in milliseconds.
      * @returns {boolean} True if the cached data is stale, false otherwise.
      * @description Checks if the cached data is stale based on the stale time.
@@ -1216,39 +1138,10 @@ class ObservableStore extends Observable {
         return isDataStale || isManuallyInvalidated;
     }
     /**
-     * @method mutation
-     * @memberof ObservableStore
+     * @method defineMutation
      * @param {string} mutationName - The name of the mutation to register.
-     * @param {Object} config - The configuration object for the mutation.
-     * @param {Function} config.mutationFn - The function to perform the mutation.
-     * @param {Function} [config.onMutate] - The function to be called before the mutation is performed.
-     * @param {Function} [config.onError] - The function to be called if the mutation encounters an error.
-     * @param {Function} [config.onSuccess] - The function to be called if the mutation is successful.
-     * @param {Function} [config.onSettled] - The function to be called after the mutation has either succeeded or failed.
-     * @param {Object} [config.actions=this.actions] - The actions available in the store.
-     * @param {Object} [config.queries=this.queryFunctions] - The queries available in the store.
-     * @description Registers a mutation with the given configuration. This method sets up the mutation with the provided options and handles the mutation lifecycle.
-     * @example
-     * ```javascript
-     * appStore.defineMutation('deletePost', {
-     *   mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
-     *   onMutate: (context) => {
-     *     context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
-     *   },
-     *   onError: (context) => {
-     *     context.actions.setPosts(context.previousState.posts);
-     *   },
-     *   onSuccess: (context) => {
-     *     console.log('Mutation successful:', context);
-     *   },
-     *   onSettled: (context) => {
-     *     console.log('Mutation settled');
-     *     context.invalidateQueries('posts');
-     *   }
-     * });
-     *
-     * appStore.mutate('deletePost', id);
-     * ```
+     * @param {MutationConfig} config - The configuration object for the mutation.
+     * @description Registers a mutation with the given configuration.
      */
     defineMutation(mutationName, config) {
         if (this.mutationFunctions.has(mutationName)) {
@@ -1305,7 +1198,7 @@ class ObservableStore extends Observable {
     /**
      * @method defineMachine
      * @param {string} machineName - The name of the machine
-     * @param {Object} machineDefinition - The state machine definition
+     * @param {StateMachineDefinition} machineDefinition - The state machine definition
      * @description Defines or updates a state machine for the store
      */
     defineMachine(machineName, machineDefinition) {
@@ -1422,8 +1315,6 @@ class ObservableStore extends Observable {
             this.memoCache.set(memoName, cache);
         }
         // Generate a more efficient cache key
-        // For primitives, use them directly to avoid string conversion overhead
-        // For objects, use a faster but still reliable hash function
         let cacheKey;
         if (payload === undefined || payload === null) {
             cacheKey = '__undefined__';
@@ -1434,7 +1325,6 @@ class ObservableStore extends Observable {
         }
         else {
             // For objects, we still need to stringify but we can optimize this further
-            // in the future with a proper hash function if needed
             cacheKey = JSON.stringify(payload);
         }
         // Fast path: return cached result if available and valid
@@ -1450,10 +1340,8 @@ class ObservableStore extends Observable {
             }
         }
         // No valid cache hit, need to calculate
-        // Use a Set for O(1) lookup of dependencies
         const dependencies = new Set();
         // Optimized tracking proxy that only tracks top-level dependencies
-        // This is more efficient than tracking deep property access in most cases
         const trackingProxy = new Proxy(this._state, {
             get: (target, prop) => {
                 // Only track string properties that aren't internal
@@ -1463,7 +1351,7 @@ class ObservableStore extends Observable {
                 return target[prop];
             },
         });
-        // Create context for memo function - reuse object shape for V8 optimization
+        // Create context for memo function
         const storeContext = {
             state: trackingProxy,
             payload,
@@ -1524,7 +1412,6 @@ class ObservableStore extends Observable {
             return true;
         }
         // For larger dependency sets, use a different approach
-        // Convert to array and use a basic for loop for better performance
         const deps = Array.from(dependencies);
         const len = deps.length;
         for (let i = 0; i < len; i++) {
@@ -1649,16 +1536,19 @@ class ObservableStore extends Observable {
         });
     }
 }
+// =============================================================================
+// Utility Functions
+// =============================================================================
 const deepFreeze = (value, deep = true) => {
     if (typeof value !== "object" || value === null) {
         return value; // Return primitives as-is
     }
     return new Proxy(freeze(value, true), {
         set(target, prop, val) {
-            throw new Error(`Attempted to modify frozen state. Cannot set property '${prop}' on immutable object.`);
+            throw new Error(`Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`);
         },
         deleteProperty(target, prop) {
-            throw new Error(`Attempted to modify frozen state. Cannot delete property '${prop}' from immutable object.`);
+            throw new Error(`Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`);
         },
     });
 };
@@ -1698,13 +1588,10 @@ const storeInstances = new Map();
 /**
  * Creates a new ObservableStore instance or returns an existing one with the same name
  *
- * @param {Object} config - Configuration options
- * @param {Object} config.state - Initial state for the store
- * @param {string} config.name - Name of the store (used for singleton lookup)
- * @param {Object} config.schema - Optional schema for type validation
- * @returns {ObservableStore} Store instance
+ * @param config - Configuration options
+ * @returns Store instance
  */
-const store = (config = {}) => {
+export const store = (config = {}) => {
     // Default configuration
     const defaultConfig = {
         state: {},
@@ -1719,7 +1606,7 @@ const store = (config = {}) => {
     if (storeInstances.has(finalConfig.name)) {
         return storeInstances.get(finalConfig.name);
     }
-    // Create new store instance (don't add _stateVersion to state to maintain compatibility)
+    // Create new store instance
     const storeInstance = new ObservableStore(finalConfig.state, finalConfig);
     // Verify required methods are available
     const requiredMethods = ["memo", "query", "trigger", "dispatch", "mutate", "subscribe"];
@@ -1735,5 +1622,4 @@ const store = (config = {}) => {
     }
     return storeInstance;
 };
-export { ObservableStore, store };
 //# sourceMappingURL=observable-store.js.map

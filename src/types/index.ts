@@ -124,16 +124,16 @@ export interface ReferenceType {
 }
 
 export type ComplexType<T = any> = 
-  | ObjectType<T>
+  | ObjectType<T extends Record<string, any> ? T : Record<string, any>>
   | ArrayType<T>
   | SumType<T>
-  | ProductType<T>
+  | ProductType<T extends Record<string, any> ? T : Record<string, any>>
   | AnyType
   | EnumType<T>
   | OptionalType<T>
   | RefinementType<T>
   | DependentPairType
-  | DependentRecordType<T>
+  | DependentRecordType<T extends Record<string, any> ? T : Record<string, any>>
   | DateType
   | VectType<T>
   | TreeType<T>
@@ -161,18 +161,18 @@ type InferPrimitive<T extends PrimitiveTypeName> =
 type InferType<T extends TypeDefinition> = 
   T extends PrimitiveTypeName ? InferPrimitive<T> :
   T extends ObjectType<infer S> ? { [K in keyof S]: InferType<S[K]> } :
-  T extends ArrayType<infer E> ? InferType<E>[] :
-  T extends SumType<infer U> ? InferType<U> :
-  T extends ProductType<infer F> ? { [K in keyof F]: InferType<F[K]> } :
+  T extends ArrayType<infer E> ? E extends TypeDefinition ? InferType<E>[] : any[] :
+  T extends SumType<infer U> ? U extends TypeDefinition ? InferType<U> : any :
+  T extends ProductType<infer F> ? { [K in keyof F]: F[K] extends TypeDefinition ? InferType<F[K]> : any } :
   T extends AnyType ? any :
   T extends EnumType<infer V> ? V :
-  T extends OptionalType<infer O> ? InferType<O> | undefined | null :
-  T extends RefinementType<infer R> ? InferType<R> :
-  T extends DependentPairType<infer F, infer S> ? [InferType<F>, S] :
+  T extends OptionalType<infer O> ? O extends TypeDefinition ? InferType<O> | undefined | null : any :
+  T extends RefinementType<infer R> ? R extends TypeDefinition ? InferType<R> : any :
+  T extends DependentPairType<infer F, infer S> ? F extends TypeDefinition ? [InferType<F>, S] : [any, S] :
   T extends DateType ? Date :
-  T extends VectType<infer E> ? InferType<E>[] :
-  T extends TreeType<infer V> ? TreeNode<InferType<V>> :
-  T extends RoseTreeType<infer V> ? RoseTreeNode<InferType<V>> :
+  T extends VectType<infer E> ? E extends TypeDefinition ? InferType<E>[] : any[] :
+  T extends TreeType<infer V> ? V extends TypeDefinition ? TreeNode<InferType<V>> : TreeNode<any> :
+  T extends RoseTreeType<infer V> ? V extends TypeDefinition ? RoseTreeNode<InferType<V>> : RoseTreeNode<any> :
   T extends LiteralType<infer L> ? L :
   T extends FunctionType<infer P, infer R> ? (...args: P) => R :
   T extends VoidType ? void :
@@ -429,7 +429,7 @@ const typeValidators: Record<string, ValidatorFn> = {
     }
 
     // Merge the new value with the existing object
-    const mergedValue = _deepMerge({}, existingObject, value);
+    const mergedValue = _deepMerge(_deepMerge({}, existingObject), value);
 
     // Validate each field defined in the Product type
     Object.entries(type.fields).forEach(([key, fieldType]) => {
@@ -774,10 +774,10 @@ const useValidationHook = (schema: Record<string, TypeDefinition> | DependentRec
   return (state: any) => {
     const clonedState = _deepClone(state);
     if (typeof schema === "object" && "type" in schema && schema.type === "dependentRecord") {
-      validateType(clonedState, schema, [], clonedState);
+      validateType(clonedState, schema as TypeDefinition, [], clonedState);
     } else {
       Object.entries(schema).forEach(([key, type]) => {
-        validateType(clonedState[key], type, [key], clonedState);
+        validateType(clonedState[key], type as TypeDefinition, [key], clonedState);
       });
     }
   };

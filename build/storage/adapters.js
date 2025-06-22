@@ -1,4 +1,3 @@
-import { validateType } from '../types/index.js';
 import { __trace } from '../trace.js';
 function unproxify(obj) {
     const getType = (value) => {
@@ -76,30 +75,30 @@ export function createIdbPromise({ name, version, storeName, keyPath, indexName 
             resolve({
                 /**
                  * Retrieves data from the IndexedDB store based on the provided options.
-                 * @param {Object} [options={}] - Query options for retrieving data.
-                 * @param {string} [options.type='all'] - The type of query to perform. Can be one of:
+                 * @param options - Query options for retrieving data.
+                 * @param options.type - The type of query to perform. Can be one of:
                  *   'key', 'index', 'all', 'range', 'cursor', 'count', 'keys', or 'unique'.
-                 * @param {*} [options.key] - The key to retrieve when type is 'key'.
+                 * @param options.key - The key to retrieve when type is 'key'.
                  *   Example: { type: 'key', key: 123 }
-                 * @param {string} [options.index] - The name of the index to use for 'index', 'range', 'cursor', 'count', 'keys', or 'unique' queries.
+                 * @param options.index - The name of the index to use for 'index', 'range', 'cursor', 'count', 'keys', or 'unique' queries.
                  *   Example: { type: 'index', index: 'nameIndex', value: 'John' }
-                 * @param {*} [options.value] - The value to search for in an index query.
+                 * @param options.value - The value to search for in an index query.
                  *   Example: { type: 'index', index: 'ageIndex', value: 30 }
-                 * @param {*} [options.lower] - The lower bound for a range query.
+                 * @param options.lower - The lower bound for a range query.
                  *   Example: { type: 'range', index: 'dateIndex', lower: '2023-01-01', upper: '2023-12-31' }
-                 * @param {*} [options.upper] - The upper bound for a range query.
+                 * @param options.upper - The upper bound for a range query.
                  *   Example: { type: 'range', index: 'priceIndex', lower: 10, upper: 100 }
-                 * @param {boolean} [options.lowerOpen] - Whether the lower bound is open in a range query.
+                 * @param options.lowerOpen - Whether the lower bound is open in a range query.
                  *   Example: { type: 'range', index: 'scoreIndex', lower: 50, upper: 100, lowerOpen: true }
-                 * @param {boolean} [options.upperOpen] - Whether the upper bound is open in a range query.
+                 * @param options.upperOpen - Whether the upper bound is open in a range query.
                  *   Example: { type: 'range', index: 'scoreIndex', lower: 50, upper: 100, upperOpen: true }
-                 * @param {IDBKeyRange} [options.range] - The key range for cursor, count, or keys queries.
+                 * @param options.range - The key range for cursor, count, or keys queries.
                  *   Example: { type: 'cursor', range: IDBKeyRange.bound(50, 100) }
-                 * @param {IDBCursorDirection} [options.direction] - The direction for a cursor query.
+                 * @param options.direction - The direction for a cursor query.
                  *   Example: { type: 'cursor', range: IDBKeyRange.lowerBound(50), direction: 'prev' }
-                 * @param {number} [options.limit] - The maximum number of results to return for a unique query.
+                 * @param options.limit - The maximum number of results to return for a unique query.
                  *   Example: { type: 'unique', index: 'categoryIndex', limit: 5 }
-                 * @returns {Promise<*>} A promise that resolves with the query results.
+                 * @returns A promise that resolves with the query results.
                  *
                  * Examples:
                  * - Get all records: { type: 'all' }
@@ -109,10 +108,10 @@ export function createIdbPromise({ name, version, storeName, keyPath, indexName 
                 getState: async (options = { type: 'all' }) => {
                     /**
                      * Builds and executes an IndexedDB request based on the provided options.
-                     * @param {Object} params - The parameters for building the request.
-                     * @param {IDBObjectStore} params.store - The IndexedDB object store to query.
-                     * @param {Object} params.options - The query options (same as getState options).
-                     * @returns {IDBRequest|Promise<Array>} The IndexedDB request or a Promise for cursor queries.
+                     * @param params - The parameters for building the request.
+                     * @param params.store - The IndexedDB object store to query.
+                     * @param params.options - The query options (same as getState options).
+                     * @returns The IndexedDB request or a Promise for cursor queries.
                      */
                     const buildIdbRequest = ({ store, options }) => {
                         switch (options.type) {
@@ -172,8 +171,13 @@ export function createIdbPromise({ name, version, storeName, keyPath, indexName 
                         const tx = db.transaction(storeName, "readonly");
                         const store = tx.objectStore(storeName);
                         const request = buildIdbRequest({ store, options });
-                        request.onsuccess = (event) => resolveQuery(event.target.result);
-                        request.onerror = (event) => rejectQuery(event.target.error);
+                        if (request instanceof Promise) {
+                            request.then(resolveQuery).catch(rejectQuery);
+                        }
+                        else {
+                            request.onsuccess = (event) => resolveQuery(event.target.result);
+                            request.onerror = (event) => rejectQuery(event.target.error);
+                        }
                     });
                 },
                 transaction: (mode) => db.transaction(storeName, mode),
@@ -197,7 +201,8 @@ export function createIdbPromise({ name, version, storeName, keyPath, indexName 
                     break;
                 case 'recreate':
                     db.deleteObjectStore(storeName);
-                    upgradeActions.create();
+                    const recreatedStore = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+                    recreatedStore.createIndex(indexName, indexName, { unique: false });
                     break;
                 case 'update':
                     console.log('Database is up to date');
@@ -229,7 +234,8 @@ export function persistToIdbThunk({ fromStateKey, toIDBStore }) {
             const getState = () => {
                 if (state === null) {
                     return new Promise((resolveState) => {
-                        store.getAll().onsuccess = (event) => {
+                        const getAllRequest = store.getAll();
+                        getAllRequest.onsuccess = (event) => {
                             state = event.target.result;
                             resolveState(state);
                         };
@@ -295,12 +301,12 @@ export function persistToIdbThunk({ fromStateKey, toIDBStore }) {
                 }
                 await new Promise((resolveDelete) => {
                     const deleteRequest = store.clear();
-                    deleteRequest.onsuccess = resolveDelete;
+                    deleteRequest.onsuccess = () => resolveDelete();
                 });
                 for (const item of state) {
                     await new Promise((resolvePut) => {
                         const putRequest = store.put(item);
-                        putRequest.onsuccess = resolvePut;
+                        putRequest.onsuccess = () => resolvePut();
                     });
                 }
             };

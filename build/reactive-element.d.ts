@@ -1,4 +1,4 @@
-import { TemplateResult } from "./html.js";
+import { TemplateResult } from "./html";
 type AttributeParser = (value: string) => any;
 interface ObservableAttributes {
     [attrName: string]: AttributeParser;

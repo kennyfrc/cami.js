@@ -1,26 +1,25 @@
 import { Observable } from "./observable.js";
 import { DependencyTracker } from "./observable-state.js";
 import {
-  current,
   createDraft,
-  finishDraft,
-  original,
-  produce,
   produceWithPatches,
   applyPatches,
   enablePatches,
+  setAutoFreeze,
   freeze,
   Draft,
   Patch,
 } from "immer";
-import { _deepMerge, _deepClone, _deepEqual, debounce } from "../utils";
+import { _deepMerge, _deepClone, _deepEqual } from "../utils";
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
-import invariant from "../invariant.js";
 import { validateType } from "../types/index.js";
 
 // Enable immer patches for our store implementation
 enablePatches();
+
+// Disable auto-freeze to prevent immer from freezing objects passed to actions
+setAutoFreeze(false);
 
 // =============================================================================
 // Core Type Definitions
@@ -241,13 +240,14 @@ export interface PatchListener {
 export class ObservableStore<TState = any> extends Observable<TState> {
   public readonly name: string;
   public readonly schema: Record<string, any>;
+  public _uid?: string;
 
   // State management
-  private _state: Draft<TState>;
-  private _frozenState: TState | null = null;
+  private _state: TState;
+  private _frozenState: TState | null = null; // Used in proxy handlers
   private _isDirty = false;
   private _stateVersion = 0;
-  private _proxy: TState;
+  private _proxy: TState; // Used for state access
   public previousState: TState;
 
   // Core data structures
@@ -264,10 +264,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   public readonly memoCache = new Map<string, Map<any, CachedMemoData>>();
 
   // Resource management
-  public readonly intervals = new Map<string, NodeJS.Timeout>();
+  public readonly intervals = new Map<string, ReturnType<typeof setTimeout>>();
   public readonly focusHandlers = new Map<string, () => void>();
   public readonly reconnectHandlers = new Map<string, () => void>();
-  public readonly gcTimeouts = new Map<string, NodeJS.Timeout>();
+  public readonly gcTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
   // Advanced features
   public readonly mutationFunctions = new Map<string, MutationConfig>();
@@ -293,7 +293,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
   constructor(initialState: TState, options: StoreConfig<TState> = {}) {
     super((subscriber) => {
-      this.__subscriber = subscriber;
+      this.__subscriber = subscriber.next ? { next: subscriber.next } : null;
       return () => {
         this.__subscriber = null;
       };
@@ -301,9 +301,14 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
     this.name = options.name || "cami-store";
     this.schema = options.schema || {};
+    this._uid = this.name;
 
     // Use immer's draft for immutable state tracking with efficient updates
-    this._state = createDraft(initialState);
+    // Immer requires objects or arrays, not primitives
+    if (typeof initialState !== 'object' || initialState === null) {
+      throw new Error('[Cami.js] Store state must be an object or array, not a primitive value');
+    }
+    this._state = createDraft(initialState) as TState;
     
     // Keep a frozen snapshot of current state for reads
     this._frozenState = null;
@@ -345,20 +350,15 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   }
 
   /**
-   * Returns a frozen snapshot of the current state
+   * Returns a snapshot of the current state
    * Automatically tracks dependencies for reactive computations
    */
   get state(): TState {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
-    // Create a frozen state only once and cache it until next change
-    if (!this._frozenState) {
-      // Deep clone the state first to filter out symbols and other internal properties
-      const cleanState = _deepClone(this._state);
-      this._frozenState = deepFreeze(cleanState);
-    }
-    return this._frozenState;
+    // Return a deep clone using JSON to ensure truly mutable objects
+    return JSON.parse(JSON.stringify(this._state));
   }
 
   /**
@@ -369,13 +369,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
-    // Reuse the frozen state from the getter
-    if (!this._frozenState) {
-      // Deep clone the state first to filter out symbols and other internal properties
-      const cleanState = _deepClone(this._state);
-      this._frozenState = deepFreeze(cleanState);
-    }
-    return this._frozenState;
+    // Return a deep clone using JSON to ensure truly mutable objects  
+    return JSON.parse(JSON.stringify(this._state));
   }
 
   /**
@@ -384,7 +379,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * 
    * This is a critical path for performance optimization
    */
-  private _createProxy(target: Draft<TState>): TState {
+  private _createProxy(target: TState): TState {
     // Common internal props to skip - precompute for faster checks
     const SKIP_PROPS = new Set(['constructor', 'toJSON']);
     
@@ -397,7 +392,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       this._stateTrapStore.set(target, new Map());
     }
     
-    return new Proxy(target, {
+    return new Proxy(target as any, {
       get: (target, prop, receiver) => {
         // Fast path 1: Skip dependency tracking for symbols and internal methods
         // Don't allow any symbols to be accessed from the target
@@ -571,7 +566,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (!this._isDirty) return;
     
     // Fast path: If there are no observers and no subscriber
-    if (this.__observers.length === 0 && !this.__subscriber) {
+    if (!this.hasObservers && !this.__subscriber) {
       this._isDirty = false;
       return;
     }
@@ -589,20 +584,14 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     this._frozenState = null;
     
     // Get a stable snapshot of the current state 
-    const stateToEmit = deepFreeze(_deepClone(this._state));
+    const stateToEmit = _deepClone(this._state);
     
     // Use a local reference to avoid issues if observers modify the collection
-    const observerCount = this.__observers.length;
+    const observerCount = this.observerCount;
     
-    // Notify all observers - using a while loop counting down for better performance
+    // Notify all observers
     if (observerCount > 0) {
-      let i = observerCount;
-      while (i--) {
-        const observer = this.__observers[i];
-        if (observer && typeof observer.next === "function") {
-          observer.next(stateToEmit);
-        }
-      }
+      this.notifyObservers(stateToEmit);
     }
     
     // Notify subscriber if exists
@@ -722,6 +711,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   /**
    * Process the queue of actions to be dispatched
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _processDispatchQueue(): void {
     if (this.isDispatching) return;
     
@@ -807,7 +797,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       const spec = this.specs?.get(action);
       if (spec?.precondition) {
         const isPreconditionMet = spec.precondition({
-          state: this._state,
+          state: this._state as any,
           payload,
           action,
         });
@@ -819,12 +809,12 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
       // Fast path 5: Skip before hooks if none defined
       if (this.beforeHooks.length > 0) {
-        this.__applyHooks("before", { action, payload, state: this._state });
+        this.__applyHooks("before", { action, payload, state: this._state as any });
       }
 
       // Create reducer context object with consistent shape for V8 optimization
       const reducerContext: ReducerContext<TState> = {
-        state: this._state,
+        state: this._state as Draft<TState>,
         payload,
         dispatch: this.dispatch,
         query: this.query,
@@ -839,7 +829,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         const [nextState, patches, inversePatches] = produceWithPatches(
           this._state,
           (draft) => {
-            reducerContext.state = draft;
+            reducerContext.state = draft as any;
             reducer(reducerContext);
           }
         );
@@ -847,10 +837,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         // Fast path 6: Skip postcondition if not defined
         if (spec?.postcondition) {
           const isPostconditionMet = spec.postcondition({
-            state: nextState,
+            state: nextState as any,
             payload,
             action,
-            previousState: this._state,
+            previousState: this._state as any,
           });
           
           if (!isPostconditionMet) {
@@ -893,7 +883,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           this.__applyHooks("after", {
             action,
             payload,
-            state: nextState,
+            state: nextState as any,
             previousState: originalState,
             patches,
             inversePatches,
@@ -910,7 +900,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         this._notifyObservers();
       } catch (error) {
         // Error recovery - restore original state
-        this._state = createDraft(_deepClone(originalState));
+        this._state = createDraft(_deepClone(originalState)) as TState;
         
         // Reset cache and internal tracking
         this._isDirty = true;
@@ -1171,7 +1161,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     }
 
     const context: AsyncActionContext<TState> = {
-      state: deepFreeze(this._state),
+      state: deepFreeze(this._state as any) as Readonly<TState>,
       dispatch: this.dispatch.bind(this),
       dispatchAsync: this.dispatchAsync.bind(this),
       trigger: this.trigger.bind(this),
@@ -1260,8 +1250,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * @description Applies the given patches to the store's state.
    */
   applyPatch(patches: Patch[]): void {
-    this._state = applyPatches(this._state, patches);
-    this.__observers.forEach((observer) => observer.next(this._state));
+    this._state = applyPatches(this._state as any, patches) as TState;
+    this.notifyObservers(this._state);
   }
 
   /**
@@ -1396,7 +1386,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     }
 
     if (error) throw error;
-    return data as TResult;
+    return Promise.resolve(data as TResult);
   }
 
   /**
@@ -1691,11 +1681,11 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     Object.entries(machineDefinition).forEach(([eventName, event]) => {
       const fullEventName = `${machineName}:${eventName}`;
       this.defineAction(fullEventName, ({ state, payload }) => {
-        if (this.isValidTransition(event.from, state)) {
+        if (this.isValidTransition(event.from, state as TState)) {
           // Capture the previous state before applying the transition
           const previousState = _deepClone(state);
           const newState = typeof event.to === "function"
-            ? event.to({ state, payload })
+            ? event.to({ state: state as TState, payload })
             : event.to;
 
           // Apply the new state
@@ -1709,7 +1699,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
           // Execute onEntry
           if (event.onEntry) {
-            event.onEntry({ state, previousState, payload });
+            event.onEntry({ state: state as TState, previousState, payload });
           }
         } else {
           console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
@@ -1814,7 +1804,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     const dependencies = new Set<string>();
     
     // Optimized tracking proxy that only tracks top-level dependencies
-    const trackingProxy = new Proxy(this._state, {
+    const trackingProxy = new Proxy(this._state as any, {
       get: (target, prop) => {
         // Only track string properties that aren't internal
         if (typeof prop === 'string' && !prop.startsWith('_')) {
@@ -2027,13 +2017,16 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   }
 
   private _validateState(state: any): void {
+    // Create a mutable copy for validation since validateType may need to modify the rootState
+    const mutableState = _deepClone(state);
+    
     Object.entries(this.schema).forEach(([key, type]) => {
       try {
         if (type.type === "optional" && (state[key] === undefined || state[key] === null)) {
           // Skip validation for undefined or null optional fields
           return;
         }
-        validateType(state[key], type, [key], state);
+        validateType(state[key], type, [key], mutableState);
       } catch (error) {
         throw new Error(`Validation error in ${this.name}: ${(error as Error).message}`);
       }
@@ -2172,36 +2165,15 @@ export const store = <TState = any>(config: StoreFactoryConfig<TState> = {}): Ob
   return storeInstance;
 };
 
+/**
+ * Clear all cached store instances (useful for testing)
+ * @internal
+ */
+export const clearStoreCache = (): void => {
+  storeInstances.clear();
+};
+
 // =============================================================================
 // Type Exports
 // =============================================================================
-
-export type {
-  ReducerContext,
-  ActionHandler,
-  QueryConfig,
-  QueryContext,
-  QuerySuccessContext,
-  QueryErrorContext,
-  QuerySettledContext,
-  CachedQueryData,
-  MutationConfig,
-  MutationContext,
-  MutationSuccessContext,
-  MutationErrorContext,
-  MutationSettledContext,
-  InvalidateQueriesOptions,
-  AsyncActionContext,
-  AsyncActionHandler,
-  MemoContext,
-  MemoHandler,
-  CachedMemoData,
-  HookContext,
-  Hook,
-  StateMachineEvent,
-  StateMachineDefinition,
-  ActionSpec,
-  PatchListener,
-  StoreConfig,
-  StoreFactoryConfig,
-};
+// Types are already exported as interfaces above

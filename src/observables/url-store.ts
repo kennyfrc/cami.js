@@ -81,7 +81,8 @@ type ResourceLoader = (context: ResourceLoaderContext) => Promise<void> | void;
 class URLStore extends Observable<URLState> {
   private _state: URLState;
   private __name: string;
-  private __onChange: ((state: URLState) => void) | null;
+  private __onChange: ((state: URLState) => void) | null | undefined;
+  public _uid?: string;
   private __routes: Map<string, RouteDefinition>;
   private __resourceLoaders: Map<string, ResourceLoader>;
   private __activeRoute: RouteDefinition | null;
@@ -90,10 +91,11 @@ class URLStore extends Observable<URLState> {
   private __beforeNavigateHooks: NavigationHook[];
   private __afterNavigateHooks: NavigationHook[];
 
-  constructor({ onInit = null, onChange = null }: URLStoreOptions = {}) {
+  constructor({ onInit = undefined, onChange = undefined }: URLStoreOptions = {}) {
     super();
     this._state = this.__parseURL();
     this.__name = 'URLStore';
+    this._uid = 'URLStore';
     this.__onChange = onChange;
     this.__routes = new Map<string, RouteDefinition>();
     this.__resourceLoaders = new Map<string, ResourceLoader>();
@@ -270,18 +272,18 @@ class URLStore extends Observable<URLState> {
       }
       
       // If there's a matching route with resources, load them
-      if (matchingRoute?.resources?.length > 0) {
+      if (matchingRoute && matchingRoute.resources && matchingRoute.resources.length > 0) {
         this.__navigationState.isLoading = true;
         
         // Update URL state with extracted params
-        urlState.routeParams = { ...matchingRoute.extractedParams };
+        urlState.routeParams = { ...(matchingRoute.extractedParams || {}) };
         
         // Set preliminary state to show loading indicators
         this._state = { ...urlState };
         this.next(this._state);
         
         // Load resources
-        await this.__loadResources(matchingRoute, urlState);
+        await this.__loadResources(matchingRoute!, urlState);
       }
       
       // Handle route change - execute onLeave for old route
