@@ -6,8 +6,6 @@ declare global {
   } | undefined;
 }
 
-interface Buffer extends Uint8Array {}
-
 /**
  * High-performance, correct deep equality implementation.
  * Optimized for both correctness (97% test cases passed) and performance.

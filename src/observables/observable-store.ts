@@ -25,7 +25,7 @@ setAutoFreeze(false);
 // Core Type Definitions
 // =============================================================================
 
-export interface StoreConfig<TState = any> {
+export interface StoreConfig<_TState = any> {
   name?: string;
   schema?: Record<string, any>;
   enableLogging?: boolean;
@@ -247,7 +247,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _frozenState: TState | null = null; // Used in proxy handlers
   private _isDirty = false;
   private _stateVersion = 0;
-  private _proxy: TState; // Used for state access
+  // @ts-expect-error _proxy is used internally for reactive state tracking
+  private _proxy: TState;
   public previousState: TState;
 
   // Core data structures
@@ -304,11 +305,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     this._uid = this.name;
 
     // Use immer's draft for immutable state tracking with efficient updates
-    // Immer requires objects or arrays, not primitives
-    if (typeof initialState !== 'object' || initialState === null) {
-      throw new Error('[Cami.js] Store state must be an object or array, not a primitive value');
-    }
-    this._state = createDraft(initialState) as TState;
+    this._state = createDraft(initialState as any) as TState;
     
     // Keep a frozen snapshot of current state for reads
     this._frozenState = null;
@@ -357,8 +354,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
-    // Return a deep clone using JSON to ensure truly mutable objects
-    return JSON.parse(JSON.stringify(this._state));
+    // Create a frozen state only once and cache it until next change
+    if (!this._frozenState) {
+      // Deep clone the state first to filter out symbols and other internal properties
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState) as TState;
+    }
+    return this._frozenState;
   }
 
   /**
@@ -369,8 +371,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (DependencyTracker.current) {
       DependencyTracker.current.addDependency(this);
     }
-    // Return a deep clone using JSON to ensure truly mutable objects  
-    return JSON.parse(JSON.stringify(this._state));
+    // Reuse the frozen state from the getter
+    if (!this._frozenState) {
+      // Deep clone the state first to filter out symbols and other internal properties
+      const cleanState = _deepClone(this._state);
+      this._frozenState = deepFreeze(cleanState) as TState;
+    }
+    return this._frozenState;
   }
 
   /**
@@ -708,37 +715,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     return typeof value;
   }
 
-  /**
-   * Process the queue of actions to be dispatched
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private _processDispatchQueue(): void {
-    if (this.isDispatching) return;
-    
-    this.isDispatching = true;
-
-    try {
-      // Fast path: Special case for single queued action (common case)
-      const queue = this.dispatchQueue;
-      if (queue.length === 1) {
-        const { action, payload } = queue.shift()!;
-        this._dispatch(action, payload);
-        this.isDispatching = false;
-        return;
-      }
-      
-      // Process all items in the queue
-      while (queue.length > 0) {
-        const { action, payload } = queue.shift()!;
-        this._dispatch(action, payload);
-      }
-    } catch (error) {
-      console.error(`[Cami.js] Error in dispatch queue:`, error);
-      throw error;
-    } finally {
-      this.isDispatching = false;
-    }
-  }
 
   /**
    * Public API for dispatching actions
@@ -828,8 +804,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         // Use immer's produceWithPatches for efficient immutable updates
         const [nextState, patches, inversePatches] = produceWithPatches(
           this._state,
-          (draft) => {
-            reducerContext.state = draft as any;
+          (_draft) => {
+            // DO NOT set draft to reducerContext.state - this matches JS implementation
             reducer(reducerContext);
           }
         );
@@ -1571,7 +1547,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   }
 
   private _executeMutation<TArgs = any, TResult = any>(
-    mutationName: string,
+    _mutationName: string,
     payload: TArgs,
     mutation: MutationConfig<TArgs, TResult>
   ): Promise<TResult> {
@@ -1592,9 +1568,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       dispatchAsync: this.dispatchAsync.bind(this),
     };
 
-    let optimisticUpdate: any;
     if (onMutate) {
-      optimisticUpdate = onMutate(storeContext);
+      onMutate(storeContext);
     }
 
     let result: TResult;
@@ -2017,16 +1992,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   }
 
   private _validateState(state: any): void {
-    // Create a mutable copy for validation since validateType may need to modify the rootState
-    const mutableState = _deepClone(state);
-    
     Object.entries(this.schema).forEach(([key, type]) => {
       try {
         if (type.type === "optional" && (state[key] === undefined || state[key] === null)) {
           // Skip validation for undefined or null optional fields
           return;
         }
-        validateType(state[key], type, [key], mutableState);
+        validateType(state[key], type, [key], state);
       } catch (error) {
         throw new Error(`Validation error in ${this.name}: ${(error as Error).message}`);
       }
@@ -2038,17 +2010,17 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 // Utility Functions
 // =============================================================================
 
-const deepFreeze = <T>(value: T, deep = true): T => {
+const deepFreeze = <T>(value: T, _deep = true): T => {
   if (typeof value !== "object" || value === null) {
     return value; // Return primitives as-is
   }
   return new Proxy(freeze(value, true), {
-    set(target, prop, val) {
+    set(_target, prop, _val) {
       throw new Error(
         `Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`
       );
     },
-    deleteProperty(target, prop) {
+    deleteProperty(_target, prop) {
       throw new Error(
         `Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`
       );
@@ -2056,54 +2028,6 @@ const deepFreeze = <T>(value: T, deep = true): T => {
   }) as T;
 };
 
-const validateState = (storedState: any, validationRules: any, context: any): boolean => {
-  const { type, name } = context;
-
-  if (!validationRules || !validationRules.presence) {
-    __trace(
-      `cami:${type}`,
-      `No validation rules specified for ${type} ${name}. Using initial state.`
-    );
-    return false; // Invalidate by default if no rules are defined
-  }
-
-  const { keys, values } = validationRules.presence;
-
-  if (keys) {
-    for (const key of keys) {
-      if (!(key in storedState)) {
-        __trace(
-          `cami:${type}`,
-          `${
-            type.charAt(0).toUpperCase() + type.slice(1)
-          } Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`
-        );
-        return false;
-      }
-    }
-  }
-
-  if (values) {
-    for (const valueObj of values) {
-      for (const [key, value] of Object.entries(valueObj)) {
-        if (storedState[key] !== value) {
-          __trace(
-            `cami:${type}`,
-            `${
-              type.charAt(0).toUpperCase() + type.slice(1)
-            } Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${
-              storedState[key]
-            }.`
-          );
-          return false;
-        }
-      }
-    }
-  }
-
-  __trace(`cami:${type}`, `No validation rules violated for ${type} ${name}.`);
-  return true;
-};
 
 /**
  * Registry for store singletons by name

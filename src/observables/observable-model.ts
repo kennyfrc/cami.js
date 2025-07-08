@@ -1,5 +1,5 @@
 import { store } from "./observable-store.js";
-import { Type, validateType, TypeDefinition, InferType } from "../types/index.js";
+import { Type, validateType, TypeDefinition, InferType } from "../types/index";
 import type { ObservableStore, StoreConfig, ActionHandler, QueryConfig, MutationConfig, StateMachineDefinition, MemoHandler, AsyncActionHandler, ActionSpec } from "./observable-store.js";
 
 // =============================================================================

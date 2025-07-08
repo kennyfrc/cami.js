@@ -168,8 +168,18 @@ class ObservableState<T = any> extends Observable<T> {
           this.__observers = this.__observers.filter(obs => obs !== subscriber);
         }
       },
-      complete: () => subscriber.notifyComplete(),
-      error: (err: any) => subscriber.notifyError(err)
+      complete: () => {
+        if (!subscriber.isUnsubscribed && subscriber.complete) {
+          subscriber.complete();
+          subscriber.unsubscribe();
+        }
+      },
+      error: (err: any) => {
+        if (!subscriber.isUnsubscribed && subscriber.error) {
+          subscriber.error(err);
+          subscriber.unsubscribe();
+        }
+      }
     };
   }
 

@@ -457,7 +457,7 @@ const typeValidators: Record<string, ValidatorFn> = {
     }
     return validateType!(value, type.optional, path, rootState);
   },
-  null: (value, type, path) => {
+  null: (value, _type, path) => {
     if (value !== null)
       throw new Error(
         `Expected null, got ${typeof value} at ${path.join(".")}`
@@ -477,13 +477,13 @@ const typeValidators: Record<string, ValidatorFn> = {
     const sndType = type.sndTypeFn(value[0]);
     validateType!(value[1], sndType, [...path, "1"], rootState);
   },
-  date: (value, type, path) => {
+  date: (value, _type, path) => {
     if (!(value instanceof Date))
       throw new Error(
         `Expected Date, got ${typeof value} at ${path.join(".")}`
       );
   },
-  float: (value, type, path) => {
+  float: (value, _type, path) => {
     if (typeof value !== "number") {
       throw new Error(
         `Expected float, got ${typeof value} at ${path.join(".")}`
@@ -493,7 +493,7 @@ const typeValidators: Record<string, ValidatorFn> = {
       throw new Error(`Expected float, got NaN at ${path.join(".")}`);
     }
   },
-  integer: (value, type, path) => {
+  integer: (value, _type, path) => {
     if (!Number.isInteger(value)) {
       throw new Error(
         `Expected integer, got ${
@@ -502,7 +502,7 @@ const typeValidators: Record<string, ValidatorFn> = {
       );
     }
   },
-  natural: (value, type, path) => {
+  natural: (value, _type, path) => {
     if (!Number.isInteger(value) || value < 0) {
       throw new Error(
         `Expected natural number, got ${value} at ${path.join(".")}`
@@ -583,7 +583,7 @@ const typeValidators: Record<string, ValidatorFn> = {
       }
     }
   },
-  dependentFunction: (value, type, path) => {
+  dependentFunction: (value, _type, path) => {
     if (typeof value !== "function") {
       throw new Error(
         `Expected function, got ${typeof value} at ${path.join(".")}`
@@ -638,25 +638,25 @@ const typeValidators: Record<string, ValidatorFn> = {
       );
     }
   },
-  boolean: (value, type, path) => {
+  boolean: (value, _type, path) => {
     if (typeof value !== "boolean")
       throw new Error(
         `Expected boolean, got ${typeof value} at ${path.join(".")}`
       );
   },
-  bigint: (value, type, path) => {
+  bigint: (value, _type, path) => {
     if (typeof value !== "bigint")
       throw new Error(
         `Expected bigint, got ${typeof value} at ${path.join(".")}`
       );
   },
-  symbol: (value, type, path) => {
+  symbol: (value, _type, path) => {
     if (typeof value !== "symbol")
       throw new Error(
         `Expected symbol, got ${typeof value} at ${path.join(".")}`
       );
   },
-  function: (value, type, path) => {
+  function: (value, _type, path) => {
     if (typeof value !== "function") {
       throw new Error(
         `Expected function, got ${typeof value} at ${path.join(".")}`
@@ -666,7 +666,7 @@ const typeValidators: Record<string, ValidatorFn> = {
   void: () => {
     // No validation needed for void type
   },
-  reference: (value, type, path, rootState, validateType) => {
+  reference: (value, _type, path, _rootState, _validateType) => {
     if (typeof value !== "number") {
       throw new Error(
         `Expected reference ID (number), got ${typeof value} at ${path.join(

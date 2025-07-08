@@ -1,33 +1,54 @@
 {
   "compilerOptions": {
-    /* --- keep the two flags that catch ~80% of real bugs --- */
-    "strictNullChecks": true,   // stop "cannot read property … of undefined"
-    "noImplicitAny": true,      // stop silent 'any' → runtime surprises
-
-    /* --- leave the rest of `strict` OFF for now --- */
-    "strict": false,            // we opt-in selectively
-
-    /* --- DX + speed while prototyping --- */
-    "skipLibCheck": true,       // don't type-check node_modules
-    "incremental": true,        // fast re-builds
-    "target": "es2022",
-    "module": "esnext",
-    
-    /* --- Basic module resolution --- */
+    /* --- Tier 1: The Core Foundation (granular strict mode settings) --- */
+    "strictNullChecks": true, // Makes null and undefined distinct types
+    "noImplicitAny": true, // Forces explicit typing for uninferable variables
+    "strictFunctionTypes": true, // Contravariant checking of function parameters
+    "strictPropertyInitialization": true, // Class properties must be initialized
+    "strictBindCallApply": true, // Strong typing for bind/call/apply
+    "noImplicitThis": true, // Catches errors where this context is lost
+    "alwaysStrict": true, // Output JS in strict mode
+    /* --- Tier 2: Essential Additions for Maximum Safety --- */
+    "noUncheckedIndexedAccess": false, // Adds | undefined to array/object access
+    "noImplicitOverride": true, // Requires override keyword
+    "exactOptionalPropertyTypes": false, // Distinguishes optional vs undefined
+    /* --- Tier 3: Code Quality and Linter-Style Checks --- */
+    "noFallthroughCasesInSwitch": true, // Prevents switch fallthrough bugs
+    "noUnusedLocals": true, // Flags unused local variables
+    "noUnusedParameters": true, // Flags unused function parameters
+    "noImplicitReturns": true, // Ensures consistent return behavior
+    "allowUnreachableCode": false, // Allows unreachable code
+    /* --- Tier 4: Modern Module and Project Configuration --- */
     "moduleResolution": "node",
+    "isolatedModules": false, // Each file can be transpiled independently
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    
+    /* --- DX + speed while prototyping --- */
+    "skipLibCheck": true,
+    "incremental": true,
+    "target": "es2022",
+    "module": "esnext",
     /* --- Output settings --- */
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./build",
     "rootDir": "./src",
-    
     /* --- Required libs --- */
-    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "tests", "tests-v2", "examples"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "tests",
+    "tests-v2",
+    "examples"
+  ]
 }

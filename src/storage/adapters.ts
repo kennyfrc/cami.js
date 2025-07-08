@@ -1,4 +1,3 @@
-import { validateType } from '../types/index.js';
 import { __trace } from '../trace.js';
 
 // Type definitions for adapters
@@ -116,7 +115,7 @@ function updateDeep(obj: UnproxifyTarget, path: string[], value: any): Unproxify
   }
 }
 
-function removeDeep(obj: UnproxifyTarget, path: string[]): UnproxifyTarget {
+export function removeDeep(obj: UnproxifyTarget, path: string[]): UnproxifyTarget {
   const [head, ...rest] = path;
   if (rest.length === 0) {
     const { [head]: _, ...newObj } = obj;
@@ -312,7 +311,7 @@ export function persistToIdbThunk({
   fromStateKey,
   toIDBStore
 }: PersistToIdbConfig) {
-  return async ({ action, patches }: ThunkParams): Promise<void> => {
+  return async ({ action: _action, patches }: ThunkParams): Promise<void> => {
     if (!Array.isArray(patches)) {
       throw new Error('patches must be an array');
     }
@@ -488,7 +487,7 @@ export function createLocalStorage({
 }
 
 export function persistToLocalStorageThunk(toLocalStorage: LocalStorageAdapter) {
-  return async ({ action, state, previousState }: ThunkParams): Promise<void> => {
+  return async ({ action: _action, state, previousState }: ThunkParams): Promise<void> => {
     if (state !== previousState) {
       await toLocalStorage.setState(state);
       __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);

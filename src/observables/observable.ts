@@ -89,26 +89,6 @@ export class Subscriber<T> implements Observer<T> {
     this.isUnsubscribed = false;
   }
 
-  /**
-   * Notifies the observer that the observable has completed
-   */
-  notifyComplete(): void {
-    if (!this.isUnsubscribed && this.complete) {
-      this.complete();
-      this.unsubscribe();
-    }
-  }
-
-  /**
-   * Notifies the observer that an error has occurred
-   * @param err - The error to pass to the observer's error method
-   */
-  notifyError(err: any): void {
-    if (!this.isUnsubscribed && this.error) {
-      this.error(err);
-      this.unsubscribe();
-    }
-  }
 
   /**
    * Adds a teardown function to be executed when unsubscribing
@@ -122,6 +102,7 @@ export class Subscriber<T> implements Observer<T> {
       this.teardowns.push(teardown);
     }
   }
+
 
   /**
    * Unsubscribes from the observable, preventing any further notifications
@@ -289,8 +270,18 @@ export class Observable<T> {
     return {
       unsubscribe: () => subscriber.unsubscribe(),
       // Only add these methods if needed in the future:
-      complete: () => subscriber.notifyComplete(),
-      error: (err: any) => subscriber.notifyError(err),
+      complete: () => {
+        if (!subscriber.isUnsubscribed && subscriber.complete) {
+          subscriber.complete();
+          subscriber.unsubscribe();
+        }
+      },
+      error: (err: any) => {
+        if (!subscriber.isUnsubscribed && subscriber.error) {
+          subscriber.error(err);
+          subscriber.unsubscribe();
+        }
+      },
     };
   }
 
@@ -395,7 +386,7 @@ export class Observable<T> {
    * Returns an AsyncIterator for asynchronous iteration
    * @returns AsyncIterator implementation
    */
-  async *[Symbol.asyncIterator](): AsyncIterator<T> {
+  [Symbol.asyncIterator](): AsyncIterator<T> {
     let resolve: (value: IteratorResult<T>) => void;
     let promise = new Promise<IteratorResult<T>>(r => resolve = r);
     let subscription: Subscription | null;
@@ -425,14 +416,16 @@ export class Observable<T> {
       }
     );
     
-    try {
-      while (true) {
-        const result = await promise;
-        if (result.done) break;
-        yield result.value;
+    return {
+      next: () => promise,
+      return: () => {
+        cleanup();
+        return Promise.resolve({ done: true } as IteratorResult<T>);
+      },
+      throw: (err: any) => {
+        cleanup();
+        return Promise.reject(err);
       }
-    } finally {
-      cleanup();
-    }
+    };
   }
 }

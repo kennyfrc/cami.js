@@ -72,7 +72,7 @@ function invariant(message: string, callback: () => boolean): void {
     const isProd = production();
     isProduction = isProd && !isDev; // Cache the result
     alwaysEnabled = false; // Disable alwaysEnabled if both development and production are defined
-  } else if ("alwaysEnabled" in config) {
+  } else if (Object.hasOwn(config, "alwaysEnabled")) {
     alwaysEnabled = config.alwaysEnabled!;
   }
 };

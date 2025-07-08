@@ -1,7 +1,6 @@
-import { html, render as __litRender, TemplateResult } from "./html";
+import { render as __litRender, TemplateResult } from "./html";
 import { produce } from "immer";
 import { Observable } from "./observables/observable";
-import { ObservableStore } from "./observables/observable-store";
 import {
   ObservableState,
   effect,
@@ -262,7 +261,7 @@ class ReactiveElement extends HTMLElement {
    *   }
    * }
    */
-  onAttributeChange(name: string, oldValue: string | null, newValue: string | null): void {
+  onAttributeChange(_name: string, _oldValue: string | null, _newValue: string | null): void {
     // Default implementation does nothing.
   }
 

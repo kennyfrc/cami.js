@@ -8,7 +8,6 @@ var cami = (() => {
   var __getOwnPropSymbols = Object.getOwnPropertySymbols;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __propIsEnum = Object.prototype.propertyIsEnumerable;
-  var __knownSymbol = (name, symbol) => (symbol = Symbol[name]) ? symbol : Symbol.for("Symbol." + name);
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __spreadValues = (a2, b2) => {
     for (var prop in b2 || (b2 = {}))
@@ -35,6 +34,10 @@ var cami = (() => {
     return to;
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+  var __publicField = (obj, key, value) => {
+    __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+    return value;
+  };
   var __async = (__this, __arguments, generator) => {
     return new Promise((resolve, reject) => {
       var fulfilled = (value) => {
@@ -55,21 +58,6 @@ var cami = (() => {
       step((generator = generator.apply(__this, __arguments)).next());
     });
   };
-  var __await = function(promise, isYieldStar) {
-    this[0] = promise;
-    this[1] = isYieldStar;
-  };
-  var __asyncGenerator = (__this, __arguments, generator) => {
-    var resume = (k2, v3, yes, no) => {
-      try {
-        var x2 = generator[k2](v3), isAwait = (v3 = x2.value) instanceof __await, done = x2.done;
-        Promise.resolve(isAwait ? v3[0] : v3).then((y2) => isAwait ? resume(k2 === "return" ? k2 : "next", v3[1] ? { done: y2.done, value: y2.value } : y2, yes, no) : yes({ value: y2, done })).catch((e4) => resume("throw", e4, yes, no));
-      } catch (e4) {
-        no(e4);
-      }
-    }, method = (k2) => it[k2] = (x2) => new Promise((yes, no) => resume(k2, x2, yes, no)), it = {};
-    return generator = generator.apply(__this, __arguments), it[__knownSymbol("asyncIterator")] = () => it, method("next"), method("throw"), method("return"), it;
-  };
 
   // src/cami.ts
   var cami_exports = {};
@@ -83,7 +71,6 @@ var cami = (() => {
     _deepClone: () => _deepClone,
     _deepEqual: () => _deepEqual,
     _deepMerge: () => _deepMerge,
-    clearStoreCache: () => clearStoreCache,
     createIdbPromise: () => createIdbPromise,
     createLocalStorage: () => createLocalStorage,
     createURLStore: () => createURLStore,
@@ -103,12 +90,12 @@ var cami = (() => {
     useValidationThunk: () => useValidationThunk
   });
 
-  // node_modules/lit-html/lit-html.js
+  // ../../../../node_modules/lit-html/lit-html.js
   var t = globalThis;
   var i = t.trustedTypes;
   var s = i ? i.createPolicy("lit-html", { createHTML: (t4) => t4 }) : void 0;
   var e = "$lit$";
-  var h = `lit$${Math.random().toFixed(9).slice(2)}$`;
+  var h = `lit$${(Math.random() + "").slice(9)}$`;
   var o = "?" + h;
   var n = `<${o}>`;
   var r = document;
@@ -128,56 +115,64 @@ var cami = (() => {
   var y = (t4) => (i4, ...s3) => ({ _$litType$: t4, strings: i4, values: s3 });
   var x = y(1);
   var b = y(2);
-  var w = y(3);
-  var T = Symbol.for("lit-noChange");
-  var E = Symbol.for("lit-nothing");
+  var w = Symbol.for("lit-noChange");
+  var T = Symbol.for("lit-nothing");
   var A = /* @__PURE__ */ new WeakMap();
-  var C = r.createTreeWalker(r, 129);
-  function P(t4, i4) {
-    if (!a(t4) || !t4.hasOwnProperty("raw")) throw Error("invalid template strings array");
+  var E = r.createTreeWalker(r, 129);
+  function C(t4, i4) {
+    if (!Array.isArray(t4) || !t4.hasOwnProperty("raw"))
+      throw Error("invalid template strings array");
     return void 0 !== s ? s.createHTML(i4) : i4;
   }
-  var V = (t4, i4) => {
+  var P = (t4, i4) => {
     const s3 = t4.length - 1, o3 = [];
-    let r3, l2 = 2 === i4 ? "<svg>" : 3 === i4 ? "<math>" : "", c3 = f;
+    let r3, l2 = 2 === i4 ? "<svg>" : "", c3 = f;
     for (let i5 = 0; i5 < s3; i5++) {
       const s4 = t4[i5];
       let a2, u4, d2 = -1, y2 = 0;
-      for (; y2 < s4.length && (c3.lastIndex = y2, u4 = c3.exec(s4), null !== u4); ) y2 = c3.lastIndex, c3 === f ? "!--" === u4[1] ? c3 = v : void 0 !== u4[1] ? c3 = _ : void 0 !== u4[2] ? ($.test(u4[2]) && (r3 = RegExp("</" + u4[2], "g")), c3 = m) : void 0 !== u4[3] && (c3 = m) : c3 === m ? ">" === u4[0] ? (c3 = r3 != null ? r3 : f, d2 = -1) : void 0 === u4[1] ? d2 = -2 : (d2 = c3.lastIndex - u4[2].length, a2 = u4[1], c3 = void 0 === u4[3] ? m : '"' === u4[3] ? g : p) : c3 === g || c3 === p ? c3 = m : c3 === v || c3 === _ ? c3 = f : (c3 = m, r3 = void 0);
+      for (; y2 < s4.length && (c3.lastIndex = y2, u4 = c3.exec(s4), null !== u4); )
+        y2 = c3.lastIndex, c3 === f ? "!--" === u4[1] ? c3 = v : void 0 !== u4[1] ? c3 = _ : void 0 !== u4[2] ? ($.test(u4[2]) && (r3 = RegExp("</" + u4[2], "g")), c3 = m) : void 0 !== u4[3] && (c3 = m) : c3 === m ? ">" === u4[0] ? (c3 = r3 != null ? r3 : f, d2 = -1) : void 0 === u4[1] ? d2 = -2 : (d2 = c3.lastIndex - u4[2].length, a2 = u4[1], c3 = void 0 === u4[3] ? m : '"' === u4[3] ? g : p) : c3 === g || c3 === p ? c3 = m : c3 === v || c3 === _ ? c3 = f : (c3 = m, r3 = void 0);
       const x2 = c3 === m && t4[i5 + 1].startsWith("/>") ? " " : "";
       l2 += c3 === f ? s4 + n : d2 >= 0 ? (o3.push(a2), s4.slice(0, d2) + e + s4.slice(d2) + h + x2) : s4 + h + (-2 === d2 ? i5 : x2);
     }
-    return [P(t4, l2 + (t4[s3] || "<?>") + (2 === i4 ? "</svg>" : 3 === i4 ? "</math>" : "")), o3];
+    return [C(t4, l2 + (t4[s3] || "<?>") + (2 === i4 ? "</svg>" : "")), o3];
   };
-  var N = class _N {
+  var V = class _V {
     constructor({ strings: t4, _$litType$: s3 }, n2) {
       let r3;
       this.parts = [];
       let c3 = 0, a2 = 0;
-      const u4 = t4.length - 1, d2 = this.parts, [f2, v3] = V(t4, s3);
-      if (this.el = _N.createElement(f2, n2), C.currentNode = this.el.content, 2 === s3 || 3 === s3) {
+      const u4 = t4.length - 1, d2 = this.parts, [f2, v3] = P(t4, s3);
+      if (this.el = _V.createElement(f2, n2), E.currentNode = this.el.content, 2 === s3) {
         const t5 = this.el.content.firstChild;
         t5.replaceWith(...t5.childNodes);
       }
-      for (; null !== (r3 = C.nextNode()) && d2.length < u4; ) {
+      for (; null !== (r3 = E.nextNode()) && d2.length < u4; ) {
         if (1 === r3.nodeType) {
-          if (r3.hasAttributes()) for (const t5 of r3.getAttributeNames()) if (t5.endsWith(e)) {
-            const i4 = v3[a2++], s4 = r3.getAttribute(t5).split(h), e4 = /([.?@])?(.*)/.exec(i4);
-            d2.push({ type: 1, index: c3, name: e4[2], strings: s4, ctor: "." === e4[1] ? H : "?" === e4[1] ? I : "@" === e4[1] ? L : k }), r3.removeAttribute(t5);
-          } else t5.startsWith(h) && (d2.push({ type: 6, index: c3 }), r3.removeAttribute(t5));
+          if (r3.hasAttributes())
+            for (const t5 of r3.getAttributeNames())
+              if (t5.endsWith(e)) {
+                const i4 = v3[a2++], s4 = r3.getAttribute(t5).split(h), e4 = /([.?@])?(.*)/.exec(i4);
+                d2.push({ type: 1, index: c3, name: e4[2], strings: s4, ctor: "." === e4[1] ? k : "?" === e4[1] ? H : "@" === e4[1] ? I : R }), r3.removeAttribute(t5);
+              } else
+                t5.startsWith(h) && (d2.push({ type: 6, index: c3 }), r3.removeAttribute(t5));
           if ($.test(r3.tagName)) {
             const t5 = r3.textContent.split(h), s4 = t5.length - 1;
             if (s4 > 0) {
               r3.textContent = i ? i.emptyScript : "";
-              for (let i4 = 0; i4 < s4; i4++) r3.append(t5[i4], l()), C.nextNode(), d2.push({ type: 2, index: ++c3 });
+              for (let i4 = 0; i4 < s4; i4++)
+                r3.append(t5[i4], l()), E.nextNode(), d2.push({ type: 2, index: ++c3 });
               r3.append(t5[s4], l());
             }
           }
-        } else if (8 === r3.nodeType) if (r3.data === o) d2.push({ type: 2, index: c3 });
-        else {
-          let t5 = -1;
-          for (; -1 !== (t5 = r3.data.indexOf(h, t5 + 1)); ) d2.push({ type: 7, index: c3 }), t5 += h.length - 1;
-        }
+        } else if (8 === r3.nodeType)
+          if (r3.data === o)
+            d2.push({ type: 2, index: c3 });
+          else {
+            let t5 = -1;
+            for (; -1 !== (t5 = r3.data.indexOf(h, t5 + 1)); )
+              d2.push({ type: 7, index: c3 }), t5 += h.length - 1;
+          }
         c3++;
       }
     }
@@ -186,14 +181,15 @@ var cami = (() => {
       return s3.innerHTML = t4, s3;
     }
   };
-  function S(t4, i4, s3 = t4, e4) {
+  function N(t4, i4, s3 = t4, e4) {
     var _a2, _b, _c;
-    if (i4 === T) return i4;
-    let h2 = void 0 !== e4 ? (_a2 = s3._$Co) == null ? void 0 : _a2[e4] : s3._$Cl;
+    if (i4 === w)
+      return i4;
+    let h3 = void 0 !== e4 ? (_a2 = s3._$Co) == null ? void 0 : _a2[e4] : s3._$Cl;
     const o3 = c(i4) ? void 0 : i4._$litDirective$;
-    return (h2 == null ? void 0 : h2.constructor) !== o3 && ((_b = h2 == null ? void 0 : h2._$AO) == null ? void 0 : _b.call(h2, false), void 0 === o3 ? h2 = void 0 : (h2 = new o3(t4), h2._$AT(t4, s3, e4)), void 0 !== e4 ? ((_c = s3._$Co) != null ? _c : s3._$Co = [])[e4] = h2 : s3._$Cl = h2), void 0 !== h2 && (i4 = S(t4, h2._$AS(t4, i4.values), h2, e4)), i4;
+    return (h3 == null ? void 0 : h3.constructor) !== o3 && ((_b = h3 == null ? void 0 : h3._$AO) == null ? void 0 : _b.call(h3, false), void 0 === o3 ? h3 = void 0 : (h3 = new o3(t4), h3._$AT(t4, s3, e4)), void 0 !== e4 ? ((_c = s3._$Co) != null ? _c : s3._$Co = [])[e4] = h3 : s3._$Cl = h3), void 0 !== h3 && (i4 = N(t4, h3._$AS(t4, i4.values), h3, e4)), i4;
   }
-  var M = class {
+  var S = class {
     constructor(t4, i4) {
       this._$AV = [], this._$AN = void 0, this._$AD = t4, this._$AM = i4;
     }
@@ -206,30 +202,31 @@ var cami = (() => {
     u(t4) {
       var _a2;
       const { el: { content: i4 }, parts: s3 } = this._$AD, e4 = ((_a2 = t4 == null ? void 0 : t4.creationScope) != null ? _a2 : r).importNode(i4, true);
-      C.currentNode = e4;
-      let h2 = C.nextNode(), o3 = 0, n2 = 0, l2 = s3[0];
+      E.currentNode = e4;
+      let h3 = E.nextNode(), o3 = 0, n2 = 0, l2 = s3[0];
       for (; void 0 !== l2; ) {
         if (o3 === l2.index) {
           let i5;
-          2 === l2.type ? i5 = new R(h2, h2.nextSibling, this, t4) : 1 === l2.type ? i5 = new l2.ctor(h2, l2.name, l2.strings, this, t4) : 6 === l2.type && (i5 = new z(h2, this, t4)), this._$AV.push(i5), l2 = s3[++n2];
+          2 === l2.type ? i5 = new M(h3, h3.nextSibling, this, t4) : 1 === l2.type ? i5 = new l2.ctor(h3, l2.name, l2.strings, this, t4) : 6 === l2.type && (i5 = new L(h3, this, t4)), this._$AV.push(i5), l2 = s3[++n2];
         }
-        o3 !== (l2 == null ? void 0 : l2.index) && (h2 = C.nextNode(), o3++);
+        o3 !== (l2 == null ? void 0 : l2.index) && (h3 = E.nextNode(), o3++);
       }
-      return C.currentNode = r, e4;
+      return E.currentNode = r, e4;
     }
     p(t4) {
       let i4 = 0;
-      for (const s3 of this._$AV) void 0 !== s3 && (void 0 !== s3.strings ? (s3._$AI(t4, s3, i4), i4 += s3.strings.length - 2) : s3._$AI(t4[i4])), i4++;
+      for (const s3 of this._$AV)
+        void 0 !== s3 && (void 0 !== s3.strings ? (s3._$AI(t4, s3, i4), i4 += s3.strings.length - 2) : s3._$AI(t4[i4])), i4++;
     }
   };
-  var R = class _R {
+  var M = class _M {
     get _$AU() {
       var _a2, _b;
       return (_b = (_a2 = this._$AM) == null ? void 0 : _a2._$AU) != null ? _b : this._$Cv;
     }
     constructor(t4, i4, s3, e4) {
       var _a2;
-      this.type = 2, this._$AH = E, this._$AN = void 0, this._$AA = t4, this._$AB = i4, this._$AM = s3, this.options = e4, this._$Cv = (_a2 = e4 == null ? void 0 : e4.isConnected) != null ? _a2 : true;
+      this.type = 2, this._$AH = T, this._$AN = void 0, this._$AA = t4, this._$AB = i4, this._$AM = s3, this.options = e4, this._$Cv = (_a2 = e4 == null ? void 0 : e4.isConnected) != null ? _a2 : true;
     }
     get parentNode() {
       let t4 = this._$AA.parentNode;
@@ -243,35 +240,37 @@ var cami = (() => {
       return this._$AB;
     }
     _$AI(t4, i4 = this) {
-      t4 = S(this, t4, i4), c(t4) ? t4 === E || null == t4 || "" === t4 ? (this._$AH !== E && this._$AR(), this._$AH = E) : t4 !== this._$AH && t4 !== T && this._(t4) : void 0 !== t4._$litType$ ? this.$(t4) : void 0 !== t4.nodeType ? this.T(t4) : u(t4) ? this.k(t4) : this._(t4);
+      t4 = N(this, t4, i4), c(t4) ? t4 === T || null == t4 || "" === t4 ? (this._$AH !== T && this._$AR(), this._$AH = T) : t4 !== this._$AH && t4 !== w && this._(t4) : void 0 !== t4._$litType$ ? this.g(t4) : void 0 !== t4.nodeType ? this.$(t4) : u(t4) ? this.T(t4) : this._(t4);
     }
-    O(t4) {
+    k(t4) {
       return this._$AA.parentNode.insertBefore(t4, this._$AB);
     }
-    T(t4) {
-      this._$AH !== t4 && (this._$AR(), this._$AH = this.O(t4));
+    $(t4) {
+      this._$AH !== t4 && (this._$AR(), this._$AH = this.k(t4));
     }
     _(t4) {
-      this._$AH !== E && c(this._$AH) ? this._$AA.nextSibling.data = t4 : this.T(r.createTextNode(t4)), this._$AH = t4;
+      this._$AH !== T && c(this._$AH) ? this._$AA.nextSibling.data = t4 : this.$(r.createTextNode(t4)), this._$AH = t4;
     }
-    $(t4) {
+    g(t4) {
       var _a2;
-      const { values: i4, _$litType$: s3 } = t4, e4 = "number" == typeof s3 ? this._$AC(t4) : (void 0 === s3.el && (s3.el = N.createElement(P(s3.h, s3.h[0]), this.options)), s3);
-      if (((_a2 = this._$AH) == null ? void 0 : _a2._$AD) === e4) this._$AH.p(i4);
+      const { values: i4, _$litType$: s3 } = t4, e4 = "number" == typeof s3 ? this._$AC(t4) : (void 0 === s3.el && (s3.el = V.createElement(C(s3.h, s3.h[0]), this.options)), s3);
+      if (((_a2 = this._$AH) == null ? void 0 : _a2._$AD) === e4)
+        this._$AH.p(i4);
       else {
-        const t5 = new M(e4, this), s4 = t5.u(this.options);
-        t5.p(i4), this.T(s4), this._$AH = t5;
+        const t5 = new S(e4, this), s4 = t5.u(this.options);
+        t5.p(i4), this.$(s4), this._$AH = t5;
       }
     }
     _$AC(t4) {
       let i4 = A.get(t4.strings);
-      return void 0 === i4 && A.set(t4.strings, i4 = new N(t4)), i4;
+      return void 0 === i4 && A.set(t4.strings, i4 = new V(t4)), i4;
     }
-    k(t4) {
+    T(t4) {
       a(this._$AH) || (this._$AH = [], this._$AR());
       const i4 = this._$AH;
       let s3, e4 = 0;
-      for (const h2 of t4) e4 === i4.length ? i4.push(s3 = new _R(this.O(l()), this.O(l()), this, this.options)) : s3 = i4[e4], s3._$AI(h2), e4++;
+      for (const h3 of t4)
+        e4 === i4.length ? i4.push(s3 = new _M(this.k(l()), this.k(l()), this, this.options)) : s3 = i4[e4], s3._$AI(h3), e4++;
       e4 < i4.length && (this._$AR(s3 && s3._$AB.nextSibling, e4), i4.length = e4);
     }
     _$AR(t4 = this._$AA.nextSibling, i4) {
@@ -286,63 +285,66 @@ var cami = (() => {
       void 0 === this._$AM && (this._$Cv = t4, (_a2 = this._$AP) == null ? void 0 : _a2.call(this, t4));
     }
   };
-  var k = class {
+  var R = class {
     get tagName() {
       return this.element.tagName;
     }
     get _$AU() {
       return this._$AM._$AU;
     }
-    constructor(t4, i4, s3, e4, h2) {
-      this.type = 1, this._$AH = E, this._$AN = void 0, this.element = t4, this.name = i4, this._$AM = e4, this.options = h2, s3.length > 2 || "" !== s3[0] || "" !== s3[1] ? (this._$AH = Array(s3.length - 1).fill(new String()), this.strings = s3) : this._$AH = E;
+    constructor(t4, i4, s3, e4, h3) {
+      this.type = 1, this._$AH = T, this._$AN = void 0, this.element = t4, this.name = i4, this._$AM = e4, this.options = h3, s3.length > 2 || "" !== s3[0] || "" !== s3[1] ? (this._$AH = Array(s3.length - 1).fill(new String()), this.strings = s3) : this._$AH = T;
     }
     _$AI(t4, i4 = this, s3, e4) {
-      const h2 = this.strings;
+      const h3 = this.strings;
       let o3 = false;
-      if (void 0 === h2) t4 = S(this, t4, i4, 0), o3 = !c(t4) || t4 !== this._$AH && t4 !== T, o3 && (this._$AH = t4);
+      if (void 0 === h3)
+        t4 = N(this, t4, i4, 0), o3 = !c(t4) || t4 !== this._$AH && t4 !== w, o3 && (this._$AH = t4);
       else {
         const e5 = t4;
         let n2, r3;
-        for (t4 = h2[0], n2 = 0; n2 < h2.length - 1; n2++) r3 = S(this, e5[s3 + n2], i4, n2), r3 === T && (r3 = this._$AH[n2]), o3 || (o3 = !c(r3) || r3 !== this._$AH[n2]), r3 === E ? t4 = E : t4 !== E && (t4 += (r3 != null ? r3 : "") + h2[n2 + 1]), this._$AH[n2] = r3;
+        for (t4 = h3[0], n2 = 0; n2 < h3.length - 1; n2++)
+          r3 = N(this, e5[s3 + n2], i4, n2), r3 === w && (r3 = this._$AH[n2]), o3 || (o3 = !c(r3) || r3 !== this._$AH[n2]), r3 === T ? t4 = T : t4 !== T && (t4 += (r3 != null ? r3 : "") + h3[n2 + 1]), this._$AH[n2] = r3;
       }
       o3 && !e4 && this.j(t4);
     }
     j(t4) {
-      t4 === E ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t4 != null ? t4 : "");
+      t4 === T ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t4 != null ? t4 : "");
     }
   };
-  var H = class extends k {
+  var k = class extends R {
     constructor() {
       super(...arguments), this.type = 3;
     }
     j(t4) {
-      this.element[this.name] = t4 === E ? void 0 : t4;
+      this.element[this.name] = t4 === T ? void 0 : t4;
     }
   };
-  var I = class extends k {
+  var H = class extends R {
     constructor() {
       super(...arguments), this.type = 4;
     }
     j(t4) {
-      this.element.toggleAttribute(this.name, !!t4 && t4 !== E);
+      this.element.toggleAttribute(this.name, !!t4 && t4 !== T);
     }
   };
-  var L = class extends k {
-    constructor(t4, i4, s3, e4, h2) {
-      super(t4, i4, s3, e4, h2), this.type = 5;
+  var I = class extends R {
+    constructor(t4, i4, s3, e4, h3) {
+      super(t4, i4, s3, e4, h3), this.type = 5;
     }
     _$AI(t4, i4 = this) {
       var _a2;
-      if ((t4 = (_a2 = S(this, t4, i4, 0)) != null ? _a2 : E) === T) return;
-      const s3 = this._$AH, e4 = t4 === E && s3 !== E || t4.capture !== s3.capture || t4.once !== s3.once || t4.passive !== s3.passive, h2 = t4 !== E && (s3 === E || e4);
-      e4 && this.element.removeEventListener(this.name, this, s3), h2 && this.element.addEventListener(this.name, this, t4), this._$AH = t4;
+      if ((t4 = (_a2 = N(this, t4, i4, 0)) != null ? _a2 : T) === w)
+        return;
+      const s3 = this._$AH, e4 = t4 === T && s3 !== T || t4.capture !== s3.capture || t4.once !== s3.once || t4.passive !== s3.passive, h3 = t4 !== T && (s3 === T || e4);
+      e4 && this.element.removeEventListener(this.name, this, s3), h3 && this.element.addEventListener(this.name, this, t4), this._$AH = t4;
     }
     handleEvent(t4) {
       var _a2, _b;
       "function" == typeof this._$AH ? this._$AH.call((_b = (_a2 = this.options) == null ? void 0 : _a2.host) != null ? _b : this.element, t4) : this._$AH.handleEvent(t4);
     }
   };
-  var z = class {
+  var L = class {
     constructor(t4, i4, s3) {
       this.element = t4, this.type = 6, this._$AN = void 0, this._$AM = i4, this.options = s3;
     }
@@ -350,25 +352,25 @@ var cami = (() => {
       return this._$AM._$AU;
     }
     _$AI(t4) {
-      S(this, t4);
+      N(this, t4);
     }
   };
-  var Z = { M: e, P: h, A: o, C: 1, L: V, R: M, D: u, V: S, I: R, H: k, N: I, U: L, B: H, F: z };
-  var j = t.litHtmlPolyfillSupport;
+  var z = { S: e, A: h, P: o, C: 1, M: P, L: S, R: u, V: N, D: M, I: R, H, N: I, U: k, B: L };
+  var Z = t.litHtmlPolyfillSupport;
   var _a;
-  j == null ? void 0 : j(N, R), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.3.0");
-  var B = (t4, i4, s3) => {
+  Z == null ? void 0 : Z(V, M), ((_a = t.litHtmlVersions) != null ? _a : t.litHtmlVersions = []).push("3.0.0");
+  var j = (t4, i4, s3) => {
     var _a2, _b;
     const e4 = (_a2 = s3 == null ? void 0 : s3.renderBefore) != null ? _a2 : i4;
-    let h2 = e4._$litPart$;
-    if (void 0 === h2) {
+    let h3 = e4._$litPart$;
+    if (void 0 === h3) {
       const t5 = (_b = s3 == null ? void 0 : s3.renderBefore) != null ? _b : null;
-      e4._$litPart$ = h2 = new R(i4.insertBefore(l(), t5), t5, void 0, s3 != null ? s3 : {});
+      e4._$litPart$ = h3 = new M(i4.insertBefore(l(), t5), t5, void 0, s3 != null ? s3 : {});
     }
-    return h2._$AI(t4), h2;
+    return h3._$AI(t4), h3;
   };
 
-  // node_modules/lit-html/directive.js
+  // ../../../../node_modules/lit-html/directive.js
   var t2 = { ATTRIBUTE: 1, CHILD: 2, PROPERTY: 3, BOOLEAN_ATTRIBUTE: 4, EVENT: 5, ELEMENT: 6 };
   var e2 = (t4) => (...e4) => ({ _$litDirective$: t4, values: e4 });
   var i2 = class {
@@ -388,26 +390,31 @@ var cami = (() => {
     }
   };
 
-  // node_modules/lit-html/directives/unsafe-html.js
+  // ../../../../node_modules/lit-html/directives/unsafe-html.js
   var e3 = class extends i2 {
     constructor(i4) {
-      if (super(i4), this.it = E, i4.type !== t2.CHILD) throw Error(this.constructor.directiveName + "() can only be used in child bindings");
+      if (super(i4), this.et = T, i4.type !== t2.CHILD)
+        throw Error(this.constructor.directiveName + "() can only be used in child bindings");
     }
     render(r3) {
-      if (r3 === E || null == r3) return this._t = void 0, this.it = r3;
-      if (r3 === T) return r3;
-      if ("string" != typeof r3) throw Error(this.constructor.directiveName + "() called with a non-string value");
-      if (r3 === this.it) return this._t;
-      this.it = r3;
+      if (r3 === T || null == r3)
+        return this.vt = void 0, this.et = r3;
+      if (r3 === w)
+        return r3;
+      if ("string" != typeof r3)
+        throw Error(this.constructor.directiveName + "() called with a non-string value");
+      if (r3 === this.et)
+        return this.vt;
+      this.et = r3;
       const s3 = [r3];
-      return s3.raw = s3, this._t = { _$litType$: this.constructor.resultType, strings: s3, values: [] };
+      return s3.raw = s3, this.vt = { _$litType$: this.constructor.resultType, strings: s3, values: [] };
     }
   };
   e3.directiveName = "unsafeHTML", e3.resultType = 1;
   var o2 = e2(e3);
 
-  // node_modules/lit-html/directive-helpers.js
-  var { I: t3 } = Z;
+  // ../../../../node_modules/lit-html/directive-helpers.js
+  var { D: t3 } = z;
   var s2 = () => document.createComment("");
   var r2 = (o3, i4, n2) => {
     var _a2;
@@ -435,7 +442,7 @@ var cami = (() => {
   var u2 = {};
   var m2 = (o3, t4 = u2) => o3._$AH = t4;
   var p2 = (o3) => o3._$AH;
-  var M2 = (o3) => {
+  var h2 = (o3) => {
     var _a2;
     (_a2 = o3._$AP) == null ? void 0 : _a2.call(o3, false, true);
     let t4 = o3._$AA;
@@ -446,10 +453,10 @@ var cami = (() => {
     }
   };
 
-  // node_modules/lit-html/directives/keyed.js
+  // ../../../../node_modules/lit-html/directives/keyed.js
   var i3 = e2(class extends i2 {
     constructor() {
-      super(...arguments), this.key = E;
+      super(...arguments), this.key = T;
     }
     render(r3, t4) {
       return this.key = r3, t4;
@@ -459,57 +466,72 @@ var cami = (() => {
     }
   });
 
-  // node_modules/lit-html/directives/repeat.js
+  // ../../../../node_modules/lit-html/directives/repeat.js
   var u3 = (e4, s3, t4) => {
     const r3 = /* @__PURE__ */ new Map();
-    for (let l2 = s3; l2 <= t4; l2++) r3.set(e4[l2], l2);
+    for (let l2 = s3; l2 <= t4; l2++)
+      r3.set(e4[l2], l2);
     return r3;
   };
   var c2 = e2(class extends i2 {
     constructor(e4) {
-      if (super(e4), e4.type !== t2.CHILD) throw Error("repeat() can only be used in text expressions");
+      if (super(e4), e4.type !== t2.CHILD)
+        throw Error("repeat() can only be used in text expressions");
     }
-    dt(e4, s3, t4) {
+    ht(e4, s3, t4) {
       let r3;
       void 0 === t4 ? t4 = s3 : void 0 !== s3 && (r3 = s3);
       const l2 = [], o3 = [];
       let i4 = 0;
-      for (const s4 of e4) l2[i4] = r3 ? r3(s4, i4) : i4, o3[i4] = t4(s4, i4), i4++;
+      for (const s4 of e4)
+        l2[i4] = r3 ? r3(s4, i4) : i4, o3[i4] = t4(s4, i4), i4++;
       return { values: o3, keys: l2 };
     }
     render(e4, s3, t4) {
-      return this.dt(e4, s3, t4).values;
+      return this.ht(e4, s3, t4).values;
     }
     update(s3, [t4, r3, c3]) {
       var _a2;
-      const d2 = p2(s3), { values: p3, keys: a2 } = this.dt(t4, r3, c3);
-      if (!Array.isArray(d2)) return this.ut = a2, p3;
-      const h2 = (_a2 = this.ut) != null ? _a2 : this.ut = [], v3 = [];
+      const d2 = p2(s3), { values: p3, keys: a2 } = this.ht(t4, r3, c3);
+      if (!Array.isArray(d2))
+        return this.dt = a2, p3;
+      const h3 = (_a2 = this.dt) != null ? _a2 : this.dt = [], v3 = [];
       let m3, y2, x2 = 0, j2 = d2.length - 1, k2 = 0, w2 = p3.length - 1;
-      for (; x2 <= j2 && k2 <= w2; ) if (null === d2[x2]) x2++;
-      else if (null === d2[j2]) j2--;
-      else if (h2[x2] === a2[k2]) v3[k2] = v2(d2[x2], p3[k2]), x2++, k2++;
-      else if (h2[j2] === a2[w2]) v3[w2] = v2(d2[j2], p3[w2]), j2--, w2--;
-      else if (h2[x2] === a2[w2]) v3[w2] = v2(d2[x2], p3[w2]), r2(s3, v3[w2 + 1], d2[x2]), x2++, w2--;
-      else if (h2[j2] === a2[k2]) v3[k2] = v2(d2[j2], p3[k2]), r2(s3, d2[x2], d2[j2]), j2--, k2++;
-      else if (void 0 === m3 && (m3 = u3(a2, k2, w2), y2 = u3(h2, x2, j2)), m3.has(h2[x2])) if (m3.has(h2[j2])) {
-        const e4 = y2.get(a2[k2]), t5 = void 0 !== e4 ? d2[e4] : null;
-        if (null === t5) {
-          const e5 = r2(s3, d2[x2]);
-          v2(e5, p3[k2]), v3[k2] = e5;
-        } else v3[k2] = v2(t5, p3[k2]), r2(s3, d2[x2], t5), d2[e4] = null;
-        k2++;
-      } else M2(d2[j2]), j2--;
-      else M2(d2[x2]), x2++;
+      for (; x2 <= j2 && k2 <= w2; )
+        if (null === d2[x2])
+          x2++;
+        else if (null === d2[j2])
+          j2--;
+        else if (h3[x2] === a2[k2])
+          v3[k2] = v2(d2[x2], p3[k2]), x2++, k2++;
+        else if (h3[j2] === a2[w2])
+          v3[w2] = v2(d2[j2], p3[w2]), j2--, w2--;
+        else if (h3[x2] === a2[w2])
+          v3[w2] = v2(d2[x2], p3[w2]), r2(s3, v3[w2 + 1], d2[x2]), x2++, w2--;
+        else if (h3[j2] === a2[k2])
+          v3[k2] = v2(d2[j2], p3[k2]), r2(s3, d2[x2], d2[j2]), j2--, k2++;
+        else if (void 0 === m3 && (m3 = u3(a2, k2, w2), y2 = u3(h3, x2, j2)), m3.has(h3[x2]))
+          if (m3.has(h3[j2])) {
+            const e4 = y2.get(a2[k2]), t5 = void 0 !== e4 ? d2[e4] : null;
+            if (null === t5) {
+              const e5 = r2(s3, d2[x2]);
+              v2(e5, p3[k2]), v3[k2] = e5;
+            } else
+              v3[k2] = v2(t5, p3[k2]), r2(s3, d2[x2], t5), d2[e4] = null;
+            k2++;
+          } else
+            h2(d2[j2]), j2--;
+        else
+          h2(d2[x2]), x2++;
       for (; k2 <= w2; ) {
         const e4 = r2(s3, v3[w2 + 1]);
         v2(e4, p3[k2]), v3[k2++] = e4;
       }
       for (; x2 <= j2; ) {
         const e4 = d2[x2++];
-        null !== e4 && M2(e4);
+        null !== e4 && h2(e4);
       }
-      return this.ut = a2, m2(s3, v3), T;
+      return this.dt = a2, m2(s3, v3), w;
     }
   });
 
@@ -1680,52 +1702,38 @@ var cami = (() => {
      * @param observer - The observer object or function
      */
     constructor(observer) {
+      __publicField(this, "next");
+      __publicField(this, "error");
+      __publicField(this, "complete");
+      __publicField(this, "teardowns");
+      __publicField(this, "isUnsubscribed");
       if (typeof observer === "function") {
         this.next = observer;
-        this.error = null;
-        this.complete = null;
+        this.error = void 0;
+        this.complete = void 0;
       } else if (observer && typeof observer === "object") {
         if (observer.next) {
-          this.next = typeof observer.next === "function" ? observer.next.bind ? observer.next.bind(observer) : observer.next : null;
+          this.next = typeof observer.next === "function" ? observer.next.bind ? observer.next.bind(observer) : observer.next : void 0;
         } else {
-          this.next = null;
+          this.next = void 0;
         }
         if (observer.error) {
-          this.error = typeof observer.error === "function" ? observer.error.bind ? observer.error.bind(observer) : observer.error : null;
+          this.error = typeof observer.error === "function" ? observer.error.bind ? observer.error.bind(observer) : observer.error : void 0;
         } else {
-          this.error = null;
+          this.error = void 0;
         }
         if (observer.complete) {
-          this.complete = typeof observer.complete === "function" ? observer.complete.bind ? observer.complete.bind(observer) : observer.complete : null;
+          this.complete = typeof observer.complete === "function" ? observer.complete.bind ? observer.complete.bind(observer) : observer.complete : void 0;
         } else {
-          this.complete = null;
+          this.complete = void 0;
         }
       } else {
-        this.next = null;
-        this.error = null;
-        this.complete = null;
+        this.next = void 0;
+        this.error = void 0;
+        this.complete = void 0;
       }
       this.teardowns = null;
       this.isUnsubscribed = false;
-    }
-    /**
-     * Notifies the observer that the observable has completed
-     */
-    notifyComplete() {
-      if (!this.isUnsubscribed && this.complete) {
-        this.complete();
-        this.unsubscribe();
-      }
-    }
-    /**
-     * Notifies the observer that an error has occurred
-     * @param err - The error to pass to the observer's error method
-     */
-    notifyError(err) {
-      if (!this.isUnsubscribed && this.error) {
-        this.error(err);
-        this.unsubscribe();
-      }
     }
     /**
      * Adds a teardown function to be executed when unsubscribing
@@ -1742,12 +1750,13 @@ var cami = (() => {
      * Unsubscribes from the observable, preventing any further notifications
      */
     unsubscribe() {
-      if (this.isUnsubscribed) return;
+      if (this.isUnsubscribed)
+        return;
       this.isUnsubscribed = true;
       if (!this.teardowns) {
-        this.next = null;
-        this.error = null;
-        this.complete = null;
+        this.next = void 0;
+        this.error = void 0;
+        this.complete = void 0;
         return;
       }
       const teardowns = this.teardowns;
@@ -1759,12 +1768,24 @@ var cami = (() => {
         }
       }
       this.teardowns = null;
-      this.next = null;
-      this.error = null;
-      this.complete = null;
+      this.next = void 0;
+      this.error = void 0;
+      this.complete = void 0;
     }
   };
   var Observable = class {
+    /**
+     * Creates a new Observable instance with optimized internal structure
+     * @param subscribeCallback - The callback function to call when a new observer subscribes
+     */
+    constructor(subscribeCallback) {
+      __publicField(this, "__observers");
+      __publicField(this, "subscribeCallback");
+      this.__observers = [];
+      if (subscribeCallback) {
+        this.subscribeCallback = subscribeCallback;
+      }
+    }
     /**
      * Protected method to check if there are any observers
      * @returns true if there are observers, false otherwise
@@ -1794,16 +1815,6 @@ var cami = (() => {
       }
     }
     /**
-     * Creates a new Observable instance with optimized internal structure
-     * @param subscribeCallback - The callback function to call when a new observer subscribes
-     */
-    constructor(subscribeCallback) {
-      this.__observers = [];
-      if (subscribeCallback) {
-        this.subscribeCallback = subscribeCallback;
-      }
-    }
-    /**
      * Subscribes an observer to the observable with optimized paths
      * @param observerOrNext - The observer to subscribe or the next function
      * @param error - The error function. Default is null
@@ -1811,7 +1822,11 @@ var cami = (() => {
      * @returns An object containing methods to manage the subscription
      */
     subscribe(observerOrNext, error, complete) {
-      const subscriber = typeof observerOrNext === "function" ? new Subscriber(observerOrNext) : new Subscriber({ next: observerOrNext, error, complete });
+      const subscriber = typeof observerOrNext === "function" ? new Subscriber(observerOrNext) : new Subscriber({
+        next: observerOrNext,
+        error: error || void 0,
+        complete: complete || void 0
+      });
       if (!this.subscribeCallback) {
         this.__observers.push(subscriber);
         subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
@@ -1865,8 +1880,18 @@ var cami = (() => {
       return {
         unsubscribe: () => subscriber.unsubscribe(),
         // Only add these methods if needed in the future:
-        complete: () => subscriber.notifyComplete(),
-        error: (err) => subscriber.notifyError(err)
+        complete: () => {
+          if (!subscriber.isUnsubscribed && subscriber.complete) {
+            subscriber.complete();
+            subscriber.unsubscribe();
+          }
+        },
+        error: (err) => {
+          if (!subscriber.isUnsubscribed && subscriber.error) {
+            subscriber.error(err);
+            subscriber.unsubscribe();
+          }
+        }
       };
     }
     /**
@@ -1876,7 +1901,8 @@ var cami = (() => {
     next(value) {
       const observers = this.__observers;
       const len = observers.length;
-      if (len === 0) return;
+      if (len === 0)
+        return;
       if (len === 1) {
         const observer = observers[0];
         if (!observer.isUnsubscribed && observer.next) {
@@ -1950,60 +1976,67 @@ var cami = (() => {
      * @returns AsyncIterator implementation
      */
     [Symbol.asyncIterator]() {
-      return __asyncGenerator(this, null, function* () {
-        let resolve;
-        let promise = new Promise((r3) => resolve = r3);
-        let subscription;
-        const cleanup = () => {
-          if (subscription) {
-            subscription.unsubscribe();
-            subscription = null;
-          }
-        };
-        subscription = this.subscribe(
-          // Next handler
-          (value) => {
-            resolve({ value, done: false });
-            promise = new Promise((r3) => resolve = r3);
-          },
-          // Error handler
-          (err) => {
-            cleanup();
-            throw err;
-          },
-          // Complete handler
-          () => {
-            cleanup();
-            resolve({ done: true });
-          }
-        );
-        try {
-          while (true) {
-            const result = yield new __await(promise);
-            if (result.done) break;
-            yield result.value;
-          }
-        } finally {
-          cleanup();
+      let resolve;
+      let promise = new Promise((r3) => resolve = r3);
+      let subscription;
+      const cleanup = () => {
+        if (subscription) {
+          subscription.unsubscribe();
+          subscription = null;
         }
-      });
+      };
+      subscription = this.subscribe(
+        // Next handler
+        (value) => {
+          resolve({ value, done: false });
+          promise = new Promise((r3) => resolve = r3);
+        },
+        // Error handler
+        (err) => {
+          cleanup();
+          throw err;
+        },
+        // Complete handler
+        () => {
+          cleanup();
+          resolve({ done: true });
+        }
+      );
+      return {
+        next: () => promise,
+        return: () => {
+          cleanup();
+          return Promise.resolve({ done: true });
+        },
+        throw: (err) => {
+          cleanup();
+          return Promise.reject(err);
+        }
+      };
     }
   };
 
   // src/utils.ts
   var _deepEqual = (a2, b2) => {
-    if (a2 === b2) return true;
-    if (a2 !== a2) return b2 !== b2;
-    if (a2 == null || b2 == null) return false;
-    if (typeof a2 !== "object" || typeof b2 !== "object") return false;
+    if (a2 === b2)
+      return true;
+    if (a2 !== a2)
+      return b2 !== b2;
+    if (a2 == null || b2 == null)
+      return false;
+    if (typeof a2 !== "object" || typeof b2 !== "object")
+      return false;
     if (Array.isArray(a2)) {
-      if (!Array.isArray(b2) || a2.length !== b2.length) return false;
+      if (!Array.isArray(b2) || a2.length !== b2.length)
+        return false;
       for (let i4 = 0; i4 < a2.length; i4++) {
-        if (!_deepEqual(a2[i4], b2[i4])) return false;
+        if (!_deepEqual(a2[i4], b2[i4]))
+          return false;
       }
       return true;
     }
-    if (Array.isArray(b2)) return false;
+    if (Array.isArray(b2))
+      return false;
     if (a2 instanceof Date) {
       return b2 instanceof Date && a2.getTime() === b2.getTime();
     }
@@ -2011,14 +2044,17 @@ var cami = (() => {
       return b2 instanceof RegExp && a2.source === b2.source && a2.flags === b2.flags;
     }
     if (a2 instanceof Map) {
-      if (!(b2 instanceof Map) || a2.size !== b2.size) return false;
+      if (!(b2 instanceof Map) || a2.size !== b2.size)
+        return false;
       for (const [key, val] of a2.entries()) {
-        if (!b2.has(key) || !_deepEqual(val, b2.get(key))) return false;
+        if (!b2.has(key) || !_deepEqual(val, b2.get(key)))
+          return false;
       }
       return true;
     }
     if (a2 instanceof Set) {
-      if (!(b2 instanceof Set) || a2.size !== b2.size) return false;
+      if (!(b2 instanceof Set) || a2.size !== b2.size)
+        return false;
       const aValues = Array.from(a2);
       const bValues = Array.from(b2);
       for (let i4 = 0; i4 < aValues.length; i4++) {
@@ -2029,7 +2065,8 @@ var cami = (() => {
             break;
           }
         }
-        if (!found) return false;
+        if (!found)
+          return false;
       }
       return true;
     }
@@ -2040,13 +2077,16 @@ var cami = (() => {
         return false;
       }
       for (let i4 = 0; i4 < typedA.length; i4++) {
-        if (typedA[i4] !== typedB[i4]) return false;
+        if (typedA[i4] !== typedB[i4])
+          return false;
       }
       return true;
     }
-    if (a2.constructor !== b2.constructor) return false;
+    if (a2.constructor !== b2.constructor)
+      return false;
     const keys = Object.keys(a2);
-    if (keys.length !== Object.keys(b2).length) return false;
+    if (keys.length !== Object.keys(b2).length)
+      return false;
     const hasOwn = Object.prototype.hasOwnProperty;
     for (let i4 = 0; i4 < keys.length; i4++) {
       const key = keys[i4];
@@ -2060,9 +2100,12 @@ var cami = (() => {
     const seen = /* @__PURE__ */ new WeakMap();
     function merge(target2, source2) {
       var _a2;
-      if (source2 === void 0) return target2;
-      if (source2 === null) return null;
-      if (typeof source2 !== "object") return source2;
+      if (source2 === void 0)
+        return target2;
+      if (source2 === null)
+        return null;
+      if (typeof source2 !== "object")
+        return source2;
       if (target2 === null || typeof target2 !== "object") {
         if (Array.isArray(source2)) {
           const length = source2.length;
@@ -2108,8 +2151,10 @@ var cami = (() => {
         return result2;
       }
       if (source2.constructor !== Object) {
-        if (source2 instanceof Date) return new Date(source2.getTime());
-        if (source2 instanceof RegExp) return new RegExp(source2.source, source2.flags);
+        if (source2 instanceof Date)
+          return new Date(source2.getTime());
+        if (source2 instanceof RegExp)
+          return new RegExp(source2.source, source2.flags);
         if (ArrayBuffer.isView(source2) && !(source2 instanceof DataView)) {
           if (typeof Buffer !== "undefined" && ((_a2 = Buffer == null ? void 0 : Buffer.isBuffer) == null ? void 0 : _a2.call(Buffer, source2))) {
             return Buffer.from(source2);
@@ -2131,10 +2176,13 @@ var cami = (() => {
       }
       seen.set(source2, result);
       for (const key in source2) {
-        if (!Object.prototype.hasOwnProperty.call(source2, key)) continue;
-        if (key === "__proto__" || key === "constructor") continue;
+        if (!Object.prototype.hasOwnProperty.call(source2, key))
+          continue;
+        if (key === "__proto__" || key === "constructor")
+          continue;
         const sourceValue = source2[key];
-        if (sourceValue === void 0) continue;
+        if (sourceValue === void 0)
+          continue;
         if (sourceValue === null || typeof sourceValue !== "object") {
           result[key] = sourceValue;
           continue;
@@ -2160,8 +2208,10 @@ var cami = (() => {
   };
   var _deepClone = (value, cache = /* @__PURE__ */ new WeakMap()) => {
     var _a2;
-    if (value === null || typeof value !== "object") return value;
-    if (cache.has(value)) return cache.get(value);
+    if (value === null || typeof value !== "object")
+      return value;
+    if (cache.has(value))
+      return cache.get(value);
     if (Array.isArray(value)) {
       const length = value.length;
       const result2 = new Array(length);
@@ -2292,9 +2342,9 @@ var cami = (() => {
     constructor() {
       // For small dependency sets, arrays are faster than Sets in V8
       // When dependency count grows large, we can switch to a Set
-      this.dependencies = [];
+      __publicField(this, "dependencies", []);
       // For fast lookup to avoid duplicates (O(1) vs O(n))
-      this._depsMap = /* @__PURE__ */ new Map();
+      __publicField(this, "_depsMap", /* @__PURE__ */ new Map());
     }
     /**
      * Track dependencies used during the execution of an effect function
@@ -2327,7 +2377,7 @@ var cami = (() => {
     }
   };
   // Shared static context for tracking the current computation
-  _DependencyTracker.current = null;
+  __publicField(_DependencyTracker, "current", null);
   var DependencyTracker = _DependencyTracker;
   var ObservableState = class extends Observable {
     /**
@@ -2341,12 +2391,16 @@ var cami = (() => {
      */
     constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
       super();
-      this.__pendingUpdates = [];
-      this.__updateScheduled = false;
-      this.__isUpdating = false;
-      this.__updateStack = [];
-      this.__observers = [];
-      this.__lastObserver = null;
+      __publicField(this, "__value");
+      __publicField(this, "__pendingUpdates", []);
+      __publicField(this, "__updateScheduled", false);
+      __publicField(this, "__name");
+      __publicField(this, "__isUpdating", false);
+      __publicField(this, "__updateStack", []);
+      __publicField(this, "__observers", []);
+      __publicField(this, "__lastObserver", null);
+      // Add _uid property to match the dependency tracking
+      __publicField(this, "_uid");
       if (subscriber) {
         if (last) {
           this.__lastObserver = subscriber;
@@ -2384,8 +2438,18 @@ var cami = (() => {
             this.__observers = this.__observers.filter((obs) => obs !== subscriber);
           }
         },
-        complete: () => subscriber.notifyComplete(),
-        error: (err) => subscriber.notifyError(err)
+        complete: () => {
+          if (!subscriber.isUnsubscribed && subscriber.complete) {
+            subscriber.complete();
+            subscriber.unsubscribe();
+          }
+        },
+        error: (err) => {
+          if (!subscriber.isUnsubscribed && subscriber.error) {
+            subscriber.error(err);
+            subscriber.unsubscribe();
+          }
+        }
       };
     }
     /**
@@ -3013,6 +3077,11 @@ var cami = (() => {
      */
     constructor() {
       super();
+      __publicField(this, "__unsubscribers");
+      __publicField(this, "__prevTemplate");
+      // Public effect and derive methods (bound in constructor)
+      __publicField(this, "effect");
+      __publicField(this, "derive");
       this.onCreate();
       this.__unsubscribers = /* @__PURE__ */ new Map();
       this.effect = this.__effect.bind(this);
@@ -3176,7 +3245,7 @@ var cami = (() => {
      *   }
      * }
      */
-    onAttributeChange(name, oldValue, newValue) {
+    onAttributeChange(_name, _oldValue, _newValue) {
     }
     /**
      * Invoked when the custom element is moved to a new document.
@@ -3375,12 +3444,13 @@ var cami = (() => {
     render() {
       if (typeof this.template === "function") {
         const template = this.template();
-        if (this.__prevTemplate === template) return;
+        if (this.__prevTemplate === template)
+          return;
         if (this.__prevTemplate && _deepEqual(this.__prevTemplate, template)) {
           return;
         }
         this.__prevTemplate = template;
-        B(template, this);
+        j(template, this);
         this.afterRender();
       }
     }
@@ -3402,6 +3472,8 @@ var cami = (() => {
   }
   var Model = class {
     constructor({ name = generateRandomName(), properties = {} } = {}) {
+      __publicField(this, "name");
+      __publicField(this, "schema");
       this.name = name;
       this.schema = properties;
     }
@@ -3508,8 +3580,10 @@ ${errors2.join("\n\n")}`
     validateItem(value, type, path, rootState) {
       const getTypeCategory = (type2, value2) => {
         if (typeof type2 === "object" && type2 !== null && "type" in type2) {
-          if (type2.type === "optional") return "optional";
-          if (type2.type === "object" && typeof value2 === "object") return "object";
+          if (type2.type === "optional")
+            return "optional";
+          if (type2.type === "object" && typeof value2 === "object")
+            return "object";
         }
         return "other";
       };
@@ -3517,7 +3591,8 @@ ${errors2.join("\n\n")}`
         const typeCategory = getTypeCategory(type, value);
         switch (typeCategory) {
           case "optional":
-            if (value === void 0 || value === null) return;
+            if (value === void 0 || value === null)
+              return;
             const optionalType = type;
             return this.validateItem(value, optionalType.optional, path, rootState);
           case "object":
@@ -3554,13 +3629,18 @@ Error: ${error.message}`
      */
     _getExpectedTypeString(type) {
       const getTypeCategory = (type2) => {
-        if (typeof type2 === "string") return "string";
+        if (typeof type2 === "string")
+          return "string";
         if (typeof type2 === "object" && type2 !== null) {
           if ("type" in type2) {
-            if (type2.type === "object" && "schema" in type2) return "objectWithSchema";
-            if (type2.type === "array" && "itemType" in type2) return "array";
-            if (type2.type === "enum" && "values" in type2) return "enum";
-            if (type2.type === "optional") return "optional";
+            if (type2.type === "object" && "schema" in type2)
+              return "objectWithSchema";
+            if (type2.type === "array" && "itemType" in type2)
+              return "array";
+            if (type2.type === "enum" && "values" in type2)
+              return "enum";
+            if (type2.type === "optional")
+              return "optional";
             return "simpleType";
           }
           return "typeConstructor";
@@ -3784,7 +3864,7 @@ Error: ${error.message}`
       if (existingObject === void 0) {
         existingObject = {};
       }
-      const mergedValue = _deepMerge({}, existingObject, value);
+      const mergedValue = _deepMerge(_deepMerge({}, existingObject), value);
       Object.entries(type.fields).forEach(([key, fieldType]) => {
         if (key in mergedValue) {
           validateType2(mergedValue[key], fieldType, [...path, key], rootState, key);
@@ -3806,7 +3886,7 @@ Error: ${error.message}`
       }
       return validateType2(value, type.optional, path, rootState);
     },
-    null: (value, type, path) => {
+    null: (value, _type, path) => {
       if (value !== null)
         throw new Error(
           `Expected null, got ${typeof value} at ${path.join(".")}`
@@ -3826,13 +3906,13 @@ Error: ${error.message}`
       const sndType = type.sndTypeFn(value[0]);
       validateType2(value[1], sndType, [...path, "1"], rootState);
     },
-    date: (value, type, path) => {
+    date: (value, _type, path) => {
       if (!(value instanceof Date))
         throw new Error(
           `Expected Date, got ${typeof value} at ${path.join(".")}`
         );
     },
-    float: (value, type, path) => {
+    float: (value, _type, path) => {
       if (typeof value !== "number") {
         throw new Error(
           `Expected float, got ${typeof value} at ${path.join(".")}`
@@ -3842,14 +3922,14 @@ Error: ${error.message}`
         throw new Error(`Expected float, got NaN at ${path.join(".")}`);
       }
     },
-    integer: (value, type, path) => {
+    integer: (value, _type, path) => {
       if (!Number.isInteger(value)) {
         throw new Error(
           `Expected integer, got ${typeof value === "number" ? "float" : typeof value} at ${path.join(".")}`
         );
       }
     },
-    natural: (value, type, path) => {
+    natural: (value, _type, path) => {
       if (!Number.isInteger(value) || value < 0) {
         throw new Error(
           `Expected natural number, got ${value} at ${path.join(".")}`
@@ -3923,7 +4003,7 @@ Error: ${error.message}`
         }
       }
     },
-    dependentFunction: (value, type, path) => {
+    dependentFunction: (value, _type, path) => {
       if (typeof value !== "function") {
         throw new Error(
           `Expected function, got ${typeof value} at ${path.join(".")}`
@@ -3974,25 +4054,25 @@ Error: ${error.message}`
         );
       }
     },
-    boolean: (value, type, path) => {
+    boolean: (value, _type, path) => {
       if (typeof value !== "boolean")
         throw new Error(
           `Expected boolean, got ${typeof value} at ${path.join(".")}`
         );
     },
-    bigint: (value, type, path) => {
+    bigint: (value, _type, path) => {
       if (typeof value !== "bigint")
         throw new Error(
           `Expected bigint, got ${typeof value} at ${path.join(".")}`
         );
     },
-    symbol: (value, type, path) => {
+    symbol: (value, _type, path) => {
       if (typeof value !== "symbol")
         throw new Error(
           `Expected symbol, got ${typeof value} at ${path.join(".")}`
         );
     },
-    function: (value, type, path) => {
+    function: (value, _type, path) => {
       if (typeof value !== "function") {
         throw new Error(
           `Expected function, got ${typeof value} at ${path.join(".")}`
@@ -4001,7 +4081,7 @@ Error: ${error.message}`
     },
     void: () => {
     },
-    reference: (value, type, path, rootState, validateType2) => {
+    reference: (value, _type, path, _rootState, _validateType) => {
       if (typeof value !== "number") {
         throw new Error(
           `Expected reference ID (number), got ${typeof value} at ${path.join(
@@ -4133,41 +4213,52 @@ Error: ${error.message}`
           this.__subscriber = null;
         };
       });
-      this._frozenState = null;
+      __publicField(this, "name");
+      __publicField(this, "schema");
+      __publicField(this, "_uid");
+      // State management
+      __publicField(this, "_state");
+      __publicField(this, "_frozenState", null);
       // Used in proxy handlers
-      this._isDirty = false;
-      this._stateVersion = 0;
+      __publicField(this, "_isDirty", false);
+      __publicField(this, "_stateVersion", 0);
+      // @ts-expect-error _proxy is used internally for reactive state tracking
+      __publicField(this, "_proxy");
+      __publicField(this, "previousState");
       // Core data structures
-      this.reducers = {};
-      this.actions = {};
-      this.dispatchQueue = [];
-      this.isDispatching = false;
-      this.currentDispatchPromise = null;
+      __publicField(this, "reducers", {});
+      __publicField(this, "actions", {});
+      __publicField(this, "dispatchQueue", []);
+      __publicField(this, "isDispatching", false);
+      __publicField(this, "currentDispatchPromise", null);
       // Cache structures
-      this.queryCache = /* @__PURE__ */ new Map();
-      this.queryFunctions = /* @__PURE__ */ new Map();
-      this.queries = {};
-      this.memoCache = /* @__PURE__ */ new Map();
+      __publicField(this, "queryCache", /* @__PURE__ */ new Map());
+      __publicField(this, "queryFunctions", /* @__PURE__ */ new Map());
+      __publicField(this, "queries", {});
+      __publicField(this, "memoCache", /* @__PURE__ */ new Map());
       // Resource management
-      this.intervals = /* @__PURE__ */ new Map();
-      this.focusHandlers = /* @__PURE__ */ new Map();
-      this.reconnectHandlers = /* @__PURE__ */ new Map();
-      this.gcTimeouts = /* @__PURE__ */ new Map();
+      __publicField(this, "intervals", /* @__PURE__ */ new Map());
+      __publicField(this, "focusHandlers", /* @__PURE__ */ new Map());
+      __publicField(this, "reconnectHandlers", /* @__PURE__ */ new Map());
+      __publicField(this, "gcTimeouts", /* @__PURE__ */ new Map());
       // Advanced features
-      this.mutationFunctions = /* @__PURE__ */ new Map();
-      this.mutations = {};
-      this.patchListeners = /* @__PURE__ */ new Map();
-      this.machines = {};
-      this.memos = {};
-      this.thunks = {};
-      this.specs = /* @__PURE__ */ new Map();
+      __publicField(this, "mutationFunctions", /* @__PURE__ */ new Map());
+      __publicField(this, "mutations", {});
+      __publicField(this, "patchListeners", /* @__PURE__ */ new Map());
+      __publicField(this, "machines", {});
+      __publicField(this, "memos", {});
+      __publicField(this, "thunks", {});
+      __publicField(this, "specs", /* @__PURE__ */ new Map());
       // Hooks for middleware-like functionality
-      this.beforeHooks = [];
-      this.afterHooks = [];
+      __publicField(this, "beforeHooks", []);
+      __publicField(this, "afterHooks", []);
+      __publicField(this, "throttledAfterHooks");
       // Dispatch tracking to prevent infinite loops
-      this.__isDispatching = false;
-      this.__dispatchStack = [];
-      this.__subscriber = null;
+      __publicField(this, "__isDispatching", false);
+      __publicField(this, "__dispatchStack", []);
+      // Internal state management
+      __publicField(this, "_stateTrapStore");
+      __publicField(this, "__subscriber", null);
       this.name = options.name || "cami-store";
       this.schema = options.schema || {};
       this._uid = this.name;
@@ -4201,7 +4292,11 @@ Error: ${error.message}`
       if (DependencyTracker.current) {
         DependencyTracker.current.addDependency(this);
       }
-      return JSON.parse(JSON.stringify(this._state));
+      if (!this._frozenState) {
+        const cleanState = _deepClone(this._state);
+        this._frozenState = deepFreeze(cleanState);
+      }
+      return this._frozenState;
     }
     /**
      * Alternative to 'state' getter that follows standard getState pattern
@@ -4211,7 +4306,11 @@ Error: ${error.message}`
       if (DependencyTracker.current) {
         DependencyTracker.current.addDependency(this);
       }
-      return JSON.parse(JSON.stringify(this._state));
+      if (!this._frozenState) {
+        const cleanState = _deepClone(this._state);
+        this._frozenState = deepFreeze(cleanState);
+      }
+      return this._frozenState;
     }
     /**
      * Creates a proxy that tracks property access for dependency tracking
@@ -4342,7 +4441,8 @@ Error: ${error.message}`
      * Only triggers if state has changed and batches notifications
      */
     _notifyObservers() {
-      if (!this._isDirty) return;
+      if (!this._isDirty)
+        return;
       if (!this.hasObservers && !this.__subscriber) {
         this._isDirty = false;
         return;
@@ -4379,8 +4479,10 @@ Error: ${error.message}`
     _createDeepSchema(state) {
       const typeCache = /* @__PURE__ */ new Map();
       const inferType = (value) => {
-        if (value === null) return "null";
-        if (value === void 0) return "undefined";
+        if (value === null)
+          return "null";
+        if (value === void 0)
+          return "undefined";
         if (typeCache.has(value)) {
           return typeCache.get(value);
         }
@@ -4406,13 +4508,15 @@ Error: ${error.message}`
      * Validates a state object against a schema
      */
     _validateDeepState(schema, state, path = []) {
-      if (!schema || Object.keys(schema).length === 0) return;
+      if (!schema || Object.keys(schema).length === 0)
+        return;
       Object.keys(schema).forEach((key) => {
         const expectedType = schema[key];
         const actualValue = state[key];
         const currentPath = [...path, key];
         const actualType = this._inferType(actualValue);
-        if (actualType === "function") return;
+        if (actualType === "function")
+          return;
         if (typeof expectedType === "object" && expectedType !== null) {
           if (typeof actualValue !== "object" || actualValue === null) {
             throw new TypeError(
@@ -4435,36 +4539,13 @@ Error: ${error.message}`
      * Determine the type of a value
      */
     _inferType(value) {
-      if (Array.isArray(value)) return "array";
-      if (value === null) return "null";
-      if (value === void 0) return "undefined";
+      if (Array.isArray(value))
+        return "array";
+      if (value === null)
+        return "null";
+      if (value === void 0)
+        return "undefined";
       return typeof value;
-    }
-    /**
-     * Process the queue of actions to be dispatched
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _processDispatchQueue() {
-      if (this.isDispatching) return;
-      this.isDispatching = true;
-      try {
-        const queue = this.dispatchQueue;
-        if (queue.length === 1) {
-          const { action, payload } = queue.shift();
-          this._dispatch(action, payload);
-          this.isDispatching = false;
-          return;
-        }
-        while (queue.length > 0) {
-          const { action, payload } = queue.shift();
-          this._dispatch(action, payload);
-        }
-      } catch (error) {
-        console.error(`[Cami.js] Error in dispatch queue:`, error);
-        throw error;
-      } finally {
-        this.isDispatching = false;
-      }
     }
     /**
      * Public API for dispatching actions
@@ -4533,8 +4614,7 @@ Error: ${error.message}`
         try {
           const [nextState, patches, inversePatches] = produceWithPatches(
             this._state,
-            (draft) => {
-              reducerContext.state = draft;
+            (_draft) => {
               reducer(reducerContext);
             }
           );
@@ -4644,13 +4724,15 @@ Error: ${error.message}`
       if (type === "before") {
         const hooks = this.beforeHooks;
         const len = hooks.length;
-        if (len === 0) return;
+        if (len === 0)
+          return;
         let i4 = len;
         while (i4--) {
           hooks[i4](context);
         }
       } else if (type === "after") {
-        if (this.afterHooks.length === 0) return;
+        if (this.afterHooks.length === 0)
+          return;
         this.throttledAfterHooks(context);
       }
     }
@@ -4660,7 +4742,8 @@ Error: ${error.message}`
     __executeAfterHooks(context) {
       const hooks = this.afterHooks;
       const len = hooks.length;
-      if (len === 0) return;
+      if (len === 0)
+        return;
       let i4 = len;
       while (i4--) {
         try {
@@ -4676,14 +4759,16 @@ Error: ${error.message}`
      * Optimized for performance with key-based targeting
      */
     _notifyPatchListeners(patches) {
-      if (this.patchListeners.size === 0) return;
+      if (this.patchListeners.size === 0)
+        return;
       const patchesByKey = /* @__PURE__ */ new Map();
       const patchesLen = patches.length;
       let i4 = patchesLen;
       while (i4--) {
         const patch = patches[i4];
         const key = patch.path[0];
-        if (!this.patchListeners.has(key)) continue;
+        if (!this.patchListeners.has(key))
+          continue;
         let keyPatches = patchesByKey.get(key);
         if (!keyPatches) {
           keyPatches = [];
@@ -4693,7 +4778,8 @@ Error: ${error.message}`
       }
       for (const [key, keyPatches] of patchesByKey) {
         const listeners = this.patchListeners.get(key);
-        if (!listeners || listeners.length === 0) continue;
+        if (!listeners || listeners.length === 0)
+          continue;
         const listenersLen = listeners.length;
         let j2 = listenersLen;
         while (j2--) {
@@ -4852,7 +4938,8 @@ Error: ${error.message}`
       this.patchListeners.get(key).push(callback);
       return () => {
         const listeners = this.patchListeners.get(key);
-        if (!listeners) return;
+        if (!listeners)
+          return;
         const index = listeners.indexOf(callback);
         if (index > -1) {
           const lastIndex = listeners.length - 1;
@@ -4959,17 +5046,20 @@ Error: ${error.message}`
       const context = __spreadProps(__spreadValues({}, storeContext), { data, error });
       if (error) {
         __trace(`query`, `Fetch failed: ${queryName}`);
-        if (onError) onError(context);
+        if (onError)
+          onError(context);
       } else {
         __trace(`query`, `Fetch success: ${queryName}`);
-        if (onSuccess) onSuccess(context);
+        if (onSuccess)
+          onSuccess(context);
       }
       if (onSettled) {
         __trace(`query`, `Fetch settled: ${queryName}`);
         onSettled(context);
       }
-      if (error) throw error;
-      return data;
+      if (error)
+        throw error;
+      return Promise.resolve(data);
     }
     /**
      * @method invalidateQueries
@@ -5011,7 +5101,8 @@ Error: ${error.message}`
       );
       queriesToInvalidate.forEach((queryName) => {
         const query = this.queryFunctions.get(queryName);
-        if (!query) return;
+        if (!query)
+          return;
         let cacheKey;
         if (typeof query.queryKey === "function") {
           cacheKey = query.queryKey({}).join(":");
@@ -5118,7 +5209,7 @@ Error: ${error.message}`
       this.mutationFunctions.set(mutationName, config);
       this.mutations[mutationName] = (...args) => this.mutate(mutationName, ...args);
     }
-    _executeMutation(mutationName, payload, mutation) {
+    _executeMutation(_mutationName, payload, mutation) {
       const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
       const previousState = _deepClone(this._state);
       const storeContext = {
@@ -5133,9 +5224,8 @@ Error: ${error.message}`
         invalidateQueries: this.invalidateQueries.bind(this),
         dispatchAsync: this.dispatchAsync.bind(this)
       };
-      let optimisticUpdate;
       if (onMutate) {
-        optimisticUpdate = onMutate(storeContext);
+        onMutate(storeContext);
       }
       let result;
       let error;
@@ -5469,30 +5559,29 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       return actionName in this.thunks;
     }
     _validateState(state) {
-      const mutableState = _deepClone(state);
       Object.entries(this.schema).forEach(([key, type]) => {
         try {
           if (type.type === "optional" && (state[key] === void 0 || state[key] === null)) {
             return;
           }
-          validateType(state[key], type, [key], mutableState);
+          validateType(state[key], type, [key], state);
         } catch (error) {
           throw new Error(`Validation error in ${this.name}: ${error.message}`);
         }
       });
     }
   };
-  var deepFreeze = (value, deep = true) => {
+  var deepFreeze = (value, _deep = true) => {
     if (typeof value !== "object" || value === null) {
       return value;
     }
     return new Proxy(freeze(value, true), {
-      set(target, prop, val) {
+      set(_target, prop, _val) {
         throw new Error(
           `Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`
         );
       },
-      deleteProperty(target, prop) {
+      deleteProperty(_target, prop) {
         throw new Error(
           `Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`
         );
@@ -5524,16 +5613,23 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     }
     return storeInstance;
   };
-  var clearStoreCache = () => {
-    storeInstances.clear();
-  };
 
   // src/observables/url-store.ts
   var URLStore = class extends Observable {
-    constructor({ onInit = null, onChange = null } = {}) {
+    constructor({ onInit = void 0, onChange = void 0 } = {}) {
       super();
+      __publicField(this, "_state");
+      __publicField(this, "__onChange");
+      __publicField(this, "_uid");
+      __publicField(this, "__routes");
+      __publicField(this, "__resourceLoaders");
+      __publicField(this, "__activeRoute");
+      __publicField(this, "__navigationState");
+      __publicField(this, "__persistentParams");
+      __publicField(this, "__beforeNavigateHooks");
+      __publicField(this, "__afterNavigateHooks");
       this._state = this.__parseURL();
-      this.__name = "URLStore";
+      this._uid = "URLStore";
       this.__onChange = onChange;
       this.__routes = /* @__PURE__ */ new Map();
       this.__resourceLoaders = /* @__PURE__ */ new Map();
@@ -5634,8 +5730,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
      * Find a matching route for the given path segments
      */
     __findMatchingRoute(pathSegments) {
-      for (const [pattern, route] of this.__routes.entries()) {
-        if (route.segments.length !== pathSegments.length) continue;
+      for (const [, route] of this.__routes.entries()) {
+        if (route.segments.length !== pathSegments.length)
+          continue;
         let isMatch = true;
         const extractedParams = {};
         for (let i4 = 0; i4 < route.segments.length; i4++) {
@@ -5657,10 +5754,12 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     }
     __updateStore() {
       return __async(this, null, function* () {
-        var _a2, _b;
-        if (this.__navigationState.isPending) return;
+        var _a2;
+        if (this.__navigationState.isPending)
+          return;
         const urlState = this.__parseURL();
-        if (_deepEqual(this._state, urlState)) return;
+        if (_deepEqual(this._state, urlState))
+          return;
         this.__navigationState.isPending = true;
         try {
           const matchingRoute = this.__findMatchingRoute(urlState.hashPaths);
@@ -5671,14 +5770,14 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
               route: matchingRoute
             });
           }
-          if (((_a2 = matchingRoute == null ? void 0 : matchingRoute.resources) == null ? void 0 : _a2.length) > 0) {
+          if (matchingRoute && matchingRoute.resources && matchingRoute.resources.length > 0) {
             this.__navigationState.isLoading = true;
-            urlState.routeParams = __spreadValues({}, matchingRoute.extractedParams);
+            urlState.routeParams = __spreadValues({}, matchingRoute.extractedParams || {});
             this._state = __spreadValues({}, urlState);
             this.next(this._state);
             yield this.__loadResources(matchingRoute, urlState);
           }
-          if ((_b = this.__activeRoute) == null ? void 0 : _b.onLeave) {
+          if ((_a2 = this.__activeRoute) == null ? void 0 : _a2.onLeave) {
             yield this.__activeRoute.onLeave({
               from: this._state,
               to: urlState
@@ -5713,7 +5812,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
      */
     __loadResources(route, urlState) {
       return __async(this, null, function* () {
-        if (!route.resources || route.resources.length === 0) return;
+        if (!route.resources || route.resources.length === 0)
+          return;
         const context = {
           route,
           params: __spreadValues(__spreadValues({}, urlState.params), urlState.routeParams),
@@ -5722,7 +5822,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         yield Promise.all(
           route.resources.map((resourceName) => __async(this, null, function* () {
             const loader = this.__resourceLoaders.get(resourceName);
-            if (!loader) return;
+            if (!loader)
+              return;
             try {
               yield loader(context);
             } catch (error) {
@@ -5796,14 +5897,16 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       if (hashSearchString) {
         newHash += "#" + hashSearchString;
       }
-      if (newUrl.hash === newHash) return;
+      if (newUrl.hash === newHash)
+        return;
       newUrl.hash = newHash;
       window.history.pushState(null, "", newUrl.toString());
       this.__updateStore();
       if (focusSelector) {
         setTimeout(() => {
           const targetElement = document.querySelector(focusSelector);
-          if (targetElement) targetElement.focus();
+          if (targetElement)
+            targetElement.focus();
         }, 0);
       }
       if (pageTitle) {
@@ -5881,7 +5984,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       return hashPaths.length === 0 && Object.keys(params).length === 0 && Object.keys(hashParams).length === 0 && !hashPaths.some((path) => path.trim() !== "");
     }
     _isArrayPrefix(arr, prefix) {
-      if (prefix.length > arr.length) return false;
+      if (prefix.length > arr.length)
+        return false;
       return prefix.every((value, index) => value === arr[index]);
     }
   };
@@ -5898,8 +6002,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
   // src/storage/adapters.ts
   function unproxify(obj) {
     const getType = (value) => {
-      if (typeof value !== "object" || value === null) return "primitive";
-      if (Array.isArray(value)) return "array";
+      if (typeof value !== "object" || value === null)
+        return "primitive";
+      if (Array.isArray(value))
+        return "array";
       return "object";
     };
     switch (getType(obj)) {
@@ -5993,7 +6099,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
            * - Count records: { type: 'count', range: IDBKeyRange.lowerBound(18) }
            * - Get keys: { type: 'keys', index: 'dateIndex', range: IDBKeyRange.bound('2023-01-01', '2023-12-31') }
            */
-          getState: (..._0) => __async(null, [..._0], function* (options = { type: "all" }) {
+          getState: (..._0) => __async(this, [..._0], function* (options = { type: "all" }) {
             const buildIdbRequest = ({ store: store2, options: options2 }) => {
               switch (options2.type) {
                 case "key":
@@ -6032,7 +6138,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
                 case "keys":
                   return options2.index ? store2.index(options2.index).getAllKeys(options2.range) : store2.getAllKeys(options2.range);
                 case "unique":
-                  if (!options2.index) throw new Error("Index must be specified for unique query");
+                  if (!options2.index)
+                    throw new Error("Index must be specified for unique query");
                   return store2.index(options2.index).getAll(options2.range, options2.limit);
                 default:
                   throw new Error(`Unsupported query type: ${options2.type}`);
@@ -6058,8 +6165,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         const db = event.target.result;
         const oldVersion = event.oldVersion;
         const upgradeType = (() => {
-          if (oldVersion === 0) return "create";
-          if (oldVersion < version) return "recreate";
+          if (oldVersion === 0)
+            return "create";
+          if (oldVersion < version)
+            return "recreate";
           return "update";
         })();
         switch (upgradeType) {
@@ -6085,7 +6194,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     fromStateKey,
     toIDBStore
   }) {
-    return (_0) => __async(null, [_0], function* ({ action, patches }) {
+    return (_0) => __async(this, [_0], function* ({ action: _action, patches }) {
       if (!Array.isArray(patches)) {
         throw new Error("patches must be an array");
       }
@@ -6114,12 +6223,15 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
           }
           return Promise.resolve(state);
         };
-        const applyPatches2 = () => __async(null, null, function* () {
+        const applyPatches2 = () => __async(this, null, function* () {
           const getOperationType = (patch, relativePath) => {
-            if (relativePath.length === 0) return patch.op === "remove" ? "removeAll" : "replaceAll";
+            if (relativePath.length === 0)
+              return patch.op === "remove" ? "removeAll" : "replaceAll";
             const index = parseInt(relativePath[0], 10);
-            if (isNaN(index)) return "invalid";
-            if (relativePath.length === 1) return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
+            if (isNaN(index))
+              return "invalid";
+            if (relativePath.length === 1)
+              return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
             return "modifyNested";
           };
           for (const patch of relevantPatches) {
@@ -6221,13 +6333,13 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       __trace(`localStorage:version`, `Created ${name} with version ${version}`);
     }
     return {
-      getState: () => __async(null, null, function* () {
+      getState: () => __async(this, null, function* () {
         return new Promise((resolve) => {
           const data = localStorage.getItem(name);
           resolve(data ? JSON.parse(data) : null);
         });
       }),
-      setState: (state) => __async(null, null, function* () {
+      setState: (state) => __async(this, null, function* () {
         return new Promise((resolve) => {
           localStorage.setItem(name, JSON.stringify(state));
           resolve();
@@ -6238,7 +6350,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     };
   }
   function persistToLocalStorageThunk(toLocalStorage) {
-    return (_0) => __async(null, [_0], function* ({ action, state, previousState }) {
+    return (_0) => __async(this, [_0], function* ({ action: _action, state, previousState }) {
       if (state !== previousState) {
         yield toLocalStorage.setState(state);
         __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
@@ -6267,7 +6379,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     }
   };
   function invariant(message, callback) {
-    if (!alwaysEnabled && isProduction) return;
+    if (!alwaysEnabled && isProduction)
+      return;
     if (!callback()) {
       const error = new InvariantViolationError("Invariant Violation: " + message);
       if (!isProduction) {
@@ -6284,7 +6397,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       const isProd = production();
       isProduction = isProd && !isDev;
       alwaysEnabled = false;
-    } else if ("alwaysEnabled" in config) {
+    } else if (Object.hasOwn(config, "alwaysEnabled")) {
       alwaysEnabled = config.alwaysEnabled;
     }
   };
@@ -6309,9 +6422,20 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
 /*! Bundled license information:
 
 lit-html/lit-html.js:
+  (**
+   * @license
+   * Copyright 2017 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
 lit-html/directive.js:
+  (**
+   * @license
+   * Copyright 2017 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
 lit-html/directives/unsafe-html.js:
-lit-html/directives/repeat.js:
   (**
    * @license
    * Copyright 2017 Google LLC
@@ -6329,6 +6453,13 @@ lit-html/directives/keyed.js:
   (**
    * @license
    * Copyright 2021 Google LLC
+   * SPDX-License-Identifier: BSD-3-Clause
+   *)
+
+lit-html/directives/repeat.js:
+  (**
+   * @license
+   * Copyright 2017 Google LLC
    * SPDX-License-Identifier: BSD-3-Clause
    *)
 */

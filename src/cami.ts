@@ -16,7 +16,7 @@ import { enableMapSet } from "immer";
 enableMapSet();
 import { ReactiveElement } from "./reactive-element";
 // Import the optimized store implementation and use it as the default
-import { ObservableStore, store, clearStoreCache } from "./observables/observable-store";
+import { ObservableStore, store } from "./observables/observable-store";
 // import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized";
 
 // Replace the standard store with the optimized version
@@ -63,7 +63,6 @@ const { debug, events } = __config;
  */
 export {
   store,
-  clearStoreCache,
   // storeOptimized,
   html,
   svg,
