@@ -1,8 +1,8 @@
 // Conditional Buffer type declaration for environments that have it
 declare global {
   var Buffer: {
-    isBuffer(obj: any): obj is Buffer;
-    from(source: any): Buffer;
+    isBuffer(obj: any): obj is typeof Buffer;
+    from(source: any): typeof Buffer;
   } | undefined;
 }
 
@@ -30,7 +30,7 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 // Observable internal property lookup object (faster than if-else chain)
 // These properties should be skipped during comparison for performance
-const INTERNAL_PROPS = {
+const INTERNAL_PROPS: Record<string, boolean> = {
   '__observers': true,
   '__onChange': true,
   '__routes': true,

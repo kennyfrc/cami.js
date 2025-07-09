@@ -1929,42 +1929,109 @@ var Observable = class {
 };
 
 // src/utils.ts
-var hasOwnProperty = Object.prototype.hasOwnProperty;
+var objectKeys = Object.keys;
 var arrayIsArray = Array.isArray;
-var arrayBufferIsView = ArrayBuffer.isView;
-var sameValueZeroEqual = (a2, b2) => {
-  return a2 === b2 || a2 !== a2 && b2 !== b2;
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var INTERNAL_PROPS = {
+  "__observers": true,
+  "__onChange": true,
+  "__routes": true,
+  "__resourceLoaders": true,
+  "__activeRoute": true,
+  "__navigationState": true,
+  "__persistentParams": true,
+  "__beforeNavigateHooks": true,
+  "__afterNavigateHooks": true,
+  "_state": true,
+  "_frozenState": true,
+  "_isDirty": true,
+  "_stateVersion": true,
+  "_stateTrapStore": true,
+  "_uid": true,
+  "constructor": true,
+  "toJSON": true
+};
+var isStringRecord = (obj) => {
+  if (typeof obj !== "object" || obj === null) return false;
+  const keys = objectKeys(obj);
+  let i4 = keys.length;
+  while (i4--) {
+    if (typeof obj[keys[i4]] !== "string") return false;
+  }
+  return true;
+};
+var compareStringRecords = (a2, b2) => {
+  const aKeys = objectKeys(a2);
+  const aLength = aKeys.length;
+  if (objectKeys(b2).length !== aLength) return false;
+  let i4 = aLength;
+  while (i4--) {
+    const key = aKeys[i4];
+    if (a2[key] !== b2[key]) return false;
+  }
+  return true;
 };
 var _deepEqual = (a2, b2) => {
   if (a2 === b2) return true;
   const typeA = typeof a2;
   if (typeA !== typeof b2) return false;
   if (typeA !== "object") {
-    return typeA === "number" ? sameValueZeroEqual(a2, b2) : false;
+    return typeA === "number" ? a2 !== a2 && b2 !== b2 : false;
   }
   if (a2 == null || b2 == null) return false;
   const constructor = a2.constructor;
-  if (constructor !== b2.constructor) {
-    if (constructor != null && b2.constructor != null) return false;
-    if (constructor == null !== (b2.constructor == null)) return false;
+  if (constructor === Object && b2.constructor === Object) {
+    if (a2.params && a2.hashPaths && a2.hashParams && b2.params && b2.hashPaths && b2.hashParams) {
+      return _deepEqual(a2.params, b2.params) && _deepEqual(a2.hashPaths, b2.hashPaths) && _deepEqual(a2.hashParams, b2.hashParams) && _deepEqual(a2.routeParams, b2.routeParams);
+    }
+    if (a2.store && typeof a2.property === "string" && b2.store && typeof b2.property === "string" && Object.keys(a2).length === 2 && Object.keys(b2).length === 2) {
+      return a2.store === b2.store && a2.property === b2.property;
+    }
+    if (isStringRecord(a2) && isStringRecord(b2)) {
+      return compareStringRecords(a2, b2);
+    }
+    const aKeys2 = objectKeys(a2);
+    const aLength2 = aKeys2.length;
+    if (objectKeys(b2).length !== aLength2) return false;
+    let i5 = aLength2;
+    while (i5--) {
+      const key = aKeys2[i5];
+      if (INTERNAL_PROPS[key]) {
+        continue;
+      }
+      if (!hasOwnProperty.call(b2, key) || !_deepEqual(a2[key], b2[key])) {
+        return false;
+      }
+    }
+    return true;
   }
   if (arrayIsArray(a2)) {
     if (!arrayIsArray(b2) || a2.length !== b2.length) return false;
-    let index2 = a2.length;
-    while (index2-- > 0) {
-      if (!_deepEqual(a2[index2], b2[index2])) return false;
+    let i5 = a2.length;
+    while (i5--) {
+      if (!_deepEqual(a2[i5], b2[i5])) return false;
     }
     return true;
   }
   if (arrayIsArray(b2)) return false;
+  if (constructor !== b2.constructor) return false;
   if (constructor === Date) {
     return a2.getTime() === b2.getTime();
   }
   if (constructor === RegExp) {
     return a2.source === b2.source && a2.flags === b2.flags;
   }
+  if (constructor === Int8Array || constructor === Uint8Array || constructor === Int16Array || constructor === Uint16Array || constructor === Int32Array || constructor === Uint32Array || constructor === Float32Array || constructor === Float64Array || constructor === BigInt64Array || constructor === BigUint64Array) {
+    if (a2.length !== b2.length) return false;
+    let i5 = a2.length;
+    while (i5--) {
+      if (a2[i5] !== b2[i5]) return false;
+    }
+    return true;
+  }
   if (constructor === Map) {
     if (a2.size !== b2.size) return false;
+    if (a2.size === 0) return true;
     for (const [key, val] of a2) {
       let found = false;
       for (const [bKey, bVal] of b2) {
@@ -1981,14 +2048,25 @@ var _deepEqual = (a2, b2) => {
   if (constructor === Set) {
     if (a2.size !== b2.size) return false;
     if (a2.size === 0) return true;
-    const aValues = Array.from(a2);
-    const bValues = Array.from(b2);
-    const matched = new Array(bValues.length).fill(false);
-    let aIndex = aValues.length;
-    while (aIndex-- > 0) {
+    const aSize = a2.size;
+    const aValues = new Array(aSize);
+    const bValues = new Array(aSize);
+    const matched = new Array(aSize);
+    let idx = 0;
+    for (const val of a2) {
+      aValues[idx++] = val;
+    }
+    idx = 0;
+    for (const val of b2) {
+      bValues[idx] = val;
+      matched[idx] = false;
+      idx++;
+    }
+    let aIndex = aSize;
+    while (aIndex--) {
       let found = false;
-      let bIndex = bValues.length;
-      while (bIndex-- > 0) {
+      let bIndex = aSize;
+      while (bIndex--) {
         if (!matched[bIndex] && _deepEqual(aValues[aIndex], bValues[bIndex])) {
           matched[bIndex] = true;
           found = true;
@@ -1999,22 +2077,15 @@ var _deepEqual = (a2, b2) => {
     }
     return true;
   }
-  if (arrayBufferIsView(a2) && !(a2 instanceof DataView)) {
-    const typedA = a2;
-    const typedB = b2;
-    if (!arrayBufferIsView(b2) || typedA.length !== typedB.length) return false;
-    let index2 = typedA.length;
-    while (index2-- > 0) {
-      if (typedA[index2] !== typedB[index2]) return false;
+  const aKeys = objectKeys(a2);
+  const aLength = aKeys.length;
+  if (objectKeys(b2).length !== aLength) return false;
+  let i4 = aLength;
+  while (i4--) {
+    const key = aKeys[i4];
+    if (INTERNAL_PROPS[key]) {
+      continue;
     }
-    return true;
-  }
-  const aKeys = Object.keys(a2);
-  const bKeys = Object.keys(b2);
-  if (aKeys.length !== bKeys.length) return false;
-  let index = aKeys.length;
-  while (index-- > 0) {
-    const key = aKeys[index];
     if (!hasOwnProperty.call(b2, key) || !_deepEqual(a2[key], b2[key])) {
       return false;
     }

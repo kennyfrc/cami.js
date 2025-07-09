@@ -20,7 +20,7 @@
     "allowUnreachableCode": false, // Allows unreachable code
     /* --- Tier 4: Modern Module and Project Configuration --- */
     "moduleResolution": "node",
-    "isolatedModules": false, // Each file can be transpiled independently
+    "isolatedModules": true, // Each file can be transpiled independently
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     /* --- DX + speed while prototyping --- */
