@@ -1,5 +1,5 @@
 import { store } from "./observable-store.js";
-import { Type, validateType } from "../types/index.js";
+import { Type, validateType } from "../types/index";
 // =============================================================================
 // Utility Functions
 // =============================================================================
@@ -197,7 +197,7 @@ export class Model {
             }
         }
         catch (error) {
-            const expectedType = this._getExpectedTypeString(type);
+            // const expectedType = this._getExpectedTypeString(type);
             throw new Error(`Property: ${path.join(".")}\n` + `Error: ${error.message}`);
         }
     }
@@ -259,38 +259,6 @@ export class Model {
             case "unknown":
             default:
                 return "Unknown";
-        }
-    }
-    /**
-     * Helper function to get a human-readable string representation of actual value type
-     * @param value - The actual value
-     * @returns A string representation of the actual type
-     */
-    _getActualTypeString(value) {
-        const getValueType = (value) => {
-            if (value === null)
-                return "null";
-            if (Array.isArray(value))
-                return "array";
-            if (value instanceof Date)
-                return "date";
-            if (typeof value === "object")
-                return "object";
-            return typeof value;
-        };
-        const valueType = getValueType(value);
-        switch (valueType) {
-            case "null":
-                return "null";
-            case "array":
-                return "Array";
-            case "date":
-                return "Date";
-            case "object":
-                const constructor = value.constructor.name;
-                return constructor !== "Object" ? constructor : "object";
-            default:
-                return valueType;
         }
     }
 }

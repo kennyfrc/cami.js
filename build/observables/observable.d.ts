@@ -30,9 +30,9 @@ export type ObserverOrNext<T> = Observer<T> | ((value: T) => void);
  * High-performance Subscriber implementation
  */
 export declare class Subscriber<T> implements Observer<T> {
-    next: ((value: T) => void) | null;
-    error: ((error: any) => void) | null;
-    complete: (() => void) | null;
+    next: ((value: T) => void) | undefined;
+    error: ((error: any) => void) | undefined;
+    complete: (() => void) | undefined;
     private teardowns;
     isUnsubscribed: boolean;
     /**
@@ -40,15 +40,6 @@ export declare class Subscriber<T> implements Observer<T> {
      * @param observer - The observer object or function
      */
     constructor(observer: ObserverOrNext<T>);
-    /**
-     * Notifies the observer that the observable has completed
-     */
-    notifyComplete(): void;
-    /**
-     * Notifies the observer that an error has occurred
-     * @param err - The error to pass to the observer's error method
-     */
-    notifyError(err: any): void;
     /**
      * Adds a teardown function to be executed when unsubscribing
      * @param teardown - The teardown function
@@ -63,7 +54,7 @@ export declare class Subscriber<T> implements Observer<T> {
  * High-performance Observable implementation
  */
 export declare class Observable<T> {
-    private __observers;
+    protected __observers: Subscriber<T>[];
     private subscribeCallback?;
     /**
      * Protected method to check if there are any observers

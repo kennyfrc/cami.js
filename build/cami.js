@@ -26,6 +26,8 @@ import { __config } from "./config";
 import { Type, useValidationHook, useValidationThunk } from "./types/index";
 import { createURLStore } from "./observables/url-store";
 import { createIdbPromise, persistToIdbThunk, createLocalStorage, persistToLocalStorageThunk, } from "./storage/adapters";
+import invariant from "./invariant";
+import { _deepEqual, _deepMerge, _deepClone } from "./utils";
 const { debug, events } = __config;
 /**
  * Main exports for the cami.js library with full TypeScript support
@@ -55,5 +57,5 @@ html, svg, ReactiveElement, Observable, ObservableState, ObservableStore,
 // Export original implementation with different name for compatibility
 // OriginalObservableStore,
 // originalStore,
-debug, events, effect, Type, useValidationHook, useValidationThunk, Model, createIdbPromise, persistToIdbThunk, createLocalStorage, persistToLocalStorageThunk, createURLStore, unsafeHTML, repeat, keyed };
+debug, events, effect, Type, useValidationHook, useValidationThunk, Model, createIdbPromise, persistToIdbThunk, createLocalStorage, persistToLocalStorageThunk, createURLStore, unsafeHTML, repeat, keyed, invariant, _deepEqual, _deepMerge, _deepClone };
 //# sourceMappingURL=cami.js.map

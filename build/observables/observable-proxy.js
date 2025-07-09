@@ -31,7 +31,7 @@ class ObservableProxy {
                 return observable.value;
             }
         };
-        const proxyGetHandler = (target, property, receiver) => {
+        const proxyGetHandler = (target, property, _receiver) => {
             // Handle conversion methods first
             if (property === 'valueOf' ||
                 property === 'toString' ||
@@ -68,7 +68,7 @@ class ObservableProxy {
                     return undefined;
             }
         };
-        const proxySetHandler = (target, property, value, receiver) => {
+        const proxySetHandler = (target, property, value, _receiver) => {
             const propKey = property;
             if (property in target) {
                 // Check if the value is actually different before updating

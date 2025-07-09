@@ -1,4 +1,4 @@
-import { Observable } from "./observable";
+import { Observable, Subscriber as BaseSubscriber } from "./observable";
 import { produce } from "immer";
 import { _deepEqual } from "../utils";
 import { __config } from "../config";
@@ -91,10 +91,11 @@ class ObservableState extends Observable {
                 this.__lastObserver = subscriber;
             }
             else {
-                this.__observers.push(subscriber);
+                const sub = new BaseSubscriber(subscriber);
+                this.__observers.push(sub);
             }
         }
-        this.__value = produce(initialValue, (draft) => { });
+        this.__value = produce(initialValue, (_draft) => { });
         this.__name = name;
     }
     /**
@@ -105,23 +106,39 @@ class ObservableState extends Observable {
      */
     onValue(callback) {
         // Add observer to array - O(1) operation
+        const subscriber = new BaseSubscriber(callback);
         const index = this.__observers.length;
-        this.__observers.push(callback);
+        this.__observers.push(subscriber);
         // Return subscription with direct index removal for O(1) unsubscribe when possible
         return {
             unsubscribe: () => {
-                // Fast path: if the callback is still at the original index, use direct removal
-                if (this.__observers[index] === callback) {
+                // Fast path: if the subscriber is still at the original index, use direct removal
+                if (this.__observers[index] === subscriber) {
                     // Fast removal by swapping with last element and popping - O(1)
                     const lastIndex = this.__observers.length - 1;
                     if (index < lastIndex) {
-                        this.__observers[index] = this.__observers[lastIndex];
+                        const lastObserver = this.__observers[lastIndex];
+                        if (lastObserver !== undefined) {
+                            this.__observers[index] = lastObserver;
+                        }
                     }
                     this.__observers.pop();
                 }
                 else {
                     // Fallback to filter only when needed - O(n)
-                    this.__observers = this.__observers.filter(obs => obs !== callback);
+                    this.__observers = this.__observers.filter(obs => obs !== subscriber);
+                }
+            },
+            complete: () => {
+                if (!subscriber.isUnsubscribed && subscriber.complete) {
+                    subscriber.complete();
+                    subscriber.unsubscribe();
+                }
+            },
+            error: (err) => {
+                if (!subscriber.isUnsubscribed && subscriber.error) {
+                    subscriber.error(err);
+                    subscriber.unsubscribe();
                 }
             }
         };
@@ -195,9 +212,15 @@ class ObservableState extends Observable {
             const keys = key.split(".");
             let current = state;
             for (let i = 0; i < keys.length - 1; i++) {
-                current = current[keys[i]];
+                const key = keys[i];
+                if (key !== undefined) {
+                    current = current[key];
+                }
             }
-            current[keys[keys.length - 1]] = value;
+            const lastKey = keys[keys.length - 1];
+            if (lastKey !== undefined) {
+                current[lastKey] = value;
+            }
         });
     }
     /**
@@ -216,9 +239,15 @@ class ObservableState extends Observable {
             const keys = key.split(".");
             let current = state;
             for (let i = 0; i < keys.length - 1; i++) {
-                current = current[keys[i]];
+                const key = keys[i];
+                if (key !== undefined) {
+                    current = current[key];
+                }
             }
-            delete current[keys[keys.length - 1]];
+            const lastKey = keys[keys.length - 1];
+            if (lastKey !== undefined) {
+                delete current[lastKey];
+            }
         });
     }
     /**
@@ -420,13 +449,8 @@ class ObservableState extends Observable {
         // Highly optimized path for single observer (common case)
         if (len === 1 && !this.__lastObserver) {
             const observer = observers[0];
-            if (observer) {
-                if (typeof observer === "function") {
-                    observer(value);
-                }
-                else if (observer.next) {
-                    observer.next(value);
-                }
+            if (observer && observer.next && !observer.isUnsubscribed) {
+                observer.next(value);
             }
             return;
         }
@@ -434,13 +458,8 @@ class ObservableState extends Observable {
         let i = len;
         while (i--) {
             const observer = observers[i];
-            if (observer) {
-                if (typeof observer === "function") {
-                    observer(value);
-                }
-                else if (observer.next) {
-                    observer.next(value);
-                }
+            if (observer && observer.next && !observer.isUnsubscribed) {
+                observer.next(value);
             }
         }
         // Handle the last observer separately (if exists)
@@ -481,6 +500,9 @@ class ObservableState extends Observable {
             if (updateCount === 1) {
                 // Fast path for single update (common case)
                 const updater = updates[0];
+                if (updater === undefined) {
+                    return;
+                }
                 const newValue = produce(this.__value, updater);
                 // First try reference equality (fast)
                 if (newValue !== this.__value) {
@@ -503,6 +525,9 @@ class ObservableState extends Observable {
                 let currentValue = this.__value;
                 for (let i = 0; i < updateCount; i++) {
                     const updater = updates[i];
+                    if (updater === undefined) {
+                        continue;
+                    }
                     const newValue = produce(currentValue, updater);
                     // First try reference equality (fast)
                     if (newValue !== currentValue) {
@@ -530,6 +555,9 @@ class ObservableState extends Observable {
             let currentValue = this.__value;
             for (let i = 0; i < updateCount; i++) {
                 const updater = updates[i];
+                if (updater === undefined) {
+                    continue;
+                }
                 const result = updater(currentValue);
                 const newValue = (result !== undefined ? result : currentValue);
                 // First try reference equality (fast)
@@ -583,7 +611,7 @@ class ObservableState extends Observable {
      */
     complete() {
         this.__observers.forEach((observer) => {
-            if (observer && typeof observer !== 'function' && typeof observer.complete === "function") {
+            if (observer && observer.complete && !observer.isUnsubscribed) {
                 observer.complete();
             }
         });

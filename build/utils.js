@@ -14,66 +14,87 @@
  * @param b - Second value to compare.
  * @returns True if the values are deeply equal, false otherwise.
  */
-const _deepEqual = (a, b) => {
-    // Quick reference check (handles primitives and identical objects)
+// Cache frequently used object methods for performance
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+const arrayIsArray = Array.isArray;
+const arrayBufferIsView = ArrayBuffer.isView;
+// High-performance sameValueZero comparison for numbers
+const sameValueZeroEqual = (a, b) => {
+    return a === b || (a !== a && b !== b);
+};
+const _deepEqual = (a, b, visited) => {
+    // 1. Strict equality first (fastest path)
     if (a === b)
         return true;
-    // Handle NaN equality
-    if (a !== a)
-        return b !== b;
-    // Handle null/undefined - at this point we know they're not ===
+    // 2. Early type check before any processing
+    const typeA = typeof a;
+    if (typeA !== typeof b)
+        return false;
+    // 3. Handle primitives with optimized number comparison
+    if (typeA !== 'object') {
+        // Special case for numbers (handles NaN, -0/+0)
+        return typeA === 'number' ? sameValueZeroEqual(a, b) : false;
+    }
+    // 4. Null check after type check (both must be objects now)
     if (a == null || b == null)
         return false;
-    // Both must be objects at this point
-    if (typeof a !== 'object' || typeof b !== 'object')
-        return false;
-    // Fast path for arrays - most common use case after primitives
-    if (Array.isArray(a)) {
-        if (!Array.isArray(b) || a.length !== b.length)
+    // 5. Constructor check early (faster than instanceof)
+    const constructor = a.constructor;
+    if (constructor !== b.constructor) {
+        // Handle edge case where constructor might be undefined
+        if (constructor != null && b.constructor != null)
             return false;
-        // Forward iteration seems faster in modern JS engines for arrays
-        for (let i = 0; i < a.length; i++) {
-            if (!_deepEqual(a[i], b[i]))
+        if ((constructor == null) !== (b.constructor == null))
+            return false;
+    }
+    // 6. Initialize visited WeakMap only when needed
+    if (!visited)
+        visited = new WeakMap();
+    // 7. Circular reference detection with bidirectional mapping
+    const aStacked = visited.get(a);
+    const bStacked = visited.get(b);
+    if (aStacked !== undefined || bStacked !== undefined) {
+        return aStacked === b && bStacked === a;
+    }
+    // 8. Mark objects as visited for circular detection
+    visited.set(a, b);
+    visited.set(b, a);
+    // 9. Fast path for arrays (use cached Array.isArray)
+    if (arrayIsArray(a)) {
+        // Early length check before any iteration
+        if (!arrayIsArray(b) || a.length !== b.length)
+            return false;
+        // Use decrementing while loop (faster than for loops)
+        let index = a.length;
+        while (index-- > 0) {
+            if (!_deepEqual(a[index], b[index], visited))
                 return false;
         }
         return true;
     }
-    // If only one is an array, they're not equal
-    if (Array.isArray(b))
+    // 10. If only b is array, they're different (already checked a)
+    if (arrayIsArray(b))
         return false;
-    // Date comparison - convert to primitive for speed
-    if (a instanceof Date) {
-        return b instanceof Date && a.getTime() === b.getTime();
+    // 11. Use constructor-based routing for better performance
+    if (constructor === Date) {
+        return a.getTime() === b.getTime();
     }
-    // RegExp comparison - compare properties directly
-    if (a instanceof RegExp) {
-        return b instanceof RegExp && a.source === b.source && a.flags === b.flags;
+    if (constructor === RegExp) {
+        return a.source === b.source && a.flags === b.flags;
     }
-    // Map comparison
-    if (a instanceof Map) {
-        if (!(b instanceof Map) || a.size !== b.size)
+    // 12. Map comparison with performance optimizations
+    if (constructor === Map) {
+        // Early size check
+        if (a.size !== b.size)
             return false;
-        for (const [key, val] of a.entries()) {
-            // Maps require a lookup and then a deep comparison
-            if (!b.has(key) || !_deepEqual(val, b.get(key)))
-                return false;
-        }
-        return true;
-    }
-    // Set comparison
-    if (a instanceof Set) {
-        if (!(b instanceof Set) || a.size !== b.size)
-            return false;
-        // Due to the structure of Sets, we need to do a full comparison
-        // Convert to arrays for easier comparison
-        const aValues = Array.from(a);
-        const bValues = Array.from(b);
-        // A simple approach for small sets - not efficient for large sets
-        // but works for most common use cases
-        for (let i = 0; i < aValues.length; i++) {
+        // Use iterator for better performance than entries()
+        for (const [key, val] of a) {
+            // Find matching key using deep equality (for object keys)
             let found = false;
-            for (let j = 0; j < bValues.length; j++) {
-                if (_deepEqual(aValues[i], bValues[j])) {
+            for (const [bKey, bVal] of b) {
+                if (_deepEqual(key, bKey, visited)) {
+                    if (!_deepEqual(val, bVal, visited))
+                        return false;
                     found = true;
                     break;
                 }
@@ -83,34 +104,61 @@ const _deepEqual = (a, b) => {
         }
         return true;
     }
-    // TypedArray comparison (Int8Array, Uint8Array, etc.)
-    if (ArrayBuffer.isView(a) && !(a instanceof DataView)) {
-        const typedA = a;
-        const typedB = b;
-        if (!ArrayBuffer.isView(b) || typedA.length !== typedB.length || a.constructor !== b.constructor) {
+    // 13. Set comparison with performance optimizations  
+    if (constructor === Set) {
+        // Early size check
+        if (a.size !== b.size)
             return false;
-        }
-        // Fast direct comparison of TypedArray values
-        for (let i = 0; i < typedA.length; i++) {
-            if (typedA[i] !== typedB[i])
+        if (a.size === 0)
+            return true; // Empty sets are equal
+        // Convert to arrays once for better performance
+        const aValues = Array.from(a);
+        const bValues = Array.from(b);
+        // Use pre-allocated boolean array for tracking
+        const matched = new Array(bValues.length).fill(false);
+        let aIndex = aValues.length;
+        while (aIndex-- > 0) {
+            let found = false;
+            let bIndex = bValues.length;
+            while (bIndex-- > 0) {
+                if (!matched[bIndex] && _deepEqual(aValues[aIndex], bValues[bIndex], visited)) {
+                    matched[bIndex] = true;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
                 return false;
         }
         return true;
     }
-    // Different constructors mean different types
-    if (a.constructor !== b.constructor)
+    // 14. TypedArray comparison (use cached ArrayBuffer.isView)
+    if (arrayBufferIsView(a) && !(a instanceof DataView)) {
+        const typedA = a;
+        const typedB = b;
+        // Early checks: type, length, constructor
+        if (!arrayBufferIsView(b) || typedA.length !== typedB.length)
+            return false;
+        // Fast direct comparison using decrementing loop
+        let index = typedA.length;
+        while (index-- > 0) {
+            if (typedA[index] !== typedB[index])
+                return false;
+        }
+        return true;
+    }
+    // 15. Plain object comparison (most common case)
+    // Quick length check first
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length)
         return false;
-    // Get keys and compare lengths - this quickly detects differences
-    const keys = Object.keys(a);
-    if (keys.length !== Object.keys(b).length)
-        return false;
-    // Use direct property access and single iteration for maximum speed
-    const hasOwn = Object.prototype.hasOwnProperty;
-    // Check key/value pairs
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        // First check if property exists, then compare values
-        if (!hasOwn.call(b, key) || !_deepEqual(a[key], b[key])) {
+    // Use decrementing loop for property comparison
+    let index = aKeys.length;
+    while (index-- > 0) {
+        const key = aKeys[index];
+        // Check property existence and value equality
+        if (!hasOwnProperty.call(b, key) || !_deepEqual(a[key], b[key], visited)) {
             return false;
         }
     }

@@ -69,8 +69,8 @@ type ResourceLoader = (context: ResourceLoaderContext) => Promise<void> | void;
  */
 declare class URLStore extends Observable<URLState> {
     private _state;
-    private __name;
     private __onChange;
+    _uid?: string;
     private __routes;
     private __resourceLoaders;
     private __activeRoute;

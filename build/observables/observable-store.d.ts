@@ -1,6 +1,6 @@
 import { Observable } from "./observable.js";
 import { Draft, Patch } from "immer";
-export interface StoreConfig<TState = any> {
+export interface StoreConfig<_TState = any> {
     name?: string;
     schema?: Record<string, any>;
     enableLogging?: boolean;
@@ -213,6 +213,7 @@ export interface PatchListener {
 export declare class ObservableStore<TState = any> extends Observable<TState> {
     readonly name: string;
     readonly schema: Record<string, any>;
+    _uid?: string;
     private _state;
     private _frozenState;
     private _isDirty;
@@ -251,7 +252,7 @@ export declare class ObservableStore<TState = any> extends Observable<TState> {
     private __subscriber;
     constructor(initialState: TState, options?: StoreConfig<TState>);
     /**
-     * Returns a frozen snapshot of the current state
+     * Returns a snapshot of the current state
      * Automatically tracks dependencies for reactive computations
      */
     get state(): TState;
@@ -289,10 +290,6 @@ export declare class ObservableStore<TState = any> extends Observable<TState> {
      * Determine the type of a value
      */
     private _inferType;
-    /**
-     * Process the queue of actions to be dispatched
-     */
-    private _processDispatchQueue;
     /**
      * Public API for dispatching actions
      */
@@ -455,5 +452,9 @@ export interface StoreFactoryConfig<TState = any> extends StoreConfig<TState> {
  * @returns Store instance
  */
 export declare const store: <TState = any>(config?: StoreFactoryConfig<TState>) => ObservableStore<TState>;
-export type { ReducerContext, ActionHandler, QueryConfig, QueryContext, QuerySuccessContext, QueryErrorContext, QuerySettledContext, CachedQueryData, MutationConfig, MutationContext, MutationSuccessContext, MutationErrorContext, MutationSettledContext, InvalidateQueriesOptions, AsyncActionContext, AsyncActionHandler, MemoContext, MemoHandler, CachedMemoData, HookContext, Hook, StateMachineEvent, StateMachineDefinition, ActionSpec, PatchListener, StoreConfig, StoreFactoryConfig, };
+/**
+ * Clear all cached store instances (useful for testing)
+ * @internal
+ */
+export declare const clearStoreCache: () => void;
 //# sourceMappingURL=observable-store.d.ts.map

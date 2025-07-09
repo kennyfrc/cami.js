@@ -7,8 +7,8 @@ import { _deepEqual } from '../utils';
  */
 class URLStore extends Observable {
     _state;
-    __name;
     __onChange;
+    _uid;
     __routes;
     __resourceLoaders;
     __activeRoute;
@@ -16,10 +16,10 @@ class URLStore extends Observable {
     __persistentParams;
     __beforeNavigateHooks;
     __afterNavigateHooks;
-    constructor({ onInit = null, onChange = null } = {}) {
+    constructor({ onInit = undefined, onChange = undefined } = {}) {
         super();
         this._state = this.__parseURL();
-        this.__name = 'URLStore';
+        this._uid = 'URLStore';
         this.__onChange = onChange;
         this.__routes = new Map();
         this.__resourceLoaders = new Map();
@@ -123,7 +123,7 @@ class URLStore extends Observable {
      * Find a matching route for the given path segments
      */
     __findMatchingRoute(pathSegments) {
-        for (const [pattern, route] of this.__routes.entries()) {
+        for (const [, route] of this.__routes.entries()) {
             // Quick length check
             if (route.segments.length !== pathSegments.length)
                 continue;
@@ -172,10 +172,10 @@ class URLStore extends Observable {
                 });
             }
             // If there's a matching route with resources, load them
-            if (matchingRoute?.resources?.length > 0) {
+            if (matchingRoute && matchingRoute.resources && matchingRoute.resources.length > 0) {
                 this.__navigationState.isLoading = true;
                 // Update URL state with extracted params
-                urlState.routeParams = { ...matchingRoute.extractedParams };
+                urlState.routeParams = { ...(matchingRoute.extractedParams || {}) };
                 // Set preliminary state to show loading indicators
                 this._state = { ...urlState };
                 this.next(this._state);

@@ -3,6 +3,9 @@ interface Patch {
     value: any;
     op?: string;
 }
+interface UnproxifyTarget {
+    [key: string]: any;
+}
 interface IDBStoreConfig {
     name: string;
     version: number;
@@ -48,9 +51,10 @@ interface LocalStorageAdapter {
     name: string;
     version: number;
 }
+export declare function removeDeep(obj: UnproxifyTarget, path: string[]): UnproxifyTarget;
 export declare function createIdbPromise({ name, version, storeName, keyPath, indexName }: IDBStoreConfig): Promise<IDBPromiseStore>;
-export declare function persistToIdbThunk({ fromStateKey, toIDBStore }: PersistToIdbConfig): ({ action, patches }: ThunkParams) => Promise<void>;
+export declare function persistToIdbThunk({ fromStateKey, toIDBStore }: PersistToIdbConfig): ({ action: _action, patches }: ThunkParams) => Promise<void>;
 export declare function createLocalStorage({ name, version, }: LocalStorageConfig): LocalStorageAdapter;
-export declare function persistToLocalStorageThunk(toLocalStorage: LocalStorageAdapter): ({ action, state, previousState }: ThunkParams) => Promise<void>;
+export declare function persistToLocalStorageThunk(toLocalStorage: LocalStorageAdapter): ({ action: _action, state, previousState }: ThunkParams) => Promise<void>;
 export {};
 //# sourceMappingURL=adapters.d.ts.map

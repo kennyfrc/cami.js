@@ -39,7 +39,7 @@ function updateDeep(obj, path, value) {
             throw new Error(`Unsupported path type: ${type}`);
     }
 }
-function removeDeep(obj, path) {
+export function removeDeep(obj, path) {
     const [head, ...rest] = path;
     if (rest.length === 0) {
         const { [head]: _, ...newObj } = obj;
@@ -214,7 +214,7 @@ export function createIdbPromise({ name, version, storeName, keyPath, indexName 
     });
 }
 export function persistToIdbThunk({ fromStateKey, toIDBStore }) {
-    return async ({ action, patches }) => {
+    return async ({ action: _action, patches }) => {
         if (!Array.isArray(patches)) {
             throw new Error('patches must be an array');
         }
@@ -369,7 +369,7 @@ export function createLocalStorage({ name, version, }) {
     };
 }
 export function persistToLocalStorageThunk(toLocalStorage) {
-    return async ({ action, state, previousState }) => {
+    return async ({ action: _action, state, previousState }) => {
         if (state !== previousState) {
             await toLocalStorage.setState(state);
             __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);

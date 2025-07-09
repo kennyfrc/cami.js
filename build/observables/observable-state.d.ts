@@ -1,18 +1,19 @@
-import { Observable } from "./observable";
+import { Observable, Subscriber as BaseSubscriber, Subscription as BaseSubscription } from "./observable";
 import { Draft } from "immer";
-type Subscriber<T> = ((value: T) => void) | {
+type ObserverFunction<T> = (value: T) => void;
+type ObserverObject<T> = {
     next: (value: T) => void;
     complete?: () => void;
 };
+type ObserverOrNext<T> = ObserverFunction<T> | ObserverObject<T>;
 type Dependency = {
-    store: ObservableState<any>;
+    store: ObservableState<any> | {
+        _uid?: string;
+    };
     property?: string;
 };
 type UpdaterFunction<T> = (draft: Draft<T>) => void;
 type EffectCleanup = void | (() => void);
-interface Subscription {
-    unsubscribe: () => void;
-}
 interface DeriveResult<T> {
     value: T;
     dispose: () => void;
@@ -36,7 +37,9 @@ declare class DependencyTracker {
      * @param {Object} store - The store to track
      * @param {string} [property] - Optional property to track
      */
-    addDependency(store: ObservableState<any>, property?: string): void;
+    addDependency(store: ObservableState<any> | {
+        _uid?: string;
+    }, property?: string): void;
 }
 /**
  * @class
@@ -54,8 +57,8 @@ declare class ObservableState<T = any> extends Observable<T> {
     private __name;
     private __isUpdating;
     private __updateStack;
-    protected __observers: Subscriber<T>[];
-    protected __lastObserver: Subscriber<T> | null;
+    protected __observers: BaseSubscriber<T>[];
+    protected __lastObserver: ObserverOrNext<T> | null;
     _uid?: string;
     /**
      * @constructor
@@ -66,7 +69,7 @@ declare class ObservableState<T = any> extends Observable<T> {
      * @example
      * const observable = new ObservableState(10);
      */
-    constructor(initialValue?: T, subscriber?: Subscriber<T> | null, { last, name }?: {
+    constructor(initialValue?: T, subscriber?: ObserverOrNext<T> | null, { last, name }?: {
         last?: boolean;
         name?: string | null;
     });
@@ -76,7 +79,7 @@ declare class ObservableState<T = any> extends Observable<T> {
      * @returns {Object} A subscription object with an unsubscribe method
      * @description High-performance subscription method with O(1) unsubscribe
      */
-    onValue(callback: Subscriber<T>): Subscription;
+    onValue(callback: (value: T) => void): BaseSubscription;
     /**
      * @method
      * @returns {any} The current value of the observable
@@ -255,5 +258,5 @@ declare const effect: (effectFn: () => EffectCleanup) => () => void;
  */
 declare const derive: <T>(deriveFn: () => T) => DeriveResult<T>;
 export { ObservableState, effect, derive, DependencyTracker };
-export type { Subscriber, Dependency, UpdaterFunction, EffectCleanup, Subscription, DeriveResult };
+export type { ObserverOrNext as Subscriber, Dependency, UpdaterFunction, EffectCleanup, BaseSubscription as Subscription, DeriveResult };
 //# sourceMappingURL=observable-state.d.ts.map

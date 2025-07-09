@@ -3,26 +3,10 @@ declare global {
         isBuffer(obj: any): obj is Buffer;
         from(source: any): Buffer;
     } | undefined;
+    interface Buffer {
+    }
 }
-interface Buffer extends Uint8Array {
-}
-/**
- * High-performance, correct deep equality implementation.
- * Optimized for both correctness (97% test cases passed) and performance.
- *
- * Key features:
- * - Handles primitive values, objects, arrays, dates, and regular expressions
- * - Correctly compares NaN values (NaN === NaN returns true)
- * - Type-safe: checks constructors and handles special objects
- * - Efficient property access patterns to maximize performance
- * - Supports Map, Set, and TypedArray comparison
- *
- * @function deepEqual
- * @param a - First value to compare.
- * @param b - Second value to compare.
- * @returns True if the values are deeply equal, false otherwise.
- */
-declare const _deepEqual: (a: any, b: any) => boolean;
+declare const _deepEqual: (a: any, b: any, visited?: WeakMap<any, any>) => boolean;
 /**
  * @private
  * @function _deepMerge

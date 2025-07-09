@@ -15,65 +15,46 @@ export class Subscriber {
         // Fast path for the common case: just a function (>90% of cases)
         if (typeof observer === "function") {
             this.next = observer;
-            this.error = null;
-            this.complete = null;
+            this.error = undefined;
+            this.complete = undefined;
         }
         else if (observer && typeof observer === "object") {
             // Avoid unnecessary binding for performance
             if (observer.next) {
                 this.next = typeof observer.next === "function" ?
                     (observer.next.bind ? observer.next.bind(observer) : observer.next) :
-                    null;
+                    undefined;
             }
             else {
-                this.next = null;
+                this.next = undefined;
             }
             // Only create these properties if they exist
             if (observer.error) {
                 this.error = typeof observer.error === "function" ?
                     (observer.error.bind ? observer.error.bind(observer) : observer.error) :
-                    null;
+                    undefined;
             }
             else {
-                this.error = null;
+                this.error = undefined;
             }
             if (observer.complete) {
                 this.complete = typeof observer.complete === "function" ?
                     (observer.complete.bind ? observer.complete.bind(observer) : observer.complete) :
-                    null;
+                    undefined;
             }
             else {
-                this.complete = null;
+                this.complete = undefined;
             }
         }
         else {
             // Handle edge case - null or primitive
-            this.next = null;
-            this.error = null;
-            this.complete = null;
+            this.next = undefined;
+            this.error = undefined;
+            this.complete = undefined;
         }
         // Most subscribers won't have teardowns, so initialize on first use
         this.teardowns = null;
         this.isUnsubscribed = false;
-    }
-    /**
-     * Notifies the observer that the observable has completed
-     */
-    notifyComplete() {
-        if (!this.isUnsubscribed && this.complete) {
-            this.complete();
-            this.unsubscribe();
-        }
-    }
-    /**
-     * Notifies the observer that an error has occurred
-     * @param err - The error to pass to the observer's error method
-     */
-    notifyError(err) {
-        if (!this.isUnsubscribed && this.error) {
-            this.error(err);
-            this.unsubscribe();
-        }
     }
     /**
      * Adds a teardown function to be executed when unsubscribing
@@ -98,9 +79,9 @@ export class Subscriber {
         // Fast path if no teardowns
         if (!this.teardowns) {
             // Clear references to aid GC
-            this.next = null;
-            this.error = null;
-            this.complete = null;
+            this.next = undefined;
+            this.error = undefined;
+            this.complete = undefined;
             return;
         }
         // Execute teardowns with optimized while loop
@@ -114,9 +95,9 @@ export class Subscriber {
         }
         // Clear references to aid garbage collection
         this.teardowns = null;
-        this.next = null;
-        this.error = null;
-        this.complete = null;
+        this.next = undefined;
+        this.error = undefined;
+        this.complete = undefined;
     }
 }
 /**
@@ -176,7 +157,11 @@ export class Observable {
         // Fast path for function observer (most common case)
         const subscriber = typeof observerOrNext === "function"
             ? new Subscriber(observerOrNext)
-            : new Subscriber({ next: observerOrNext, error, complete });
+            : new Subscriber({
+                next: observerOrNext,
+                error: error || undefined,
+                complete: complete || undefined
+            });
         // Fast path for no subscribeCallback (common case)
         if (!this.subscribeCallback) {
             this.__observers.push(subscriber);
@@ -233,8 +218,18 @@ export class Observable {
         return {
             unsubscribe: () => subscriber.unsubscribe(),
             // Only add these methods if needed in the future:
-            complete: () => subscriber.notifyComplete(),
-            error: (err) => subscriber.notifyError(err),
+            complete: () => {
+                if (!subscriber.isUnsubscribed && subscriber.complete) {
+                    subscriber.complete();
+                    subscriber.unsubscribe();
+                }
+            },
+            error: (err) => {
+                if (!subscriber.isUnsubscribed && subscriber.error) {
+                    subscriber.error(err);
+                    subscriber.unsubscribe();
+                }
+            },
         };
     }
     /**
@@ -326,7 +321,7 @@ export class Observable {
      * Returns an AsyncIterator for asynchronous iteration
      * @returns AsyncIterator implementation
      */
-    async *[Symbol.asyncIterator]() {
+    [Symbol.asyncIterator]() {
         let resolve;
         let promise = new Promise(r => resolve = r);
         let subscription;
@@ -352,17 +347,17 @@ export class Observable {
             cleanup();
             resolve({ done: true });
         });
-        try {
-            while (true) {
-                const result = await promise;
-                if (result.done)
-                    break;
-                yield result.value;
+        return {
+            next: () => promise,
+            return: () => {
+                cleanup();
+                return Promise.resolve({ done: true });
+            },
+            throw: (err) => {
+                cleanup();
+                return Promise.reject(err);
             }
-        }
-        finally {
-            cleanup();
-        }
+        };
     }
 }
 //# sourceMappingURL=observable.js.map

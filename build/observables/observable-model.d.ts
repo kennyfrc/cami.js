@@ -1,4 +1,4 @@
-import { TypeDefinition, InferType } from "../types/index.js";
+import { TypeDefinition, InferType } from "../types/index";
 import type { ObservableStore, StoreConfig, ActionHandler, QueryConfig, MutationConfig, StateMachineDefinition, MemoHandler, AsyncActionHandler, ActionSpec } from "./observable-store.js";
 export interface ModelConfig<TState = any> {
     state: TState;
@@ -96,12 +96,6 @@ export declare class Model<TSchema extends Record<string, TypeDefinition> = Reco
      * @returns A string representation of the expected type
      */
     private _getExpectedTypeString;
-    /**
-     * Helper function to get a human-readable string representation of actual value type
-     * @param value - The actual value
-     * @returns A string representation of the actual type
-     */
-    private _getActualTypeString;
 }
 export { Model as default };
 //# sourceMappingURL=observable-model.d.ts.map

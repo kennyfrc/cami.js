@@ -202,7 +202,7 @@ class ReactiveElement extends HTMLElement {
      *   }
      * }
      */
-    onAttributeChange(name, oldValue, newValue) {
+    onAttributeChange(_name, _oldValue, _newValue) {
         // Default implementation does nothing.
     }
     /**

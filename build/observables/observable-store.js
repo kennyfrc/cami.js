@@ -1,12 +1,14 @@
 import { Observable } from "./observable.js";
 import { DependencyTracker } from "./observable-state.js";
-import { createDraft, produceWithPatches, applyPatches, enablePatches, freeze, } from "immer";
+import { createDraft, produceWithPatches, applyPatches, enablePatches, setAutoFreeze, freeze, } from "immer";
 import { _deepClone, _deepEqual } from "../utils";
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
 import { validateType } from "../types/index.js";
 // Enable immer patches for our store implementation
 enablePatches();
+// Disable auto-freeze to prevent immer from freezing objects passed to actions
+setAutoFreeze(false);
 // =============================================================================
 // Main ObservableStore Class
 // =============================================================================
@@ -38,11 +40,13 @@ enablePatches();
 export class ObservableStore extends Observable {
     name;
     schema;
+    _uid;
     // State management
     _state;
-    _frozenState = null;
+    _frozenState = null; // Used in proxy handlers
     _isDirty = false;
     _stateVersion = 0;
+    // @ts-expect-error _proxy is used internally for reactive state tracking
     _proxy;
     previousState;
     // Core data structures
@@ -88,6 +92,7 @@ export class ObservableStore extends Observable {
         });
         this.name = options.name || "cami-store";
         this.schema = options.schema || {};
+        this._uid = this.name;
         // Use immer's draft for immutable state tracking with efficient updates
         this._state = createDraft(initialState);
         // Keep a frozen snapshot of current state for reads
@@ -121,7 +126,7 @@ export class ObservableStore extends Observable {
         }
     }
     /**
-     * Returns a frozen snapshot of the current state
+     * Returns a snapshot of the current state
      * Automatically tracks dependencies for reactive computations
      */
     get state() {
@@ -445,36 +450,6 @@ export class ObservableStore extends Observable {
         return typeof value;
     }
     /**
-     * Process the queue of actions to be dispatched
-     */
-    _processDispatchQueue() {
-        if (this.isDispatching)
-            return;
-        this.isDispatching = true;
-        try {
-            // Fast path: Special case for single queued action (common case)
-            const queue = this.dispatchQueue;
-            if (queue.length === 1) {
-                const { action, payload } = queue.shift();
-                this._dispatch(action, payload);
-                this.isDispatching = false;
-                return;
-            }
-            // Process all items in the queue
-            while (queue.length > 0) {
-                const { action, payload } = queue.shift();
-                this._dispatch(action, payload);
-            }
-        }
-        catch (error) {
-            console.error(`[Cami.js] Error in dispatch queue:`, error);
-            throw error;
-        }
-        finally {
-            this.isDispatching = false;
-        }
-    }
-    /**
      * Public API for dispatching actions
      */
     dispatch(action, payload) {
@@ -547,8 +522,9 @@ export class ObservableStore extends Observable {
             };
             try {
                 // Use immer's produceWithPatches for efficient immutable updates
-                const [nextState, patches, inversePatches] = produceWithPatches(this._state, (draft) => {
-                    reducerContext.state = draft;
+                const [nextState, patches, inversePatches] = produceWithPatches(this._state, (_draft) => {
+                    // DO NOT set draft to reducerContext.state
+                    // Doing this also causes subtle bugs that are hard to catch in tests
                     reducer(reducerContext);
                 });
                 // Fast path 6: Skip postcondition if not defined
@@ -1010,7 +986,7 @@ export class ObservableStore extends Observable {
         }
         if (error)
             throw error;
-        return data;
+        return Promise.resolve(data);
     }
     /**
      * @method invalidateQueries
@@ -1150,7 +1126,7 @@ export class ObservableStore extends Observable {
         this.mutationFunctions.set(mutationName, config);
         this.mutations[mutationName] = (...args) => this.mutate(mutationName, ...args);
     }
-    _executeMutation(mutationName, payload, mutation) {
+    _executeMutation(_mutationName, payload, mutation) {
         const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
         const previousState = _deepClone(this._state);
         const storeContext = {
@@ -1165,9 +1141,8 @@ export class ObservableStore extends Observable {
             invalidateQueries: this.invalidateQueries.bind(this),
             dispatchAsync: this.dispatchAsync.bind(this),
         };
-        let optimisticUpdate;
         if (onMutate) {
-            optimisticUpdate = onMutate(storeContext);
+            onMutate(storeContext);
         }
         let result;
         let error;
@@ -1238,7 +1213,7 @@ export class ObservableStore extends Observable {
                     // Capture the previous state before applying the transition
                     const previousState = _deepClone(state);
                     const newState = typeof event.to === "function"
-                        ? event.to({ state, payload })
+                        ? event.to({ state: state, payload })
                         : event.to;
                     // Apply the new state
                     Object.entries(newState).forEach(([key, value]) => {
@@ -1251,7 +1226,7 @@ export class ObservableStore extends Observable {
                     });
                     // Execute onEntry
                     if (event.onEntry) {
-                        event.onEntry({ state, previousState, payload });
+                        event.onEntry({ state: state, previousState, payload });
                     }
                 }
                 else {
@@ -1539,46 +1514,18 @@ export class ObservableStore extends Observable {
 // =============================================================================
 // Utility Functions
 // =============================================================================
-const deepFreeze = (value, deep = true) => {
+const deepFreeze = (value, _deep = true) => {
     if (typeof value !== "object" || value === null) {
         return value; // Return primitives as-is
     }
     return new Proxy(freeze(value, true), {
-        set(target, prop, val) {
+        set(_target, prop, _val) {
             throw new Error(`Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`);
         },
-        deleteProperty(target, prop) {
+        deleteProperty(_target, prop) {
             throw new Error(`Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`);
         },
     });
-};
-const validateState = (storedState, validationRules, context) => {
-    const { type, name } = context;
-    if (!validationRules || !validationRules.presence) {
-        __trace(`cami:${type}`, `No validation rules specified for ${type} ${name}. Using initial state.`);
-        return false; // Invalidate by default if no rules are defined
-    }
-    const { keys, values } = validationRules.presence;
-    if (keys) {
-        for (const key of keys) {
-            if (!(key in storedState)) {
-                __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Key '${key}' is missing in stored state for ${type} ${name}.`);
-                return false;
-            }
-        }
-    }
-    if (values) {
-        for (const valueObj of values) {
-            for (const [key, value] of Object.entries(valueObj)) {
-                if (storedState[key] !== value) {
-                    __trace(`cami:${type}`, `${type.charAt(0).toUpperCase() + type.slice(1)} Invalidated: Value mismatch for key '${key}' in ${type} ${name}. Expected ${value}, got ${storedState[key]}.`);
-                    return false;
-                }
-            }
-        }
-    }
-    __trace(`cami:${type}`, `No validation rules violated for ${type} ${name}.`);
-    return true;
 };
 /**
  * Registry for store singletons by name
@@ -1622,4 +1569,15 @@ export const store = (config = {}) => {
     }
     return storeInstance;
 };
+/**
+ * Clear all cached store instances (useful for testing)
+ * @internal
+ */
+export const clearStoreCache = () => {
+    storeInstances.clear();
+};
+// =============================================================================
+// Type Exports
+// =============================================================================
+// Types are already exported as interfaces above
 //# sourceMappingURL=observable-store.js.map

@@ -173,7 +173,7 @@ declare class ReactiveElement extends HTMLElement {
      *   }
      * }
      */
-    onAttributeChange(name: string, oldValue: string | null, newValue: string | null): void;
+    onAttributeChange(_name: string, _oldValue: string | null, _newValue: string | null): void;
     /**
      * Invoked when the custom element is moved to a new document.
      * This can be used to update bindings or perform re-initialization as needed when the component is adopted into a new DOM context.

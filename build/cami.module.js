@@ -1929,145 +1929,96 @@ var Observable = class {
 };
 
 // src/utils.ts
-var _deepEqual = (a2, b2, visited) => {
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var arrayIsArray = Array.isArray;
+var arrayBufferIsView = ArrayBuffer.isView;
+var sameValueZeroEqual = (a2, b2) => {
+  return a2 === b2 || a2 !== a2 && b2 !== b2;
+};
+var _deepEqual = (a2, b2) => {
   if (a2 === b2) return true;
-  if (a2 !== a2) return b2 !== b2;
-  if (a2 == null || b2 == null) return false;
-  if (typeof a2 !== "object" || typeof b2 !== "object") return false;
-  if (!visited) visited = /* @__PURE__ */ new Set();
-  if (visited.has(a2) || visited.has(b2)) {
-    return true;
+  const typeA = typeof a2;
+  if (typeA !== typeof b2) return false;
+  if (typeA !== "object") {
+    return typeA === "number" ? sameValueZeroEqual(a2, b2) : false;
   }
-  visited.add(a2);
-  visited.add(b2);
-  if (Array.isArray(a2)) {
-    if (!Array.isArray(b2) || a2.length !== b2.length) {
-      visited.delete(a2);
-      visited.delete(b2);
-      return false;
-    }
+  if (a2 == null || b2 == null) return false;
+  const constructor = a2.constructor;
+  if (constructor !== b2.constructor) {
+    if (constructor != null && b2.constructor != null) return false;
+    if (constructor == null !== (b2.constructor == null)) return false;
+  }
+  if (arrayIsArray(a2)) {
+    if (!arrayIsArray(b2) || a2.length !== b2.length) return false;
     let index2 = a2.length;
     while (index2-- > 0) {
-      if (!_deepEqual(a2[index2], b2[index2], visited)) {
-        visited.delete(a2);
-        visited.delete(b2);
-        return false;
-      }
+      if (!_deepEqual(a2[index2], b2[index2])) return false;
     }
-    visited.delete(a2);
-    visited.delete(b2);
     return true;
   }
-  if (Array.isArray(b2)) {
-    visited.delete(a2);
-    visited.delete(b2);
-    return false;
+  if (arrayIsArray(b2)) return false;
+  if (constructor === Date) {
+    return a2.getTime() === b2.getTime();
   }
-  if (a2 instanceof Date) {
-    const result = b2 instanceof Date && a2.getTime() === b2.getTime();
-    visited.delete(a2);
-    visited.delete(b2);
-    return result;
+  if (constructor === RegExp) {
+    return a2.source === b2.source && a2.flags === b2.flags;
   }
-  if (a2 instanceof RegExp) {
-    const result = b2 instanceof RegExp && a2.source === b2.source && a2.flags === b2.flags;
-    visited.delete(a2);
-    visited.delete(b2);
-    return result;
-  }
-  if (a2 instanceof Map) {
-    if (!(b2 instanceof Map) || a2.size !== b2.size) {
-      visited.delete(a2);
-      visited.delete(b2);
-      return false;
-    }
-    for (const [key, val] of a2.entries()) {
-      if (!b2.has(key) || !_deepEqual(val, b2.get(key), visited)) {
-        visited.delete(a2);
-        visited.delete(b2);
-        return false;
-      }
-    }
-    visited.delete(a2);
-    visited.delete(b2);
-    return true;
-  }
-  if (a2 instanceof Set) {
-    if (!(b2 instanceof Set) || a2.size !== b2.size) {
-      visited.delete(a2);
-      visited.delete(b2);
-      return false;
-    }
-    if (a2.size === 0) {
-      visited.delete(a2);
-      visited.delete(b2);
-      return true;
-    }
-    const aValues = Array.from(a2);
-    const bValues = Array.from(b2);
-    const matched = new Array(bValues.length).fill(false);
-    for (let i4 = 0; i4 < aValues.length; i4++) {
+  if (constructor === Map) {
+    if (a2.size !== b2.size) return false;
+    for (const [key, val] of a2) {
       let found = false;
-      for (let j2 = 0; j2 < bValues.length; j2++) {
-        if (!matched[j2] && _deepEqual(aValues[i4], bValues[j2], visited)) {
-          matched[j2] = true;
+      for (const [bKey, bVal] of b2) {
+        if (_deepEqual(key, bKey)) {
+          if (!_deepEqual(val, bVal)) return false;
           found = true;
           break;
         }
       }
-      if (!found) {
-        visited.delete(a2);
-        visited.delete(b2);
-        return false;
-      }
+      if (!found) return false;
     }
-    visited.delete(a2);
-    visited.delete(b2);
     return true;
   }
-  if (ArrayBuffer.isView(a2) && !(a2 instanceof DataView)) {
+  if (constructor === Set) {
+    if (a2.size !== b2.size) return false;
+    if (a2.size === 0) return true;
+    const aValues = Array.from(a2);
+    const bValues = Array.from(b2);
+    const matched = new Array(bValues.length).fill(false);
+    let aIndex = aValues.length;
+    while (aIndex-- > 0) {
+      let found = false;
+      let bIndex = bValues.length;
+      while (bIndex-- > 0) {
+        if (!matched[bIndex] && _deepEqual(aValues[aIndex], bValues[bIndex])) {
+          matched[bIndex] = true;
+          found = true;
+          break;
+        }
+      }
+      if (!found) return false;
+    }
+    return true;
+  }
+  if (arrayBufferIsView(a2) && !(a2 instanceof DataView)) {
     const typedA = a2;
     const typedB = b2;
-    if (!ArrayBuffer.isView(b2) || typedA.length !== typedB.length || a2.constructor !== b2.constructor) {
-      visited.delete(a2);
-      visited.delete(b2);
-      return false;
-    }
+    if (!arrayBufferIsView(b2) || typedA.length !== typedB.length) return false;
     let index2 = typedA.length;
     while (index2-- > 0) {
-      if (typedA[index2] !== typedB[index2]) {
-        visited.delete(a2);
-        visited.delete(b2);
-        return false;
-      }
+      if (typedA[index2] !== typedB[index2]) return false;
     }
-    visited.delete(a2);
-    visited.delete(b2);
     return true;
   }
-  if (a2.constructor !== b2.constructor) {
-    visited.delete(a2);
-    visited.delete(b2);
-    return false;
-  }
-  const keys = Object.keys(a2);
-  if (keys.length !== Object.keys(b2).length) {
-    visited.delete(a2);
-    visited.delete(b2);
-    return false;
-  }
-  const hasOwn = Object.prototype.hasOwnProperty;
-  let index = keys.length;
+  const aKeys = Object.keys(a2);
+  const bKeys = Object.keys(b2);
+  if (aKeys.length !== bKeys.length) return false;
+  let index = aKeys.length;
   while (index-- > 0) {
-    const key = keys[index];
-    if (!hasOwn.call(b2, key) || !_deepEqual(a2[key], b2[key], visited)) {
-      visited.delete(a2);
-      visited.delete(b2);
+    const key = aKeys[index];
+    if (!hasOwnProperty.call(b2, key) || !_deepEqual(a2[key], b2[key])) {
       return false;
     }
   }
-  visited.delete(a2);
-  visited.delete(b2);
   return true;
 };
 var _deepMerge = (target, source) => {
