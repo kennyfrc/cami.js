@@ -1,3 +1,6 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import '../src/counter.js';
+
 describe("Integers are Observable - CounterElement", () => {
   let counter;
 

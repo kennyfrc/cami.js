@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+
 const { store } = cami;
 
 const initialState = {
@@ -12,6 +14,7 @@ const initialState = {
 const userStore = store({
   state: initialState,
   name: "user-store-test",
+  localStorage: false,
 });
 
 userStore.defineAction("setUser", ({ state, payload }) => {

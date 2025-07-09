@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { blogStore } from "../src/blog.js";
 
 describe("Querying the API & Mutating Data - BlogComponent", () => {
@@ -5,8 +6,8 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
   let fetchSpy;
 
   beforeEach(async function () {
-    fetchSpy = spyOn(window, "fetch");
-    fetchSpy.and.returnValue(
+    fetchSpy = vi.spyOn(window, "fetch");
+    fetchSpy.mockReturnValue(
       Promise.resolve({
         json: () => Promise.resolve([{ id: 1, title: "Test Post" }]),
       })
@@ -27,8 +28,9 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
     if (blogElement && blogElement.parentNode) {
       blogElement.parentNode.removeChild(blogElement);
     }
-    // Reset the store state
-    // blogStore.reset();
+    // Reset the store state using the action
+    blogStore.dispatch("setPosts", []);
+    vi.restoreAllMocks();
   });
 
   it("should fetch data from the API", async function () {
@@ -42,9 +44,8 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
       body: "This is a new post.",
       userId: 1,
     };
-    const optimisticPost = { ...newPost, id: expect.any(Number) };
 
-    fetchSpy.and.returnValue(
+    fetchSpy.mockReturnValue(
       Promise.resolve({
         json: () => Promise.resolve({ ...newPost, id: 2 }),
       })
@@ -52,7 +53,20 @@ describe("Querying the API & Mutating Data - BlogComponent", () => {
 
     await blogStore.mutate("createPost", newPost);
 
-    expect(blogStore.getState().posts).toContain(optimisticPost);
+    const posts = blogStore.getState().posts;
+    
+    // Check that a new post was added optimistically
+    expect(posts).toHaveLength(1);
+    
+    // Check that the optimistic post has the correct properties
+    const optimisticPost = posts[0];
+    
+    expect(optimisticPost).toBeDefined();
+    expect(optimisticPost.id).toEqual(expect.any(Number));
+    expect(optimisticPost.title).toBe("New Post");
+    expect(optimisticPost.body).toBe("This is a new post.");
+    expect(optimisticPost.userId).toBe(1);
+
     expect(fetchSpy).toHaveBeenCalledWith("https://api.camijs.com/posts", {
       method: "POST",
       body: JSON.stringify(newPost),

@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+
 const { ObservableState, effect } = cami;
 
 describe("ObservableState", function () {

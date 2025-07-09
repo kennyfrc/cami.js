@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
+
 const { createURLStore } = cami;
 
 describe('URL Store', () => {
@@ -28,6 +30,7 @@ describe('URL Store', () => {
       testDiv.parentNode.removeChild(testDiv);
     }
     testDiv = null;
+    vi.restoreAllMocks();
   });
 
   it('should initialize with the correct initial state', () => {
@@ -191,8 +194,6 @@ describe('URL Store', () => {
       expect(urlStore.matches({ hashPaths: ['users', '123', 'extra'] })).toBe(false);
     });
   });
-<<<<<<< HEAD
-=======
   
   describe('URL Store with ObservableStore Integration', () => {
     let urlStore;
@@ -354,6 +355,7 @@ describe('URL Store Resource Loading', () => {
       testDiv.parentNode.removeChild(testDiv);
     }
     testDiv = null;
+    vi.restoreAllMocks();
   });
 
   it('should load resources before completing navigation', (done) => {
@@ -510,7 +512,7 @@ describe('URL Store Resource Loading', () => {
     };
     
     // Spy on console.error to catch the error
-    spyOn(console, 'error');
+    vi.spyOn(console, 'error');
     
     // Register resource and route
     urlStore.registerResourceLoader('failingResource', failingResourceLoader);
@@ -528,5 +530,4 @@ describe('URL Store Resource Loading', () => {
     // Start navigation
     urlStore.navigate({ path: 'error-route' });
   });
->>>>>>> session/vitest
 });

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { registrationStore } from "../src/registration.js";
 
 describe("RegistrationFormElement - In Memory Storage", () => {

@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 // Import from cami
 const { store, ObservableState, ReactiveElement, html } = cami;
 

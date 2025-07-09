@@ -1,3 +1,6 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
+import '../src/taskManager.js';
+
 describe("Arrays Should be Observable - TaskManagerElement", () => {
   let taskManager;
 

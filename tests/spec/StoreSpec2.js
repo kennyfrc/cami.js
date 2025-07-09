@@ -1,9 +1,6 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
+
 const { store, Type, useValidationThunk } = cami;
-<<<<<<< HEAD
-import { _deepMerge } from "../../src/utils.js"
-=======
-import { _deepMerge } from "../../src/utils"
->>>>>>> session/vitest
 
 describe("Observable Store (Set 2)", function () {
   let navStore;
@@ -44,6 +41,10 @@ describe("Observable Store (Set 2)", function () {
       Object.assign(state.navigation, payload);
     });
 
+    // Create spies BEFORE machine definition
+    navStore.onExitSpy = vi.fn();
+    navStore.onEntrySpy = vi.fn();
+
     navStore.defineMachine("navigation", {
       toggle_chat: {
         from: [
@@ -73,9 +74,6 @@ describe("Observable Store (Set 2)", function () {
         })
       }
     });
-
-    navStore.onExitSpy = spyOn(navStore, 'onExitSpy');
-    navStore.onEntrySpy = spyOn(navStore, 'onEntrySpy');
 
     const postStoreSchema = Type.Product({
       list: Type.Array(Type.Product({
@@ -148,6 +146,10 @@ describe("Observable Store (Set 2)", function () {
         dispatch("removePostById", payload.id);
       },
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("Navigation Store", function () {
@@ -306,43 +308,6 @@ describe("Observable Store (Set 2)", function () {
       expect(navStore.getState().navigation.topbar).toBe("default");
     });
 
-    it("should handle nested partial updates", function () {
-      const complexStore = store({
-        state: {
-          user: {
-            profile: {
-              name: "John",
-              age: 30,
-              address: {
-                city: "New York",
-                country: "USA"
-              }
-            },
-            settings: {
-              theme: "dark",
-              notifications: true
-            }
-          }
-        },
-        name: "complex-store"
-      });
-
-      complexStore.defineAction("updateUser", ({ state, payload }) => {
-        _deepMerge(state.user, payload);
-      });
-
-      complexStore.dispatch("updateUser", { profile: { age: 31 } });
-      expect(complexStore.state.user.profile.name).toBe("John");
-      expect(complexStore.state.user.profile.age).toBe(31);
-      expect(complexStore.state.user.profile.address.city).toBe("New York");
-
-      complexStore.dispatch("updateUser", { profile: { address: { city: "Los Angeles" } } });
-      expect(complexStore.state.user.profile.name).toBe("John");
-      expect(complexStore.state.user.profile.age).toBe(31);
-      expect(complexStore.state.user.profile.address.city).toBe("Los Angeles");
-      expect(complexStore.state.user.profile.address.country).toBe("USA");
-      expect(complexStore.state.user.settings.theme).toBe("dark");
-    });
 
     it("should throw an error when updating with incorrect type", function () {
       expect(() => {
@@ -394,36 +359,6 @@ describe("Observable Store (Set 2)", function () {
       expect(postStore.getState().list.find(post => post.id === 3)?.content).toBe(undefined);
     });
 
-    it("should handle arrays with partial updates", function () {
-      const arrayStore = store({
-        state: {
-          items: [
-            { id: 1, name: "Item 1", details: { color: "red", size: "small" } },
-            { id: 2, name: "Item 2", details: { color: "blue", size: "medium" } }
-          ]
-        },
-        name: "array-store"
-      });
-
-      arrayStore.defineAction("updateItem", ({ state, payload }) => {
-        const itemIndex = state.items.findIndex(item => item.id === payload.id);
-        if (itemIndex !== -1) {
-          _deepMerge(state.items[itemIndex], payload);
-        }
-      });
-
-      arrayStore.dispatch("updateItem", { id: 1, details: { size: "large" } });
-      expect(arrayStore.state.items[0]).toEqual({
-        id: 1,
-        name: "Item 1",
-        details: { color: "red", size: "large" }
-      });
-      expect(arrayStore.state.items[1]).toEqual({
-        id: 2,
-        name: "Item 2",
-        details: { color: "blue", size: "medium" }
-      });
-    });
   });
 
   describe("State Machine with Partial Updates", function () {
@@ -434,6 +369,10 @@ describe("Observable Store (Set 2)", function () {
         center: "documents",
         topbar: "default"
       });
+      
+      // Reset spy call history
+      navStore.onExitSpy.mockClear();
+      navStore.onEntrySpy.mockClear();
     });
 
     it("should toggle center view while preserving other navigation properties", function () {

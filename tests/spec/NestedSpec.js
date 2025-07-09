@@ -1,3 +1,6 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import '../src/nested.js';
+
 describe("Objects are Observable - UserFormElement", () => {
   let userFormElement;
 

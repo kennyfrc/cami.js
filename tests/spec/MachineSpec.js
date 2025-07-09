@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { trafficLightStore } from "../src/trafficLight.js";
 
 describe("Traffic Light State Machine", () => {

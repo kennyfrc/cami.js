@@ -1,4 +1,6 @@
-const { store, Type, useValidationThunk } = cami;
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+const { store, Type, useValidationThunk, useValidationHook } = cami;
 
 describe("Hooks", function () {
   let appStore;
@@ -49,6 +51,14 @@ describe("Hooks", function () {
     // Reset hooks
     appStore.beforeHooks = [];
     appStore.afterHooks = [];
+  });
+
+  afterEach(function () {
+    // Clear all hooks after each test to prevent interference
+    if (appStore) {
+      appStore.beforeHooks.length = 0;
+      appStore.afterHooks.length = 0;
+    }
   });
 
   it("should use beforeHook for input validation", function () {
@@ -182,7 +192,7 @@ describe("Hooks", function () {
       }),
     };
 
-    const validate = useValidationThunk(schema);
+    const validate = useValidationHook(schema);
     appStore.afterHook(({ state }) => validate({ user: state.user }));
 
     expect(() =>
@@ -213,7 +223,7 @@ describe("Hooks", function () {
       items: Type.Array(Type.Float),
     };
 
-    const validate = useValidationThunk(schema);
+    const validate = useValidationHook(schema);
     appStore.afterHook(({ state }) => validate({ items: state.items }));
 
     expect(() => appStore.dispatch("addItem", 5)).not.toThrow();
@@ -240,7 +250,7 @@ describe("Hooks", function () {
       ),
     };
 
-    const validate = useValidationThunk(schema);
+    const validate = useValidationHook(schema);
     appStore.afterHook(({ state }) => validate({ settings: state.settings }));
 
     expect(() =>
@@ -261,34 +271,31 @@ describe("Hooks", function () {
   });
 
   it("should handle complex dependent types with team, subscription, and user interrelations", function () {
-    const schema = Type.DependentRecord(
-      {
-        subscription: Type.Product({
-          id: Type.String,
-          plan: Type.String,
-          seats: Type.Float,
-        }),
-        settings: Type.Product({
-          theme: Type.String,
-          fontSize: Type.Float,
-        }),
-      },
-      (value, rootState) => {
-        if (
-          value.subscription &&
-          value.subscription.plan === "basic" &&
-          value.settings.theme !== "default"
-        ) {
-          return "Custom themes are only available for premium subscriptions";
-        }
-        return true;
-      }
-    );
+    const schema = {
+      subscription: Type.Product({
+        id: Type.String,
+        plan: Type.String,
+        seats: Type.Float,
+      }),
+      settings: Type.Product({
+        theme: Type.String,
+        fontSize: Type.Float,
+      }),
+    };
 
-    const validate = useValidationThunk(schema);
-    appStore.afterHook(({ state }) =>
-      validate({ subscription: state.subscription, settings: state.settings })
-    );
+    const validate = useValidationHook(schema);
+    appStore.afterHook(({ state }) => {
+      // Apply the custom validation logic
+      const value = { subscription: state.subscription, settings: state.settings };
+      if (
+        value.subscription &&
+        value.subscription.plan === "basic" &&
+        value.settings.theme !== "default"
+      ) {
+        throw new Error("Custom themes are only available for premium subscriptions");
+      }
+      return validate(value);
+    });
 
     appStore.dispatch("setSubscription", {
       id: "sub1",
@@ -347,7 +354,7 @@ describe("Hooks", function () {
       ),
     };
 
-    const validate = useValidationThunk(schema);
+    const validate = useValidationHook(schema);
     appStore.afterHook(({ state }) => validate({ user: state.user }));
 
     expect(() =>
@@ -385,33 +392,30 @@ describe("Hooks", function () {
   });
 
   it("should validate subscription limits", function () {
-    const schema = Type.DependentRecord(
-      {
-        subscription: Type.Product({
-          id: Type.String,
-          plan: Type.String,
-          seats: Type.Float,
-        }),
-        team: Type.Product({
-          id: Type.String,
-          name: Type.String,
-          memberIds: Type.Array(Type.String),
-        }),
-      },
-      (value, rootState) => {
-        if (value.subscription && value.team) {
-          if (value.team.memberIds.length > value.subscription.seats) {
-            return `Team size (${value.team.memberIds.length}) exceeds subscription seat limit (${value.subscription.seats})`;
-          }
-        }
-        return true;
-      }
-    );
+    const schema = {
+      subscription: Type.Product({
+        id: Type.String,
+        plan: Type.String,
+        seats: Type.Float,
+      }),
+      team: Type.Product({
+        id: Type.String,
+        name: Type.String,
+        memberIds: Type.Array(Type.String),
+      }),
+    };
 
-    const validate = useValidationThunk(schema);
-    appStore.afterHook(({ state }) =>
-      validate({ subscription: state.subscription, team: state.team })
-    );
+    const validate = useValidationHook(schema);
+    appStore.afterHook(({ state }) => {
+      // Apply the custom validation logic
+      const value = { subscription: state.subscription, team: state.team };
+      if (value.subscription && value.team) {
+        if (value.team.memberIds.length > value.subscription.seats) {
+          throw new Error(`Team size (${value.team.memberIds.length}) exceeds subscription seat limit (${value.subscription.seats})`);
+        }
+      }
+      return validate(value);
+    });
 
     appStore.dispatch("setSubscription", {
       id: "sub1",

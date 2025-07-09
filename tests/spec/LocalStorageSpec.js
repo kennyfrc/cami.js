@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
+
 const { store, Type, createLocalStorage, persistToLocalStorageThunk } = cami;
 
 describe("LocalStorage Adapter", function () {

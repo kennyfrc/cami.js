@@ -1,3 +1,5 @@
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
+
 const { store } = cami;
 
 describe("Observable Store (Set 1)", function () {
@@ -9,7 +11,7 @@ describe("Observable Store (Set 1)", function () {
       createStore = () =>
         store({
           state: { count: 0, nested: { value: 10 }, list: [] },
-          name: `test-store-${Date.now()}`,
+          name: `test-store-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           localStorage: false,
         });
     });
@@ -88,18 +90,14 @@ describe("Observable Store (Set 1)", function () {
     });
 
     describe("Complex State Transformations", function () {
-      let appStore;
-
-      beforeEach(function () {
+      it("should handle the first complex state transformation", function () {
         appStore = createStore();
         appStore.defineAction("complexUpdate", ({ state, payload }) => {
           state.count *= 2;
           state.nested.value += payload;
           state.list = state.list.concat([state.count, state.nested.value]);
         });
-      });
-
-      it("should handle the first complex state transformation", function () {
+        
         appStore.dispatch("complexUpdate", 5);
         expect(appStore.getState().count).toBe(0);
         expect(appStore.getState().nested.value).toBe(15);
@@ -107,6 +105,13 @@ describe("Observable Store (Set 1)", function () {
       });
 
       it("should handle the second complex state transformation", function () {
+        appStore = createStore();
+        appStore.defineAction("complexUpdate", ({ state, payload }) => {
+          state.count *= 2;
+          state.nested.value += payload;
+          state.list = state.list.concat([state.count, state.nested.value]);
+        });
+        
         // First dispatch to set up the initial state
         appStore.dispatch("complexUpdate", 5);
 
@@ -127,7 +132,7 @@ describe("Observable Store (Set 1)", function () {
       createStore = () =>
         store({
           state: { count: 0, nested: { value: 10 }, list: [] },
-          name: `test-store-${Date.now()}`,
+          name: `test-store-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           localStorage: false,
         });
       appStore = createStore();
@@ -139,6 +144,12 @@ describe("Observable Store (Set 1)", function () {
         }
         state.list.push(payload.newItem);
       });
+    });
+
+    afterEach(function () {
+      // Ensure proper cleanup
+      appStore = null;
+      createStore = null;
     });
 
     it("should rollback state changes when an action throws an error", function () {
