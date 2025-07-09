@@ -805,7 +805,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         const [nextState, patches, inversePatches] = produceWithPatches(
           this._state,
           (_draft) => {
-            // DO NOT set draft to reducerContext.state - this matches JS implementation
+            // DO NOT set draft to reducerContext.state
+            // Doing this also causes subtle bugs that are hard to catch in tests
             reducer(reducerContext);
           }
         );
