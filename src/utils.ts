@@ -22,11 +22,11 @@ declare global {
  * @param b - Second value to compare.
  * @returns True if the values are deeply equal, false otherwise.
  */
-const _deepEqual = (a: any, b: any): boolean => {
+const _deepEqual = (a: any, b: any, visited?: Set<any>): boolean => {
   // Quick reference check (handles primitives and identical objects)
   if (a === b) return true;
   
-  // Handle NaN equality
+  // Handle NaN equality (sameValueZero semantics)
   if (a !== a) return b !== b;
   
   // Handle null/undefined - at this point we know they're not ===
@@ -35,62 +35,123 @@ const _deepEqual = (a: any, b: any): boolean => {
   // Both must be objects at this point
   if (typeof a !== 'object' || typeof b !== 'object') return false;
 
+  // Initialize visited Set for circular reference detection
+  if (!visited) visited = new Set();
+  
+  // Check for circular references
+  if (visited.has(a) || visited.has(b)) {
+    return true; // Assume equal for circular structures
+  }
+  
+  // Mark objects as visited
+  visited.add(a);
+  visited.add(b);
+
   // Fast path for arrays - most common use case after primitives
   if (Array.isArray(a)) {
-    if (!Array.isArray(b) || a.length !== b.length) return false;
-    
-    // Forward iteration seems faster in modern JS engines for arrays
-    for (let i = 0; i < a.length; i++) {
-      if (!_deepEqual(a[i], b[i])) return false;
+    if (!Array.isArray(b) || a.length !== b.length) {
+      visited.delete(a);
+      visited.delete(b);
+      return false;
     }
+    
+    // Use decrementing while loop for better performance
+    let index = a.length;
+    while (index-- > 0) {
+      if (!_deepEqual(a[index], b[index], visited)) {
+        visited.delete(a);
+        visited.delete(b);
+        return false;
+      }
+    }
+    visited.delete(a);
+    visited.delete(b);
     return true;
   }
   
   // If only one is an array, they're not equal
-  if (Array.isArray(b)) return false;
+  if (Array.isArray(b)) {
+    visited.delete(a);
+    visited.delete(b);
+    return false;
+  }
   
   // Date comparison - convert to primitive for speed
   if (a instanceof Date) {
-    return b instanceof Date && a.getTime() === b.getTime();
+    const result = b instanceof Date && a.getTime() === b.getTime();
+    visited.delete(a);
+    visited.delete(b);
+    return result;
   }
   
   // RegExp comparison - compare properties directly
   if (a instanceof RegExp) {
-    return b instanceof RegExp && a.source === b.source && a.flags === b.flags;
+    const result = b instanceof RegExp && a.source === b.source && a.flags === b.flags;
+    visited.delete(a);
+    visited.delete(b);
+    return result;
   }
   
   // Map comparison
   if (a instanceof Map) {
-    if (!(b instanceof Map) || a.size !== b.size) return false;
+    if (!(b instanceof Map) || a.size !== b.size) {
+      visited.delete(a);
+      visited.delete(b);
+      return false;
+    }
     
     for (const [key, val] of a.entries()) {
       // Maps require a lookup and then a deep comparison
-      if (!b.has(key) || !_deepEqual(val, b.get(key))) return false;
+      if (!b.has(key) || !_deepEqual(val, b.get(key), visited)) {
+        visited.delete(a);
+        visited.delete(b);
+        return false;
+      }
     }
+    visited.delete(a);
+    visited.delete(b);
     return true;
   }
   
-  // Set comparison
+  // Optimized Set comparison
   if (a instanceof Set) {
-    if (!(b instanceof Set) || a.size !== b.size) return false;
+    if (!(b instanceof Set) || a.size !== b.size) {
+      visited.delete(a);
+      visited.delete(b);
+      return false;
+    }
     
-    // Due to the structure of Sets, we need to do a full comparison
-    // Convert to arrays for easier comparison
+    // If both sets are empty, they're equal
+    if (a.size === 0) {
+      visited.delete(a);
+      visited.delete(b);
+      return true;
+    }
+    
+    // For primitive values, we can use a more efficient approach
     const aValues = Array.from(a);
     const bValues = Array.from(b);
     
-    // A simple approach for small sets - not efficient for large sets
-    // but works for most common use cases
+    // Track which values in b have been matched
+    const matched = new Array(bValues.length).fill(false);
+    
     for (let i = 0; i < aValues.length; i++) {
       let found = false;
       for (let j = 0; j < bValues.length; j++) {
-        if (_deepEqual(aValues[i], bValues[j])) {
+        if (!matched[j] && _deepEqual(aValues[i], bValues[j], visited)) {
+          matched[j] = true;
           found = true;
           break;
         }
       }
-      if (!found) return false;
+      if (!found) {
+        visited.delete(a);
+        visited.delete(b);
+        return false;
+      }
     }
+    visited.delete(a);
+    visited.delete(b);
     return true;
   }
   
@@ -99,36 +160,58 @@ const _deepEqual = (a: any, b: any): boolean => {
     const typedA = a as Uint8Array;
     const typedB = b as Uint8Array;
     if (!ArrayBuffer.isView(b) || typedA.length !== typedB.length || a.constructor !== b.constructor) {
+      visited.delete(a);
+      visited.delete(b);
       return false;
     }
     
-    // Fast direct comparison of TypedArray values
-    for (let i = 0; i < typedA.length; i++) {
-      if (typedA[i] !== typedB[i]) return false;
+    // Fast direct comparison of TypedArray values using decrementing loop
+    let index = typedA.length;
+    while (index-- > 0) {
+      if (typedA[index] !== typedB[index]) {
+        visited.delete(a);
+        visited.delete(b);
+        return false;
+      }
     }
+    visited.delete(a);
+    visited.delete(b);
     return true;
   }
   
   // Different constructors mean different types
-  if (a.constructor !== b.constructor) return false;
+  if (a.constructor !== b.constructor) {
+    visited.delete(a);
+    visited.delete(b);
+    return false;
+  }
   
   // Get keys and compare lengths - this quickly detects differences
   const keys = Object.keys(a);
-  if (keys.length !== Object.keys(b).length) return false;
+  if (keys.length !== Object.keys(b).length) {
+    visited.delete(a);
+    visited.delete(b);
+    return false;
+  }
   
   // Use direct property access and single iteration for maximum speed
   const hasOwn = Object.prototype.hasOwnProperty;
   
-  // Check key/value pairs
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
+  // Check key/value pairs using decrementing loop
+  let index = keys.length;
+  while (index-- > 0) {
+    const key = keys[index];
     
     // First check if property exists, then compare values
-    if (!hasOwn.call(b, key) || !_deepEqual(a[key], b[key])) {
+    if (!hasOwn.call(b, key) || !_deepEqual(a[key], b[key], visited)) {
+      visited.delete(a);
+      visited.delete(b);
       return false;
     }
   }
   
+  visited.delete(a);
+  visited.delete(b);
   return true;
 };
 

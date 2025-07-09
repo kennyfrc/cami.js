@@ -76,11 +76,14 @@
   "unpkg": "build/cami.cdn.js",
   "dependencies": {
     "benchmark": "^2.1.4",
+    "fast-copy": "^3.0.2",
     "fast-deep-equal": "^3.1.3",
+    "fast-equals": "^5.2.2",
     "idb": "^8.0.0",
     "immer": "^10.1.1",
     "lit-html": "^3.3.0",
     "lodash.clonedeep": "^4.5.0",
+    "lodash.isequal": "^4.5.0",
     "rfdc": "^1.4.1"
   }
 }
