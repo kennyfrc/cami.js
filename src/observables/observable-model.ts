@@ -1,6 +1,16 @@
 import { store } from "./observable-store.js";
 import { Type, validateType, TypeDefinition, InferType } from "../types/index";
-import type { ObservableStore, StoreConfig, ActionHandler, QueryConfig, MutationConfig, StateMachineDefinition, MemoHandler, AsyncActionHandler, ActionSpec } from "./observable-store.js";
+import type {
+  ObservableStore,
+  StoreConfig,
+  ActionHandler,
+  QueryConfig,
+  MutationConfig,
+  StateMachineDefinition,
+  MemoHandler,
+  AsyncActionHandler,
+  ActionSpec,
+} from "./observable-store.js";
 
 // =============================================================================
 // Type Definitions for Model Configuration
@@ -18,7 +28,12 @@ export interface ModelConfig<TState = any> {
   options?: StoreConfig<TState>;
 }
 
-export interface ModelConstructorOptions<TSchema extends Record<string, TypeDefinition> = Record<string, TypeDefinition>> {
+export interface ModelConstructorOptions<
+  TSchema extends Record<string, TypeDefinition> = Record<
+    string,
+    TypeDefinition
+  >,
+> {
   name?: string;
   properties?: TSchema;
 }
@@ -53,9 +68,9 @@ function generateRandomName(): string {
 
 /**
  * Represents a Model with schema-based validation in the application.
- * 
+ *
  * @template TSchema - The schema definition for the model
- * 
+ *
  * @example
  * ```typescript
  * const Department = Type.Model("Department", {
@@ -93,11 +108,19 @@ function generateRandomName(): string {
  * await store.dispatch('addEmployee', { id: 1, name: 'John Doe', department: 1 });
  * ```
  */
-export class Model<TSchema extends Record<string, TypeDefinition> = Record<string, TypeDefinition>> {
+export class Model<
+  TSchema extends Record<string, TypeDefinition> = Record<
+    string,
+    TypeDefinition
+  >,
+> {
   public readonly name: string;
   public readonly schema: TSchema;
 
-  constructor({ name = generateRandomName(), properties = {} as TSchema }: ModelConstructorOptions<TSchema> = {}) {
+  constructor({
+    name = generateRandomName(),
+    properties = {} as TSchema,
+  }: ModelConstructorOptions<TSchema> = {}) {
     this.name = name;
     this.schema = properties;
   }
@@ -108,7 +131,7 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
    * @returns An ObservableStore instance configured with this model's schema
    */
   create<TState extends InferModelState<TSchema>>(
-    config: ModelConfig<TState>
+    config: ModelConfig<TState>,
   ): ObservableStore<TState> {
     const {
       state,
@@ -159,10 +182,10 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
       modelStore.defineQuery(queryName, {
         queryKey: queryConfig.queryKey,
         queryFn: queryConfig.queryFn,
-        onFetch: queryConfig.onFetch,
-        onError: queryConfig.onError,
-        onSuccess: queryConfig.onSuccess,
-        onSettled: queryConfig.onSettled,
+        ...(queryConfig.onFetch && { onFetch: queryConfig.onFetch }),
+        ...(queryConfig.onError && { onError: queryConfig.onError }),
+        ...(queryConfig.onSuccess && { onSuccess: queryConfig.onSuccess }),
+        ...(queryConfig.onSettled && { onSettled: queryConfig.onSettled }),
       });
     });
 
@@ -170,10 +193,10 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
     Object.entries(mutations).forEach(([mutationName, mutationConfig]) => {
       modelStore.defineMutation(mutationName, {
         mutationFn: mutationConfig.mutationFn,
-        onMutate: mutationConfig.onMutate,
-        onSuccess: mutationConfig.onSuccess,
-        onError: mutationConfig.onError,
-        onSettled: mutationConfig.onSettled,
+        ...(mutationConfig.onMutate && { onMutate: mutationConfig.onMutate }),
+        ...(mutationConfig.onSuccess && { onSuccess: mutationConfig.onSuccess }),
+        ...(mutationConfig.onError && { onError: mutationConfig.onError }),
+        ...(mutationConfig.onSettled && { onSettled: mutationConfig.onSettled }),
       });
     });
 
@@ -195,16 +218,17 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
    * @param state - The state object to validate
    * @throws {Error} If validation fails
    */
-  validateState(state: any): void {
+  validateState(state: unknown): void {
     const errors: string[] = [];
-    
+    const recordState = state as Record<string, unknown>;
+
     Object.entries(this.schema).forEach(([key, type]) => {
-      if (!(key in state)) {
+      if (!(key in recordState)) {
         const expectedType = this._getExpectedTypeString(type);
         errors.push(`Missing property: ${key}\nExpected type: ${expectedType}`);
       } else {
         try {
-          this.validateItem(state[key], type, [key], state);
+          this.validateItem(recordState[key], type, [key], state);
         } catch (error) {
           errors.push((error as Error).message);
         }
@@ -225,11 +249,17 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
    * @param path - The current path in the object for error reporting
    * @param rootState - The root state object for reference validation
    */
-  validateItem(value: any, type: TypeDefinition, path: string[], rootState: any): void {
-    const getTypeCategory = (type: TypeDefinition, value: any): string => {
+  validateItem(
+    value: unknown,
+    type: TypeDefinition,
+    path: string[],
+    rootState: unknown,
+  ): void {
+    const getTypeCategory = (type: TypeDefinition, value: unknown): string => {
       if (typeof type === "object" && type !== null && "type" in type) {
         if (type.type === "optional") return "optional";
-        if (type.type === "object" && typeof value === "object") return "object";
+        if (type.type === "object" && typeof value === "object")
+          return "object";
       }
       return "other";
     };
@@ -240,30 +270,46 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
       switch (typeCategory) {
         case "optional":
           if (value === undefined || value === null) return;
-          const optionalType = type as { type: "optional"; optional: TypeDefinition };
-          return this.validateItem(value, optionalType.optional, path, rootState);
-        
+          const optionalType = type as {
+            type: "optional";
+            optional: TypeDefinition;
+          };
+          return this.validateItem(
+            value,
+            optionalType.optional,
+            path,
+            rootState,
+          );
+
         case "object":
-          const objectType = type as { type: "object"; schema: Record<string, TypeDefinition> };
+          const objectType = type as {
+            type: "object";
+            schema: Record<string, TypeDefinition>;
+          };
+          const objectValue = value as Record<string, unknown>;
           Object.entries(objectType.schema).forEach(([key, subType]) => {
-            const isOptional = typeof subType === "object" && subType !== null && "type" in subType && subType.type === "optional";
-            
-            if (!isOptional && !(key in value)) {
+            const isOptional =
+              typeof subType === "object" &&
+              subType !== null &&
+              "type" in subType &&
+              subType.type === "optional";
+
+            if (!isOptional && !(key in objectValue)) {
               throw new Error(
                 `Missing required property: ${[...path, key].join(".")}`,
               );
             }
-            
-            if (key in value) {
-              this.validateItem(value[key], subType, [...path, key], rootState);
+
+            if (key in objectValue) {
+              this.validateItem(objectValue[key], subType, [...path, key], rootState);
             }
           });
           break;
-        
+
         case "other":
           validateType(value, type, path, rootState);
           break;
-        
+
         default:
           throw new Error(`Unexpected type category: ${typeCategory}`);
       }
@@ -285,7 +331,8 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
       if (typeof type === "string") return "string";
       if (typeof type === "object" && type !== null) {
         if ("type" in type) {
-          if (type.type === "object" && "schema" in type) return "objectWithSchema";
+          if (type.type === "object" && "schema" in type)
+            return "objectWithSchema";
           if (type.type === "array" && "itemType" in type) return "array";
           if (type.type === "enum" && "values" in type) return "enum";
           if (type.type === "optional") return "optional";
@@ -301,47 +348,52 @@ export class Model<TSchema extends Record<string, TypeDefinition> = Record<strin
     switch (typeCategory) {
       case "string":
         return type as string;
-      
+
       case "objectWithSchema":
-        const objectType = type as { type: "object"; schema: Record<string, TypeDefinition> };
+        const objectType = type as {
+          type: "object";
+          schema: Record<string, TypeDefinition>;
+        };
         return `Object(${Object.entries(objectType.schema)
           .map(([k, v]) => `${k}: ${this._getExpectedTypeString(v)}`)
           .join(", ")})`;
-      
+
       case "array":
         const arrayType = type as { type: "array"; itemType: TypeDefinition };
         return `Array(${this._getExpectedTypeString(arrayType.itemType)})`;
-      
+
       case "enum":
-        const enumType = type as { type: "enum"; values: any[] };
+        const enumType = type as { type: "enum"; values: unknown[] };
         return `Enum(${enumType.values.join(" | ")})`;
-      
+
       case "optional":
-        const optionalType = type as { type: "optional"; optional: TypeDefinition };
+        const optionalType = type as {
+          type: "optional";
+          optional: TypeDefinition;
+        };
         return `Optional(${this._getExpectedTypeString(optionalType.optional)})`;
-      
+
       case "simpleType":
         const simpleType = type as { type: string };
         return simpleType.type;
-      
+
       case "typeConstructor":
         // Look for the type in the Type object
         for (const [key, value] of Object.entries(Type)) {
           if (
             value === type ||
-            (typeof value === "function" && type instanceof (value as any))
+            (typeof value === "function" && type instanceof (value as unknown as new (...args: unknown[]) => unknown))
           ) {
             return key;
           }
         }
         return "Unknown";
-      
+
       case "unknown":
       default:
         return "Unknown";
     }
   }
-
 }
 
 // =============================================================================

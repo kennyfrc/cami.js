@@ -9,9 +9,9 @@
  * @module cami
  */
 import { html, svg } from "lit-html";
-import { unsafeHTML } from "lit-html/directives/unsafe-html.js"
-import { keyed } from "lit-html/directives/keyed.js"
-import { repeat } from "lit-html/directives/repeat.js"
+import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
+import { keyed } from "lit-html/directives/keyed.js";
+import { repeat } from "lit-html/directives/repeat.js";
 import { enableMapSet } from "immer";
 enableMapSet();
 import { ReactiveElement } from "./reactive-element";
@@ -27,7 +27,7 @@ import { ObservableState, effect } from "./observables/observable-state";
 import { __config } from "./config";
 import { __trace } from "./trace";
 import { Type, useValidationHook, useValidationThunk } from "./types/index";
-import { createURLStore } from "./observables/url-store";
+import { createURLStore, URLStore } from "./observables/url-store";
 import {
   createIdbPromise,
   persistToIdbThunk,
@@ -41,7 +41,7 @@ const { debug, events } = __config;
 
 /**
  * Main exports for the cami.js library with full TypeScript support
- * 
+ *
  * @exports store - The store function from observable-store.ts. This uses local storage by default.
  * @exports html - The html template literal tag function from lit-html
  * @exports svg - The svg template literal tag function from lit-html
@@ -85,38 +85,39 @@ export {
   createLocalStorage,
   persistToLocalStorageThunk,
   createURLStore,
+  URLStore,
   unsafeHTML,
   repeat,
   keyed,
   invariant,
   _deepEqual,
   _deepMerge,
-  _deepClone
+  _deepClone,
 };
 
 // Export types for TypeScript users
 export type {
   // Observable types
   Observer,
-  Subscription
+  Subscription,
 } from "./observables/observable";
 
 export type {
   // Observable State types
   EffectCleanup,
-  DependencyTracker
+  DependencyTracker,
 } from "./observables/observable-state";
 
 export type {
   // Observable Store types
   StoreConfig,
-  StoreFactoryConfig
+  StoreFactoryConfig,
 } from "./observables/observable-store";
 
 export type {
   // Model types
   ModelConfig,
-  InferModelState
+  InferModelState,
 } from "./observables/observable-model";
 
 export type {
@@ -128,7 +129,7 @@ export type {
   EffectFunction,
   DeriveFunction as ReactiveElementDeriveFunction,
   UnsubscribeFunction,
-  DeriveResult
+  DeriveResult,
 } from "./reactive-element";
 
 export type {
@@ -157,7 +158,7 @@ export type {
   DependentFunctionType,
   DependentArrayType,
   DependentSumType,
-  ReferenceType
+  ReferenceType,
 } from "./types/index";
 
 export type {
@@ -173,5 +174,5 @@ export type {
   NavigateOptions,
   URLStoreOptions,
   NavigationHook,
-  ResourceLoader
+  ResourceLoader,
 } from "./observables/url-store";

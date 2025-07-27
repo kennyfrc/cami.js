@@ -1,12 +1,12 @@
 interface ConfigItem {
-    __state: boolean;
-    readonly isEnabled: boolean;
-    enable(): void;
-    disable(): void;
+  __state: boolean;
+  readonly isEnabled: boolean;
+  enable(): void;
+  disable(): void;
 }
 interface Config {
-    events: ConfigItem;
-    debug: ConfigItem;
+  events: ConfigItem;
+  debug: ConfigItem;
 }
 /**
  * @private

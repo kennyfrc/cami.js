@@ -1,4 +1,8 @@
-import { Observable, Subscriber as BaseSubscriber, Subscription as BaseSubscription } from "./observable";
+import {
+  Observable,
+  Subscriber as BaseSubscriber,
+  Subscription as BaseSubscription,
+} from "./observable";
 import { produce, Draft } from "immer";
 import { _deepEqual } from "../utils";
 import { __config } from "../config";
@@ -39,7 +43,7 @@ class DependencyTracker {
   // For small dependency sets, arrays are faster than Sets in V8
   // When dependency count grows large, we can switch to a Set
   dependencies: Dependency[] = [];
-  
+
   // For fast lookup to avoid duplicates (O(1) vs O(n))
   private _depsMap: Map<string, Dependency> = new Map();
 
@@ -51,11 +55,11 @@ class DependencyTracker {
   static track<T>(effectFn: () => T): Dependency[] {
     // Save previous context to support nested tracking
     const previousTracker = DependencyTracker.current;
-    
+
     // Create new tracker for this computation
     const tracker = new DependencyTracker();
     DependencyTracker.current = tracker;
-    
+
     try {
       // Execute the function to track dependencies
       effectFn();
@@ -71,18 +75,26 @@ class DependencyTracker {
    * @param {Object} store - The store to track
    * @param {string} [property] - Optional property to track
    */
-  addDependency(store: ObservableState<any> | { _uid?: string }, property?: string): void {
+  addDependency(
+    store: ObservableState<any> | { _uid?: string },
+    property?: string,
+  ): void {
     // Create a unique key for the dependency
-    const key = property ? `${store._uid || 'store'}.${property}` : (store._uid || 'store');
-    
+    const key = property
+      ? `${store._uid || "store"}.${property}`
+      : store._uid || "store";
+
     // Only add if not already tracked (O(1) lookup)
     if (!this._depsMap.has(key)) {
       // Create dependency object with minimal properties
-      const dep: Dependency = { store, property };
-      
+      const dep: Dependency = { 
+        store, 
+        ...(property && { property })
+      };
+
       // Track in array for ordered iteration
       this.dependencies.push(dep);
-      
+
       // Track in map for fast existence checks
       this._depsMap.set(key, dep);
     }
@@ -122,7 +134,10 @@ class ObservableState<T = any> extends Observable<T> {
   constructor(
     initialValue: T = null as T,
     subscriber: ObserverOrNext<T> | null = null,
-    { last = false, name = null }: { last?: boolean; name?: string | null } = {}
+    {
+      last = false,
+      name = null,
+    }: { last?: boolean; name?: string | null } = {},
   ) {
     super();
     if (subscriber) {
@@ -148,7 +163,7 @@ class ObservableState<T = any> extends Observable<T> {
     const subscriber = new BaseSubscriber(callback);
     const index = this.__observers.length;
     this.__observers.push(subscriber);
-    
+
     // Return subscription with direct index removal for O(1) unsubscribe when possible
     return {
       unsubscribe: () => {
@@ -165,7 +180,9 @@ class ObservableState<T = any> extends Observable<T> {
           this.__observers.pop();
         } else {
           // Fallback to filter only when needed - O(n)
-          this.__observers = this.__observers.filter(obs => obs !== subscriber);
+          this.__observers = this.__observers.filter(
+            (obs) => obs !== subscriber,
+          );
         }
       },
       complete: () => {
@@ -174,12 +191,12 @@ class ObservableState<T = any> extends Observable<T> {
           subscriber.unsubscribe();
         }
       },
-      error: (err: any) => {
+      error: (err: unknown) => {
         if (!subscriber.isUnsubscribed && subscriber.error) {
           subscriber.error(err);
           subscriber.unsubscribe();
         }
-      }
+      },
     };
   }
 
@@ -212,7 +229,7 @@ class ObservableState<T = any> extends Observable<T> {
     }
 
     this.__isUpdating = true;
-    this.__updateStack.push(this.__name || 'unknown');
+    this.__updateStack.push(this.__name || "unknown");
 
     try {
       if (!_deepEqual(newValue, this.__value)) {
@@ -236,7 +253,7 @@ class ObservableState<T = any> extends Observable<T> {
     if (typeof this.__value !== "object" || this.__value === null) {
       throw new Error("[Cami.js] Observable value is not an object");
     }
-    this.update((value) => Object.assign(value as any, obj));
+    this.update((value) => Object.assign(value as Record<string, unknown>, obj));
   }
 
   /**
@@ -248,22 +265,22 @@ class ObservableState<T = any> extends Observable<T> {
    * @example
    * observable.set('key.subkey', 'new value');
    */
-  set(key: string, value: any): void {
+  set(key: string, value: unknown): void {
     if (typeof this.__value !== "object" || this.__value === null) {
       throw new Error("[Cami.js] Observable value is not an object");
     }
     this.update((state) => {
       const keys = key.split(".");
-      let current: any = state;
+      let current: unknown = state;
       for (let i = 0; i < keys.length - 1; i++) {
         const key = keys[i];
-        if (key !== undefined) {
-          current = current[key];
+        if (key !== undefined && typeof current === 'object' && current !== null) {
+          current = (current as Record<string, unknown>)[key];
         }
       }
       const lastKey = keys[keys.length - 1];
       if (lastKey !== undefined) {
-        current[lastKey] = value;
+        (current as Record<string, unknown>)[lastKey] = value;
       }
     });
   }
@@ -282,16 +299,16 @@ class ObservableState<T = any> extends Observable<T> {
     }
     this.update((state) => {
       const keys = key.split(".");
-      let current: any = state;
+      let current: unknown = state;
       for (let i = 0; i < keys.length - 1; i++) {
         const key = keys[i];
-        if (key !== undefined) {
-          current = current[key];
+        if (key !== undefined && typeof current === 'object' && current !== null) {
+          current = (current as Record<string, unknown>)[key];
         }
       }
       const lastKey = keys[keys.length - 1];
       if (lastKey !== undefined) {
-        delete current[lastKey];
+        delete (current as Record<string, unknown>)[lastKey];
       }
     });
   }
@@ -303,7 +320,7 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.clear();
    */
   clear(): void {
-    this.update(() => ({} as T));
+    this.update(() => ({}) as T);
   }
 
   /**
@@ -318,7 +335,7 @@ class ObservableState<T = any> extends Observable<T> {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((value) => {
-      (value as any).push(...elements);
+      (value as unknown[]).push(...elements);
     });
   }
 
@@ -333,7 +350,7 @@ class ObservableState<T = any> extends Observable<T> {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((value) => {
-      (value as any).pop();
+      (value as unknown[]).pop();
     });
   }
 
@@ -348,7 +365,7 @@ class ObservableState<T = any> extends Observable<T> {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((value) => {
-      (value as any).shift();
+      (value as unknown[]).shift();
     });
   }
 
@@ -361,12 +378,16 @@ class ObservableState<T = any> extends Observable<T> {
    * @example
    * observable.splice(0, 1, 'newElement');
    */
-  splice(start: number, deleteCount?: number, ...items: T extends Array<infer U> ? U[] : never): void {
+  splice(
+    start: number,
+    deleteCount?: number,
+    ...items: T extends Array<infer U> ? U[] : never
+  ): void {
     if (!Array.isArray(this.__value)) {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((arr) => {
-      (arr as any).splice(start, deleteCount, ...items);
+      (arr as unknown[]).splice(start, deleteCount ?? 0, ...items);
     });
   }
 
@@ -382,7 +403,7 @@ class ObservableState<T = any> extends Observable<T> {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((value) => {
-      (value as any).unshift(...elements);
+      (value as unknown[]).unshift(...elements);
     });
   }
 
@@ -397,7 +418,7 @@ class ObservableState<T = any> extends Observable<T> {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((value) => {
-      (value as any).reverse();
+      (value as unknown[]).reverse();
     });
   }
 
@@ -408,12 +429,12 @@ class ObservableState<T = any> extends Observable<T> {
    * @example
    * observable.sort((a, b) => a - b);
    */
-  sort(compareFunction?: (a: any, b: any) => number): void {
+  sort(compareFunction?: (a: unknown, b: unknown) => number): void {
     if (!Array.isArray(this.__value)) {
       throw new Error("[Cami.js] Observable value is not an array");
     }
     this.update((value) => {
-      (value as any).sort(compareFunction);
+      (value as unknown[]).sort(compareFunction);
     });
   }
 
@@ -426,13 +447,17 @@ class ObservableState<T = any> extends Observable<T> {
    * @example
    * observable.fill('newElement', 0, 2);
    */
-  fill(value: T extends Array<infer U> ? U : never, start: number = 0, end?: number): void {
+  fill(
+    value: T extends Array<infer U> ? U : never,
+    start: number = 0,
+    end?: number,
+  ): void {
     if (!Array.isArray(this.__value)) {
       throw new Error("[Cami.js] Observable value is not an array");
     }
-    const arrayEnd = end !== undefined ? end : (this.__value as any).length;
+    const arrayEnd = end !== undefined ? end : (this.__value as unknown[]).length;
     this.update((arr) => {
-      (arr as any).fill(value, start, arrayEnd);
+      (arr as unknown[]).fill(value, start, arrayEnd);
     });
   }
 
@@ -449,9 +474,9 @@ class ObservableState<T = any> extends Observable<T> {
     if (!Array.isArray(this.__value)) {
       throw new Error("[Cami.js] Observable value is not an array");
     }
-    const arrayEnd = end !== undefined ? end : (this.__value as any).length;
+    const arrayEnd = end !== undefined ? end : (this.__value as unknown[]).length;
     this.update((arr) => {
-      (arr as any).copyWithin(target, start, arrayEnd);
+      (arr as unknown[]).copyWithin(target, start, arrayEnd);
     });
   }
 
@@ -473,7 +498,7 @@ class ObservableState<T = any> extends Observable<T> {
     }
 
     this.__isUpdating = true;
-    this.__updateStack.push(this.__name || 'unknown');
+    this.__updateStack.push(this.__name || "unknown");
 
     try {
       this.__pendingUpdates.push(updater);
@@ -500,14 +525,14 @@ class ObservableState<T = any> extends Observable<T> {
     if (this.__observers.length === 0 && !this.__lastObserver) {
       return;
     }
-    
+
     // Cache the current value for consistent notifications
     const value = this.__value;
-    
+
     // Use direct array access with for-loop instead of creating a new array and using forEach
     const observers = this.__observers;
     const len = observers.length;
-    
+
     // Highly optimized path for single observer (common case)
     if (len === 1 && !this.__lastObserver) {
       const observer = observers[0];
@@ -516,7 +541,7 @@ class ObservableState<T = any> extends Observable<T> {
       }
       return;
     }
-    
+
     // Handle multiple observers with faster while-loop counting down
     let i = len;
     while (i--) {
@@ -525,7 +550,7 @@ class ObservableState<T = any> extends Observable<T> {
         observer.next(value);
       }
     }
-    
+
     // Handle the last observer separately (if exists)
     if (this.__lastObserver) {
       if (typeof this.__lastObserver === "function") {
@@ -543,26 +568,29 @@ class ObservableState<T = any> extends Observable<T> {
   private __applyUpdates(): void {
     // Skip the expensive _deepEqual check by tracking changes explicitly
     let hasChanged = false;
-    
+
     // Cache the old value only if needed for event emission
-    const needsEventOrTrace = __config.events.isEnabled || __config.debug.isEnabled;
+    const needsEventOrTrace =
+      __config.events.isEnabled || __config.debug.isEnabled;
     const oldValue = needsEventOrTrace ? this.__value : undefined;
-    
+
     // Process all pending updates at once
     const updates = this.__pendingUpdates;
     const updateCount = updates.length;
-    
+
     if (updateCount === 0) {
       // No updates, nothing to do
       this.__updateScheduled = false;
       return;
     }
-    
+
     // Fast path for simple values (not objects or arrays)
-    const isComplexValue = (typeof this.__value === "object" && 
-                           this.__value !== null && 
-                           ((this.__value as any).constructor === Object || Array.isArray(this.__value)));
-    
+    const isComplexValue =
+      typeof this.__value === "object" &&
+      this.__value !== null &&
+      ((this.__value as Record<string, unknown>).constructor === Object ||
+        Array.isArray(this.__value));
+
     if (isComplexValue) {
       // For objects/arrays, use immer's produce
       // Apply all updates in a batch
@@ -573,12 +601,16 @@ class ObservableState<T = any> extends Observable<T> {
           return;
         }
         const newValue = produce(this.__value, updater) as T;
-        
+
         // First try reference equality (fast)
         if (newValue !== this.__value) {
           // For objects/arrays, do deep equality check to avoid unnecessary updates
-          if (typeof newValue === 'object' && newValue !== null &&
-              typeof this.__value === 'object' && this.__value !== null) {
+          if (
+            typeof newValue === "object" &&
+            newValue !== null &&
+            typeof this.__value === "object" &&
+            this.__value !== null
+          ) {
             if (!_deepEqual(newValue, this.__value)) {
               hasChanged = true;
               this.__value = newValue;
@@ -600,8 +632,12 @@ class ObservableState<T = any> extends Observable<T> {
           // First try reference equality (fast)
           if (newValue !== currentValue) {
             // For objects/arrays, do deep equality check to avoid unnecessary updates
-            if (typeof newValue === 'object' && newValue !== null &&
-                typeof currentValue === 'object' && currentValue !== null) {
+            if (
+              typeof newValue === "object" &&
+              newValue !== null &&
+              typeof currentValue === "object" &&
+              currentValue !== null
+            ) {
               if (!_deepEqual(newValue, currentValue)) {
                 hasChanged = true;
                 currentValue = newValue;
@@ -612,7 +648,7 @@ class ObservableState<T = any> extends Observable<T> {
             }
           }
         }
-        
+
         if (hasChanged) {
           this.__value = currentValue;
         }
@@ -625,13 +661,17 @@ class ObservableState<T = any> extends Observable<T> {
         if (updater === undefined) {
           continue;
         }
-        const result = updater(currentValue as any);
+        const result = updater(currentValue as Draft<T>);
         const newValue = (result !== undefined ? result : currentValue) as T;
         // First try reference equality (fast)
         if (newValue !== currentValue) {
           // For objects/arrays, do deep equality check to avoid unnecessary updates
-          if (typeof newValue === 'object' && newValue !== null &&
-              typeof currentValue === 'object' && currentValue !== null) {
+          if (
+            typeof newValue === "object" &&
+            newValue !== null &&
+            typeof currentValue === "object" &&
+            currentValue !== null
+          ) {
             if (!_deepEqual(newValue, currentValue)) {
               hasChanged = true;
               currentValue = newValue;
@@ -642,19 +682,19 @@ class ObservableState<T = any> extends Observable<T> {
           }
         }
       }
-      
+
       if (hasChanged) {
         this.__value = currentValue;
       }
     }
-    
+
     // Clear the update queue - faster than multiple shift() calls
     updates.length = 0;
-    
+
     // Only notify observers if the value actually changed
     if (hasChanged) {
       this.__notifyObservers();
-      
+
       // Only emit events if necessary and configured
       if (__config.events.isEnabled && typeof window !== "undefined") {
         const event = new CustomEvent("cami:elem:state:change", {
@@ -666,13 +706,13 @@ class ObservableState<T = any> extends Observable<T> {
         });
         window.dispatchEvent(event);
       }
-      
+
       // Only trace if enabled
       if (needsEventOrTrace) {
         __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
       }
     }
-    
+
     this.__updateScheduled = false;
   }
 
@@ -710,16 +750,18 @@ const effect = function (effectFn: () => EffectCleanup): () => void {
 
     // Create a custom tracker for this effect
     const tracker = {
+      dependencies: [],
+      _depsMap: new Map(),
       addDependency(observable: ObservableState<any>) {
         if (!dependencies.has(observable)) {
           dependencies.add(observable);
           observable.onValue(_runEffect);
         }
-      }
+      },
     };
 
     // Track dependencies
-    DependencyTracker.current = tracker as any;
+    DependencyTracker.current = tracker as unknown as DependencyTracker;
 
     // Run the effect
     try {
@@ -736,8 +778,10 @@ const effect = function (effectFn: () => EffectCleanup): () => void {
   // Return dispose function
   return () => {
     cleanup();
-    dependencies.forEach(dep => {
-      dep['__observers'] = dep['__observers'].filter((obs: any) => obs !== _runEffect);
+    dependencies.forEach((dep) => {
+      dep["__observers"] = dep["__observers"].filter(
+        (obs: unknown) => obs !== _runEffect,
+      );
     });
     dependencies.clear();
   };
@@ -772,11 +816,11 @@ const derive = function <T>(deriveFn: () => T): DeriveResult<T> {
   };
 
   const _computeDerivedValue = () => {
-    DependencyTracker.current = tracker as any;
+    DependencyTracker.current = tracker as unknown as DependencyTracker;
     try {
       currentValue = deriveFn();
-    } catch (error: any) {
-      console.warn("[Cami.js] Error in derive function:", error.message);
+    } catch (error: unknown) {
+      console.warn("[Cami.js] Error in derive function:", error instanceof Error ? error.message : String(error));
     } finally {
       DependencyTracker.current = null;
     }
@@ -796,4 +840,11 @@ const derive = function <T>(deriveFn: () => T): DeriveResult<T> {
 };
 
 export { ObservableState, effect, derive, DependencyTracker };
-export type { ObserverOrNext as Subscriber, Dependency, UpdaterFunction, EffectCleanup, BaseSubscription as Subscription, DeriveResult };
+export type {
+  ObserverOrNext as Subscriber,
+  Dependency,
+  UpdaterFunction,
+  EffectCleanup,
+  BaseSubscription as Subscription,
+  DeriveResult,
+};

@@ -1,15 +1,10 @@
-import { __trace } from '../trace.js';
+import { __trace } from "../trace.js";
+import type { Patch } from "immer";
 
 // Type definitions for adapters
-type ValueType = 'primitive' | 'array' | 'object';
+type ValueType = "primitive" | "array" | "object";
 
-type PathType = 'terminal' | 'recursive';
-
-interface Patch {
-  path: string | string[];
-  value: any;
-  op?: string;
-}
+type PathType = "terminal" | "recursive";
 
 interface UnproxifyTarget {
   [key: string]: any;
@@ -25,7 +20,15 @@ interface IDBStoreConfig {
 }
 
 interface QueryOptions {
-  type?: 'key' | 'index' | 'all' | 'range' | 'cursor' | 'count' | 'keys' | 'unique';
+  type?:
+    | "key"
+    | "index"
+    | "all"
+    | "range"
+    | "cursor"
+    | "count"
+    | "keys"
+    | "unique";
   key?: any;
   index?: string;
   value?: any;
@@ -69,23 +72,29 @@ interface LocalStorageAdapter {
   version: number;
 }
 
-type VersionStatus = 'create' | 'update' | 'current';
-type UpgradeType = 'create' | 'recreate' | 'update';
-type OperationType = 'replaceAll' | 'removeAll' | 'modifyAtIndex' | 'removeAtIndex' | 'modifyNested' | 'invalid';
+type VersionStatus = "create" | "update" | "current";
+type UpgradeType = "create" | "recreate" | "update";
+type OperationType =
+  | "replaceAll"
+  | "removeAll"
+  | "modifyAtIndex"
+  | "removeAtIndex"
+  | "modifyNested"
+  | "invalid";
 
 function unproxify(obj: any): any {
   const getType = (value: any): ValueType => {
-    if (typeof value !== 'object' || value === null) return 'primitive';
-    if (Array.isArray(value)) return 'array';
-    return 'object';
+    if (typeof value !== "object" || value === null) return "primitive";
+    if (Array.isArray(value)) return "array";
+    return "object";
   };
 
   switch (getType(obj)) {
-    case 'primitive':
+    case "primitive":
       return obj;
-    case 'array':
+    case "array":
       return obj.map(unproxify);
-    case 'object':
+    case "object":
       const result: UnproxifyTarget = {};
       for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -98,24 +107,31 @@ function unproxify(obj: any): any {
   }
 }
 
-function updateDeep(obj: UnproxifyTarget, path: string[], value: any): UnproxifyTarget {
+function updateDeep(
+  obj: UnproxifyTarget,
+  path: string[],
+  value: any,
+): UnproxifyTarget {
   const [head, ...rest] = path;
-  const type: PathType = rest.length === 0 ? 'terminal' : 'recursive';
+  const type: PathType = rest.length === 0 ? "terminal" : "recursive";
 
   switch (type) {
-    case 'terminal':
+    case "terminal":
       return { ...obj, [head]: value };
-    case 'recursive':
+    case "recursive":
       return {
         ...obj,
-        [head]: updateDeep(obj[head] || {}, rest, value)
+        [head]: updateDeep(obj[head] || {}, rest, value),
       };
     default:
       throw new Error(`Unsupported path type: ${type}`);
   }
 }
 
-export function removeDeep(obj: UnproxifyTarget, path: string[]): UnproxifyTarget {
+export function removeDeep(
+  obj: UnproxifyTarget,
+  path: string[],
+): UnproxifyTarget {
   const [head, ...rest] = path;
   if (rest.length === 0) {
     const { [head]: _, ...newObj } = obj;
@@ -123,7 +139,7 @@ export function removeDeep(obj: UnproxifyTarget, path: string[]): UnproxifyTarge
   }
   return {
     ...obj,
-    [head]: removeDeep(obj[head] || {}, rest)
+    [head]: removeDeep(obj[head] || {}, rest),
   };
 }
 
@@ -132,29 +148,30 @@ export function createIdbPromise({
   version,
   storeName,
   keyPath,
-  indexName
+  indexName,
 }: IDBStoreConfig): Promise<IDBPromiseStore> {
   // Guard clauses
-  if (typeof name !== 'string' || name.trim() === '') {
-    throw new Error('name must be a non-empty string');
+  if (typeof name !== "string" || name.trim() === "") {
+    throw new Error("name must be a non-empty string");
   }
   if (!Number.isInteger(version) || version <= 0) {
-    throw new Error('version must be a positive integer');
+    throw new Error("version must be a positive integer");
   }
-  if (typeof storeName !== 'string' || storeName.trim() === '') {
-    throw new Error('storeName must be a non-empty string');
+  if (typeof storeName !== "string" || storeName.trim() === "") {
+    throw new Error("storeName must be a non-empty string");
   }
-  if (typeof keyPath !== 'string' || keyPath.trim() === '') {
-    throw new Error('keyPath must be a non-empty string');
+  if (typeof keyPath !== "string" || keyPath.trim() === "") {
+    throw new Error("keyPath must be a non-empty string");
   }
-  if (typeof indexName !== 'string' || indexName.trim() === '') {
-    throw new Error('indexName must be a non-empty string');
+  if (typeof indexName !== "string" || indexName.trim() === "") {
+    throw new Error("indexName must be a non-empty string");
   }
 
   return new Promise<IDBPromiseStore>((resolve, reject) => {
     const request = indexedDB.open(name, version);
 
-    request.onerror = (event) => reject("IndexedDB error: " + (event.target as IDBRequest).error);
+    request.onerror = (event) =>
+      reject("IndexedDB error: " + (event.target as IDBRequest).error);
     request.onsuccess = (event) => {
       const db = (event.target as IDBRequest).result as IDBDatabase;
       resolve({
@@ -190,7 +207,9 @@ export function createIdbPromise({
          * - Count records: { type: 'count', range: IDBKeyRange.lowerBound(18) }
          * - Get keys: { type: 'keys', index: 'dateIndex', range: IDBKeyRange.bound('2023-01-01', '2023-12-31') }
          */
-        getState: async (options: QueryOptions = { type: 'all' }): Promise<any> => {
+        getState: async (
+          options: QueryOptions = { type: "all" },
+        ): Promise<any> => {
           /**
            * Builds and executes an IndexedDB request based on the provided options.
            * @param params - The parameters for building the request.
@@ -198,38 +217,57 @@ export function createIdbPromise({
            * @param params.options - The query options (same as getState options).
            * @returns The IndexedDB request or a Promise for cursor queries.
            */
-          const buildIdbRequest = ({ store, options }: { store: IDBObjectStore; options: QueryOptions }): IDBRequest | Promise<any[]> => {
+          const buildIdbRequest = ({
+            store,
+            options,
+          }: {
+            store: IDBObjectStore;
+            options: QueryOptions;
+          }): IDBRequest | Promise<any[]> => {
             switch (options.type) {
-              case 'key':
-                if (typeof options.key === 'undefined') {
-                  throw new Error('Key must be provided for key-based query');
+              case "key":
+                if (typeof options.key === "undefined") {
+                  throw new Error("Key must be provided for key-based query");
                 }
                 return store.get(options.key);
 
-              case 'index':
-                if (typeof options.index === 'undefined' || typeof options.value === 'undefined') {
-                  throw new Error('Index and value must be provided for index-based query');
+              case "index":
+                if (
+                  typeof options.index === "undefined" ||
+                  typeof options.value === "undefined"
+                ) {
+                  throw new Error(
+                    "Index and value must be provided for index-based query",
+                  );
                 }
                 const index = store.index(options.index);
                 return index.getAll(options.value);
 
-              case 'all':
+              case "all":
                 return store.getAll();
 
-              case 'range':
-                const range = IDBKeyRange.bound(options.lower, options.upper, options.lowerOpen, options.upperOpen);
+              case "range":
+                const range = IDBKeyRange.bound(
+                  options.lower,
+                  options.upper,
+                  options.lowerOpen,
+                  options.upperOpen,
+                );
                 return options.index
                   ? store.index(options.index).getAll(range)
                   : store.getAll(range);
 
-              case 'cursor':
+              case "cursor":
                 const cursorRequest = options.index
-                  ? store.index(options.index).openCursor(options.range, options.direction)
+                  ? store
+                      .index(options.index)
+                      .openCursor(options.range, options.direction)
                   : store.openCursor(options.range, options.direction);
                 return new Promise<any[]>((resolve, reject) => {
                   const results: any[] = [];
                   cursorRequest.onsuccess = (event) => {
-                    const cursor = (event.target as IDBRequest).result as IDBCursorWithValue;
+                    const cursor = (event.target as IDBRequest)
+                      .result as IDBCursorWithValue;
                     if (cursor) {
                       results.push(cursor.value);
                       cursor.continue();
@@ -240,19 +278,22 @@ export function createIdbPromise({
                   cursorRequest.onerror = reject;
                 });
 
-              case 'count':
+              case "count":
                 return options.index
                   ? store.index(options.index).count(options.range)
                   : store.count(options.range);
 
-              case 'keys':
+              case "keys":
                 return options.index
                   ? store.index(options.index).getAllKeys(options.range)
                   : store.getAllKeys(options.range);
 
-              case 'unique':
-                if (!options.index) throw new Error('Index must be specified for unique query');
-                return store.index(options.index).getAll(options.range, options.limit);
+              case "unique":
+                if (!options.index)
+                  throw new Error("Index must be specified for unique query");
+                return store
+                  .index(options.index)
+                  .getAll(options.range, options.limit);
 
               default:
                 throw new Error(`Unsupported query type: ${options.type}`);
@@ -267,12 +308,15 @@ export function createIdbPromise({
             if (request instanceof Promise) {
               request.then(resolveQuery).catch(rejectQuery);
             } else {
-              request.onsuccess = (event) => resolveQuery((event.target as IDBRequest).result);
-              request.onerror = (event) => rejectQuery((event.target as IDBRequest).error);
+              request.onsuccess = (event) =>
+                resolveQuery((event.target as IDBRequest).result);
+              request.onerror = (event) =>
+                rejectQuery((event.target as IDBRequest).error);
             }
           });
         },
-        transaction: (mode: IDBTransactionMode): IDBTransaction => db.transaction(storeName, mode),
+        transaction: (mode: IDBTransactionMode): IDBTransaction =>
+          db.transaction(storeName, mode),
         storeName: storeName,
       });
     };
@@ -282,23 +326,29 @@ export function createIdbPromise({
       const oldVersion = (event as IDBVersionChangeEvent).oldVersion;
 
       const upgradeType: UpgradeType = (() => {
-        if (oldVersion === 0) return 'create';
-        if (oldVersion < version) return 'recreate';
-        return 'update';
+        if (oldVersion === 0) return "create";
+        if (oldVersion < version) return "recreate";
+        return "update";
       })();
 
       switch (upgradeType) {
-        case 'create':
-          const store = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+        case "create":
+          const store = db.createObjectStore(storeName, {
+            keyPath,
+            autoIncrement: true,
+          });
           store.createIndex(indexName, indexName, { unique: false });
           break;
-        case 'recreate':
+        case "recreate":
           db.deleteObjectStore(storeName);
-          const recreatedStore = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+          const recreatedStore = db.createObjectStore(storeName, {
+            keyPath,
+            autoIncrement: true,
+          });
           recreatedStore.createIndex(indexName, indexName, { unique: false });
           break;
-        case 'update':
-          console.log('Database is up to date');
+        case "update":
+          console.log("Database is up to date");
           break;
         default:
           throw new Error(`Unsupported upgrade type: ${upgradeType}`);
@@ -309,11 +359,11 @@ export function createIdbPromise({
 
 export function persistToIdbThunk({
   fromStateKey,
-  toIDBStore
+  toIDBStore,
 }: PersistToIdbConfig) {
   return async ({ action: _action, patches }: ThunkParams): Promise<void> => {
     if (!Array.isArray(patches)) {
-      throw new Error('patches must be an array');
+      throw new Error("patches must be an array");
     }
 
     return new Promise<void>((resolve, reject) => {
@@ -321,9 +371,9 @@ export function persistToIdbThunk({
       const store = tx.objectStore(toIDBStore.storeName);
       const updateLogs: string[] = [];
 
-      const relevantPatches = patches.filter(patch => {
-        const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split('/').filter(Boolean);
-        return pathArray.join('.').startsWith(fromStateKey);
+      const relevantPatches = patches.filter((patch) => {
+        const pathArray = patch.path;
+        return pathArray.join(".").startsWith(fromStateKey);
       });
 
       if (relevantPatches.length === 0) {
@@ -346,60 +396,72 @@ export function persistToIdbThunk({
       };
 
       const applyPatches = async (): Promise<void> => {
-        const getOperationType = (patch: Patch, relativePath: string[]): OperationType => {
-          if (relativePath.length === 0) return patch.op === 'remove' ? 'removeAll' : 'replaceAll';
-          const index = parseInt(relativePath[0], 10);
-          if (isNaN(index)) return 'invalid';
-          if (relativePath.length === 1) return patch.op === 'remove' ? 'removeAtIndex' : 'modifyAtIndex';
-          return 'modifyNested';
+        const getOperationType = (
+          patch: Patch,
+          relativePath: string[],
+        ): OperationType => {
+          if (relativePath.length === 0)
+            return patch.op === "remove" ? "removeAll" : "replaceAll";
+          const index = parseInt(String(relativePath[0]), 10);
+          if (isNaN(index)) return "invalid";
+          if (relativePath.length === 1)
+            return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
+          return "modifyNested";
         };
 
         for (const patch of relevantPatches) {
-          const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split('/').filter(Boolean);
-          const relativePath = pathArray.slice(fromStateKey.split('.').length);
+          const pathArray = patch.path;
+          const relativePath = pathArray.slice(fromStateKey.split(".").length).map(String);
 
           state = await getState();
 
           const operationType = getOperationType(patch, relativePath);
-          const index = parseInt(relativePath[0], 10);
+          const index = parseInt(String(relativePath[0]), 10);
 
           switch (operationType) {
-            case 'replaceAll':
-              updateLogs.push(`replaced entire data array with ${patch.value.length} items`);
+            case "replaceAll":
+              updateLogs.push(
+                `replaced entire data array with ${patch.value.length} items`,
+              );
               state = unproxify(patch.value);
               break;
-            case 'removeAll':
-              updateLogs.push('removed all items');
+            case "removeAll":
+              updateLogs.push("removed all items");
               state = [];
               break;
-            case 'modifyAtIndex':
-              updateLogs.push(`${patch.op === 'add' ? 'added' : 'replaced'} item at index ${index}`);
+            case "modifyAtIndex":
+              updateLogs.push(
+                `${patch.op === "add" ? "added" : "replaced"} item at index ${index}`,
+              );
               state = [
                 ...state.slice(0, index),
                 unproxify(patch.value),
-                ...state.slice(index + 1)
+                ...state.slice(index + 1),
               ];
               break;
-            case 'removeAtIndex':
+            case "removeAtIndex":
               updateLogs.push(`removed item at index ${index}`);
+              state = [...state.slice(0, index), ...state.slice(index + 1)];
+              break;
+            case "modifyNested":
+              updateLogs.push(
+                `updated ${relativePath.join(".")} of item at index ${index}`,
+              );
               state = [
                 ...state.slice(0, index),
-                ...state.slice(index + 1)
+                updateDeep(
+                  state[index],
+                  relativePath.slice(1),
+                  unproxify(patch.value),
+                ),
+                ...state.slice(index + 1),
               ];
               break;
-            case 'modifyNested':
-              updateLogs.push(`updated ${relativePath.join('.')} of item at index ${index}`);
-              state = [
-                ...state.slice(0, index),
-                updateDeep(state[index], relativePath.slice(1), unproxify(patch.value)),
-                ...state.slice(index + 1)
-              ];
-              break;
-            case 'invalid':
-              console.warn('Invalid index:', relativePath[0]);
+            case "invalid":
+              console.warn("Invalid index:", relativePath[0]);
               break;
             default:
-              console.warn('Unsupported operation:', patch.op);
+              console.warn("Unsupported operation:", patch.op);
           }
         }
 
@@ -416,31 +478,36 @@ export function persistToIdbThunk({
         }
       };
 
-      applyPatches().then(() => {
-        tx.oncomplete = () => {
-          const updateLogsSummary = updateLogs.join(', ');
-          __trace(`indexdb:oncomplete`, `Mutated ${toIDBStore.storeName} object store with ${updateLogsSummary}`);
-          resolve();
-        };
-      }).catch(reject);
+      applyPatches()
+        .then(() => {
+          tx.oncomplete = () => {
+            const updateLogsSummary = updateLogs.join(", ");
+            __trace(
+              `indexdb:oncomplete`,
+              `Mutated ${toIDBStore.storeName} object store with ${updateLogsSummary}`,
+            );
+            resolve();
+          };
+        })
+        .catch(reject);
 
       tx.onerror = (event) => reject((event.target as IDBRequest).error);
     });
   };
 }
 
-const VERSION_KEY_PREFIX = '__cami_ls_version_';
+const VERSION_KEY_PREFIX = "__cami_ls_version_";
 
 export function createLocalStorage({
   name,
   version,
 }: LocalStorageConfig): LocalStorageAdapter {
   // Guard clauses
-  if (typeof name !== 'string' || name.trim() === '') {
-    throw new Error('name must be a non-empty string');
+  if (typeof name !== "string" || name.trim() === "") {
+    throw new Error("name must be a non-empty string");
   }
   if (!Number.isInteger(version) || version <= 0) {
-    throw new Error('version must be a positive integer');
+    throw new Error("version must be a positive integer");
   }
 
   const versionKey = `${VERSION_KEY_PREFIX}${name}`;
@@ -449,20 +516,23 @@ export function createLocalStorage({
     const storedVersion = localStorage.getItem(versionKey);
     if (storedVersion === null) {
       localStorage.setItem(versionKey, version.toString());
-      return 'create';
+      return "create";
     }
     if (parseInt(storedVersion, 10) < version) {
       localStorage.setItem(versionKey, version.toString());
-      return 'update';
+      return "update";
     }
-    return 'current';
+    return "current";
   };
 
   const versionStatus = checkVersion();
-  if (versionStatus === 'update') {
+  if (versionStatus === "update") {
     localStorage.removeItem(name);
-    __trace(`localStorage:version`, `Updated ${name} from version ${localStorage.getItem(versionKey)} to ${version}`);
-  } else if (versionStatus === 'create') {
+    __trace(
+      `localStorage:version`,
+      `Updated ${name} from version ${localStorage.getItem(versionKey)} to ${version}`,
+    );
+  } else if (versionStatus === "create") {
     __trace(`localStorage:version`, `Created ${name} with version ${version}`);
   }
 
@@ -486,11 +556,20 @@ export function createLocalStorage({
   };
 }
 
-export function persistToLocalStorageThunk(toLocalStorage: LocalStorageAdapter) {
-  return async ({ action: _action, state, previousState }: ThunkParams): Promise<void> => {
+export function persistToLocalStorageThunk(
+  toLocalStorage: LocalStorageAdapter,
+) {
+  return async ({
+    action: _action,
+    state,
+    previousState,
+  }: ThunkParams): Promise<void> => {
     if (state !== previousState) {
       await toLocalStorage.setState(state);
-      __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
+      __trace(
+        `localStorage:update`,
+        `Updated ${toLocalStorage.name} with entire state`,
+      );
     }
   };
 }

@@ -24,7 +24,7 @@ function __trace(functionName: string, ...messages: any[]): void {
       console.groupCollapsed(
         `%c[${functionName}]`,
         "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
-        `Changed property state: ${messages[0]}`
+        `Changed property state: ${messages[0]}`,
       );
       console.log(`oldValue:`, messages[1]);
       console.log(`newValue:`, messages[2]);
@@ -32,23 +32,23 @@ function __trace(functionName: string, ...messages: any[]): void {
       console.groupCollapsed(
         `%c[${functionName}]`,
         "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
-        `Changed store state: ${messages[0]}`
+        `Changed store state: ${messages[0]}`,
       );
       const oldPatches = messages[1] as Patch[];
       const newPatches = messages[2] as Patch[];
       console.log(
         `oldValue of ${oldPatches[0].path.join(".")}:`,
-        oldPatches[0].value
+        oldPatches[0].value,
       );
       console.log(
         `newValue of ${newPatches[0].path.join(".")}:`,
-        newPatches[0].value
+        newPatches[0].value,
       );
     } else {
       console.groupCollapsed(
         `%c[${functionName}]`,
         "color: #666666; padding: 1px 3px; border: 1px solid #bbbbbb; border-radius: 2px; font-size: 90%; display: inline-block;",
-        formattedMessages
+        formattedMessages,
       );
     }
 

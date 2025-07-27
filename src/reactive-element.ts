@@ -42,11 +42,11 @@ interface ObservableProperty<T = any> {
 }
 
 /**
- * This class is needed to create reactive web components that can automatically update their view when their state changes. 
- * All properties are automatically converted to observables. This is achieved by using creating an ObservableProperty, 
- * which provides a getter and setter for the property. The getter returns the current value of the property, 
+ * This class is needed to create reactive web components that can automatically update their view when their state changes.
+ * All properties are automatically converted to observables. This is achieved by using creating an ObservableProperty,
+ * which provides a getter and setter for the property. The getter returns the current value of the property,
  * and the setter updates the value of the property and triggers a re-render of the component.
- * 
+ *
  * @example
  * ```typescript
  * const { html, ReactiveElement } = cami;
@@ -69,9 +69,10 @@ interface ObservableProperty<T = any> {
  * ```
  */
 class ReactiveElement extends HTMLElement {
+  [key: string]: unknown;
   private __unsubscribers: Map<any, UnsubscribeFunction>;
   private __prevTemplate?: TemplateResult;
-  
+
   // Public effect and derive methods (bound in constructor)
   public effect: (effectFn: EffectFunction) => void;
   public derive: <T>(deriveFn: DeriveFunction<T>) => T;
@@ -100,7 +101,8 @@ class ReactiveElement extends HTMLElement {
     Object.entries(attributes).forEach(([attrName, parseFn]) => {
       // Retrieve the attribute value and apply the transformation function if provided
       let attrValue: string | null = this.getAttribute(attrName);
-      const transformFn: AttributeParser = typeof parseFn === "function" ? parseFn : (v: string) => v;
+      const transformFn: AttributeParser =
+        typeof parseFn === "function" ? parseFn : (v: string) => v;
       const transformedValue = produce(attrValue, transformFn);
 
       // Create an ObservableProperty or ObservableProxy for the attribute
@@ -110,14 +112,14 @@ class ReactiveElement extends HTMLElement {
           this,
           attrName,
           observable,
-          true
+          true,
         );
       } else {
         this.__createObservablePropertyForPrimitive(
           this,
           attrName,
           observable,
-          true
+          true,
         );
       }
     });
@@ -242,7 +244,11 @@ class ReactiveElement extends HTMLElement {
    *   }
    * }
    */
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
     this.onAttributeChange(name, oldValue, newValue);
   }
 
@@ -261,7 +267,11 @@ class ReactiveElement extends HTMLElement {
    *   }
    * }
    */
-  onAttributeChange(_name: string, _oldValue: string | null, _newValue: string | null): void {
+  onAttributeChange(
+    _name: string,
+    _oldValue: string | null,
+    _newValue: string | null,
+  ): void {
     // Default implementation does nothing.
   }
 
@@ -297,7 +307,7 @@ class ReactiveElement extends HTMLElement {
    * @param value - The value to check.
    * @returns True if the value is an object or an array, false otherwise.
    */
-  private __isObjectOrArray(value: any): value is object | any[] {
+  private __isObjectOrArray(value: unknown): value is object | unknown[] {
     return (
       value !== null && (typeof value === "object" || Array.isArray(value))
     );
@@ -312,24 +322,24 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    */
   private __createObservablePropertyForObjOrArr(
-    context: any,
+    context: Record<string, unknown>,
     key: string,
     observable: ObservableState<any>,
-    isAttribute: boolean = false
+    isAttribute: boolean = false,
   ): void {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError(
-        "Expected observable to be an instance of ObservableState"
+        "Expected observable to be an instance of ObservableState",
       );
     }
 
     const proxy = this.__observableProxy(observable);
     Object.defineProperty(context, key, {
       get: () => proxy,
-      set: (newValue: any) => {
+      set: (newValue: unknown) => {
         observable.update(() => newValue);
         if (isAttribute) {
-          this.setAttribute(key, newValue);
+          this.setAttribute(key, String(newValue));
         }
       },
     });
@@ -349,23 +359,23 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    */
   private __createObservablePropertyForPrimitive(
-    context: any,
+    context: Record<string, unknown>,
     key: string,
     observable: ObservableState<any>,
-    isAttribute: boolean = false
+    isAttribute: boolean = false,
   ): void {
     if (!(observable instanceof ObservableState)) {
       throw new TypeError(
-        "Expected observable to be an instance of ObservableState"
+        "Expected observable to be an instance of ObservableState",
       );
     }
 
     Object.defineProperty(context, key, {
       get: () => observable.value,
-      set: (newValue: any) => {
+      set: (newValue: unknown) => {
         observable.update(() => newValue);
         if (isAttribute) {
-          this.setAttribute(key, newValue);
+          this.setAttribute(key, String(newValue));
         }
       },
     });
@@ -377,7 +387,9 @@ class ReactiveElement extends HTMLElement {
    * @throws {TypeError} If observable is not an instance of ObservableState.
    * @returns The created proxy.
    */
-  private __observableProxy<T>(observable: ObservableState<T>): ObservableProxy<T> {
+  private __observableProxy<T>(
+    observable: ObservableState<T>,
+  ): ObservableProxy<T> {
     return new ObservableProxy(observable);
   }
 
@@ -389,12 +401,12 @@ class ReactiveElement extends HTMLElement {
     if (config.infer === true) {
       const keys = Object.keys(this);
       const keysLen = keys.length;
-      
+
       // Using direct for loop instead of forEach for better performance
       for (let i = 0; i < keysLen; i++) {
         const key = keys[i];
-        const value = (this as any)[key];
-        
+        const value = (this as Record<string, unknown>)[key];
+
         if (typeof value !== "function" && !key.startsWith("__")) {
           if (value instanceof Observable) {
             continue;
@@ -406,7 +418,7 @@ class ReactiveElement extends HTMLElement {
               this.__createObservablePropertyForPrimitive(
                 this,
                 key,
-                observable
+                observable,
               );
             }
           }
@@ -426,11 +438,11 @@ class ReactiveElement extends HTMLElement {
     if (!this.__isAllowedType(initialValue)) {
       const type = Object.prototype.toString.call(initialValue);
       throw new Error(
-        `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
+        `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`,
       );
     }
 
-    const observable = new ObservableState(initialValue, null, { name });
+    const observable = new ObservableState(initialValue, null, name ? { name } : undefined);
 
     this.__registerObservables(observable);
     return observable;
@@ -441,7 +453,7 @@ class ReactiveElement extends HTMLElement {
    * @param value - The value to check
    * @returns True if the value is of an allowed type, false otherwise
    */
-  private __isAllowedType(value: any): boolean {
+  private __isAllowedType(value: unknown): boolean {
     const allowedTypes = ["number", "string", "boolean", "object", "undefined"];
     const valueType = typeof value;
 
@@ -459,7 +471,7 @@ class ReactiveElement extends HTMLElement {
    * @param value - The value to check
    * @returns True if the value is a plain object, false otherwise
    */
-  private __isPlainObject(value: any): value is Record<string, any> {
+  private __isPlainObject(value: unknown): value is Record<string, unknown> {
     if (Object.prototype.toString.call(value) !== "[object Object]") {
       return false;
     }
@@ -475,15 +487,14 @@ class ReactiveElement extends HTMLElement {
   private __registerObservables(observableState: ObservableState<any>): void {
     if (!(observableState instanceof ObservableState)) {
       throw new TypeError(
-        "Expected observableState to be an instance of ObservableState"
+        "Expected observableState to be an instance of ObservableState",
       );
     }
 
     // Only effects have a dispose method - use direct property access for speed
     this.__unsubscribers.set(observableState, () => {
-      const dispose = (observableState as any).dispose;
-      if (typeof dispose === "function") {
-        dispose.call(observableState);
+      if ('dispose' in observableState && typeof observableState.dispose === "function") {
+        observableState.dispose();
       }
     });
   }
@@ -515,7 +526,7 @@ class ReactiveElement extends HTMLElement {
 
       // Store the current template for future comparison
       this.__prevTemplate = template;
-      
+
       // Render the template
       __litRender(template, this);
       this.afterRender();
@@ -533,9 +544,11 @@ class ReactiveElement extends HTMLElement {
    * @param properties - Array of property names to check
    */
   warnIfMissingProperties(properties: string[]): void {
-    const missingProperties = properties.filter(prop => !(prop in this));
+    const missingProperties = properties.filter((prop) => !(prop in this));
     if (missingProperties.length > 0) {
-      console.warn(`Missing required properties: ${missingProperties.join(', ')}`);
+      console.warn(
+        `Missing required properties: ${missingProperties.join(", ")}`,
+      );
     }
   }
 }
@@ -549,7 +562,7 @@ export type {
   EffectFunction,
   DeriveFunction,
   UnsubscribeFunction,
-  DeriveResult
+  DeriveResult,
 };
 
 export { ReactiveElement };

@@ -10,13 +10,13 @@
  * @throws Will throw an error if the callback returns false.
  */
 interface InvariantConfig {
-    development?: () => boolean;
-    production?: () => boolean;
-    alwaysEnabled?: boolean;
+  development?: () => boolean;
+  production?: () => boolean;
+  alwaysEnabled?: boolean;
 }
 interface InvariantFunction {
-    (message: string, callback: () => boolean): void;
-    config(config: InvariantConfig): void;
+  (message: string, callback: () => boolean): void;
+  config(config: InvariantConfig): void;
 }
 declare const _default: InvariantFunction;
 export default _default;

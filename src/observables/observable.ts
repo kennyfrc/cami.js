@@ -3,7 +3,7 @@
  */
 export interface Observer<T> {
   next?: (value: T) => void;
-  error?: (error: any) => void;
+  error?: (error: unknown) => void;
   complete?: () => void;
 }
 
@@ -13,7 +13,7 @@ export interface Observer<T> {
 export interface Subscription {
   unsubscribe(): void;
   complete(): void;
-  error(err: any): void;
+  error(err: unknown): void;
 }
 
 /**
@@ -24,7 +24,9 @@ export type TeardownFn = () => void;
 /**
  * Subscribe callback function type
  */
-export type SubscribeCallback<T> = (subscriber: Subscriber<T>) => TeardownFn | void;
+export type SubscribeCallback<T> = (
+  subscriber: Subscriber<T>,
+) => TeardownFn | void;
 
 /**
  * Observer or next function type
@@ -35,9 +37,9 @@ export type ObserverOrNext<T> = Observer<T> | ((value: T) => void);
  * High-performance Subscriber implementation
  */
 export class Subscriber<T> implements Observer<T> {
-  public next: ((value: T) => void) | undefined;
-  public error: ((error: any) => void) | undefined;
-  public complete: (() => void) | undefined;
+  public next?: (value: T) => void;
+  public error?: (error: unknown) => void;
+  public complete?: () => void;
   private teardowns: TeardownFn[] | null;
   public isUnsubscribed: boolean;
 
@@ -49,46 +51,32 @@ export class Subscriber<T> implements Observer<T> {
     // Fast path for the common case: just a function (>90% of cases)
     if (typeof observer === "function") {
       this.next = observer;
-      this.error = undefined;
-      this.complete = undefined;
     } else if (observer && typeof observer === "object") {
       // Avoid unnecessary binding for performance
-      if (observer.next) {
-        this.next = typeof observer.next === "function" ? 
-          (observer.next.bind ? observer.next.bind(observer) : observer.next) : 
-          undefined;
-      } else {
-        this.next = undefined;
+      if (observer.next && typeof observer.next === "function") {
+        this.next = observer.next.bind
+          ? observer.next.bind(observer)
+          : observer.next;
       }
-      
+
       // Only create these properties if they exist
-      if (observer.error) {
-        this.error = typeof observer.error === "function" ? 
-          (observer.error.bind ? observer.error.bind(observer) : observer.error) : 
-          undefined;
-      } else {
-        this.error = undefined;
+      if (observer.error && typeof observer.error === "function") {
+        this.error = observer.error.bind
+          ? observer.error.bind(observer)
+          : observer.error;
       }
-      
-      if (observer.complete) {
-        this.complete = typeof observer.complete === "function" ? 
-          (observer.complete.bind ? observer.complete.bind(observer) : observer.complete) : 
-          undefined;
-      } else {
-        this.complete = undefined;
+
+      if (observer.complete && typeof observer.complete === "function") {
+        this.complete = observer.complete.bind
+          ? observer.complete.bind(observer)
+          : observer.complete;
       }
-    } else {
-      // Handle edge case - null or primitive
-      this.next = undefined;
-      this.error = undefined;
-      this.complete = undefined;
     }
-    
+
     // Most subscribers won't have teardowns, so initialize on first use
     this.teardowns = null;
     this.isUnsubscribed = false;
   }
-
 
   /**
    * Adds a teardown function to be executed when unsubscribing
@@ -103,24 +91,23 @@ export class Subscriber<T> implements Observer<T> {
     }
   }
 
-
   /**
    * Unsubscribes from the observable, preventing any further notifications
    */
   unsubscribe(): void {
     if (this.isUnsubscribed) return;
-    
+
     this.isUnsubscribed = true;
-    
+
     // Fast path if no teardowns
     if (!this.teardowns) {
       // Clear references to aid GC
-      this.next = undefined;
-      this.error = undefined;
-      this.complete = undefined;
+      delete this.next;
+      delete this.error;
+      delete this.complete;
       return;
     }
-    
+
     // Execute teardowns with optimized while loop
     const teardowns = this.teardowns;
     let i = teardowns.length;
@@ -130,12 +117,12 @@ export class Subscriber<T> implements Observer<T> {
         teardown();
       }
     }
-    
+
     // Clear references to aid garbage collection
     this.teardowns = null;
-    this.next = undefined;
-    this.error = undefined;
-    this.complete = undefined;
+    delete this.next;
+    delete this.error;
+    delete this.complete;
   }
 }
 
@@ -197,26 +184,31 @@ export class Observable<T> {
    * @param complete - The complete function. Default is null
    * @returns An object containing methods to manage the subscription
    */
-  subscribe(observerOrNext: ObserverOrNext<T>, error?: ((error: any) => void) | null, complete?: (() => void) | null): Subscription {
+  subscribe(
+    observerOrNext: ObserverOrNext<T>,
+    error?: ((error: unknown) => void) | null,
+    complete?: (() => void) | null,
+  ): Subscription {
     // Fast path for function observer (most common case)
-    const subscriber = typeof observerOrNext === "function" 
-      ? new Subscriber<T>(observerOrNext)
-      : new Subscriber<T>({ 
-          next: observerOrNext as any, 
-          error: error || undefined, 
-          complete: complete || undefined 
-        });
-    
+    const subscriber =
+      typeof observerOrNext === "function"
+        ? new Subscriber<T>(observerOrNext)
+        : new Subscriber<T>({
+            ...observerOrNext,
+            ...(error && { error }),
+            ...(complete && { complete }),
+          });
+
     // Fast path for no subscribeCallback (common case)
     if (!this.subscribeCallback) {
       this.__observers.push(subscriber);
-      
+
       // Add teardown to remove from observers array - this is allocated only once per subscriber
       subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
-      
+
       return this.__createSubscription(subscriber);
     }
-    
+
     // Path for subscribeCallback
     let teardown: TeardownFn | void;
     try {
@@ -227,20 +219,20 @@ export class Observable<T> {
       }
       return { unsubscribe: () => {}, complete: () => {}, error: () => {} };
     }
-    
+
     if (teardown) {
       subscriber.addTeardown(teardown);
     }
-    
+
     // Only add to observers if not immediately unsubscribed
     if (!subscriber.isUnsubscribed) {
       this.__observers.push(subscriber);
       subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
     }
-    
+
     return this.__createSubscription(subscriber);
   }
-  
+
   /**
    * Creates a teardown function that removes a subscriber from the observers array
    * @param subscriber - The subscriber to remove
@@ -260,7 +252,7 @@ export class Observable<T> {
       }
     };
   }
-  
+
   /**
    * Creates a subscription object with minimal properties
    * @param subscriber - The subscriber
@@ -276,7 +268,7 @@ export class Observable<T> {
           subscriber.unsubscribe();
         }
       },
-      error: (err: any) => {
+      error: (err: unknown) => {
         if (!subscriber.isUnsubscribed && subscriber.error) {
           subscriber.error(err);
           subscriber.unsubscribe();
@@ -292,10 +284,10 @@ export class Observable<T> {
   next(value: T): void {
     const observers = this.__observers;
     const len = observers.length;
-    
+
     // Highly optimized loop with minimal checks
     if (len === 0) return;
-    
+
     // Special case for single observer (common case)
     if (len === 1) {
       const observer = observers[0];
@@ -304,7 +296,7 @@ export class Observable<T> {
       }
       return;
     }
-    
+
     // Using direct array access and while loop counting down for maximum performance
     let i = len;
     while (i--) {
@@ -320,18 +312,18 @@ export class Observable<T> {
    * Passes an error to all observers and terminates the stream
    * @param error - The error to emit
    */
-  error(error: any): void {
+  error(error: unknown): void {
     // Create a snapshot to prevent modification during iteration
     const observers = this.__observers.slice();
     const len = observers.length;
-    
+
     for (let i = 0; i < len; i++) {
       const observer = observers[i];
       if (!observer.isUnsubscribed && observer.error) {
         observer.error(error);
       }
     }
-    
+
     // Clear all observers after error
     this.__observers.length = 0;
   }
@@ -343,14 +335,14 @@ export class Observable<T> {
     // Create a snapshot to prevent modification during iteration
     const observers = this.__observers.slice();
     const len = observers.length;
-    
+
     for (let i = 0; i < len; i++) {
       const observer = observers[i];
       if (!observer.isUnsubscribed && observer.complete) {
         observer.complete();
       }
     }
-    
+
     // Clear all observers after completion
     this.__observers.length = 0;
   }
@@ -369,8 +361,8 @@ export class Observable<T> {
    * @param callbackFn - The callback for errors
    * @returns Subscription object with unsubscribe method
    */
-  onError(callbackFn: (error: any) => void): Subscription {
-    return this.subscribe(null as any, callbackFn);
+  onError(callbackFn: (error: unknown) => void): Subscription {
+    return this.subscribe(() => {}, callbackFn);
   }
 
   /**
@@ -379,7 +371,7 @@ export class Observable<T> {
    * @returns Subscription object with unsubscribe method
    */
   onEnd(callbackFn: () => void): Subscription {
-    return this.subscribe(null as any, null, callbackFn);
+    return this.subscribe(() => {}, undefined, callbackFn);
   }
 
   /**
@@ -388,24 +380,24 @@ export class Observable<T> {
    */
   [Symbol.asyncIterator](): AsyncIterator<T> {
     let resolve: (value: IteratorResult<T>) => void;
-    let promise = new Promise<IteratorResult<T>>(r => resolve = r);
+    let promise = new Promise<IteratorResult<T>>((r) => (resolve = r));
     let subscription: Subscription | null;
-    
+
     const cleanup = () => {
       if (subscription) {
         subscription.unsubscribe();
         subscription = null;
       }
     };
-    
+
     subscription = this.subscribe(
       // Next handler
       (value: T) => {
         resolve({ value, done: false });
-        promise = new Promise<IteratorResult<T>>(r => resolve = r);
+        promise = new Promise<IteratorResult<T>>((r) => (resolve = r));
       },
       // Error handler
-      (err: any) => {
+      (err: unknown) => {
         cleanup();
         throw err;
       },
@@ -413,19 +405,19 @@ export class Observable<T> {
       () => {
         cleanup();
         resolve({ done: true } as IteratorResult<T>);
-      }
+      },
     );
-    
+
     return {
       next: () => promise,
       return: () => {
         cleanup();
         return Promise.resolve({ done: true } as IteratorResult<T>);
       },
-      throw: (err: any) => {
+      throw: (err: unknown) => {
         cleanup();
         return Promise.reject(err);
-      }
+      },
     };
   }
 }

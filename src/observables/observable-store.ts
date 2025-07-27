@@ -10,7 +10,7 @@ import {
   Draft,
   Patch,
 } from "immer";
-import { _deepMerge, _deepClone, _deepEqual } from "../utils";
+import { _deepClone, _deepEqual } from "../utils";
 import { __config } from "../config.js";
 import { __trace } from "../trace.js";
 import { validateType } from "../types/index.js";
@@ -76,7 +76,8 @@ export interface QueryContext<TArgs = any> {
   dispatchAsync: (thunkName: string, payload?: any) => Promise<any>;
 }
 
-export interface QuerySuccessContext<TArgs = any, TResult = any> extends QueryContext<TArgs> {
+export interface QuerySuccessContext<TArgs = any, TResult = any>
+  extends QueryContext<TArgs> {
   data: TResult;
   result?: TResult;
 }
@@ -85,7 +86,8 @@ export interface QueryErrorContext<TArgs = any> extends QueryContext<TArgs> {
   error: Error;
 }
 
-export interface QuerySettledContext<TArgs = any, TResult = any> extends QueryContext<TArgs> {
+export interface QuerySettledContext<TArgs = any, TResult = any>
+  extends QueryContext<TArgs> {
   data?: TResult;
   error?: Error;
 }
@@ -117,15 +119,18 @@ export interface MutationContext<TArgs = any> {
   dispatchAsync: (thunkName: string, payload?: any) => Promise<any>;
 }
 
-export interface MutationSuccessContext<TArgs = any, TResult = any> extends MutationContext<TArgs> {
+export interface MutationSuccessContext<TArgs = any, TResult = any>
+  extends MutationContext<TArgs> {
   data: TResult;
 }
 
-export interface MutationErrorContext<TArgs = any> extends MutationContext<TArgs> {
+export interface MutationErrorContext<TArgs = any>
+  extends MutationContext<TArgs> {
   error: Error;
 }
 
-export interface MutationSettledContext<TArgs = any, TResult = any> extends MutationContext<TArgs> {
+export interface MutationSettledContext<TArgs = any, TResult = any>
+  extends MutationContext<TArgs> {
   data?: TResult;
   error?: Error;
 }
@@ -187,10 +192,21 @@ export interface Hook<TState = any> {
 
 export interface StateMachineEvent<TState = any> {
   from?: TState | TState[] | ((state: TState) => boolean);
-  to: Partial<TState> | ((context: { state: TState; payload: any }) => Partial<TState>);
+  to:
+    | Partial<TState>
+    | ((context: { state: TState; payload: any }) => Partial<TState>);
   guard?: (context: { state: TState; payload: any; action: string }) => boolean;
-  onTransition?: (context: { from: TState; to: TState; payload: any; data?: any }) => void;
-  onEntry?: (context: { state: TState; previousState: TState; payload: any }) => void;
+  onTransition?: (context: {
+    from: TState;
+    to: TState;
+    payload: any;
+    data?: any;
+  }) => void;
+  onEntry?: (context: {
+    state: TState;
+    previousState: TState;
+    payload: any;
+  }) => void;
   onExit?: (context: { state: TState; payload: any }) => void;
   data?: any;
 }
@@ -200,8 +216,17 @@ export interface StateMachineDefinition<TState = any> {
 }
 
 export interface ActionSpec<TState = any> {
-  precondition?: (context: { state: TState; payload: any; action: string }) => boolean;
-  postcondition?: (context: { state: TState; payload: any; action: string; previousState: TState }) => boolean;
+  precondition?: (context: {
+    state: TState;
+    payload: any;
+    action: string;
+  }) => boolean;
+  postcondition?: (context: {
+    state: TState;
+    payload: any;
+    action: string;
+    previousState: TState;
+  }) => boolean;
 }
 
 export interface PatchListener {
@@ -247,8 +272,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _frozenState: TState | null = null; // Used in proxy handlers
   private _isDirty = false;
   private _stateVersion = 0;
-  // @ts-expect-error _proxy is used internally for reactive state tracking
-  private _proxy: TState;
   public previousState: TState;
 
   // Core data structures
@@ -261,7 +284,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   // Cache structures
   public readonly queryCache = new Map<string, CachedQueryData>();
   public readonly queryFunctions = new Map<string, QueryConfig>();
-  public readonly queries: Record<string, (...args: any[]) => Promise<any>> = {};
+  public readonly queries: Record<string, (...args: any[]) => Promise<any>> =
+    {};
   public readonly memoCache = new Map<string, Map<any, CachedMemoData>>();
 
   // Resource management
@@ -272,7 +296,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
   // Advanced features
   public readonly mutationFunctions = new Map<string, MutationConfig>();
-  public readonly mutations: Record<string, (...args: any[]) => Promise<any>> = {};
+  public readonly mutations: Record<string, (...args: any[]) => Promise<any>> =
+    {};
   public readonly patchListeners = new Map<string, PatchListener[]>();
   public readonly machines: Record<string, StateMachineDefinition<TState>> = {};
   public readonly memos: Record<string, MemoHandler<TState>> = {};
@@ -306,19 +331,16 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
     // Use immer's draft for immutable state tracking with efficient updates
     this._state = createDraft(initialState as any) as TState;
-    
+
     // Keep a frozen snapshot of current state for reads
     this._frozenState = null;
-    
+
     // Track whether state has changed to avoid unnecessary notifications
     this._isDirty = false;
-    
+
     // State version for internal tracking of changes
     this._stateVersion = 0;
-    
-    // Create the proxy for state access tracking
-    this._proxy = this._createProxy(this._state);
-    
+
     // Store original state for change detection
     this.previousState = initialState;
 
@@ -331,10 +353,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     this.memo = this.memo.bind(this);
     this.invalidateQueries = this.invalidateQueries.bind(this);
     this.dispatchAsync = this.dispatchAsync.bind(this);
-    
+
     // Create throttled after hooks
     this.throttledAfterHooks = this.__executeAfterHooks.bind(this);
-    
+
     // Add hook to update state version after changes
     this.afterHook(() => {
       this._stateVersion++;
@@ -383,13 +405,14 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   /**
    * Creates a proxy that tracks property access for dependency tracking
    * and automatically schedules updates when properties change
-   * 
+   *
    * This is a critical path for performance optimization
    */
+  // @ts-ignore - _createProxy is currently unused but kept for potential future use
   private _createProxy(target: TState): TState {
     // Common internal props to skip - precompute for faster checks
-    const SKIP_PROPS = new Set(['constructor', 'toJSON']);
-    
+    const SKIP_PROPS = new Set(["constructor", "toJSON"]);
+
     // Use WeakMap to store method bindings without modifying the target object
     // This completely prevents Symbol leakage into the state object
     if (!this._stateTrapStore) {
@@ -398,33 +421,33 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (!this._stateTrapStore.has(target)) {
       this._stateTrapStore.set(target, new Map());
     }
-    
+
     return new Proxy(target as any, {
       get: (target, prop, receiver) => {
         // Fast path 1: Skip dependency tracking for symbols and internal methods
         // Don't allow any symbols to be accessed from the target
-        if (typeof prop === 'symbol' || SKIP_PROPS.has(prop as string)) {
+        if (typeof prop === "symbol" || SKIP_PROPS.has(prop as string)) {
           // For symbols, return undefined to prevent them from being accessed
-          if (typeof prop === 'symbol') {
+          if (typeof prop === "symbol") {
             return undefined;
           }
           return Reflect.get(target, prop, receiver);
         }
-        
+
         // Fast path 2: Track dependency if in reactive context
         // This is a hot path for reactive components
         if (DependencyTracker.current) {
           DependencyTracker.current.addDependency(this, prop as string);
         }
-        
+
         // Get the actual value (this is the most common operation)
         const value = Reflect.get(target, prop, receiver);
-        
+
         // Fast path 3: For non-functions, return directly
-        if (typeof value !== 'function') {
+        if (typeof value !== "function") {
           return value;
         }
-        
+
         // Only for functions: ensure correct binding using WeakMap
         // This is less common so it's moved to the end of the function
         if (!Object.getOwnPropertyDescriptor(target, prop)) {
@@ -435,55 +458,59 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           }
           return trapMap!.get(prop);
         }
-        
+
         return value;
       },
-      
+
       set: (target, prop, value, receiver) => {
         // Fast path: Prevent symbols from being set on the target
         // This completely prevents symbol leakage into the state object
-        if (typeof prop === 'symbol') {
+        if (typeof prop === "symbol") {
           // Don't allow symbols to be set on the state object at all
           return true; // Return true to indicate "success" without actually setting
         }
-        
+
         // Skip other internal properties
         if (SKIP_PROPS.has(prop as string)) {
           return Reflect.set(target, prop, value, receiver);
         }
-        
+
         // Performance optimization: Reference equality check before updating
         // This avoids unnecessary updates when the value hasn't changed
         const oldValue = (target as any)[prop];
-        
+
         // If the value is the same by reference equality, skip the update
         if (oldValue === value) {
           return true;
         }
-        
+
         // For objects and arrays, use deep equality check
-        if (typeof value === 'object' && value !== null && 
-            typeof oldValue === 'object' && oldValue !== null) {
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          typeof oldValue === "object" &&
+          oldValue !== null
+        ) {
           if (_deepEqual(oldValue, value)) {
             return true;
           }
         }
-        
+
         // Value is different, perform the actual set operation
         const result = Reflect.set(target, prop, value, receiver);
-        
+
         // Mark as dirty and invalidate the frozen state
         this._isDirty = true;
         this._frozenState = null;
-        
+
         // Add property to proxy if it's new
-        if (typeof prop === 'string' && !(prop in this)) {
+        if (typeof prop === "string" && !(prop in this)) {
           this._addProxyProperty(prop);
         }
-        
+
         return result;
       },
-      
+
       deleteProperty: (target, prop) => {
         // Only mark dirty if the property actually exists
         if (prop in target) {
@@ -494,41 +521,41 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         }
         return true;
       },
-      
+
       // These traps are less frequently used but still important for correctness
-      
+
       ownKeys: (target) => {
         if (DependencyTracker.current) {
           DependencyTracker.current.addDependency(this);
         }
         // Filter out symbols to prevent internal symbols from leaking into state
-        return Reflect.ownKeys(target).filter(key => typeof key !== 'symbol');
+        return Reflect.ownKeys(target).filter((key) => typeof key !== "symbol");
       },
-      
+
       has: (target, prop) => {
         if (DependencyTracker.current) {
           DependencyTracker.current.addDependency(this, prop as string);
         }
         return Reflect.has(target, prop);
       },
-      
+
       defineProperty: (target, prop, descriptor) => {
         // Prevent symbols from being defined on the target
-        if (typeof prop === 'symbol') {
+        if (typeof prop === "symbol") {
           return true; // Return true to indicate "success" without actually defining
         }
-        
+
         const result = Reflect.defineProperty(target, prop, descriptor);
         if (result) {
           this._isDirty = true;
           this._frozenState = null;
-          if (typeof prop === 'string' && !(prop in this)) {
+          if (typeof prop === "string" && !(prop in this)) {
             this._addProxyProperty(prop);
           }
         }
         return result;
       },
-      
+
       getOwnPropertyDescriptor: (target, prop) => {
         if (DependencyTracker.current) {
           DependencyTracker.current.addDependency(this, prop as string);
@@ -545,11 +572,11 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _addProxyProperty(key: string): void {
     // Check if the property name is valid and doesn't conflict with existing methods
     if (
-      typeof key === 'string' && 
-      !key.startsWith('_') && 
-      !key.startsWith('__') && 
+      typeof key === "string" &&
+      !key.startsWith("_") &&
+      !key.startsWith("__") &&
       !(key in this) &&
-      !['dispatch', 'getState', 'subscribe'].includes(key)
+      !["dispatch", "getState", "subscribe"].includes(key)
     ) {
       Object.defineProperty(this, key, {
         get: () => (this._state as any)[key],
@@ -571,13 +598,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _notifyObservers(): void {
     // Only proceed if state is marked as dirty
     if (!this._isDirty) return;
-    
+
     // Fast path: If there are no observers and no subscriber
     if (!this.hasObservers && !this.__subscriber) {
       this._isDirty = false;
       return;
     }
-    
+
     // Before proceeding with expensive operations, check if the state actually changed
     // by doing a deeper comparison with the previous state
     if (this.previousState && _deepEqual(this._state, this.previousState)) {
@@ -585,38 +612,38 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       this._isDirty = false;
       return;
     }
-    
+
     // Clear memo cache for consistent derived calculations
     this.memoCache.clear();
     this._frozenState = null;
-    
-    // Get a stable snapshot of the current state 
+
+    // Get a stable snapshot of the current state
     const stateToEmit = _deepClone(this._state);
-    
+
     // Use a local reference to avoid issues if observers modify the collection
     const observerCount = this.observerCount;
-    
+
     // Notify all observers
     if (observerCount > 0) {
       this.notifyObservers(stateToEmit);
     }
-    
+
     // Notify subscriber if exists
     if (this.__subscriber && typeof this.__subscriber.next === "function") {
       this.__subscriber.next(stateToEmit);
     }
-    
+
     // Update previous state for next change detection
     this.previousState = _deepClone(this._state);
     this._isDirty = false;
-    
+
     // Emit web event if enabled - but only if we know it's actually used
     if (__config.events.isEnabled && typeof window !== "undefined") {
       const event = new CustomEvent("cami:store:state:change", {
         detail: {
           store: this.name,
-          state: stateToEmit
-        }
+          state: stateToEmit,
+        },
       });
       window.dispatchEvent(event);
     }
@@ -628,17 +655,17 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _createDeepSchema(state: any): Record<string, any> {
     // Use a cached Map for type inference to improve performance
     const typeCache = new Map();
-    
+
     const inferType = (value: any): any => {
       // Fast path for primitives
       if (value === null) return "null";
       if (value === undefined) return "undefined";
-      
+
       // Use cached type if available
       if (typeCache.has(value)) {
         return typeCache.get(value);
       }
-      
+
       // Determine type for reference types
       let type: any;
       if (Array.isArray(value)) {
@@ -648,57 +675,64 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       } else {
         type = typeof value;
       }
-      
+
       // Cache and return
       if (typeof value === "object" && value !== null) {
         typeCache.set(value, type);
       }
-      
+
       return type;
     };
 
     // Process all properties
-    return Object.keys(state).reduce((acc, key) => {
-      acc[key] = inferType(state[key]);
-      return acc;
-    }, {} as Record<string, any>);
+    return Object.keys(state).reduce(
+      (acc, key) => {
+        acc[key] = inferType(state[key]);
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
   }
 
   /**
    * Validates a state object against a schema
    */
-  private _validateDeepState(schema: Record<string, any>, state: any, path: string[] = []): void {
+  private _validateDeepState(
+    schema: Record<string, any>,
+    state: any,
+    path: string[] = [],
+  ): void {
     // Fast path if schema is empty
     if (!schema || Object.keys(schema).length === 0) return;
-    
+
     Object.keys(schema).forEach((key) => {
       const expectedType = schema[key];
       const actualValue = state[key];
       const currentPath = [...path, key];
       const actualType = this._inferType(actualValue);
-      
+
       // Skip function validation
       if (actualType === "function") return;
-      
+
       // Handle nested objects recursively
       if (typeof expectedType === "object" && expectedType !== null) {
         if (typeof actualValue !== "object" || actualValue === null) {
           throw new TypeError(
-            `Invalid type at ${currentPath.join(".")}. Expected object, got ${typeof actualValue}`
+            `Invalid type at ${currentPath.join(".")}. Expected object, got ${typeof actualValue}`,
           );
         }
         this._validateDeepState(expectedType, actualValue, currentPath);
-      } 
+      }
       // Handle primitive types
       else {
         // Special cases for null and undefined (allow any type)
         if (expectedType === "null" || expectedType === "undefined") {
           return;
-        } 
+        }
         // Type mismatch error
         else if (actualType !== expectedType) {
           throw new TypeError(
-            `Invalid type at ${currentPath.join(".")}. Expected ${expectedType}, got ${actualType}`
+            `Invalid type at ${currentPath.join(".")}. Expected ${expectedType}, got ${actualType}`,
           );
         }
       }
@@ -714,7 +748,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (value === undefined) return "undefined";
     return typeof value;
   }
-
 
   /**
    * Public API for dispatching actions
@@ -740,20 +773,23 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
     // Fast path 2: Type validation - fail early
     if (action === undefined) {
-      const currentAction = this.__dispatchStack[this.__dispatchStack.length - 2];
+      const currentAction =
+        this.__dispatchStack[this.__dispatchStack.length - 2];
       this.__dispatchStack.pop();
       this.__isDispatching = false;
       throw new Error(
-        currentAction 
+        currentAction
           ? `[Cami.js] Attempted to dispatch undefined action. This is likely invoked in action "${currentAction}".`
-          : `[Cami.js] Attempted to dispatch undefined action in the global namespace.`
+          : `[Cami.js] Attempted to dispatch undefined action in the global namespace.`,
       );
     }
 
     if (typeof action !== "string") {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
-      throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+      throw new Error(
+        `[Cami.js] Action type must be a string. Got: ${typeof action}`,
+      );
     }
 
     // Fast path 3: Handle missing reducer without expensive operations
@@ -761,13 +797,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (!reducer) {
       this.__dispatchStack.pop();
       this.__isDispatching = false;
-      __trace('cami:store:warn', `No reducer found for action ${action}`);
+      __trace("cami:store:warn", `No reducer found for action ${action}`);
       throw new Error(`[Cami.js] No reducer found for action: ${action}`);
     }
 
     // Store original state for potential rollback - only clone when needed
     const originalState = _deepClone(this._state);
-    
+
     try {
       // Fast path 4: Skip spec check if no specs defined
       const spec = this.specs?.get(action);
@@ -777,7 +813,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           payload,
           action,
         });
-        
+
         if (!isPreconditionMet) {
           throw new Error(`Precondition not met for action ${action}`);
         }
@@ -785,7 +821,11 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
       // Fast path 5: Skip before hooks if none defined
       if (this.beforeHooks.length > 0) {
-        this.__applyHooks("before", { action, payload, state: this._state as any });
+        this.__applyHooks("before", {
+          action,
+          payload,
+          state: this._state as any,
+        });
       }
 
       // Create reducer context object with consistent shape for V8 optimization
@@ -797,7 +837,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         mutate: this.mutate,
         invalidateQueries: this.invalidateQueries,
         memo: this.memo,
-        trigger: this.trigger
+        trigger: this.trigger,
       };
 
       try {
@@ -808,7 +848,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             // DO NOT set draft to reducerContext.state
             // Doing this also causes subtle bugs that are hard to catch in tests
             reducer(reducerContext);
-          }
+          },
         );
 
         // Fast path 6: Skip postcondition if not defined
@@ -819,7 +859,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             action,
             previousState: this._state as any,
           });
-          
+
           if (!isPostconditionMet) {
             throw new Error(`Postcondition not met for action ${action}`);
           }
@@ -828,10 +868,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         // Mark store as dirty and invalidate frozen state - always needed
         this._isDirty = true;
         this._frozenState = null;
-        
+
         // Fast path 7: Only process patches if there are any
         const hasPatches = patches.length > 0;
-        
+
         if (hasPatches) {
           // Update state with nextState values - avoid forEach for better performance
           // Use a fast for-in loop which is optimized for object keys
@@ -840,21 +880,21 @@ export class ObservableStore<TState = any> extends Observable<TState> {
               (this._state as any)[key] = (nextState as any)[key];
             }
           }
-          
+
           // Notify patch listeners - only if we have patches
           if (this.patchListeners.size > 0) {
             this._notifyPatchListeners(patches);
           }
-          
+
           // Trace state changes if tracing is enabled (dev mode)
           __trace(
             "cami:store:state:change",
             `Changed store state via action: ${action}`,
-            inversePatches, 
-            patches
+            inversePatches,
+            patches,
           );
         }
-        
+
         // Fast path 8: Always run after hooks after successful dispatch (regardless of patches)
         if (this.afterHooks.length > 0) {
           this.__applyHooks("after", {
@@ -864,26 +904,26 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             previousState: originalState,
             patches,
             inversePatches,
-            dispatch: this.dispatch
+            dispatch: this.dispatch,
           });
         }
-        
+
         // Fast path 9: Skip validation if no schema
         if (Object.keys(this.schema).length > 0) {
           this._validateState(hasPatches ? this._state : nextState);
         }
-        
+
         // Always notify observers to ensure UI updates
         this._notifyObservers();
       } catch (error) {
         // Error recovery - restore original state
         this._state = createDraft(_deepClone(originalState)) as TState;
-        
+
         // Reset cache and internal tracking
         this._isDirty = true;
         this._frozenState = null;
         this.memoCache.clear();
-        
+
         // Re-throw the error
         throw error;
       }
@@ -901,8 +941,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * Add a hook to run before actions
    */
   beforeHook(hook: Hook<TState>): () => void {
-    if (typeof hook !== 'function') {
-      throw new Error('[Cami.js] Hook must be a function');
+    if (typeof hook !== "function") {
+      throw new Error("[Cami.js] Hook must be a function");
     }
     this.beforeHooks.push(hook);
     return () => {
@@ -923,8 +963,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * Add a hook to run after actions
    */
   afterHook(hook: Hook<TState>): () => void {
-    if (typeof hook !== 'function') {
-      throw new Error('[Cami.js] Hook must be a function');
+    if (typeof hook !== "function") {
+      throw new Error("[Cami.js] Hook must be a function");
     }
     this.afterHooks.push(hook);
     return () => {
@@ -945,13 +985,16 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * Run hooks of a specific type
    * Optimized to skip empty hook arrays
    */
-  private __applyHooks(type: "before" | "after", context: HookContext<TState>): void {
+  private __applyHooks(
+    type: "before" | "after",
+    context: HookContext<TState>,
+  ): void {
     if (type === "before") {
       // Fast path 1: No before hooks registered
       const hooks = this.beforeHooks;
       const len = hooks.length;
       if (len === 0) return;
-      
+
       // Run all before hooks synchronously with while loop counting down
       let i = len;
       while (i--) {
@@ -960,7 +1003,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     } else if (type === "after") {
       // Fast path: no after hooks registered
       if (this.afterHooks.length === 0) return;
-      
+
       // Use throttled hook execution to reduce calls
       this.throttledAfterHooks(context);
     }
@@ -974,7 +1017,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     const hooks = this.afterHooks;
     const len = hooks.length;
     if (len === 0) return;
-    
+
     // Run all after hooks with optimized loop
     let i = len;
     while (i--) {
@@ -995,20 +1038,20 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _notifyPatchListeners(patches: Patch[]): void {
     // Fast path: no patch listeners
     if (this.patchListeners.size === 0) return;
-    
+
     // Create a map of keys to an array of patches for that key
     const patchesByKey = new Map<string, Patch[]>();
-    
+
     // Group patches by key - use while loop counting down for better performance
     const patchesLen = patches.length;
     let i = patchesLen;
     while (i--) {
       const patch = patches[i];
-      const key = patch.path[0] as string;  // First segment of path
-      
+      const key = patch.path[0] as string; // First segment of path
+
       // Skip if no listeners for this key
       if (!this.patchListeners.has(key)) continue;
-      
+
       // Add to key's patch array - reuse existing arrays when possible
       let keyPatches = patchesByKey.get(key);
       if (!keyPatches) {
@@ -1017,12 +1060,12 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       }
       keyPatches.push(patch);
     }
-    
+
     // Notify listeners with grouped patches
     for (const [key, keyPatches] of patchesByKey) {
       const listeners = this.patchListeners.get(key);
       if (!listeners || listeners.length === 0) continue;
-      
+
       // Use direct array access with while loop for better performance
       const listenersLen = listeners.length;
       let j = listenersLen;
@@ -1030,7 +1073,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         try {
           listeners[j](keyPatches);
         } catch (error) {
-          console.error(`[Cami.js] Error in patch listener for key "${key}":`, error);
+          console.error(
+            `[Cami.js] Error in patch listener for key "${key}":`,
+            error,
+          );
         }
       }
     }
@@ -1045,19 +1091,25 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    */
   defineAction(action: string, reducer: ActionHandler<TState>): this {
     // Validation
-    if (typeof action !== 'string') {
-      throw new Error(`[Cami.js] Action name must be a string, got: ${typeof action}`);
+    if (typeof action !== "string") {
+      throw new Error(
+        `[Cami.js] Action name must be a string, got: ${typeof action}`,
+      );
     }
-    
-    if (typeof reducer !== 'function') {
-      throw new Error(`[Cami.js] Reducer must be a function, got: ${typeof reducer}`);
+
+    if (typeof reducer !== "function") {
+      throw new Error(
+        `[Cami.js] Reducer must be a function, got: ${typeof reducer}`,
+      );
     }
-    
+
     // Check for existing action in THIS store instance, not globally
     if (this.reducers[action]) {
-      throw new Error(`[Cami.js] Action '${action}' is already defined in store '${this.name}'.`);
+      throw new Error(
+        `[Cami.js] Action '${action}' is already defined in store '${this.name}'.`,
+      );
     }
-    
+
     // Create context once when defining the action
     const baseContext = {
       dispatch: this.dispatch,
@@ -1066,19 +1118,19 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       memo: this.memo,
       trigger: this.trigger,
       invalidateQueries: this.invalidateQueries,
-      dispatchAsync: this.dispatchAsync
+      dispatchAsync: this.dispatchAsync,
     };
-    
+
     // Store the reducer with a wrapper that adds context
     this.reducers[action] = (context: ReducerContext<TState>) => {
       // Merge provided context with base context
       const storeContext = Object.assign({}, baseContext, context);
       return reducer(storeContext);
     };
-    
+
     // Create direct action helper method
     this.actions[action] = (payload?: any) => this.dispatch(action, payload);
-    
+
     // For chaining
     return this;
   }
@@ -1088,25 +1140,31 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * Specs can include preconditions and postconditions
    */
   defineSpec(actionName: string, spec: ActionSpec<TState>): this {
-    if (typeof actionName !== 'string') {
-      throw new Error(`[Cami.js] Action name must be a string, got: ${typeof actionName}`);
+    if (typeof actionName !== "string") {
+      throw new Error(
+        `[Cami.js] Action name must be a string, got: ${typeof actionName}`,
+      );
     }
-    
-    if (!spec || typeof spec !== 'object') {
+
+    if (!spec || typeof spec !== "object") {
       throw new Error(`[Cami.js] Spec must be an object, got: ${typeof spec}`);
     }
-    
+
     // Validate spec content
-    if (spec.precondition && typeof spec.precondition !== 'function') {
-      throw new Error(`[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`);
+    if (spec.precondition && typeof spec.precondition !== "function") {
+      throw new Error(
+        `[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`,
+      );
     }
-    
-    if (spec.postcondition && typeof spec.postcondition !== 'function') {
-      throw new Error(`[Cami.js] Postcondition must be a function, got: ${typeof spec.postcondition}`);
+
+    if (spec.postcondition && typeof spec.postcondition !== "function") {
+      throw new Error(
+        `[Cami.js] Postcondition must be a function, got: ${typeof spec.postcondition}`,
+      );
     }
-    
+
     this.specs.set(actionName, spec);
-    
+
     // For chaining
     return this;
   }
@@ -1117,7 +1175,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * @param {AsyncActionHandler} asyncCallback - The async function to be executed
    * @description Defines a new thunk for the store
    */
-  defineAsyncAction(thunkName: string, asyncCallback: AsyncActionHandler<TState>): void {
+  defineAsyncAction(
+    thunkName: string,
+    asyncCallback: AsyncActionHandler<TState>,
+  ): void {
     if (this.thunks[thunkName]) {
       throw new Error(`[Cami.js] Thunk '${thunkName}' is already defined.`);
     }
@@ -1156,7 +1217,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     }
   }
 
-  async query<TResult = any>(queryName: string, payload?: any): Promise<TResult> {
+  async query<TResult = any>(
+    queryName: string,
+    payload?: any,
+  ): Promise<TResult> {
     const query = this.queryFunctions.get(queryName);
     if (!query) {
       throw new Error(`[Cami.js] No query found for name: ${queryName}`);
@@ -1170,7 +1234,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     }
   }
 
-  async mutate<TResult = any>(mutationName: string, payload?: any): Promise<TResult> {
+  async mutate<TResult = any>(
+    mutationName: string,
+    payload?: any,
+  ): Promise<TResult> {
     const mutation = this.mutationFunctions.get(mutationName);
     if (!mutation) {
       throw new Error(`[Cami.js] No mutation found for name: ${mutationName}`);
@@ -1184,7 +1251,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     }
   }
 
-  defineMemo<TResult = any>(memoName: string, memoFn: MemoHandler<TState, TResult>): void {
+  defineMemo<TResult = any>(
+    memoName: string,
+    memoFn: MemoHandler<TState, TResult>,
+  ): void {
     if (typeof memoName !== "string") {
       throw new Error("Memo name must be a string");
     }
@@ -1237,21 +1307,25 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * @param {QueryConfig} config - The configuration object for the query.
    * @description Registers a query with the given configuration.
    */
-  defineQuery<TArgs = any, TResult = any>(queryName: string, config: QueryConfig<TArgs, TResult>): void {
+  defineQuery<TArgs = any, TResult = any>(
+    queryName: string,
+    config: QueryConfig<TArgs, TResult>,
+  ): void {
     if (this.queryFunctions.has(queryName)) {
       throw new Error(
-        `[Cami.js] Query with name ${queryName} has already been defined.`
+        `[Cami.js] Query with name ${queryName} has already been defined.`,
       );
     }
 
     this.queryFunctions.set(queryName, config);
-    this.queries[queryName] = (...args: any[]) => this.query(queryName, ...args);
+    this.queries[queryName] = (...args: any[]) =>
+      this.query(queryName, ...args);
   }
 
   private _executeQuery<TArgs = any, TResult = any>(
-    queryName: string, 
-    payload: TArgs, 
-    query: QueryConfig<TArgs, TResult>
+    queryName: string,
+    payload: TArgs,
+    query: QueryConfig<TArgs, TResult>,
   ): Promise<TResult> {
     const {
       queryFn,
@@ -1269,8 +1343,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       typeof queryKey === "function"
         ? queryKey(payload).join(":")
         : Array.isArray(queryKey)
-        ? queryKey.join(":")
-        : queryKey;
+          ? queryKey.join(":")
+          : queryKey;
 
     const cachedData = this.queryCache.get(cacheKey);
 
@@ -1288,26 +1362,29 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
     __trace(
       `_executeQuery`,
-      `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`
+      `Checking cache for key: ${cacheKey}, exists: ${!!cachedData}`,
     );
 
     if (cachedData && !this._isStale(cachedData, staleTime)) {
       __trace(
         `query`,
-        `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`
+        `Returning cached data for: ${queryName} with cacheKey: ${cacheKey}`,
       );
       return this._handleQueryResult(
         queryName,
         cachedData.data,
         null,
         storeContext,
-        { onSuccess, onSettled }
+        {
+          ...(onSuccess && { onSuccess }),
+          ...(onSettled && { onSettled }),
+        },
       );
     }
 
     __trace(
       `query`,
-      `Data is stale or not cached, fetching new data for: ${queryName}`
+      `Data is stale or not cached, fetching new data for: ${queryName}`,
     );
 
     if (onFetch) {
@@ -1323,14 +1400,14 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           isStale: false,
         });
         return this._handleQueryResult(queryName, data, null, storeContext, {
-          onSuccess,
-          onSettled,
+          ...(onSuccess && { onSuccess }),
+          ...(onSettled && { onSettled }),
         });
       })
       .catch((error) => {
         return this._handleQueryResult(queryName, null, error, storeContext, {
-          onError,
-          onSettled,
+          ...(onError && { onError }),
+          ...(onSettled && { onSettled }),
         });
       });
   }
@@ -1344,7 +1421,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       onSuccess?: (context: QuerySuccessContext<TArgs, TResult>) => void;
       onError?: (context: QueryErrorContext<TArgs>) => void;
       onSettled?: (context: QuerySettledContext<TArgs, TResult>) => void;
-    }
+    },
   ): Promise<TResult> {
     const { onSuccess, onError, onSettled } = callbacks;
     const context = { ...storeContext, data, error };
@@ -1374,7 +1451,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   invalidateQueries({ queryKey, predicate }: InvalidateQueriesOptions): void {
     if (!queryKey && !predicate) {
       throw new Error(
-        `[Cami.js] invalidateQueries expects either a queryKey or a predicate.`
+        `[Cami.js] invalidateQueries expects either a queryKey or a predicate.`,
       );
     }
 
@@ -1391,7 +1468,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             } catch (error) {
               __trace(
                 `invalidateQueries`,
-                `Error generating key for ${queryName}: ${(error as Error).message}`
+                `Error generating key for ${queryName}: ${(error as Error).message}`,
               );
               return false;
             }
@@ -1407,7 +1484,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         }
 
         return false;
-      }
+      },
     );
 
     queriesToInvalidate.forEach((queryName) => {
@@ -1425,7 +1502,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
       __trace(
         `invalidateQueries`,
-        `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`
+        `Invalidating query with key: ${queryName}, cacheKey: ${cacheKey}`,
       );
 
       // Instead of deleting, mark as stale and reset timestamp
@@ -1450,7 +1527,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       if (this.reconnectHandlers.has(queryName)) {
         window.removeEventListener(
           "online",
-          this.reconnectHandlers.get(queryName)!
+          this.reconnectHandlers.get(queryName)!,
         );
         this.reconnectHandlers.delete(queryName);
       }
@@ -1476,7 +1553,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _fetchWithRetry<TResult = any>(
     queryFnWithContext: () => Promise<TResult>,
     retry: number,
-    retryDelay?: number | ((attempt: number) => number)
+    retryDelay?: number | ((attempt: number) => number),
   ): Promise<TResult> {
     let attempts = 0;
 
@@ -1488,9 +1565,9 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             typeof retryDelay === "function"
               ? retryDelay(attempts)
               : retryDelay || 1000;
-          return new Promise<TResult>((resolve) => setTimeout(resolve, delay)).then(
-            executeFetch
-          );
+          return new Promise<TResult>((resolve) =>
+            setTimeout(resolve, delay),
+          ).then(executeFetch);
         }
         throw error;
       });
@@ -1523,7 +1600,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       Data Timestamp: ${cachedData.timestamp}
       Time Since Last Update: ${timeSinceLastUpdate}ms
       Stale Time: ${staleTime}ms
-    `
+    `,
     );
 
     return isDataStale || isManuallyInvalidated;
@@ -1535,10 +1612,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * @param {MutationConfig} config - The configuration object for the mutation.
    * @description Registers a mutation with the given configuration.
    */
-  defineMutation<TArgs = any, TResult = any>(mutationName: string, config: MutationConfig<TArgs, TResult>): void {
+  defineMutation<TArgs = any, TResult = any>(
+    mutationName: string,
+    config: MutationConfig<TArgs, TResult>,
+  ): void {
     if (this.mutationFunctions.has(mutationName)) {
       throw new Error(
-        `[Cami.js] Mutation with name ${mutationName} is already registered.`
+        `[Cami.js] Mutation with name ${mutationName} is already registered.`,
       );
     }
 
@@ -1550,7 +1630,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _executeMutation<TArgs = any, TResult = any>(
     _mutationName: string,
     payload: TArgs,
-    mutation: MutationConfig<TArgs, TResult>
+    mutation: MutationConfig<TArgs, TResult>,
   ): Promise<TResult> {
     const { mutationFn, onMutate, onError, onSuccess, onSettled } = mutation;
 
@@ -1580,14 +1660,20 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       .then((data) => {
         result = data;
         if (onSuccess) {
-          onSuccess({ ...storeContext, data } as MutationSuccessContext<TArgs, TResult>);
+          onSuccess({ ...storeContext, data } as MutationSuccessContext<
+            TArgs,
+            TResult
+          >);
         }
         return data;
       })
       .catch((err) => {
         error = err;
         if (onError) {
-          onError({ ...storeContext, error: err } as MutationErrorContext<TArgs>);
+          onError({
+            ...storeContext,
+            error: err,
+          } as MutationErrorContext<TArgs>);
         }
         throw err;
       })
@@ -1607,7 +1693,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    * @param {StateMachineDefinition} machineDefinition - The state machine definition
    * @description Defines or updates a state machine for the store
    */
-  defineMachine(machineName: string, machineDefinition: StateMachineDefinition<TState>): void {
+  defineMachine(
+    machineName: string,
+    machineDefinition: StateMachineDefinition<TState>,
+  ): void {
     const validateMachine = (machine: StateMachineDefinition<TState>): void => {
       if (typeof machine !== "object" || machine === null) {
         throw new Error("Machine definition must be an object");
@@ -1623,7 +1712,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           (typeof event.to !== "function" && typeof event.to !== "object")
         ) {
           throw new Error(
-            `Event '${eventName}' must have a 'to' property that is an object or a function returning an object`
+            `Event '${eventName}' must have a 'to' property that is an object or a function returning an object`,
           );
         }
 
@@ -1633,13 +1722,13 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
         if (event.onTransition && typeof event.onTransition !== "function") {
           throw new Error(
-            `onTransition for event '${eventName}' must be a function`
+            `onTransition for event '${eventName}' must be a function`,
           );
         }
 
         if (event.onEntry && typeof event.onEntry !== "function") {
           throw new Error(
-            `onEntry for event '${eventName}' must be a function`
+            `onEntry for event '${eventName}' must be a function`,
           );
         }
 
@@ -1660,13 +1749,18 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         if (this.isValidTransition(event.from, state as TState)) {
           // Capture the previous state before applying the transition
           const previousState = _deepClone(state);
-          const newState = typeof event.to === "function"
-            ? event.to({ state: state as TState, payload })
-            : event.to;
+          const newState =
+            typeof event.to === "function"
+              ? event.to({ state: state as TState, payload })
+              : event.to;
 
           // Apply the new state
           Object.entries(newState).forEach(([key, value]) => {
-            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            if (
+              typeof value === "object" &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
               (state as any)[key] = { ...(state as any)[key], ...value };
             } else {
               (state as any)[key] = value;
@@ -1678,7 +1772,9 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             event.onEntry({ state: state as TState, previousState, payload });
           }
         } else {
-          console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
+          console.warn(
+            `Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`,
+          );
         }
       });
     });
@@ -1695,7 +1791,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     const [machineName, eventName] = fullEventName.split(":");
     if (!this.machines[machineName] || !this.machines[machineName][eventName]) {
       throw new Error(
-        `Event '${fullEventName}' not found in any state machine.`
+        `Event '${fullEventName}' not found in any state machine.`,
       );
     }
 
@@ -1732,10 +1828,12 @@ export class ObservableStore<TState = any> extends Observable<TState> {
    */
   memo<TResult = any>(memoName: string, payload?: any): TResult {
     // Validation - handle efficiently with early return instead of throwing
-    if (typeof memoName !== 'string') {
-      throw new Error(`[Cami.js] Memo name must be a string, got: ${typeof memoName}`);
+    if (typeof memoName !== "string") {
+      throw new Error(
+        `[Cami.js] Memo name must be a string, got: ${typeof memoName}`,
+      );
     }
-    
+
     // Fast lookup with direct property access - much faster than function calls in V8
     const memoFn = this.memos[memoName];
     if (!memoFn) {
@@ -1752,8 +1850,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     // Generate a more efficient cache key
     let cacheKey: any;
     if (payload === undefined || payload === null) {
-      cacheKey = '__undefined__';
-    } else if (typeof payload !== 'object') {
+      cacheKey = "__undefined__";
+    } else if (typeof payload !== "object") {
       // Primitive values can be used directly as Map keys
       cacheKey = payload;
     } else {
@@ -1764,12 +1862,12 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     // Fast path: return cached result if available and valid
     if (cache.has(cacheKey)) {
       const cached = cache.get(cacheKey)!;
-      
+
       // State version check is much faster than deep dependency check
       if (cached.stateVersion === this._stateVersion) {
         return cached.result;
       }
-      
+
       // Fall back to dependency check only when needed
       if (this._areDependenciesUnchanged(cached.dependencies)) {
         return cached.result;
@@ -1778,12 +1876,12 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 
     // No valid cache hit, need to calculate
     const dependencies = new Set<string>();
-    
+
     // Optimized tracking proxy that only tracks top-level dependencies
     const trackingProxy = new Proxy(this._state as any, {
       get: (target, prop) => {
         // Only track string properties that aren't internal
-        if (typeof prop === 'string' && !prop.startsWith('_')) {
+        if (typeof prop === "string" && !prop.startsWith("_")) {
           dependencies.add(prop);
         }
         return (target as any)[prop];
@@ -1799,7 +1897,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       memo: this.memo,
       query: this.query,
       mutate: this.mutate,
-      dispatchAsync: this.dispatchAsync
+      dispatchAsync: this.dispatchAsync,
     };
 
     // Calculate the result
@@ -1810,12 +1908,12 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       console.error(`[Cami.js] Error in memo '${memoName}':`, error);
       throw error;
     }
-    
+
     // Cache the result with its dependencies
-    cache.set(cacheKey, { 
-      result, 
+    cache.set(cacheKey, {
+      result,
       dependencies,
-      stateVersion: this._stateVersion
+      stateVersion: this._stateVersion,
     });
     return result;
   }
@@ -1829,21 +1927,30 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     if (!dependencies || dependencies.size === 0) {
       return true;
     }
-    
+
     // Fast path 2: No previous state means always changed
     if (!this.previousState) {
       return false;
     }
-    
+
     // Fast path 3: For small dependency sets, direct iteration is fastest
     if (dependencies.size <= 8) {
       for (const dep of dependencies) {
         // Reference check first (fast)
         if ((this._state as any)[dep] !== (this.previousState as any)[dep]) {
           // If objects, do a deep equality check (slower but more accurate)
-          if (typeof (this._state as any)[dep] === 'object' && (this._state as any)[dep] !== null &&
-              typeof (this.previousState as any)[dep] === 'object' && (this.previousState as any)[dep] !== null) {
-            if (!_deepEqual((this._state as any)[dep], (this.previousState as any)[dep])) {
+          if (
+            typeof (this._state as any)[dep] === "object" &&
+            (this._state as any)[dep] !== null &&
+            typeof (this.previousState as any)[dep] === "object" &&
+            (this.previousState as any)[dep] !== null
+          ) {
+            if (
+              !_deepEqual(
+                (this._state as any)[dep],
+                (this.previousState as any)[dep],
+              )
+            ) {
               return false;
             }
           } else {
@@ -1853,7 +1960,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       }
       return true;
     }
-    
+
     // For larger dependency sets, use a different approach
     const deps = Array.from(dependencies);
     const len = deps.length;
@@ -1862,9 +1969,18 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       // Reference check first (fast)
       if ((this._state as any)[dep] !== (this.previousState as any)[dep]) {
         // If objects, do a deep equality check (slower but more accurate)
-        if (typeof (this._state as any)[dep] === 'object' && (this._state as any)[dep] !== null &&
-            typeof (this.previousState as any)[dep] === 'object' && (this.previousState as any)[dep] !== null) {
-          if (!_deepEqual((this._state as any)[dep], (this.previousState as any)[dep])) {
+        if (
+          typeof (this._state as any)[dep] === "object" &&
+          (this._state as any)[dep] !== null &&
+          typeof (this.previousState as any)[dep] === "object" &&
+          (this.previousState as any)[dep] !== null
+        ) {
+          if (
+            !_deepEqual(
+              (this._state as any)[dep],
+              (this.previousState as any)[dep],
+            )
+          ) {
             return false;
           }
         } else {
@@ -1872,10 +1988,10 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         }
       }
     }
-    
+
     return true;
   }
-  
+
   // Helper methods for the state machine
   isValidTransition(from: any, currentState: TState): boolean {
     if (from === undefined) {
@@ -1928,7 +2044,11 @@ export class ObservableStore<TState = any> extends Observable<TState> {
       }, {} as any);
     };
 
-    const findMismatchedKeys = (expected: any, actual: any, prefix = ""): string[] => {
+    const findMismatchedKeys = (
+      expected: any,
+      actual: any,
+      prefix = "",
+    ): string[] => {
       const mismatched: string[] = [];
       Object.keys(expected).forEach((key) => {
         const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -1938,7 +2058,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           mismatched.push(
             `${fullKey} (expected ${typeof expected[key]}, got ${typeof actual[
               key
-            ]})`
+            ]})`,
           );
         } else if (
           typeof expected[key] === "object" &&
@@ -1947,7 +2067,7 @@ export class ObservableStore<TState = any> extends Observable<TState> {
           actual[key] !== null
         ) {
           mismatched.push(
-            ...findMismatchedKeys(expected[key], actual[key], fullKey)
+            ...findMismatchedKeys(expected[key], actual[key], fullKey),
           );
         }
       });
@@ -1961,8 +2081,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         `Invalid 'to' state: must be an object.\n\nExpected key-value pairs:\n${JSON.stringify(
           expectedShape,
           null,
-          2
-        )}`
+          2,
+        )}`,
       );
     }
     const mismatchedKeys = findMismatchedKeys(to, fromShape);
@@ -1972,8 +2092,8 @@ export class ObservableStore<TState = any> extends Observable<TState> {
         `Invalid 'to' state shape.\n\nExpected key-value pairs:\n${JSON.stringify(
           expectedShape,
           null,
-          2
-        )}\n\nMismatched keys: ${mismatchedKeys.join(", ")}`
+          2,
+        )}\n\nMismatched keys: ${mismatchedKeys.join(", ")}`,
       );
     }
   }
@@ -1995,13 +2115,18 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   private _validateState(state: any): void {
     Object.entries(this.schema).forEach(([key, type]) => {
       try {
-        if (type.type === "optional" && (state[key] === undefined || state[key] === null)) {
+        if (
+          type.type === "optional" &&
+          (state[key] === undefined || state[key] === null)
+        ) {
           // Skip validation for undefined or null optional fields
           return;
         }
         validateType(state[key], type, [key], state);
       } catch (error) {
-        throw new Error(`Validation error in ${this.name}: ${(error as Error).message}`);
+        throw new Error(
+          `Validation error in ${this.name}: ${(error as Error).message}`,
+        );
       }
     });
   }
@@ -2011,24 +2136,23 @@ export class ObservableStore<TState = any> extends Observable<TState> {
 // Utility Functions
 // =============================================================================
 
-const deepFreeze = <T>(value: T, _deep = true): T => {
+const deepFreeze = <T>(value: T): T => {
   if (typeof value !== "object" || value === null) {
     return value; // Return primitives as-is
   }
   return new Proxy(freeze(value, true), {
     set(_target, prop, _val) {
       throw new Error(
-        `Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`
+        `Attempted to modify frozen state. Cannot set property '${String(prop)}' on immutable object.`,
       );
     },
     deleteProperty(_target, prop) {
       throw new Error(
-        `Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`
+        `Attempted to modify frozen state. Cannot delete property '${String(prop)}' from immutable object.`,
       );
     },
   }) as T;
 };
-
 
 /**
  * Registry for store singletons by name
@@ -2046,18 +2170,20 @@ export interface StoreFactoryConfig<TState = any> extends StoreConfig<TState> {
 
 /**
  * Creates a new ObservableStore instance or returns an existing one with the same name
- * 
+ *
  * @param config - Configuration options
  * @returns Store instance
  */
-export const store = <TState = any>(config: StoreFactoryConfig<TState> = {}): ObservableStore<TState> => {
+export const store = <TState = any>(
+  config: StoreFactoryConfig<TState> = {},
+): ObservableStore<TState> => {
   // Default configuration
   const defaultConfig: StoreFactoryConfig<TState> = {
     state: {} as TState,
     name: "cami-store",
     schema: {},
     enableLogging: false,
-    enableDevtools: false
+    enableDevtools: false,
   };
 
   // Merge provided config with defaults
@@ -2069,14 +2195,28 @@ export const store = <TState = any>(config: StoreFactoryConfig<TState> = {}): Ob
   }
 
   // Create new store instance
-  const storeInstance = new ObservableStore<TState>(finalConfig.state!, finalConfig);
+  const storeInstance = new ObservableStore<TState>(
+    finalConfig.state!,
+    finalConfig,
+  );
 
   // Verify required methods are available
-  const requiredMethods = ["memo", "query", "trigger", "dispatch", "mutate", "subscribe"];
-  const missingMethods = requiredMethods.filter(method => typeof (storeInstance as any)[method] !== "function");
-  
+  const requiredMethods = [
+    "memo",
+    "query",
+    "trigger",
+    "dispatch",
+    "mutate",
+    "subscribe",
+  ];
+  const missingMethods = requiredMethods.filter(
+    (method) => typeof (storeInstance as any)[method] !== "function",
+  );
+
   if (missingMethods.length > 0) {
-    console.warn(`[Cami.js] Store missing required methods: ${missingMethods.join(', ')}`);
+    console.warn(
+      `[Cami.js] Store missing required methods: ${missingMethods.join(", ")}`,
+    );
   }
 
   // Register the store instance
@@ -2084,7 +2224,7 @@ export const store = <TState = any>(config: StoreFactoryConfig<TState> = {}): Ob
 
   // Log creation if logging enabled
   if (finalConfig.enableLogging) {
-    __trace('cami:store:create', `Created store: ${finalConfig.name}`);
+    __trace("cami:store:create", `Created store: ${finalConfig.name}`);
   }
 
   return storeInstance;

@@ -22,10 +22,14 @@ let isProduction = (function (): boolean {
 let alwaysEnabled = false;
 
 function captureStackTrace(error: Error): void {
-  if ((Error as any).captureStackTrace) {
-    (Error as any).captureStackTrace(error, invariant);
+  const ErrorConstructor = Error as unknown as {
+    captureStackTrace?: (targetObject: Error, constructorOpt?: (...args: unknown[]) => unknown) => void;
+  };
+  
+  if (ErrorConstructor.captureStackTrace) {
+    ErrorConstructor.captureStackTrace(error, invariant as (...args: unknown[]) => unknown);
   } else {
-    error.stack = new Error().stack;
+    error.stack = new Error().stack || "";
   }
 }
 
@@ -52,7 +56,9 @@ function invariant(message: string, callback: () => boolean): void {
   if (!alwaysEnabled && isProduction) return; // No-op in production unless alwaysEnabled is true
 
   if (!callback()) {
-    const error = new InvariantViolationError("Invariant Violation: " + message);
+    const error = new InvariantViolationError(
+      "Invariant Violation: " + message,
+    );
 
     // In non-production environments, capture the stack trace
     if (!isProduction) {
@@ -63,7 +69,9 @@ function invariant(message: string, callback: () => boolean): void {
   }
 }
 
-(invariant as InvariantFunction).config = function (config: InvariantConfig): void {
+(invariant as InvariantFunction).config = function (
+  config: InvariantConfig,
+): void {
   const development = config.development;
   const production = config.production;
 

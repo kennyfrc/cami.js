@@ -1,30 +1,26 @@
 {
   "compilerOptions": {
-    /* --- Tier 1: The Core Foundation (granular strict mode settings) --- */
-    "strictNullChecks": true, // Makes null and undefined distinct types
+    // Recommended settings
     "noImplicitAny": true, // Forces explicit typing for uninferable variables
+    "strictNullChecks": true, // Makes null and undefined distinct types
     "strictFunctionTypes": true, // Contravariant checking of function parameters
     "strictPropertyInitialization": true, // Class properties must be initialized
     "strictBindCallApply": true, // Strong typing for bind/call/apply
     "noImplicitThis": true, // Catches errors where this context is lost
     "alwaysStrict": true, // Output JS in strict mode
-    /* --- Tier 2: Essential Additions for Maximum Safety --- */
-    "noUncheckedIndexedAccess": false, // Adds | undefined to array/object access
-    "noImplicitOverride": true, // Requires override keyword
-    "exactOptionalPropertyTypes": false, // Distinguishes optional vs undefined
-    /* --- Tier 3: Code Quality and Linter-Style Checks --- */
+    "strictBuiltinIteratorReturn": true,
+    "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": true, // Distinguishes optional vs undefined
     "noFallthroughCasesInSwitch": true, // Prevents switch fallthrough bugs
     "noUnusedLocals": true, // Flags unused local variables
     "noUnusedParameters": true, // Flags unused function parameters
     "noImplicitReturns": true, // Ensures consistent return behavior
     "allowUnreachableCode": false, // Allows unreachable code
-    /* --- Tier 4: Modern Module and Project Configuration --- */
-    "moduleResolution": "node",
-    "isolatedModules": true, // Each file can be transpiled independently
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    /* --- DX + speed while prototyping --- */
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    /* --- DX + speed while prototyping --- */
+    "moduleResolution": "node",
     "incremental": true,
     "target": "es2022",
     "module": "esnext",

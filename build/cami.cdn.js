@@ -65,6 +65,7 @@ var cami = (() => {
     ObservableStore: () => ObservableStore,
     ReactiveElement: () => ReactiveElement,
     Type: () => Type,
+    URLStore: () => URLStore,
     _deepClone: () => _deepClone,
     _deepEqual: () => _deepEqual,
     _deepMerge: () => _deepMerge,
@@ -1671,28 +1672,16 @@ var cami = (() => {
       __publicField(this, "isUnsubscribed");
       if (typeof observer === "function") {
         this.next = observer;
-        this.error = void 0;
-        this.complete = void 0;
       } else if (observer && typeof observer === "object") {
-        if (observer.next) {
-          this.next = typeof observer.next === "function" ? observer.next.bind ? observer.next.bind(observer) : observer.next : void 0;
-        } else {
-          this.next = void 0;
+        if (observer.next && typeof observer.next === "function") {
+          this.next = observer.next.bind ? observer.next.bind(observer) : observer.next;
         }
-        if (observer.error) {
-          this.error = typeof observer.error === "function" ? observer.error.bind ? observer.error.bind(observer) : observer.error : void 0;
-        } else {
-          this.error = void 0;
+        if (observer.error && typeof observer.error === "function") {
+          this.error = observer.error.bind ? observer.error.bind(observer) : observer.error;
         }
-        if (observer.complete) {
-          this.complete = typeof observer.complete === "function" ? observer.complete.bind ? observer.complete.bind(observer) : observer.complete : void 0;
-        } else {
-          this.complete = void 0;
+        if (observer.complete && typeof observer.complete === "function") {
+          this.complete = observer.complete.bind ? observer.complete.bind(observer) : observer.complete;
         }
-      } else {
-        this.next = void 0;
-        this.error = void 0;
-        this.complete = void 0;
       }
       this.teardowns = null;
       this.isUnsubscribed = false;
@@ -1715,9 +1704,9 @@ var cami = (() => {
       if (this.isUnsubscribed) return;
       this.isUnsubscribed = true;
       if (!this.teardowns) {
-        this.next = void 0;
-        this.error = void 0;
-        this.complete = void 0;
+        delete this.next;
+        delete this.error;
+        delete this.complete;
         return;
       }
       const teardowns = this.teardowns;
@@ -1729,9 +1718,9 @@ var cami = (() => {
         }
       }
       this.teardowns = null;
-      this.next = void 0;
-      this.error = void 0;
-      this.complete = void 0;
+      delete this.next;
+      delete this.error;
+      delete this.complete;
     }
   };
   var Observable = class {
@@ -1783,11 +1772,7 @@ var cami = (() => {
      * @returns An object containing methods to manage the subscription
      */
     subscribe(observerOrNext, error, complete) {
-      const subscriber = typeof observerOrNext === "function" ? new Subscriber(observerOrNext) : new Subscriber({
-        next: observerOrNext,
-        error: error || void 0,
-        complete: complete || void 0
-      });
+      const subscriber = typeof observerOrNext === "function" ? new Subscriber(observerOrNext) : new Subscriber(__spreadValues(__spreadValues(__spreadValues({}, observerOrNext), error && { error }), complete && { complete }));
       if (!this.subscribeCallback) {
         this.__observers.push(subscriber);
         subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
@@ -1921,7 +1906,8 @@ var cami = (() => {
      * @returns Subscription object with unsubscribe method
      */
     onError(callbackFn) {
-      return this.subscribe(null, callbackFn);
+      return this.subscribe(() => {
+      }, callbackFn);
     }
     /**
      * Simplified method to subscribe to completion only
@@ -1929,7 +1915,8 @@ var cami = (() => {
      * @returns Subscription object with unsubscribe method
      */
     onEnd(callbackFn) {
-      return this.subscribe(null, null, callbackFn);
+      return this.subscribe(() => {
+      }, void 0, callbackFn);
     }
     /**
      * Returns an AsyncIterator for asynchronous iteration
@@ -1981,23 +1968,23 @@ var cami = (() => {
   var arrayIsArray = Array.isArray;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var INTERNAL_PROPS = {
-    "__observers": true,
-    "__onChange": true,
-    "__routes": true,
-    "__resourceLoaders": true,
-    "__activeRoute": true,
-    "__navigationState": true,
-    "__persistentParams": true,
-    "__beforeNavigateHooks": true,
-    "__afterNavigateHooks": true,
-    "_state": true,
-    "_frozenState": true,
-    "_isDirty": true,
-    "_stateVersion": true,
-    "_stateTrapStore": true,
-    "_uid": true,
-    "constructor": true,
-    "toJSON": true
+    __observers: true,
+    __onChange: true,
+    __routes: true,
+    __resourceLoaders: true,
+    __activeRoute: true,
+    __navigationState: true,
+    __persistentParams: true,
+    __beforeNavigateHooks: true,
+    __afterNavigateHooks: true,
+    _state: true,
+    _frozenState: true,
+    _isDirty: true,
+    _stateVersion: true,
+    _stateTrapStore: true,
+    _uid: true,
+    constructor: true,
+    toJSON: true
   };
   var isStringRecord = (obj) => {
     if (typeof obj !== "object" || obj === null) return false;
@@ -2187,13 +2174,16 @@ var cami = (() => {
         const result2 = new Set(target2 instanceof Set ? target2 : void 0);
         seen.set(source2, result2);
         for (const item of source2) {
-          result2.add(item === null || typeof item !== "object" ? item : merge(void 0, item));
+          result2.add(
+            item === null || typeof item !== "object" ? item : merge(void 0, item)
+          );
         }
         return result2;
       }
       if (source2.constructor !== Object) {
         if (source2 instanceof Date) return new Date(source2.getTime());
-        if (source2 instanceof RegExp) return new RegExp(source2.source, source2.flags);
+        if (source2 instanceof RegExp)
+          return new RegExp(source2.source, source2.flags);
         if (ArrayBuffer.isView(source2) && !(source2 instanceof DataView)) {
           if (typeof Buffer !== "undefined" && ((_a2 = Buffer == null ? void 0 : Buffer.isBuffer) == null ? void 0 : _a2.call(Buffer, source2))) {
             return Buffer.from(source2);
@@ -2276,7 +2266,9 @@ var cami = (() => {
       const result2 = /* @__PURE__ */ new Set();
       cache.set(value, result2);
       for (const item of value) {
-        result2.add(item === null || typeof item !== "object" ? item : _deepClone(item, cache));
+        result2.add(
+          item === null || typeof item !== "object" ? item : _deepClone(item, cache)
+        );
       }
       return result2;
     }
@@ -2404,7 +2396,9 @@ var cami = (() => {
     addDependency(store2, property) {
       const key = property ? `${store2._uid || "store"}.${property}` : store2._uid || "store";
       if (!this._depsMap.has(key)) {
-        const dep = { store: store2, property };
+        const dep = __spreadValues({
+          store: store2
+        }, property && { property });
         this.dependencies.push(dep);
         this._depsMap.set(key, dep);
       }
@@ -2423,7 +2417,10 @@ var cami = (() => {
      * @example
      * const observable = new ObservableState(10);
      */
-    constructor(initialValue = null, subscriber = null, { last = false, name = null } = {}) {
+    constructor(initialValue = null, subscriber = null, {
+      last = false,
+      name = null
+    } = {}) {
       super();
       __publicField(this, "__value");
       __publicField(this, "__pendingUpdates", []);
@@ -2469,7 +2466,9 @@ var cami = (() => {
             }
             this.__observers.pop();
           } else {
-            this.__observers = this.__observers.filter((obs) => obs !== subscriber);
+            this.__observers = this.__observers.filter(
+              (obs) => obs !== subscriber
+            );
           }
         },
         complete: () => {
@@ -2553,7 +2552,7 @@ var cami = (() => {
         let current2 = state;
         for (let i4 = 0; i4 < keys.length - 1; i4++) {
           const key2 = keys[i4];
-          if (key2 !== void 0) {
+          if (key2 !== void 0 && typeof current2 === "object" && current2 !== null) {
             current2 = current2[key2];
           }
         }
@@ -2580,7 +2579,7 @@ var cami = (() => {
         let current2 = state;
         for (let i4 = 0; i4 < keys.length - 1; i4++) {
           const key2 = keys[i4];
-          if (key2 !== void 0) {
+          if (key2 !== void 0 && typeof current2 === "object" && current2 !== null) {
             current2 = current2[key2];
           }
         }
@@ -2656,7 +2655,7 @@ var cami = (() => {
         throw new Error("[Cami.js] Observable value is not an array");
       }
       this.update((arr) => {
-        arr.splice(start, deleteCount, ...items);
+        arr.splice(start, deleteCount != null ? deleteCount : 0, ...items);
       });
     }
     /**
@@ -2924,6 +2923,8 @@ var cami = (() => {
     const _runEffect = () => {
       cleanup();
       const tracker = {
+        dependencies: [],
+        _depsMap: /* @__PURE__ */ new Map(),
         addDependency(observable) {
           if (!dependencies.has(observable)) {
             dependencies.add(observable);
@@ -2944,7 +2945,9 @@ var cami = (() => {
     return () => {
       cleanup();
       dependencies.forEach((dep) => {
-        dep["__observers"] = dep["__observers"].filter((obs) => obs !== _runEffect);
+        dep["__observers"] = dep["__observers"].filter(
+          (obs) => obs !== _runEffect
+        );
       });
       dependencies.clear();
     };
@@ -2967,7 +2970,7 @@ var cami = (() => {
       try {
         currentValue = deriveFn();
       } catch (error) {
-        console.warn("[Cami.js] Error in derive function:", error.message);
+        console.warn("[Cami.js] Error in derive function:", error instanceof Error ? error.message : String(error));
       } finally {
         DependencyTracker.current = null;
       }
@@ -3087,7 +3090,11 @@ var cami = (() => {
           if (property in target) {
             return Reflect.defineProperty(target, property, descriptor);
           } else {
-            const result = Reflect.defineProperty(target.value, property, descriptor);
+            const result = Reflect.defineProperty(
+              target.value,
+              property,
+              descriptor
+            );
             if (result) {
               target.update(() => target.value);
             }
@@ -3098,7 +3105,10 @@ var cami = (() => {
           if (property in target) {
             return Reflect.getOwnPropertyDescriptor(target, property);
           }
-          return Reflect.getOwnPropertyDescriptor(target.value, property);
+          return Reflect.getOwnPropertyDescriptor(
+            target.value,
+            property
+          );
         }
       });
     }
@@ -3333,7 +3343,7 @@ var cami = (() => {
         set: (newValue) => {
           observable.update(() => newValue);
           if (isAttribute) {
-            this.setAttribute(key, newValue);
+            this.setAttribute(key, String(newValue));
           }
         }
       });
@@ -3362,7 +3372,7 @@ var cami = (() => {
         set: (newValue) => {
           observable.update(() => newValue);
           if (isAttribute) {
-            this.setAttribute(key, newValue);
+            this.setAttribute(key, String(newValue));
           }
         }
       });
@@ -3420,7 +3430,7 @@ var cami = (() => {
           `[Cami.js] The value of type ${type} is not allowed in observables. Only primitive values, arrays, and plain objects are allowed.`
         );
       }
-      const observable = new ObservableState(initialValue, null, { name });
+      const observable = new ObservableState(initialValue, null, name ? { name } : void 0);
       this.__registerObservables(observable);
       return observable;
     }
@@ -3460,9 +3470,8 @@ var cami = (() => {
         );
       }
       this.__unsubscribers.set(observableState, () => {
-        const dispose = observableState.dispose;
-        if (typeof dispose === "function") {
-          dispose.call(observableState);
+        if ("dispose" in observableState && typeof observableState.dispose === "function") {
+          observableState.dispose();
         }
       });
     }
@@ -3494,7 +3503,9 @@ var cami = (() => {
     warnIfMissingProperties(properties) {
       const missingProperties = properties.filter((prop) => !(prop in this));
       if (missingProperties.length > 0) {
-        console.warn(`Missing required properties: ${missingProperties.join(", ")}`);
+        console.warn(
+          `Missing required properties: ${missingProperties.join(", ")}`
+        );
       }
     }
   };
@@ -3504,7 +3515,10 @@ var cami = (() => {
     return "model_" + Math.random().toString(36).substr(2, 9);
   }
   var Model = class {
-    constructor({ name = generateRandomName(), properties = {} } = {}) {
+    constructor({
+      name = generateRandomName(),
+      properties = {}
+    } = {}) {
       __publicField(this, "name");
       __publicField(this, "schema");
       this.name = name;
@@ -3549,23 +3563,15 @@ var cami = (() => {
         modelStore.defineMachine(machineName, machineDefinition);
       });
       Object.entries(queries).forEach(([queryName, queryConfig]) => {
-        modelStore.defineQuery(queryName, {
+        modelStore.defineQuery(queryName, __spreadValues(__spreadValues(__spreadValues(__spreadValues({
           queryKey: queryConfig.queryKey,
-          queryFn: queryConfig.queryFn,
-          onFetch: queryConfig.onFetch,
-          onError: queryConfig.onError,
-          onSuccess: queryConfig.onSuccess,
-          onSettled: queryConfig.onSettled
-        });
+          queryFn: queryConfig.queryFn
+        }, queryConfig.onFetch && { onFetch: queryConfig.onFetch }), queryConfig.onError && { onError: queryConfig.onError }), queryConfig.onSuccess && { onSuccess: queryConfig.onSuccess }), queryConfig.onSettled && { onSettled: queryConfig.onSettled }));
       });
       Object.entries(mutations).forEach(([mutationName, mutationConfig]) => {
-        modelStore.defineMutation(mutationName, {
-          mutationFn: mutationConfig.mutationFn,
-          onMutate: mutationConfig.onMutate,
-          onSuccess: mutationConfig.onSuccess,
-          onError: mutationConfig.onError,
-          onSettled: mutationConfig.onSettled
-        });
+        modelStore.defineMutation(mutationName, __spreadValues(__spreadValues(__spreadValues(__spreadValues({
+          mutationFn: mutationConfig.mutationFn
+        }, mutationConfig.onMutate && { onMutate: mutationConfig.onMutate }), mutationConfig.onSuccess && { onSuccess: mutationConfig.onSuccess }), mutationConfig.onError && { onError: mutationConfig.onError }), mutationConfig.onSettled && { onSettled: mutationConfig.onSettled }));
       });
       Object.entries(specs).forEach(([actionName, spec]) => {
         modelStore.defineSpec(actionName, spec);
@@ -3582,14 +3588,15 @@ var cami = (() => {
      */
     validateState(state) {
       const errors2 = [];
+      const recordState = state;
       Object.entries(this.schema).forEach(([key, type]) => {
-        if (!(key in state)) {
+        if (!(key in recordState)) {
           const expectedType = this._getExpectedTypeString(type);
           errors2.push(`Missing property: ${key}
 Expected type: ${expectedType}`);
         } else {
           try {
-            this.validateItem(state[key], type, [key], state);
+            this.validateItem(recordState[key], type, [key], state);
           } catch (error) {
             errors2.push(error.message);
           }
@@ -3614,7 +3621,8 @@ ${errors2.join("\n\n")}`
       const getTypeCategory = (type2, value2) => {
         if (typeof type2 === "object" && type2 !== null && "type" in type2) {
           if (type2.type === "optional") return "optional";
-          if (type2.type === "object" && typeof value2 === "object") return "object";
+          if (type2.type === "object" && typeof value2 === "object")
+            return "object";
         }
         return "other";
       };
@@ -3624,18 +3632,24 @@ ${errors2.join("\n\n")}`
           case "optional":
             if (value === void 0 || value === null) return;
             const optionalType = type;
-            return this.validateItem(value, optionalType.optional, path, rootState);
+            return this.validateItem(
+              value,
+              optionalType.optional,
+              path,
+              rootState
+            );
           case "object":
             const objectType = type;
+            const objectValue = value;
             Object.entries(objectType.schema).forEach(([key, subType]) => {
               const isOptional = typeof subType === "object" && subType !== null && "type" in subType && subType.type === "optional";
-              if (!isOptional && !(key in value)) {
+              if (!isOptional && !(key in objectValue)) {
                 throw new Error(
                   `Missing required property: ${[...path, key].join(".")}`
                 );
               }
-              if (key in value) {
-                this.validateItem(value[key], subType, [...path, key], rootState);
+              if (key in objectValue) {
+                this.validateItem(objectValue[key], subType, [...path, key], rootState);
               }
             });
             break;
@@ -3662,7 +3676,8 @@ Error: ${error.message}`
         if (typeof type2 === "string") return "string";
         if (typeof type2 === "object" && type2 !== null) {
           if ("type" in type2) {
-            if (type2.type === "object" && "schema" in type2) return "objectWithSchema";
+            if (type2.type === "object" && "schema" in type2)
+              return "objectWithSchema";
             if (type2.type === "array" && "itemType" in type2) return "array";
             if (type2.type === "enum" && "values" in type2) return "enum";
             if (type2.type === "optional") return "optional";
@@ -3753,11 +3768,10 @@ Error: ${error.message}`
       fstType,
       sndTypeFn
     }),
-    DependentRecord: (fields, validateFn) => ({
+    DependentRecord: (fields, validateFn) => __spreadValues({
       type: "dependentRecord",
-      fields,
-      validateFn
-    }),
+      fields
+    }, validateFn && { validateFn }),
     Date: { type: "date" },
     Vect: (length, elemType) => ({
       type: "vect",
@@ -3811,19 +3825,22 @@ Error: ${error.message}`
         );
     },
     object: (value, type, path, rootState, validateType2) => {
+      const objectType = type;
       if (typeof value !== "object" || value === null)
         throw new Error(
           `Expected object, got ${value === null ? "null" : typeof value} at ${path.join(".")}`
         );
-      Object.entries(type.schema).forEach(([key, subType]) => {
-        if (!(key in value))
+      const objectValue = value;
+      Object.entries(objectType.schema).forEach(([key, subType]) => {
+        if (!(key in objectValue))
           throw new Error(
             `Missing required property ${key} at ${path.join(".")}`
           );
-        validateType2(value[key], subType, [...path, key], rootState);
+        validateType2(objectValue[key], subType, [...path, key], rootState);
       });
     },
     array: (value, type, path, rootState, validateType2) => {
+      const arrayType = type;
       if (!Array.isArray(value)) {
         throw new Error(
           `Expected array, got ${typeof value} at ${path.join(".")}`
@@ -3834,7 +3851,7 @@ Error: ${error.message}`
       }
       value.forEach((item, index) => {
         if (item === void 0 || item === null) {
-          if (type.itemType.type === "optional") {
+          if (typeof arrayType.itemType === "object" && "type" in arrayType.itemType && arrayType.itemType.type === "optional") {
             return;
           }
           throw new Error(
@@ -3842,31 +3859,42 @@ Error: ${error.message}`
           );
         }
         try {
-          const itemTypeToValidate = type.itemType.type === "optional" ? type.itemType.optional : type.itemType;
-          validateType2(item, itemTypeToValidate, [...path, String(index)], rootState);
+          const itemTypeToValidate = typeof arrayType.itemType === "object" && "type" in arrayType.itemType && arrayType.itemType.type === "optional" ? arrayType.itemType.optional : arrayType.itemType;
+          validateType2(
+            item,
+            itemTypeToValidate,
+            [...path, String(index)],
+            rootState
+          );
         } catch (error) {
-          throw new Error(`Invalid item at index ${index}: ${error.message}`);
+          throw new Error(`Invalid item at index ${index}: ${error instanceof Error ? error.message : String(error)}`);
         }
       });
     },
     any: () => {
     },
     enum: (value, type, path) => {
-      if (!type.values.includes(value))
+      const enumType = type;
+      if (!enumType.values.includes(value))
         throw new Error(
-          `Expected one of ${type.values.join(", ")}, got ${value} at ${path.join(
+          `Expected one of ${enumType.values.join(", ")}, got ${value} at ${path.join(
             "."
           )}`
         );
     },
     sum: (value, type, path, rootState, validateType2) => {
+      const sumType = type;
       const errors2 = [];
-      if (!type.types.some((subType) => {
+      if (!sumType.types.some((subType) => {
         try {
           validateType2(value, subType, path, rootState);
           return true;
         } catch (e4) {
-          errors2.push(e4.message);
+          if (e4 instanceof Error) {
+            errors2.push(e4.message);
+          } else {
+            errors2.push(String(e4));
+          }
           return false;
         }
       })) {
@@ -3885,16 +3913,24 @@ Error: ${error.message}`
           )}`
         );
       }
-      let existingObject = path.reduce((obj, key) => obj[key], rootState);
+      let existingObject = path.reduce((obj, key) => obj == null ? void 0 : obj[key], rootState);
       if (existingObject === void 0) {
         existingObject = {};
       }
       const mergedValue = _deepMerge(_deepMerge({}, existingObject), value);
-      Object.entries(type.fields).forEach(([key, fieldType]) => {
-        if (key in mergedValue) {
-          validateType2(mergedValue[key], fieldType, [...path, key], rootState, key);
-        }
-      });
+      if (typeof type === "object" && type !== null && "type" in type && type.type === "product" && "fields" in type) {
+        Object.entries(type.fields).forEach(([key, fieldType]) => {
+          if (key in mergedValue) {
+            validateType2(
+              mergedValue[key],
+              fieldType,
+              [...path, key],
+              rootState,
+              key
+            );
+          }
+        });
+      }
       let currentObj = rootState;
       for (let i4 = 0; i4 < path.length - 1; i4++) {
         if (currentObj[path[i4]] === void 0) {
@@ -3909,7 +3945,10 @@ Error: ${error.message}`
       if (value === void 0 || value === null) {
         return null;
       }
-      return validateType2(value, type.optional, path, rootState);
+      if (typeof type === "object" && type !== null && "type" in type && type.type === "optional" && "optional" in type) {
+        return validateType2(value, type.optional, path, rootState);
+      }
+      throw new Error(`Expected OptionalType, but got something else at ${path.join(".")}`);
     },
     null: (value, _type, path) => {
       if (value !== null)
@@ -3918,17 +3957,19 @@ Error: ${error.message}`
         );
     },
     refinement: (value, type, path, rootState, validateType2) => {
-      validateType2(value, type.baseType, path, rootState);
-      if (!type.refinementFn(value)) {
+      const refinementType = type;
+      validateType2(value, refinementType.baseType, path, rootState);
+      if (!refinementType.refinementFn(value)) {
         throw new Error(`Refinement predicate failed at ${path.join(".")}`);
       }
     },
     dependentPair: (value, type, path, rootState, validateType2) => {
+      const pairType = type;
       if (!Array.isArray(value) || value.length !== 2) {
         throw new Error(`Expected dependent pair at ${path.join(".")}`);
       }
-      validateType2(value[0], type.fstType, [...path, "0"], rootState);
-      const sndType = type.sndTypeFn(value[0]);
+      validateType2(value[0], pairType.fstType, [...path, "0"], rootState);
+      const sndType = pairType.sndTypeFn(value[0]);
       validateType2(value[1], sndType, [...path, "1"], rootState);
     },
     date: (value, _type, path) => {
@@ -3955,21 +3996,25 @@ Error: ${error.message}`
       }
     },
     natural: (value, _type, path) => {
-      if (!Number.isInteger(value) || value < 0) {
+      if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
         throw new Error(
           `Expected natural number, got ${value} at ${path.join(".")}`
         );
       }
     },
     vect: (value, type, path, rootState, validateType2) => {
-      if (!Array.isArray(value) || value.length !== type.length) {
-        throw new Error(
-          `Expected Vect of length ${type.length}, got ${value.length} at ${path.join(".")}`
-        );
+      if (typeof type === "object" && type !== null && "type" in type && type.type === "vect" && "length" in type && "elemType" in type) {
+        if (!Array.isArray(value) || value.length !== type.length) {
+          throw new Error(
+            `Expected Vect of length ${type.length}, got ${Array.isArray(value) ? value.length : "non-array"} at ${path.join(".")}`
+          );
+        }
+        value.forEach((item, index) => {
+          validateType2(item, type.elemType, [...path, String(index)], rootState);
+        });
+      } else {
+        throw new Error(`Expected VectType at ${path.join(".")}`);
       }
-      value.forEach((item, index) => {
-        validateType2(item, type.elemType, [...path, String(index)], rootState);
-      });
     },
     tree: (value, type, path, rootState, validateType2) => {
       if (typeof value !== "object" || value === null)
@@ -3980,7 +4025,11 @@ Error: ${error.message}`
         throw new Error(
           `Invalid tree structure: missing 'value' at ${path.join(".")}`
         );
-      validateType2(value.value, type.valueType, [...path, "value"], rootState);
+      if (typeof type === "object" && type !== null && "type" in type && type.type === "tree" && "valueType" in type) {
+        validateType2(value.value, type.valueType, [...path, "value"], rootState);
+      } else {
+        throw new Error(`Expected TreeType at ${path.join(".")}`);
+      }
       if ("left" in value)
         validateType2(value.left, type, [...path, "left"], rootState);
       if ("right" in value)
@@ -3993,7 +4042,11 @@ Error: ${error.message}`
         );
       if (!("value" in value) || !("children" in value))
         throw new Error(`Invalid rose tree structure at ${path.join(".")}`);
-      validateType2(value.value, type.valueType, [...path, "value"], rootState);
+      if (typeof type === "object" && type !== null && "type" in type && type.type === "roseTree" && "valueType" in type) {
+        validateType2(value.value, type.valueType, [...path, "value"], rootState);
+      } else {
+        throw new Error(`Expected RoseTreeType at ${path.join(".")}`);
+      }
       if (!Array.isArray(value.children))
         throw new Error(
           `Expected array of children, got ${typeof value.children} at ${path.join(
@@ -4001,24 +4054,31 @@ Error: ${error.message}`
           )}.children`
         );
       value.children.forEach((child, index) => {
-        validateType2(child, type, [...path, "children", String(index)], rootState);
+        validateType2(
+          child,
+          type,
+          [...path, "children", String(index)],
+          rootState
+        );
       });
     },
     dependentRecord: (value, type, path, rootState, validateType2) => {
+      const recordType = type;
       if (typeof value !== "object" || value === null)
         throw new Error(
           `Expected object, got ${typeof value} at ${path.join(".")}`
         );
-      Object.entries(type.fields).forEach(([key, fieldType]) => {
-        if (!(key in value))
+      const objectValue = value;
+      Object.entries(recordType.fields).forEach(([key, fieldType]) => {
+        if (!(key in objectValue))
           throw new Error(
             `Missing required property ${key} at ${path.join(".")}`
           );
         const resolvedType = typeof fieldType === "function" ? fieldType(value) : fieldType;
-        validateType2(value[key], resolvedType, [...path, key], rootState);
+        validateType2(objectValue[key], resolvedType, [...path, key], rootState);
       });
-      if (typeof type.validateFn === "function") {
-        const result = type.validateFn(value, rootState);
+      if (typeof recordType.validateFn === "function") {
+        const result = recordType.validateFn(value, rootState);
         if (result !== true) {
           throw new Error(
             `Validation failed for dependent record at ${path.join(
@@ -4036,32 +4096,38 @@ Error: ${error.message}`
       }
     },
     dependentArray: (value, type, path, rootState, validateType2) => {
+      const arrayType = type;
       if (!Array.isArray(value)) {
         throw new Error(
           `Expected array, got ${typeof value} at ${path.join(".")}`
         );
       }
-      const expectedLength = type.lengthFn(value);
+      const expectedLength = arrayType.lengthFn(value);
       if (value.length !== expectedLength) {
         throw new Error(
           `Expected array of length ${expectedLength}, got ${value.length} at ${path.join(".")}`
         );
       }
       value.forEach((item, index) => {
-        const itemType = type.itemTypeFn(index, value);
+        const itemType = arrayType.itemTypeFn(index, value);
         validateType2(item, itemType, [...path, String(index)], rootState);
       });
     },
     dependentSum: (value, type, path, rootState, validateType2) => {
-      const discriminant = type.discriminantFn(value);
-      const possibleTypes = type.typesFn(discriminant);
+      const sumType = type;
+      const discriminant = sumType.discriminantFn(value);
+      const possibleTypes = sumType.typesFn(discriminant);
       const errors2 = [];
       for (const subType of possibleTypes) {
         try {
           validateType2(value, subType, path, rootState);
           break;
         } catch (e4) {
-          errors2.push(e4.message);
+          if (e4 instanceof Error) {
+            errors2.push(e4.message);
+          } else {
+            errors2.push(String(e4));
+          }
         }
       }
       if (possibleTypes.length === errors2.length) {
@@ -4073,10 +4139,14 @@ Error: ${error.message}`
       }
     },
     literal: (value, type, path) => {
-      if (value !== type.value) {
-        throw new Error(
-          `Expected ${type.value}, got ${value} at ${path.join(".")}`
-        );
+      if (typeof type === "object" && type !== null && "type" in type && type.type === "literal" && "value" in type) {
+        if (value !== type.value) {
+          throw new Error(
+            `Expected ${type.value}, got ${value} at ${path.join(".")}`
+          );
+        }
+      } else {
+        throw new Error(`Expected LiteralType at ${path.join(".")}`);
       }
     },
     boolean: (value, _type, path) => {
@@ -4116,18 +4186,26 @@ Error: ${error.message}`
       }
     },
     model: (value, type, path, rootState, validateType2) => {
+      const modelType = type;
       if (typeof value !== "object" || value === null) {
         throw new Error(
           `Expected model object, got ${typeof value} at ${path.join(".")}`
         );
       }
-      Object.entries(type.schema).forEach(([key, fieldType]) => {
-        if (!(key in value)) {
+      const objectValue = value;
+      Object.entries(modelType.schema).forEach(([key, fieldType]) => {
+        if (!(key in objectValue)) {
           throw new Error(
             `Missing required property ${key} in model at ${path.join(".")}`
           );
         }
-        validateType2(value[key], fieldType, [...path, key], rootState, key);
+        validateType2(
+          objectValue[key],
+          fieldType,
+          [...path, key],
+          rootState,
+          key
+        );
       });
     }
   };
@@ -4141,7 +4219,13 @@ Error: ${error.message}`
       if (value === void 0 || value === null) {
         return;
       }
-      return validateType(value, type.optional, path, rootState, currentKey);
+      return validateType(
+        value,
+        type.optional,
+        path,
+        rootState,
+        currentKey
+      );
     }
     if (value === void 0) {
       throw new Error(
@@ -4206,7 +4290,12 @@ Error: ${error.message}`
         validateType(clonedState, schema, [], clonedState);
       } else {
         Object.entries(schema).forEach(([key, type]) => {
-          validateType(clonedState[key], type, [key], clonedState);
+          validateType(
+            clonedState[key],
+            type,
+            [key],
+            clonedState
+          );
         });
       }
     };
@@ -4247,8 +4336,6 @@ Error: ${error.message}`
       // Used in proxy handlers
       __publicField(this, "_isDirty", false);
       __publicField(this, "_stateVersion", 0);
-      // @ts-expect-error _proxy is used internally for reactive state tracking
-      __publicField(this, "_proxy");
       __publicField(this, "previousState");
       // Core data structures
       __publicField(this, "reducers", {});
@@ -4291,7 +4378,6 @@ Error: ${error.message}`
       this._frozenState = null;
       this._isDirty = false;
       this._stateVersion = 0;
-      this._proxy = this._createProxy(this._state);
       this.previousState = initialState;
       this.dispatch = this.dispatch.bind(this);
       this.query = this.query.bind(this);
@@ -4340,9 +4426,10 @@ Error: ${error.message}`
     /**
      * Creates a proxy that tracks property access for dependency tracking
      * and automatically schedules updates when properties change
-     * 
+     *
      * This is a critical path for performance optimization
      */
+    // @ts-ignore - _createProxy is currently unused but kept for potential future use
     _createProxy(target) {
       const SKIP_PROPS = /* @__PURE__ */ new Set(["constructor", "toJSON"]);
       if (!this._stateTrapStore) {
@@ -4521,10 +4608,13 @@ Error: ${error.message}`
         }
         return type;
       };
-      return Object.keys(state).reduce((acc, key) => {
-        acc[key] = inferType(state[key]);
-        return acc;
-      }, {});
+      return Object.keys(state).reduce(
+        (acc, key) => {
+          acc[key] = inferType(state[key]);
+          return acc;
+        },
+        {}
+      );
     }
     /**
      * Validates a state object against a schema
@@ -4593,7 +4683,9 @@ Error: ${error.message}`
       if (typeof action !== "string") {
         this.__dispatchStack.pop();
         this.__isDispatching = false;
-        throw new Error(`[Cami.js] Action type must be a string. Got: ${typeof action}`);
+        throw new Error(
+          `[Cami.js] Action type must be a string. Got: ${typeof action}`
+        );
       }
       const reducer = this.reducers[action];
       if (!reducer) {
@@ -4616,7 +4708,11 @@ Error: ${error.message}`
           }
         }
         if (this.beforeHooks.length > 0) {
-          this.__applyHooks("before", { action, payload, state: this._state });
+          this.__applyHooks("before", {
+            action,
+            payload,
+            state: this._state
+          });
         }
         const reducerContext = {
           state: this._state,
@@ -4797,7 +4893,10 @@ Error: ${error.message}`
           try {
             listeners[j2](keyPatches);
           } catch (error) {
-            console.error(`[Cami.js] Error in patch listener for key "${key}":`, error);
+            console.error(
+              `[Cami.js] Error in patch listener for key "${key}":`,
+              error
+            );
           }
         }
       }
@@ -4811,13 +4910,19 @@ Error: ${error.message}`
      */
     defineAction(action, reducer) {
       if (typeof action !== "string") {
-        throw new Error(`[Cami.js] Action name must be a string, got: ${typeof action}`);
+        throw new Error(
+          `[Cami.js] Action name must be a string, got: ${typeof action}`
+        );
       }
       if (typeof reducer !== "function") {
-        throw new Error(`[Cami.js] Reducer must be a function, got: ${typeof reducer}`);
+        throw new Error(
+          `[Cami.js] Reducer must be a function, got: ${typeof reducer}`
+        );
       }
       if (this.reducers[action]) {
-        throw new Error(`[Cami.js] Action '${action}' is already defined in store '${this.name}'.`);
+        throw new Error(
+          `[Cami.js] Action '${action}' is already defined in store '${this.name}'.`
+        );
       }
       const baseContext = {
         dispatch: this.dispatch,
@@ -4841,16 +4946,22 @@ Error: ${error.message}`
      */
     defineSpec(actionName, spec) {
       if (typeof actionName !== "string") {
-        throw new Error(`[Cami.js] Action name must be a string, got: ${typeof actionName}`);
+        throw new Error(
+          `[Cami.js] Action name must be a string, got: ${typeof actionName}`
+        );
       }
       if (!spec || typeof spec !== "object") {
         throw new Error(`[Cami.js] Spec must be an object, got: ${typeof spec}`);
       }
       if (spec.precondition && typeof spec.precondition !== "function") {
-        throw new Error(`[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`);
+        throw new Error(
+          `[Cami.js] Precondition must be a function, got: ${typeof spec.precondition}`
+        );
       }
       if (spec.postcondition && typeof spec.postcondition !== "function") {
-        throw new Error(`[Cami.js] Postcondition must be a function, got: ${typeof spec.postcondition}`);
+        throw new Error(
+          `[Cami.js] Postcondition must be a function, got: ${typeof spec.postcondition}`
+        );
       }
       this.specs.set(actionName, spec);
       return this;
@@ -5023,7 +5134,7 @@ Error: ${error.message}`
           cachedData.data,
           null,
           storeContext,
-          { onSuccess, onSettled }
+          __spreadValues(__spreadValues({}, onSuccess && { onSuccess }), onSettled && { onSettled })
         );
       }
       __trace(
@@ -5040,15 +5151,9 @@ Error: ${error.message}`
           timestamp: Date.now(),
           isStale: false
         });
-        return this._handleQueryResult(queryName, data, null, storeContext, {
-          onSuccess,
-          onSettled
-        });
+        return this._handleQueryResult(queryName, data, null, storeContext, __spreadValues(__spreadValues({}, onSuccess && { onSuccess }), onSettled && { onSettled }));
       }).catch((error) => {
-        return this._handleQueryResult(queryName, null, error, storeContext, {
-          onError,
-          onSettled
-        });
+        return this._handleQueryResult(queryName, null, error, storeContext, __spreadValues(__spreadValues({}, onError && { onError }), onSettled && { onSettled }));
       });
     }
     _handleQueryResult(queryName, data, error, storeContext, callbacks) {
@@ -5165,9 +5270,9 @@ Error: ${error.message}`
           if (attempts < retry) {
             attempts++;
             const delay = typeof retryDelay === "function" ? retryDelay(attempts) : retryDelay || 1e3;
-            return new Promise((resolve) => setTimeout(resolve, delay)).then(
-              executeFetch
-            );
+            return new Promise(
+              (resolve) => setTimeout(resolve, delay)
+            ).then(executeFetch);
           }
           throw error;
         });
@@ -5244,7 +5349,9 @@ Error: ${error.message}`
       }).catch((err) => {
         error = err;
         if (onError) {
-          onError(__spreadProps(__spreadValues({}, storeContext), { error: err }));
+          onError(__spreadProps(__spreadValues({}, storeContext), {
+            error: err
+          }));
         }
         throw err;
       }).finally(() => {
@@ -5312,7 +5419,9 @@ Error: ${error.message}`
               event.onEntry({ state, previousState, payload });
             }
           } else {
-            console.warn(`Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`);
+            console.warn(
+              `Ignored transition '${fullEventName}' event. Current state does not match 'from' condition.`
+            );
           }
         });
       });
@@ -5356,7 +5465,9 @@ Error: ${error.message}`
      */
     memo(memoName, payload) {
       if (typeof memoName !== "string") {
-        throw new Error(`[Cami.js] Memo name must be a string, got: ${typeof memoName}`);
+        throw new Error(
+          `[Cami.js] Memo name must be a string, got: ${typeof memoName}`
+        );
       }
       const memoFn = this.memos[memoName];
       if (!memoFn) {
@@ -5432,7 +5543,10 @@ Error: ${error.message}`
         for (const dep of dependencies) {
           if (this._state[dep] !== this.previousState[dep]) {
             if (typeof this._state[dep] === "object" && this._state[dep] !== null && typeof this.previousState[dep] === "object" && this.previousState[dep] !== null) {
-              if (!_deepEqual(this._state[dep], this.previousState[dep])) {
+              if (!_deepEqual(
+                this._state[dep],
+                this.previousState[dep]
+              )) {
                 return false;
               }
             } else {
@@ -5448,7 +5562,10 @@ Error: ${error.message}`
         const dep = deps[i4];
         if (this._state[dep] !== this.previousState[dep]) {
           if (typeof this._state[dep] === "object" && this._state[dep] !== null && typeof this.previousState[dep] === "object" && this.previousState[dep] !== null) {
-            if (!_deepEqual(this._state[dep], this.previousState[dep])) {
+            if (!_deepEqual(
+              this._state[dep],
+              this.previousState[dep]
+            )) {
               return false;
             }
           } else {
@@ -5572,12 +5689,14 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
           }
           validateType(state[key], type, [key], state);
         } catch (error) {
-          throw new Error(`Validation error in ${this.name}: ${error.message}`);
+          throw new Error(
+            `Validation error in ${this.name}: ${error.message}`
+          );
         }
       });
     }
   };
-  var deepFreeze = (value, _deep = true) => {
+  var deepFreeze = (value) => {
     if (typeof value !== "object" || value === null) {
       return value;
     }
@@ -5607,11 +5726,25 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     if (storeInstances.has(finalConfig.name)) {
       return storeInstances.get(finalConfig.name);
     }
-    const storeInstance = new ObservableStore(finalConfig.state, finalConfig);
-    const requiredMethods = ["memo", "query", "trigger", "dispatch", "mutate", "subscribe"];
-    const missingMethods = requiredMethods.filter((method) => typeof storeInstance[method] !== "function");
+    const storeInstance = new ObservableStore(
+      finalConfig.state,
+      finalConfig
+    );
+    const requiredMethods = [
+      "memo",
+      "query",
+      "trigger",
+      "dispatch",
+      "mutate",
+      "subscribe"
+    ];
+    const missingMethods = requiredMethods.filter(
+      (method) => typeof storeInstance[method] !== "function"
+    );
     if (missingMethods.length > 0) {
-      console.warn(`[Cami.js] Store missing required methods: ${missingMethods.join(", ")}`);
+      console.warn(
+        `[Cami.js] Store missing required methods: ${missingMethods.join(", ")}`
+      );
     }
     storeInstances.set(finalConfig.name, storeInstance);
     if (finalConfig.enableLogging) {
@@ -5622,7 +5755,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
 
   // src/observables/url-store.ts
   var URLStore = class extends Observable {
-    constructor({ onInit = void 0, onChange = void 0 } = {}) {
+    constructor({
+      onInit = void 0,
+      onChange = void 0
+    } = {}) {
       super();
       __publicField(this, "_state");
       __publicField(this, "__onChange");
@@ -5634,6 +5770,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       __publicField(this, "__persistentParams");
       __publicField(this, "__beforeNavigateHooks");
       __publicField(this, "__afterNavigateHooks");
+      __publicField(this, "__bootstrapFn");
+      __publicField(this, "__bootstrapPromise");
+      __publicField(this, "__navigationController");
+      __publicField(this, "__initialized");
       this._state = this.__parseURL();
       this._uid = "URLStore";
       this.__onChange = onChange;
@@ -5647,14 +5787,16 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       this.__persistentParams = /* @__PURE__ */ new Set();
       this.__beforeNavigateHooks = [];
       this.__afterNavigateHooks = [];
-      this.__initialize(onInit).then(() => {
-        if (this.__onChange) {
-          this.subscribe(this.__onChange);
-          this.__onChange(this._state);
-        }
-        window.addEventListener("load", () => this.__updateStore());
-        window.addEventListener("hashchange", () => this.__updateStore());
-      });
+      this.__bootstrapFn = null;
+      this.__bootstrapPromise = null;
+      this.__navigationController = null;
+      this.__initialized = false;
+      if (onInit) {
+        this.__bootstrapFn = onInit;
+      }
+      if (this.__onChange) {
+        this.subscribe(this.__onChange);
+      }
     }
     /**
      * Register a route with associated resource dependencies
@@ -5670,15 +5812,13 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
           }
         });
       }
-      this.__routes.set(pattern, {
+      this.__routes.set(pattern, __spreadValues(__spreadValues({
         pattern,
         segments,
         paramNames,
         resources,
-        params,
-        onEnter,
-        onLeave
-      });
+        params
+      }, onEnter && { onEnter }), onLeave && { onLeave }));
       return this;
     }
     /**
@@ -5702,14 +5842,35 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       this.__afterNavigateHooks.push(hookFn);
       return this;
     }
-    __initialize(onInit) {
+    /**
+     * Register a bootstrap function that will run once before the first route
+     */
+    bootstrap(loaderFn) {
+      if (this.__initialized) {
+        throw new Error("Cannot set bootstrap after initialization");
+      }
+      this.__bootstrapFn = loaderFn;
+      return this;
+    }
+    /**
+     * Initialize the store, run bootstrap, and start listening for URL changes
+     */
+    initialize() {
       return __async(this, null, function* () {
-        if (onInit) {
-          try {
-            yield onInit(this._state);
-          } catch (error) {
-            console.error("Error in URLStore initialization:", error);
-          }
+        if (this.__initialized) {
+          return;
+        }
+        if (this.__bootstrapFn && !this.__bootstrapPromise) {
+          this.__bootstrapPromise = Promise.resolve(this.__bootstrapFn(this._state));
+        }
+        if (this.__bootstrapPromise) {
+          yield this.__bootstrapPromise;
+        }
+        this.__initialized = true;
+        yield this.__updateStore();
+        window.addEventListener("hashchange", () => this.__updateStore());
+        if (this.__onChange) {
+          this.__onChange(this._state);
         }
       });
     }
@@ -5761,10 +5922,19 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       return __async(this, null, function* () {
         var _a2;
         if (this.__navigationState.isPending) return;
+        if (this.__navigationController) {
+          this.__navigationController.abort();
+        }
+        this.__navigationController = new AbortController();
+        const signal = this.__navigationController.signal;
         const urlState = this.__parseURL();
         if (_deepEqual(this._state, urlState)) return;
         this.__navigationState.isPending = true;
         try {
+          if (this.__bootstrapPromise) {
+            yield this.__bootstrapPromise;
+          }
+          if (signal.aborted) return;
           const matchingRoute = this.__findMatchingRoute(urlState.hashPaths);
           for (const hook of this.__beforeNavigateHooks) {
             yield hook({
@@ -5773,13 +5943,15 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
               route: matchingRoute
             });
           }
+          if (signal.aborted) return;
           if (matchingRoute && matchingRoute.resources && matchingRoute.resources.length > 0) {
             this.__navigationState.isLoading = true;
             urlState.routeParams = __spreadValues({}, matchingRoute.extractedParams || {});
             this._state = __spreadValues({}, urlState);
             this.next(this._state);
-            yield this.__loadResources(matchingRoute, urlState);
+            yield this.__loadResources(matchingRoute, urlState, signal);
           }
+          if (signal.aborted) return;
           if ((_a2 = this.__activeRoute) == null ? void 0 : _a2.onLeave) {
             yield this.__activeRoute.onLeave({
               from: this._state,
@@ -5795,6 +5967,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
               params: matchingRoute.extractedParams || {}
             });
           }
+          if (signal.aborted) return;
           for (const hook of this.__afterNavigateHooks) {
             yield hook({
               from: this._state,
@@ -5803,7 +5976,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
             });
           }
         } catch (error) {
-          console.error("Error in navigation:", error);
+          if (error instanceof Error && error.name !== "AbortError") {
+            console.error("Error in navigation:", error);
+          }
         } finally {
           this.__navigationState.isPending = false;
           this.__navigationState.isLoading = false;
@@ -5813,23 +5988,26 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     /**
      * Load resources required by a route
      */
-    __loadResources(route, urlState) {
+    __loadResources(route, urlState, signal) {
       return __async(this, null, function* () {
         if (!route.resources || route.resources.length === 0) return;
-        const context = {
+        const context = __spreadValues({
           route,
           params: __spreadValues(__spreadValues({}, urlState.params), urlState.routeParams),
           url: window.location.hash
-        };
+        }, signal && { signal });
         yield Promise.all(
           route.resources.map((resourceName) => __async(this, null, function* () {
+            if (signal == null ? void 0 : signal.aborted) return;
             const loader = this.__resourceLoaders.get(resourceName);
             if (!loader) return;
             try {
               yield loader(context);
             } catch (error) {
-              console.error(`Error loading resource ${resourceName}:`, error);
-              throw error;
+              if (error instanceof Error && error.name !== "AbortError") {
+                console.error(`Error loading resource ${resourceName}:`, error);
+                throw error;
+              }
             }
           }))
         );
@@ -5873,8 +6051,12 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
       const searchParams = new URLSearchParams();
       const hashSearchParams = new URLSearchParams();
       if (!fullReplace) {
-        Object.entries(currentState.params).forEach(([key, value]) => searchParams.set(key, value));
-        Object.entries(currentState.hashParams).forEach(([key, value]) => hashSearchParams.set(key, value));
+        Object.entries(currentState.params).forEach(
+          ([key, value]) => searchParams.set(key, value)
+        );
+        Object.entries(currentState.hashParams).forEach(
+          ([key, value]) => hashSearchParams.set(key, value)
+        );
       }
       Object.entries(params).forEach(([key, value]) => {
         if (value === null || value === void 0) {
@@ -5912,13 +6094,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         document.title = pageTitle;
       } else if (path) {
         const domain = window.location.hostname;
-        const formattedDomain = domain.split(".").map(
-          (segment) => segment.charAt(0).toUpperCase() + segment.slice(1)
-        ).join(".");
+        const formattedDomain = domain.split(".").map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1)).join(".");
         const pathSegments = path.split("/").filter(Boolean);
-        const formattedPath = pathSegments.map(
-          (segment) => segment.charAt(0).toUpperCase() + segment.slice(1)
-        ).join(" - ");
+        const formattedPath = pathSegments.map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1)).join(" - ");
         document.title = `${formattedDomain} | ${formattedPath}`;
       }
       if (announcement) {
@@ -6096,7 +6274,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
            * - Get keys: { type: 'keys', index: 'dateIndex', range: IDBKeyRange.bound('2023-01-01', '2023-12-31') }
            */
           getState: (..._0) => __async(null, [..._0], function* (options = { type: "all" }) {
-            const buildIdbRequest = ({ store: store2, options: options2 }) => {
+            const buildIdbRequest = ({
+              store: store2,
+              options: options2
+            }) => {
               switch (options2.type) {
                 case "key":
                   if (typeof options2.key === "undefined") {
@@ -6105,14 +6286,21 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
                   return store2.get(options2.key);
                 case "index":
                   if (typeof options2.index === "undefined" || typeof options2.value === "undefined") {
-                    throw new Error("Index and value must be provided for index-based query");
+                    throw new Error(
+                      "Index and value must be provided for index-based query"
+                    );
                   }
                   const index = store2.index(options2.index);
                   return index.getAll(options2.value);
                 case "all":
                   return store2.getAll();
                 case "range":
-                  const range = IDBKeyRange.bound(options2.lower, options2.upper, options2.lowerOpen, options2.upperOpen);
+                  const range = IDBKeyRange.bound(
+                    options2.lower,
+                    options2.upper,
+                    options2.lowerOpen,
+                    options2.upperOpen
+                  );
                   return options2.index ? store2.index(options2.index).getAll(range) : store2.getAll(range);
                 case "cursor":
                   const cursorRequest = options2.index ? store2.index(options2.index).openCursor(options2.range, options2.direction) : store2.openCursor(options2.range, options2.direction);
@@ -6134,7 +6322,8 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
                 case "keys":
                   return options2.index ? store2.index(options2.index).getAllKeys(options2.range) : store2.getAllKeys(options2.range);
                 case "unique":
-                  if (!options2.index) throw new Error("Index must be specified for unique query");
+                  if (!options2.index)
+                    throw new Error("Index must be specified for unique query");
                   return store2.index(options2.index).getAll(options2.range, options2.limit);
                 default:
                   throw new Error(`Unsupported query type: ${options2.type}`);
@@ -6166,12 +6355,18 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         })();
         switch (upgradeType) {
           case "create":
-            const store2 = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+            const store2 = db.createObjectStore(storeName, {
+              keyPath,
+              autoIncrement: true
+            });
             store2.createIndex(indexName, indexName, { unique: false });
             break;
           case "recreate":
             db.deleteObjectStore(storeName);
-            const recreatedStore = db.createObjectStore(storeName, { keyPath, autoIncrement: true });
+            const recreatedStore = db.createObjectStore(storeName, {
+              keyPath,
+              autoIncrement: true
+            });
             recreatedStore.createIndex(indexName, indexName, { unique: false });
             break;
           case "update":
@@ -6196,7 +6391,7 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         const store2 = tx.objectStore(toIDBStore.storeName);
         const updateLogs = [];
         const relevantPatches = patches.filter((patch) => {
-          const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
+          const pathArray = patch.path;
           return pathArray.join(".").startsWith(fromStateKey);
         });
         if (relevantPatches.length === 0) {
@@ -6218,21 +6413,25 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         };
         const applyPatches2 = () => __async(null, null, function* () {
           const getOperationType = (patch, relativePath) => {
-            if (relativePath.length === 0) return patch.op === "remove" ? "removeAll" : "replaceAll";
-            const index = parseInt(relativePath[0], 10);
+            if (relativePath.length === 0)
+              return patch.op === "remove" ? "removeAll" : "replaceAll";
+            const index = parseInt(String(relativePath[0]), 10);
             if (isNaN(index)) return "invalid";
-            if (relativePath.length === 1) return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
+            if (relativePath.length === 1)
+              return patch.op === "remove" ? "removeAtIndex" : "modifyAtIndex";
             return "modifyNested";
           };
           for (const patch of relevantPatches) {
-            const pathArray = Array.isArray(patch.path) ? patch.path : patch.path.split("/").filter(Boolean);
-            const relativePath = pathArray.slice(fromStateKey.split(".").length);
+            const pathArray = patch.path;
+            const relativePath = pathArray.slice(fromStateKey.split(".").length).map(String);
             state = yield getState();
             const operationType = getOperationType(patch, relativePath);
-            const index = parseInt(relativePath[0], 10);
+            const index = parseInt(String(relativePath[0]), 10);
             switch (operationType) {
               case "replaceAll":
-                updateLogs.push(`replaced entire data array with ${patch.value.length} items`);
+                updateLogs.push(
+                  `replaced entire data array with ${patch.value.length} items`
+                );
                 state = unproxify(patch.value);
                 break;
               case "removeAll":
@@ -6240,7 +6439,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
                 state = [];
                 break;
               case "modifyAtIndex":
-                updateLogs.push(`${patch.op === "add" ? "added" : "replaced"} item at index ${index}`);
+                updateLogs.push(
+                  `${patch.op === "add" ? "added" : "replaced"} item at index ${index}`
+                );
                 state = [
                   ...state.slice(0, index),
                   unproxify(patch.value),
@@ -6249,16 +6450,19 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
                 break;
               case "removeAtIndex":
                 updateLogs.push(`removed item at index ${index}`);
-                state = [
-                  ...state.slice(0, index),
-                  ...state.slice(index + 1)
-                ];
+                state = [...state.slice(0, index), ...state.slice(index + 1)];
                 break;
               case "modifyNested":
-                updateLogs.push(`updated ${relativePath.join(".")} of item at index ${index}`);
+                updateLogs.push(
+                  `updated ${relativePath.join(".")} of item at index ${index}`
+                );
                 state = [
                   ...state.slice(0, index),
-                  updateDeep(state[index], relativePath.slice(1), unproxify(patch.value)),
+                  updateDeep(
+                    state[index],
+                    relativePath.slice(1),
+                    unproxify(patch.value)
+                  ),
                   ...state.slice(index + 1)
                 ];
                 break;
@@ -6283,7 +6487,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
         applyPatches2().then(() => {
           tx.oncomplete = () => {
             const updateLogsSummary = updateLogs.join(", ");
-            __trace(`indexdb:oncomplete`, `Mutated ${toIDBStore.storeName} object store with ${updateLogsSummary}`);
+            __trace(
+              `indexdb:oncomplete`,
+              `Mutated ${toIDBStore.storeName} object store with ${updateLogsSummary}`
+            );
             resolve();
           };
         }).catch(reject);
@@ -6318,7 +6525,10 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     const versionStatus = checkVersion();
     if (versionStatus === "update") {
       localStorage.removeItem(name);
-      __trace(`localStorage:version`, `Updated ${name} from version ${localStorage.getItem(versionKey)} to ${version}`);
+      __trace(
+        `localStorage:version`,
+        `Updated ${name} from version ${localStorage.getItem(versionKey)} to ${version}`
+      );
     } else if (versionStatus === "create") {
       __trace(`localStorage:version`, `Created ${name} with version ${version}`);
     }
@@ -6340,10 +6550,17 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
     };
   }
   function persistToLocalStorageThunk(toLocalStorage) {
-    return (_0) => __async(null, [_0], function* ({ action: _action, state, previousState }) {
+    return (_0) => __async(null, [_0], function* ({
+      action: _action,
+      state,
+      previousState
+    }) {
       if (state !== previousState) {
         yield toLocalStorage.setState(state);
-        __trace(`localStorage:update`, `Updated ${toLocalStorage.name} with entire state`);
+        __trace(
+          `localStorage:update`,
+          `Updated ${toLocalStorage.name} with entire state`
+        );
       }
     });
   }
@@ -6355,10 +6572,11 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
   }();
   var alwaysEnabled = false;
   function captureStackTrace(error) {
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(error, invariant);
+    const ErrorConstructor = Error;
+    if (ErrorConstructor.captureStackTrace) {
+      ErrorConstructor.captureStackTrace(error, invariant);
     } else {
-      error.stack = new Error().stack;
+      error.stack = new Error().stack || "";
     }
   }
   var InvariantViolationError = class extends Error {
@@ -6371,7 +6589,9 @@ Mismatched keys: ${mismatchedKeys.join(", ")}`
   function invariant(message, callback) {
     if (!alwaysEnabled && isProduction) return;
     if (!callback()) {
-      const error = new InvariantViolationError("Invariant Violation: " + message);
+      const error = new InvariantViolationError(
+        "Invariant Violation: " + message
+      );
       if (!isProduction) {
         captureStackTrace(error);
       }
