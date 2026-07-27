@@ -1,56 +1,21 @@
 import type { Patch } from 'immer';
-interface UnproxifyTarget {
-    [key: string]: any;
-}
-interface IDBStoreConfig {
-    name: string;
-    version: number;
-    storeName: string;
-    keyPath: string;
-    indexName: string;
-}
-interface QueryOptions {
-    type?: 'key' | 'index' | 'all' | 'range' | 'cursor' | 'count' | 'keys' | 'unique';
-    key?: any;
-    index?: string;
-    value?: any;
-    lower?: any;
-    upper?: any;
-    lowerOpen?: boolean;
-    upperOpen?: boolean;
-    range?: IDBKeyRange;
-    direction?: IDBCursorDirection;
-    limit?: number;
-}
-interface IDBPromiseStore {
-    getState(options?: QueryOptions): Promise<any>;
-    transaction(mode: IDBTransactionMode): IDBTransaction;
-    storeName: string;
-}
-interface PersistToIdbConfig {
-    fromStateKey: string;
-    toIDBStore: IDBPromiseStore;
-}
-interface ThunkParams {
-    action: any;
-    patches: Patch[];
-    state?: any;
-    previousState?: any;
+export interface ThunkParams {
+    action: unknown;
+    patches?: Patch[];
+    state?: unknown;
+    previousState?: unknown;
 }
 interface LocalStorageConfig {
     name: string;
     version: number;
 }
-interface LocalStorageAdapter {
-    getState(): Promise<any>;
-    setState(state: any): Promise<void>;
+export interface LocalStorageAdapter<T = any> {
+    getState(): Promise<T | null>;
+    setState(state: T): Promise<void>;
     name: string;
     version: number;
 }
-export declare function removeDeep(obj: UnproxifyTarget, path: string[]): UnproxifyTarget;
-export declare function createIdbPromise({ name, version, storeName, keyPath, indexName, }: IDBStoreConfig): Promise<IDBPromiseStore>;
-export declare function persistToIdbThunk({ fromStateKey, toIDBStore }: PersistToIdbConfig): ({ action: _action, patches }: ThunkParams) => Promise<void>;
-export declare function createLocalStorage({ name, version }: LocalStorageConfig): LocalStorageAdapter;
-export declare function persistToLocalStorageThunk(toLocalStorage: LocalStorageAdapter): ({ action: _action, state, previousState }: ThunkParams) => Promise<void>;
+export declare function createLocalStorage<T = any>({ name, version, }: LocalStorageConfig): LocalStorageAdapter<T>;
+export declare function persistToLocalStorageThunk<T = any>(toLocalStorage: LocalStorageAdapter<T>): ({ action: _action, state, previousState }: ThunkParams) => Promise<void>;
 export {};
 //# sourceMappingURL=adapters.d.ts.map

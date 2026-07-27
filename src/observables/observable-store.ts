@@ -13,7 +13,6 @@ import {
 import { __config } from '../config.js'
 import { getRenderPhaseContext } from '../render-phase'
 import { __trace } from '../trace.js'
-import { validateType } from '../types/index.js'
 import { _deepClone, _deepEqual } from '../utils'
 import { DependencyTracker } from './observable-state.js'
 import { Observable } from './observable.js'
@@ -31,7 +30,6 @@ setAutoFreeze(false)
 
 export interface StoreConfig<_TState = any> {
   name?: string
-  schema?: Record<string, any>
   enableLogging?: boolean
   enableDevtools?: boolean
 }
@@ -248,7 +246,6 @@ export interface PatchListener {
  */
 export class ObservableStore<TState = any> extends Observable<TState> {
   public readonly name: string
-  public readonly schema: Record<string, any>
   public _uid?: string
 
   // State management
@@ -308,7 +305,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     })
 
     this.name = options.name || 'cami-store'
-    this.schema = options.schema || {}
     this._uid = this.name
 
     // Use immer's draft for immutable state tracking with efficient updates
@@ -343,11 +339,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
     this.afterHook(() => {
       this._stateVersion++
     })
-
-    // Validate initial state against schema if provided
-    if (Object.keys(this.schema).length > 0) {
-      this._validateState(this._state)
-    }
   }
 
   /**
@@ -632,102 +623,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   }
 
   /**
-   * Creates a schema definition for type validation
-   */
-  private _createDeepSchema(state: any): Record<string, any> {
-    // Use a cached Map for type inference to improve performance
-    const typeCache = new Map()
-
-    const inferType = (value: any): any => {
-      // Fast path for primitives
-      if (value === null) return 'null'
-      if (value === undefined) return 'undefined'
-
-      // Use cached type if available
-      if (typeCache.has(value)) {
-        return typeCache.get(value)
-      }
-
-      // Determine type for reference types
-      let type: any
-      if (Array.isArray(value)) {
-        type = 'array'
-      } else if (typeof value === 'object') {
-        type = this._createDeepSchema(value)
-      } else {
-        type = typeof value
-      }
-
-      // Cache and return
-      if (typeof value === 'object' && value !== null) {
-        typeCache.set(value, type)
-      }
-
-      return type
-    }
-
-    // Process all properties
-    return Object.keys(state).reduce(
-      (acc, key) => {
-        acc[key] = inferType(state[key])
-        return acc
-      },
-      {} as Record<string, any>
-    )
-  }
-
-  /**
-   * Validates a state object against a schema
-   */
-  private _validateDeepState(schema: Record<string, any>, state: any, path: string[] = []): void {
-    // Fast path if schema is empty
-    if (!schema || Object.keys(schema).length === 0) return
-
-    Object.keys(schema).forEach(key => {
-      const expectedType = schema[key]
-      const actualValue = state[key]
-      const currentPath = [...path, key]
-      const actualType = this._inferType(actualValue)
-
-      // Skip function validation
-      if (actualType === 'function') return
-
-      // Handle nested objects recursively
-      if (typeof expectedType === 'object' && expectedType !== null) {
-        if (typeof actualValue !== 'object' || actualValue === null) {
-          throw new TypeError(
-            `Invalid type at ${currentPath.join('.')}. Expected object, got ${typeof actualValue}`
-          )
-        }
-        this._validateDeepState(expectedType, actualValue, currentPath)
-      }
-      // Handle primitive types
-      else {
-        // Special cases for null and undefined (allow any type)
-        if (expectedType === 'null' || expectedType === 'undefined') {
-          return
-        }
-        // Type mismatch error
-        else if (actualType !== expectedType) {
-          throw new TypeError(
-            `Invalid type at ${currentPath.join('.')}. Expected ${expectedType}, got ${actualType}`
-          )
-        }
-      }
-    })
-  }
-
-  /**
-   * Determine the type of a value
-   */
-  private _inferType(value: any): string {
-    if (Array.isArray(value)) return 'array'
-    if (value === null) return 'null'
-    if (value === undefined) return 'undefined'
-    return typeof value
-  }
-
-  /**
    * Public API for dispatching actions
    */
   dispatch(action: string, payload?: any): TState {
@@ -886,11 +781,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
             inversePatches,
             dispatch: this.dispatch,
           })
-        }
-
-        // Fast path 9: Skip validation if no schema
-        if (Object.keys(this.schema).length > 0) {
-          this._validateState(hasPatches ? this._state : nextState)
         }
 
         // Always notify observers to ensure UI updates
@@ -2017,20 +1907,6 @@ export class ObservableStore<TState = any> extends Observable<TState> {
   hasAsyncAction(actionName: string): boolean {
     return actionName in this.thunks
   }
-
-  private _validateState(state: any): void {
-    Object.entries(this.schema).forEach(([key, type]) => {
-      try {
-        if (type.type === 'optional' && (state[key] === undefined || state[key] === null)) {
-          // Skip validation for undefined or null optional fields
-          return
-        }
-        validateType(state[key], type, [key], state)
-      } catch (error) {
-        throw new Error(`Validation error in ${this.name}: ${(error as Error).message}`)
-      }
-    })
-  }
 }
 
 // =============================================================================
@@ -2082,7 +1958,6 @@ export const store = <TState = any>(
   const defaultConfig: StoreFactoryConfig<TState> = {
     state: {} as TState,
     name: 'cami-store',
-    schema: {},
     enableLogging: false,
     enableDevtools: false,
   }

@@ -1,9 +1,8 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { store, Type, createLocalStorage, persistToLocalStorageThunk } = cami
+const { store, createLocalStorage, persistToLocalStorageThunk } = cami
 
 describe('LocalStorage Adapter', function () {
-  let TodoModel
   let todoLocalStorage
   let todoStore
   const localStorageKey = 'test-todo-local-storage'
@@ -13,21 +12,8 @@ describe('LocalStorage Adapter', function () {
       name: localStorageKey,
       version: 1,
     })
-    TodoModel = Type.Model('TodoModel', {
-      todos: Type.Array(
-        Type.Product({
-          id: Type.Integer,
-          title: Type.String,
-          completed: Type.Boolean,
-        })
-      ),
-      todoStatus: Type.Enum('idle', 'pending', 'success', 'error'),
-      todoError: Type.Optional(Type.String),
-      newTodoTitle: Type.String,
-      editingTodoId: Type.Optional(Type.Integer),
-    })
-
-    todoStore = TodoModel.create({
+    todoStore = store({
+      name: `${localStorageKey}-source`,
       state: {
         todos: [],
         todoStatus: 'idle',
@@ -35,27 +21,24 @@ describe('LocalStorage Adapter', function () {
         newTodoTitle: '',
         editingTodoId: null,
       },
-      actions: {
-        createTodoItem: ({ state, payload }) => {
-          state.todos.push({
-            id: payload.id,
-            title: payload.title,
-            completed: payload.completed || false,
-          })
-        },
-        deleteTodoItem: ({ state, payload }) => {
-          state.todos = state.todos.filter(todo => todo.id !== payload.id)
-        },
-        modifyTodoTitle: ({ state, payload }) => {
-          const todo = state.todos.find(todo => todo.id === payload.id)
-          if (todo) {
-            todo.title = payload.title
-          }
-        },
-        resetTodos: ({ state }) => {
-          state.todos = []
-        },
-      },
+    })
+
+    todoStore.defineAction('createTodoItem', ({ state, payload }) => {
+      state.todos.push({
+        id: payload.id,
+        title: payload.title,
+        completed: payload.completed || false,
+      })
+    })
+    todoStore.defineAction('deleteTodoItem', ({ state, payload }) => {
+      state.todos = state.todos.filter(todo => todo.id !== payload.id)
+    })
+    todoStore.defineAction('modifyTodoTitle', ({ state, payload }) => {
+      const todo = state.todos.find(todo => todo.id === payload.id)
+      if (todo) todo.title = payload.title
+    })
+    todoStore.defineAction('resetTodos', ({ state }) => {
+      state.todos = []
     })
 
     todoStore.afterHook(persistToLocalStorageThunk(todoLocalStorage))
@@ -72,7 +55,8 @@ describe('LocalStorage Adapter', function () {
 
   async function createNewTodoStore() {
     const storedState = await todoLocalStorage.getState()
-    return TodoModel.create({
+    return store({
+      name: `${localStorageKey}-read-${Date.now()}-${Math.random()}`,
       state: storedState || {
         todos: [],
         todoStatus: 'idle',

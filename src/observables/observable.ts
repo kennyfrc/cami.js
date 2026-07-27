@@ -122,6 +122,9 @@ export class Subscriber<T> implements Observer<T> {
 
 /**
  * High-performance Observable implementation
+ *
+ * @deprecated Prefer `store()` for application state and queries. `Observable` remains exported
+ * for v0.3 compatibility and as an internal base class.
  */
 export class Observable<T> {
   protected __observers: Subscriber<T>[]

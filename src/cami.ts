@@ -14,30 +14,19 @@ import { repeat } from 'lit-html/directives/repeat.js'
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js'
 
 import { __config } from './config'
-import { keyedRepeat } from './directives/keyed-repeat'
-import { ref } from './directives/ref'
-import invariant from './invariant'
 import { Observable } from './observables/observable'
 // import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized";
 
 // Replace the standard store with the optimized version
 // const store = storeOptimized;
-import { Model } from './observables/observable-model'
 import { ObservableState, effect } from './observables/observable-state'
 // Import the optimized store implementation and use it as the default
 import { ObservableStore, store } from './observables/observable-store'
 import { URLStore, createURLStore } from './observables/url-store'
 import { ReactiveElement } from './reactive-element'
 import { useImage } from './resources/use-image'
-import {
-  createIdbPromise,
-  createLocalStorage,
-  persistToIdbThunk,
-  persistToLocalStorageThunk,
-} from './storage/adapters'
+import { createLocalStorage, persistToLocalStorageThunk } from './storage/adapters'
 import { __trace } from './trace'
-import { Type, useValidationHook, useValidationThunk } from './types/index'
-import { _deepClone, _deepEqual, _deepMerge } from './utils'
 
 enableMapSet()
 
@@ -53,11 +42,8 @@ const { debug, events } = __config
  * @exports Observable - The Observable class for creating reactive streams
  * @exports ObservableState - The ObservableState class for reactive state management
  * @exports ObservableStore - The ObservableStore class for complex state management
- * @exports Model - The Model class for typed data models with validation
- * @exports Type - Type definitions and validation utilities
  * @exports effect - Effect function for reactive side effects
  * @exports createURLStore - URL-based routing store
- * @exports createIdbPromise - IndexedDB storage adapter
  * @exports createLocalStorage - LocalStorage adapter
  * @exports debug - Debug configuration
  * @exports events - Events configuration
@@ -80,12 +66,6 @@ export {
   debug,
   events,
   effect,
-  Type,
-  useValidationHook,
-  useValidationThunk,
-  Model,
-  createIdbPromise,
-  persistToIdbThunk,
   createLocalStorage,
   persistToLocalStorageThunk,
   createURLStore,
@@ -93,17 +73,8 @@ export {
   unsafeHTML,
   repeat,
   keyed,
-  keyedRepeat,
-  ref,
   useImage,
-  invariant,
-  _deepEqual,
-  _deepMerge,
-  _deepClone,
 }
-
-// Export test seam utilities
-export { setAfterRenderEnabled, flushAfterRender } from './reactive-element'
 
 // Export types for TypeScript users
 export type {
@@ -120,15 +91,31 @@ export type {
 
 export type {
   // Observable Store types
+  ActionHandler,
+  ActionSpec,
+  AsyncActionContext,
+  AsyncActionHandler,
+  Hook,
+  HookContext,
+  InvalidateQueriesOptions,
+  MemoContext,
+  MemoHandler,
+  MutationConfig,
+  MutationContext,
+  MutationErrorContext,
+  MutationSettledContext,
+  MutationSuccessContext,
+  QueryConfig,
+  QueryContext,
+  QueryErrorContext,
+  QuerySettledContext,
+  QuerySuccessContext,
+  ReducerContext,
+  StateMachineDefinition,
+  StateMachineEvent,
   StoreConfig,
   StoreFactoryConfig,
 } from './observables/observable-store'
-
-export type {
-  // Model types
-  ModelConfig,
-  InferModelState,
-} from './observables/observable-model'
 
 export type {
   // ReactiveElement types
@@ -142,38 +129,8 @@ export type {
   DeriveResult,
 } from './reactive-element'
 
-export type { Ref } from './directives/ref'
-export type { KeyedRepeatOptions } from './directives/keyed-repeat'
 export type { Resource, ResourceOptions } from './resources/resource'
-
-export type {
-  // Type system types
-  PrimitiveTypeName,
-  TypeDefinition,
-  InferType,
-  ComplexType,
-  ObjectType,
-  ArrayType,
-  SumType,
-  ProductType,
-  AnyType,
-  EnumType,
-  OptionalType,
-  RefinementType,
-  DependentPairType,
-  DependentRecordType,
-  DateType,
-  VectType,
-  TreeType,
-  RoseTreeType,
-  LiteralType,
-  FunctionType,
-  VoidType,
-  DependentFunctionType,
-  DependentArrayType,
-  DependentSumType,
-  ReferenceType,
-} from './types/index'
+export type { LocalStorageAdapter } from './storage/adapters'
 
 export type {
   // URL Store types

@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { store, Type, useValidationThunk } = cami
+const { store } = cami
 
 describe('Observable Store (Set 2)', function () {
   let navStore
@@ -9,15 +9,6 @@ describe('Observable Store (Set 2)', function () {
 
   beforeEach(() => {
     uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-    const navStoreSchema = Type.Product({
-      navigation: Type.Product({
-        sidebar: Type.String,
-        center: Type.String,
-        topbar: Type.String,
-      }),
-      count: Type.Integer,
-    })
 
     navStore = store({
       state: {
@@ -29,12 +20,6 @@ describe('Observable Store (Set 2)', function () {
         count: 0,
       },
       name: `nav-store-${uniqueId}`,
-    })
-
-    navStore.afterHook(({ state, previousState }) => {
-      if (state !== previousState) {
-        useValidationThunk(navStoreSchema)(state)
-      }
     })
 
     navStore.defineAction('updateNavigation', ({ state, payload }) => {
@@ -72,18 +57,6 @@ describe('Observable Store (Set 2)', function () {
       },
     })
 
-    const postStoreSchema = Type.Product({
-      list: Type.Array(
-        Type.Product({
-          id: Type.Integer,
-          title: Type.String,
-          content: Type.Optional(Type.String),
-        })
-      ),
-      loading: Type.Boolean,
-      error: Type.Optional(Type.String),
-    })
-
     postStore = store({
       state: {
         list: [],
@@ -91,12 +64,6 @@ describe('Observable Store (Set 2)', function () {
         error: null,
       },
       name: `post-store-${uniqueId}`,
-    })
-
-    postStore.afterHook(({ state, previousState }) => {
-      if (state !== previousState) {
-        useValidationThunk(postStoreSchema)(state)
-      }
     })
 
     postStore.defineAction('setList', ({ state, payload }) => {
@@ -214,18 +181,12 @@ describe('Observable Store (Set 2)', function () {
     })
   })
 
-  describe('Partial Updates with Type Checking', function () {
+  describe('Partial Updates', function () {
     it('should allow partial updates to navigation state', function () {
       navStore.dispatch('updateNavigation', { sidebar: 'settings' })
       expect(navStore.getState().navigation.sidebar).toBe('settings')
       expect(navStore.getState().navigation.center).toBe('documents')
       expect(navStore.getState().navigation.topbar).toBe('default')
-    })
-
-    it('should throw an error when updating with incorrect type', function () {
-      expect(() => {
-        navStore.dispatch('updateNavigation', { sidebar: 123 })
-      }).toThrow()
     })
 
     it('should allow adding a new post with partial data', function () {
@@ -235,13 +196,6 @@ describe('Observable Store (Set 2)', function () {
       expect(postStore.getState().list[0].id).toBe(newPost.id)
       expect(postStore.getState().list[0].title).toBe(newPost.title)
       expect(postStore.getState().list[0].content).toBe(undefined)
-    })
-
-    it('should throw an error when adding a post with incorrect data type', function () {
-      const invalidPost = { id: 'not a number', title: 123 }
-      expect(() => {
-        postStore.dispatch('addPost', invalidPost)
-      }).toThrow()
     })
 
     it('should allow updating an existing post partially', function () {
@@ -267,7 +221,7 @@ describe('Observable Store (Set 2)', function () {
       })
     })
 
-    it('should maintain type checking for optional fields', function () {
+    it('should support optional fields', function () {
       const postWithoutContent = { id: 2, title: 'No Content Post' }
       postStore.dispatch('addPost', postWithoutContent)
       expect(postStore.getState().list[0].content).toBe(undefined)
@@ -289,22 +243,9 @@ describe('Observable Store (Set 2)', function () {
       postStore.dispatch('updatePost', { id: 3, content: undefined })
       expect(postStore.getState().list.find(post => post.id === 3)?.content).toBe(undefined)
     })
-
-    it('should throw an error when violating schema in afterHook', function () {
-      expect(() => {
-        navStore.dispatch('updateNavigation', { sidebar: 123 })
-      }).toThrow()
-
-      expect(() => {
-        postStore.dispatch('addPost', {
-          id: 'not a number',
-          title: 'Invalid Post',
-        })
-      }).toThrow()
-    })
   })
 
-  describe('Partial Updates with Type Checking 2', function () {
+  describe('Partial Update Composition', function () {
     it('should allow partial updates to navigation state', function () {
       navStore.dispatch('updateNavigation', { sidebar: 'settings' })
       expect(navStore.getState().navigation.sidebar).toBe('settings')
@@ -322,12 +263,6 @@ describe('Observable Store (Set 2)', function () {
       expect(navStore.getState().navigation.sidebar).toBe('profile')
       expect(navStore.getState().navigation.center).toBe('chat')
       expect(navStore.getState().navigation.topbar).toBe('default')
-    })
-
-    it('should throw an error when updating with incorrect type', function () {
-      expect(() => {
-        navStore.dispatch('updateNavigation', { sidebar: 123 })
-      }).toThrow()
     })
 
     it('should allow adding a new post with partial data', function () {
@@ -362,7 +297,7 @@ describe('Observable Store (Set 2)', function () {
       })
     })
 
-    it('should maintain type checking for optional fields', function () {
+    it('should support optional fields', function () {
       const postWithoutContent = { id: 2, title: 'No Content Post' }
       postStore.dispatch('addPost', postWithoutContent)
       expect(postStore.getState().list[0].content).toBe(undefined)

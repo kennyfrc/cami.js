@@ -205,6 +205,9 @@ declare class ReactiveElement extends HTMLElement {
      * Invoked when the custom element is connected to the document's DOM.
      * Subclasses can override this to add initialization logic when the component is added to the DOM.
      *
+     * @deprecated Override `connectedCallback()` and call `super.connectedCallback()` instead. This
+     * wrapper remains for v0.3 compatibility.
+     *
      * @example
      * // In a UserCard component
      * onConnect() {
@@ -226,6 +229,9 @@ declare class ReactiveElement extends HTMLElement {
     /**
      * Invoked when the custom element is disconnected from the document's DOM.
      * Subclasses can override this to add cleanup logic when the component is removed from the DOM.
+     *
+     * @deprecated Override `disconnectedCallback()` and call `super.disconnectedCallback()` instead.
+     * This wrapper remains for v0.3 compatibility.
      *
      * @example
      * // In a VideoPlayer component

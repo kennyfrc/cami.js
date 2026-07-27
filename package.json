@@ -19,7 +19,6 @@
     "bun-types": "latest",
     "concurrently": "^8.2.2",
     "esbuild": "^0.25.5",
-    "fake-indexeddb": "^6.0.1",
     "fetch-mock": "^9.11.0",
     "jsdom": "^26.1.0",
     "mobx": "^6.13.6",

@@ -1,6 +1,5 @@
 // Ensure required polyfills
 import '@webcomponents/custom-elements'
-import 'fake-indexeddb/auto'
 import { readFileSync } from 'fs'
 import { dirname, resolve } from 'path'
 import { fileURLToPath } from 'url'

@@ -14,8 +14,7 @@ describe('Basic Setup Test', () => {
     expect(customElements).toBeDefined()
   })
 
-  it('should have polyfilled APIs available', () => {
-    expect(window.indexedDB).toBeDefined()
+  it('should have scheduling APIs available', () => {
     expect(window.requestAnimationFrame).toBeDefined()
     expect(window.performance).toBeDefined()
     expect(window.requestIdleCallback).toBeDefined()

@@ -2,10 +2,33 @@ import { describe, expect, it, vi } from 'vitest'
 
 import * as cami from '../../build/cami.module.js'
 
-const { store, ObservableState, invariant, _deepEqual, _deepMerge, _deepClone } = cami
+const { store, ObservableState } = cami
 
 describe('TypeScript Migration Integration Tests', () => {
-  describe('Type System Compatibility', () => {
+  it('keeps unreleased experimental APIs out of the public entry point', () => {
+    const removedExports = [
+      'Model',
+      'Type',
+      'useValidationHook',
+      'useValidationThunk',
+      'createIdbPromise',
+      'persistToIdbThunk',
+      'keyedRepeat',
+      'ref',
+      'invariant',
+      '_deepEqual',
+      '_deepMerge',
+      '_deepClone',
+      'setAfterRenderEnabled',
+      'flushAfterRender',
+    ]
+
+    removedExports.forEach(exportName => {
+      expect(cami).not.toHaveProperty(exportName)
+    })
+  })
+
+  describe('Typed store compatibility', () => {
     it('should handle Draft<TState> types correctly in store', () => {
       const testStore = store({
         state: { count: 0, items: [] },
@@ -79,39 +102,6 @@ describe('TypeScript Migration Integration Tests', () => {
       expect(lastValue).toBe(20)
 
       cleanup()
-    })
-
-    it('should handle invariant type checking', () => {
-      // Test invariant with passing condition
-      expect(() => {
-        invariant('test should pass', () => true)
-      }).not.toThrow()
-
-      // Test invariant with failing condition
-      expect(() => {
-        invariant('test should fail', () => false)
-      }).toThrow('Invariant Violation: test should fail')
-    })
-
-    it('should handle utility functions with proper types', () => {
-      // Test deep equality
-      const obj1 = { a: 1, b: { c: 2 } }
-      const obj2 = { a: 1, b: { c: 2 } }
-      const obj3 = { a: 1, b: { c: 3 } }
-
-      expect(_deepEqual(obj1, obj2)).toBe(true)
-      expect(_deepEqual(obj1, obj3)).toBe(false)
-
-      // Test deep merge
-      const merged = _deepMerge({ a: 1 }, { b: 2 })
-      expect(merged).toEqual({ a: 1, b: 2 })
-
-      // Test deep clone
-      const original = { a: 1, b: { c: 2 } }
-      const cloned = _deepClone(original)
-      expect(cloned).toEqual(original)
-      expect(cloned).not.toBe(original)
-      expect(cloned.b).not.toBe(original.b)
     })
 
     it('should handle proxy creation with object and array states', () => {

@@ -106,6 +106,8 @@ class DependencyTracker {
  * import { ObservableState } from 'cami-js';
  * const observable = new ObservableState(10);
  * console.log(observable.value); // 10
+ * @deprecated Prefer a `ReactiveElement` field for component-local state or `store()` for shared
+ * state. `ObservableState` remains exported for v0.3 compatibility and internal reactivity.
  */
 class ObservableState<T = any> extends Observable<T> {
   private __value: T
@@ -756,6 +758,8 @@ class ObservableState<T = any> extends Observable<T> {
  * @example
  * // Assuming `effectFn` is a function that is called when the observable changes
  * const effectFunction = effect(effectFn);
+ * @deprecated Prefer `afterRender()` for component side effects and store hooks for store
+ * workflows. This low-level primitive remains exported for v0.3 compatibility.
  */
 const effect = function (effectFn: () => EffectCleanup): () => void {
   let cleanup: () => void = () => {}

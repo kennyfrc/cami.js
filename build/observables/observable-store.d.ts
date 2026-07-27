@@ -2,7 +2,6 @@ import { Draft, Patch } from 'immer';
 import { Observable } from './observable.js';
 export interface StoreConfig<_TState = any> {
     name?: string;
-    schema?: Record<string, any>;
     enableLogging?: boolean;
     enableDevtools?: boolean;
 }
@@ -212,7 +211,6 @@ export interface PatchListener {
  */
 export declare class ObservableStore<TState = any> extends Observable<TState> {
     readonly name: string;
-    readonly schema: Record<string, any>;
     _uid?: string;
     private _state;
     private _frozenState;
@@ -277,18 +275,6 @@ export declare class ObservableStore<TState = any> extends Observable<TState> {
      * Only triggers if state has changed and batches notifications
      */
     private _notifyObservers;
-    /**
-     * Creates a schema definition for type validation
-     */
-    private _createDeepSchema;
-    /**
-     * Validates a state object against a schema
-     */
-    private _validateDeepState;
-    /**
-     * Determine the type of a value
-     */
-    private _inferType;
     /**
      * Public API for dispatching actions
      */
@@ -439,7 +425,6 @@ export declare class ObservableStore<TState = any> extends Observable<TState> {
     executeHandler(handler: Function, context: any): void;
     hasAction(actionName: string): boolean;
     hasAsyncAction(actionName: string): boolean;
-    private _validateState;
 }
 export interface StoreFactoryConfig<TState = any> extends StoreConfig<TState> {
     state?: TState;
