@@ -92,46 +92,42 @@ customElements.define(
       const getPasswordInputState = memo('getPasswordInputState')
 
       return html`
-                <form action="/submit" method="POST">
-                    <label>
-                        Email:
-                        <input
-                            type="email"
-                            aria-invalid=${getEmailInputState}
-                            @input=${e => dispatch('processEmailInput', e.target.value)}
-                            value=${email}
-                        />
-                        <span id="email-available"
-                            >${
-                              isEmailAvailable === false && emailError === ''
-                                ? 'Email is already taken.'
-                                : ''
-                            }</span
-                        >
-                        <span id="email-error">${emailError}</span>
-                    </label>
-                    <label>
-                        Password:
-                        <input
-                            type="password"
-                            @input=${e => dispatch('processPasswordInput', e.target.value)}
-                            value=${password}
-                            aria-invalid=${getPasswordInputState}
-                        />
-                        <span id="password-error">${passwordError}</span>
-                    </label>
-                    <input
-                        type="submit"
-                        value="Submit"
-                        ?disabled=${
-                          emailError !== '' ||
-                          passwordError !== '' ||
-                          email === '' ||
-                          password === ''
-                        }
-                    />
-                </form>
-            `
+        <form action="/submit" method="POST">
+          <label>
+            Email:
+            <input
+              type="email"
+              aria-invalid=${getEmailInputState}
+              @input=${e => dispatch('processEmailInput', e.target.value)}
+              value=${email}
+            />
+            <span id="email-available"
+              >${isEmailAvailable === false && emailError === ''
+                ? 'Email is already taken.'
+                : ''}</span
+            >
+            <span id="email-error">${emailError}</span>
+          </label>
+          <label>
+            Password:
+            <input
+              type="password"
+              @input=${e => dispatch('processPasswordInput', e.target.value)}
+              value=${password}
+              aria-invalid=${getPasswordInputState}
+            />
+            <span id="password-error">${passwordError}</span>
+          </label>
+          <input
+            type="submit"
+            value="Submit"
+            ?disabled=${emailError !== '' ||
+            passwordError !== '' ||
+            email === '' ||
+            password === ''}
+          />
+        </form>
+      `
     }
   }
 )

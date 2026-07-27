@@ -16,14 +16,14 @@ class RenderTestElement extends ReactiveElement {
 
   template() {
     return html`
-            <div>
-                <p>Count: ${this.count}</p>
-                <ul>
-                    ${this.items.map(i => html`<li>${i}</li>`)}
-                </ul>
-                <p>Nested: ${this.complex.nested.value}</p>
-            </div>
-        `
+      <div>
+        <p>Count: ${this.count}</p>
+        <ul>
+          ${this.items.map(i => html`<li>${i}</li>`)}
+        </ul>
+        <p>Nested: ${this.complex.nested.value}</p>
+      </div>
+    `
   }
 
   render() {

@@ -63,26 +63,23 @@ customElements.define(
       const { loading, error, posts } = blogStore.state
       const { mutate } = blogStore
 
-      if (loading)
-        return html`
-          <p>Loading...</p>
-        `
+      if (loading) return html` <p>Loading...</p> `
       if (error) return html`<p>Error: ${error}</p>`
 
       return html`
-                <ul>
-                    ${posts.map(post => html`<li>${post.title}</li>`)}
-                </ul>
-                <button
-                    @click=${() =>
-                      mutate('createPost', {
-                        title: 'New Post',
-                        content: 'Content',
-                      })}
-                >
-                    Add New Post
-                </button>
-            `
+        <ul>
+          ${posts.map(post => html`<li>${post.title}</li>`)}
+        </ul>
+        <button
+          @click=${() =>
+            mutate('createPost', {
+              title: 'New Post',
+              content: 'Content',
+            })}
+        >
+          Add New Post
+        </button>
+      `
     }
   }
 )

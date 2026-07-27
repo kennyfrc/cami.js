@@ -30,56 +30,49 @@ class UserFormElement extends ReactiveElement {
 
   template() {
     return html`
-            <form>
-                <label>
-                    Name: ${this.user.name}
-                    <input
-                        type="text"
-                        name="name"
-                        .value=${this.user.name}
-                        @input=${e => this.handleInput(e, 'name')}
-                    />
-                </label>
-                <label>
-                    Age: ${this.user.age}
-                    <input
-                        type="number"
-                        .value=${this.user.age}
-                        @input=${e => this.handleInput(e, 'age')}
-                    />
-                </label>
-                <label>
-                    Email: ${this.user.email}
-                    <input
-                        type="email"
-                        .value=${this.user.email}
-                        @input=${e => this.handleInput(e, 'email')}
-                    />
-                </label>
-                <label>
-                    Postcode:
-                    ${this.user.address ? this.user.address.postcode : ''}
-                    <input
-                        type="text"
-                        name="postcode"
-                        .value=${this.user.address ? this.user.address.postcode : ''}
-                        @input=${e => this.handleInput(e, 'address.postcode')}
-                    />
-                </label>
-                <label>
-                    Street: ${this.user.address ? this.user.address.street : ''}
-                    <input
-                        type="text"
-                        name="street"
-                        .value=${this.user.address ? this.user.address.street : ''}
-                        @input=${e => this.handleInput(e, 'address.street')}
-                    />
-                </label>
-                <button type="button" @click=${this.resetForm.bind(this)}>
-                    Reset
-                </button>
-            </form>
-        `
+      <form>
+        <label>
+          Name: ${this.user.name}
+          <input
+            type="text"
+            name="name"
+            .value=${this.user.name}
+            @input=${e => this.handleInput(e, 'name')}
+          />
+        </label>
+        <label>
+          Age: ${this.user.age}
+          <input type="number" .value=${this.user.age} @input=${e => this.handleInput(e, 'age')} />
+        </label>
+        <label>
+          Email: ${this.user.email}
+          <input
+            type="email"
+            .value=${this.user.email}
+            @input=${e => this.handleInput(e, 'email')}
+          />
+        </label>
+        <label>
+          Postcode: ${this.user.address ? this.user.address.postcode : ''}
+          <input
+            type="text"
+            name="postcode"
+            .value=${this.user.address ? this.user.address.postcode : ''}
+            @input=${e => this.handleInput(e, 'address.postcode')}
+          />
+        </label>
+        <label>
+          Street: ${this.user.address ? this.user.address.street : ''}
+          <input
+            type="text"
+            name="street"
+            .value=${this.user.address ? this.user.address.street : ''}
+            @input=${e => this.handleInput(e, 'address.street')}
+          />
+        </label>
+        <button type="button" @click=${this.resetForm.bind(this)}>Reset</button>
+      </form>
+    `
   }
 }
 

@@ -1,29 +1,83 @@
 name: ci
+
 on:
+  pull_request:
+    branches: [master, main]
   push:
-    branches:
-      - master
-      - main
+    branches: [master, main]
+
 permissions:
-  contents: write
+  contents: read
+
 jobs:
-  deploy:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure Git Credentials
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Install documentation dependencies
+        run: pip install mkdocs-material
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Check types
+        run: npm run type-check
+
+      - name: Build release bundles and declarations
+        run: |
+          npm run build:minify
+          npm run build:types
+
+      - name: Run tests
+        run: npm test
+
+      - name: Validate paired and strict examples
+        run: |
+          npm run docs:examples:check
+          npm run docs:examples:strict
+
+      - name: Build documentation
+        run: npm run build:docs
+
+  deploy-docs:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install documentation dependencies
+        run: pip install mkdocs-material
+
+      - name: Configure Git credentials
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
-      - uses: actions/cache@v3
-        with:
-          key: mkdocs-material-${{ env.cache_id }}
-          path: .cache
-          restore-keys: |
-            mkdocs-material-
-      - run: pip install mkdocs-material
-      - run: mkdocs gh-deploy --force
+
+      - name: Deploy documentation
+        run: mkdocs gh-deploy --force
