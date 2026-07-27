@@ -1,12 +1,9 @@
-// Conditional Buffer type declaration for environments that have it
-declare global {
-  var Buffer:
-    | {
-        isBuffer(obj: any): obj is Buffer
-        from(source: any): Buffer
-      }
-    | undefined
+interface BufferConstructorLike {
+  isBuffer(value: unknown): boolean
+  from(source: ArrayBufferView): Uint8Array
 }
+
+const bufferConstructor = (globalThis as { Buffer?: BufferConstructorLike }).Buffer
 
 /**
  * High-performance deep equality implementation WITHOUT circular reference support.
@@ -543,8 +540,8 @@ const _deepMerge = (target: any, source: any): any => {
 
       // TypedArrays and Buffers
       if (ArrayBuffer.isView(source) && !(source instanceof DataView)) {
-        if (typeof Buffer !== 'undefined' && Buffer?.isBuffer?.(source)) {
-          return Buffer.from(source)
+        if (bufferConstructor?.isBuffer(source)) {
+          return bufferConstructor.from(source)
         }
 
         return new (source.constructor as any)(
@@ -657,8 +654,8 @@ const _deepClone = (value: any, cache: WeakMap<object, any> = new WeakMap()): an
 
   // Handle TypedArrays and Buffers
   if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
-    if (typeof Buffer !== 'undefined' && Buffer?.isBuffer?.(value)) {
-      return Buffer.from(value)
+    if (bufferConstructor?.isBuffer(value)) {
+      return bufferConstructor.from(value)
     }
 
     return new (value.constructor as any)(

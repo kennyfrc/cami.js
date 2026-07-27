@@ -78,7 +78,7 @@ interface URLStoreOptions {
   onChange?: (state: URLState) => void
 }
 
-type NavigationHook = (context: NavigationHookContext) => Promise<void> | void
+type NavigationHook = (context: NavigationHookContext) => Promise<boolean | void> | boolean | void
 type ResourceLoader = (context: ResourceLoaderContext) => Promise<void> | void
 
 /**
@@ -93,7 +93,6 @@ class URLStore extends Observable<URLState> {
   private __resourceLoaders: Map<string, ResourceLoader>
   private __activeRoute: RouteDefinition | null
   private __navigationState: NavigationState
-  private __persistentParams: Set<string>
   private __beforeNavigateHooks: NavigationHook[]
   private __afterNavigateHooks: NavigationHook[]
   private __bootstrapFn: ((state: URLState) => Promise<void> | void) | null
@@ -114,7 +113,6 @@ class URLStore extends Observable<URLState> {
       isPending: false,
       isLoading: false,
     }
-    this.__persistentParams = new Set<string>()
     this.__beforeNavigateHooks = []
     this.__afterNavigateHooks = []
     this.__bootstrapFn = null
@@ -144,15 +142,6 @@ class URLStore extends Observable<URLState> {
     const paramNames = segments
       .filter(segment => segment.startsWith(':'))
       .map(segment => segment.substring(1))
-
-    // Mark persistent params
-    if (params) {
-      Object.entries(params).forEach(([paramName, paramConfig]) => {
-        if (paramConfig.persist) {
-          this.__persistentParams.add(paramName)
-        }
-      })
-    }
 
     this.__routes.set(pattern, {
       pattern,
@@ -293,6 +282,24 @@ class URLStore extends Observable<URLState> {
     return null
   }
 
+  private __cloneState(state: URLState): URLState {
+    return {
+      params: { ...state.params },
+      hashPaths: [...state.hashPaths],
+      hashParams: { ...state.hashParams },
+      ...(state.routeParams && { routeParams: { ...state.routeParams } }),
+    }
+  }
+
+  private __hashForState(state: URLState): string {
+    let hash = '#' + state.hashPaths.join('/')
+    const params = new URLSearchParams(state.params).toString()
+    const hashParams = new URLSearchParams(state.hashParams).toString()
+    if (params) hash += '?' + params
+    if (hashParams) hash += '#' + hashParams
+    return hash
+  }
+
   public async __updateStore(): Promise<void> {
     // Don't process if already navigating
     if (this.__navigationState.isPending) return
@@ -307,7 +314,12 @@ class URLStore extends Observable<URLState> {
     const signal = this.__navigationController.signal
 
     // Parse the current URL
+    const previousState = this.__cloneState(this._state)
     const urlState = this.__parseURL()
+    const matchingRoute = this.__findMatchingRoute(urlState.hashPaths)
+    if (matchingRoute && Object.keys(matchingRoute.extractedParams || {}).length > 0) {
+      urlState.routeParams = { ...(matchingRoute.extractedParams || {}) }
+    }
 
     // Skip if URL hasn't changed - use proper deep equality check
     // BUT always process the first route after initialization (to run onEnter handlers)
@@ -328,16 +340,17 @@ class URLStore extends Observable<URLState> {
 
       if (signal.aborted) return
 
-      // Find matching route
-      const matchingRoute = this.__findMatchingRoute(urlState.hashPaths)
-
       // Execute before navigate hooks
       for (const hook of this.__beforeNavigateHooks) {
-        await hook({
-          from: this._state,
+        const shouldContinue = await hook({
+          from: previousState,
           to: urlState,
           route: matchingRoute,
         })
+        if (shouldContinue === false) {
+          window.history.replaceState(null, '', this.__hashForState(previousState))
+          return
+        }
       }
 
       if (signal.aborted) return
@@ -346,13 +359,8 @@ class URLStore extends Observable<URLState> {
       if (matchingRoute && matchingRoute.resources && matchingRoute.resources.length > 0) {
         this.__navigationState.isLoading = true
 
-        // Update URL state with extracted params
-        urlState.routeParams = {
-          ...(matchingRoute.extractedParams || {}),
-        }
-
         // Set preliminary state to show loading indicators
-        this._state = { ...urlState }
+        this._state = this.__cloneState(urlState)
         this.next(this._state)
 
         // Load resources with signal
@@ -364,7 +372,7 @@ class URLStore extends Observable<URLState> {
       // Handle route change - execute onLeave for old route
       if (this.__activeRoute?.onLeave) {
         await this.__activeRoute.onLeave({
-          from: this._state,
+          from: previousState,
           to: urlState,
         })
       }
@@ -389,7 +397,7 @@ class URLStore extends Observable<URLState> {
       // Execute after navigate hooks
       for (const hook of this.__afterNavigateHooks) {
         await hook({
-          from: this._state,
+          from: previousState,
           to: urlState,
           route: matchingRoute,
         })
@@ -458,6 +466,30 @@ class URLStore extends Observable<URLState> {
   }
 
   /**
+   * Check if route processing is currently pending.
+   */
+  isPending(): boolean {
+    return this.__navigationState.isPending
+  }
+
+  /**
+   * Get the currently active route and its extracted path parameters.
+   */
+  getActiveRoute(): RouteDefinition | null {
+    if (!this.__activeRoute) return null
+    return {
+      ...this.__activeRoute,
+      segments: [...this.__activeRoute.segments],
+      paramNames: [...this.__activeRoute.paramNames],
+      resources: [...this.__activeRoute.resources],
+      params: { ...this.__activeRoute.params },
+      ...(this.__activeRoute.extractedParams && {
+        extractedParams: { ...this.__activeRoute.extractedParams },
+      }),
+    }
+  }
+
+  /**
    * Navigate to a URL
    */
   navigate(options: NavigateOptions = {}): void {
@@ -509,6 +541,16 @@ class URLStore extends Observable<URLState> {
       Object.entries(currentState.hashParams).forEach(([key, value]) =>
         hashSearchParams.set(key, value)
       )
+    } else {
+      const targetRoute = this.__findMatchingRoute(hashPaths)
+      if (targetRoute) {
+        Object.entries(targetRoute.params).forEach(([key, config]) => {
+          const currentValue = currentState.params[key]
+          if (config.persist && currentValue !== undefined) {
+            searchParams.set(key, currentValue)
+          }
+        })
+      }
     }
 
     Object.entries(params).forEach(([key, value]) => {

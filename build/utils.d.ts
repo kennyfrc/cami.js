@@ -1,9 +1,3 @@
-declare global {
-    var Buffer: {
-        isBuffer(obj: any): obj is Buffer;
-        from(source: any): Buffer;
-    } | undefined;
-}
 declare const _deepEqual: (a: any, b: any) => boolean;
 /**
  * Deep equality implementation WITH circular reference support.

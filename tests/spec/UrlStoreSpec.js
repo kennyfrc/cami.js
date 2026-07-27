@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { createURLStore } = cami
+const { URLStore } = cami
 
 describe('URL Store', () => {
   let urlStore
@@ -8,7 +8,7 @@ describe('URL Store', () => {
 
   beforeEach(async () => {
     await new Promise(resolve => setTimeout(resolve, 0))
-    urlStore = createURLStore()
+    urlStore = new URLStore()
     urlStore.navigate({ path: '', fullReplace: true })
     testDiv = document.getElementById('url-store-hook-test')
     if (!testDiv) {
@@ -59,17 +59,20 @@ describe('URL Store', () => {
     })
   })
 
-  it('should update subscribers when state changes', done => {
+  it('should update subscribers when state changes', async () => {
     let callCount = 0
-    const subscription = urlStore.subscribe(() => {
-      callCount++
-      if (callCount === 1) {
-        expect(urlStore.getState().hashPaths).toEqual(['draft', '789'])
-        subscription.unsubscribe()
-      }
-    })
+    await new Promise(resolve => {
+      const subscription = urlStore.subscribe(() => {
+        callCount++
+        if (callCount === 1) {
+          expect(urlStore.getState().hashPaths).toEqual(['draft', '789'])
+          subscription.unsubscribe()
+          resolve()
+        }
+      })
 
-    urlStore.navigate({ path: 'draft/789' })
+      urlStore.navigate({ path: 'draft/789' })
+    })
   })
 
   it('should handle full hash replace navigation', () => {
@@ -242,7 +245,7 @@ describe('URL Store', () => {
 
     beforeEach(async () => {
       await new Promise(resolve => setTimeout(resolve, 0))
-      urlStore = createURLStore()
+      urlStore = new URLStore()
       urlStore.navigate({ path: '', fullReplace: true })
 
       // Register route handlers
@@ -272,20 +275,20 @@ describe('URL Store', () => {
       testDiv = null
     })
 
-    it('should synchronize URL changes to store state', done => {
-      // Set up subscription to detect app store changes
-      const subscription = appStore.subscribe(state => {
-        if (state.currentView === 'profile' && state.params.id === '123') {
-          subscription.unsubscribe()
-          done()
-        }
-      })
+    it('should synchronize URL changes to store state', async () => {
+      await new Promise(resolve => {
+        const subscription = appStore.subscribe(state => {
+          if (state.currentView === 'profile' && state.params.id === '123') {
+            subscription.unsubscribe()
+            resolve()
+          }
+        })
 
-      // Navigate to trigger the route handler
-      urlStore.navigate({ path: 'profile/123' })
+        urlStore.navigate({ path: 'profile/123' })
+      })
     })
 
-    it('should handle bi-directional synchronization', done => {
+    it('should handle bi-directional synchronization', async () => {
       // Create a unique store for this test
       const uniqueStoreName =
         'integration-test-store-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9)
@@ -318,18 +321,17 @@ describe('URL Store', () => {
         }
       })
 
-      // Subscribe to test store changes to verify sync worked
-      const storeSub = testStore.subscribe(state => {
-        if (state.currentView === 'dashboard') {
-          // Success case - clean up and resolve test
-          urlSub.unsubscribe()
-          storeSub.unsubscribe()
-          done()
-        }
-      })
+      await new Promise(resolve => {
+        const storeSub = testStore.subscribe(state => {
+          if (state.currentView === 'dashboard') {
+            urlSub.unsubscribe()
+            storeSub.unsubscribe()
+            resolve()
+          }
+        })
 
-      // Navigate to trigger the synchronization
-      urlStore.navigate({ path: 'dashboard' })
+        urlStore.navigate({ path: 'dashboard' })
+      })
     })
   })
 })
@@ -341,7 +343,7 @@ describe('URL Store Resource Loading', () => {
 
   beforeEach(async () => {
     await new Promise(resolve => setTimeout(resolve, 0))
-    urlStore = createURLStore()
+    urlStore = new URLStore()
     urlStore.navigate({ path: '', fullReplace: true })
 
     // Reset resource loading flag
@@ -372,7 +374,7 @@ describe('URL Store Resource Loading', () => {
     vi.restoreAllMocks()
   })
 
-  it('should load resources before completing navigation', done => {
+  it('should load resources before completing navigation', async () => {
     // Setup a mock resource loader that sets a flag when completed
     const mockResourceLoader = async () => {
       // Simulate async resource loading
@@ -396,9 +398,6 @@ describe('URL Store Resource Loading', () => {
         if (contentDiv) {
           contentDiv.textContent = 'Dashboard Loaded'
         }
-
-        // Signal that the test is complete
-        done()
       },
     })
 
@@ -421,16 +420,13 @@ describe('URL Store Resource Loading', () => {
     // Resource should not be loaded immediately
     expect(resourceLoadedFlag).toBe(false)
 
-    // Navigation should eventually complete
-    setTimeout(() => {
-      expect(navigationCompleted).toBe(true)
-      expect(resourceLoadedFlag).toBe(true)
-      expect(document.getElementById('content').textContent).toBe('Dashboard Loaded')
-      done()
-    }, 150)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(navigationCompleted).toBe(true)
+    expect(resourceLoadedFlag).toBe(true)
+    expect(document.getElementById('content').textContent).toBe('Dashboard Loaded')
   })
 
-  it('should handle multiple resources loading in parallel', done => {
+  it('should handle multiple resources loading in parallel', async () => {
     // Setup counters to track loading sequence
     let resource1Loaded = false
     let resource2Loaded = false
@@ -464,8 +460,6 @@ describe('URL Store Resource Loading', () => {
         if (contentDiv) {
           contentDiv.textContent = 'Profile Loaded'
         }
-
-        done()
       },
     })
 
@@ -477,22 +471,18 @@ describe('URL Store Resource Loading', () => {
     expect(resource2Loaded).toBe(false)
 
     // After 75ms, resource1 should be loaded but not resource2
-    setTimeout(() => {
-      expect(resource1Loaded).toBe(true)
-      expect(resource2Loaded).toBe(false)
-      expect(document.getElementById('content').textContent).not.toBe('Profile Loaded')
-    }, 75)
+    await new Promise(resolve => setTimeout(resolve, 75))
+    expect(resource1Loaded).toBe(true)
+    expect(resource2Loaded).toBe(false)
+    expect(document.getElementById('content').textContent).not.toBe('Profile Loaded')
 
-    // After 150ms, both resources should be loaded and navigation completed
-    setTimeout(() => {
-      expect(resource1Loaded).toBe(true)
-      expect(resource2Loaded).toBe(true)
-      expect(document.getElementById('content').textContent).toBe('Profile Loaded')
-      done()
-    }, 150)
+    await new Promise(resolve => setTimeout(resolve, 75))
+    expect(resource1Loaded).toBe(true)
+    expect(resource2Loaded).toBe(true)
+    expect(document.getElementById('content').textContent).toBe('Profile Loaded')
   })
 
-  it('should update navigation state correctly during resource loading', done => {
+  it('should update navigation state correctly during resource loading', async () => {
     // Create a slow resource loader
     const slowResourceLoader = async () => {
       await new Promise(resolve => setTimeout(resolve, 100))
@@ -511,14 +501,11 @@ describe('URL Store Resource Loading', () => {
     // Should be in loading state immediately after navigation
     expect(urlStore.isLoading()).toBe(true)
 
-    // After resource loads, should no longer be in loading state
-    setTimeout(() => {
-      expect(urlStore.isLoading()).toBe(false)
-      done()
-    }, 150)
+    await new Promise(resolve => setTimeout(resolve, 150))
+    expect(urlStore.isLoading()).toBe(false)
   })
 
-  it('should handle errors in resource loading', done => {
+  it('should handle errors in resource loading', async () => {
     // Create a resource loader that fails
     const failingResourceLoader = async () => {
       await new Promise(resolve => setTimeout(resolve, 50))
@@ -526,7 +513,7 @@ describe('URL Store Resource Loading', () => {
     }
 
     // Spy on console.error to catch the error
-    vi.spyOn(console, 'error')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
 
     // Register resource and route
     urlStore.registerResourceLoader('failingResource', failingResourceLoader)
@@ -534,14 +521,15 @@ describe('URL Store Resource Loading', () => {
       resources: ['failingResource'],
     })
 
-    // Add an afterNavigate hook to check state
-    urlStore.afterNavigate(() => {
-      // Should have logged an error
-      expect(console.error).toHaveBeenCalled()
-      done()
-    })
+    const afterNavigate = vi.fn()
+    urlStore.afterNavigate(afterNavigate)
 
     // Start navigation
     urlStore.navigate({ path: 'error-route' })
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    expect(console.error).toHaveBeenCalled()
+    expect(afterNavigate).not.toHaveBeenCalled()
+    expect(urlStore.isPending()).toBe(false)
   })
 })

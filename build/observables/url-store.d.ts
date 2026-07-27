@@ -68,7 +68,7 @@ interface URLStoreOptions {
     onInit?: (state: URLState) => Promise<void> | void;
     onChange?: (state: URLState) => void;
 }
-type NavigationHook = (context: NavigationHookContext) => Promise<void> | void;
+type NavigationHook = (context: NavigationHookContext) => Promise<boolean | void> | boolean | void;
 type ResourceLoader = (context: ResourceLoaderContext) => Promise<void> | void;
 /**
  * Enhanced URLStore with resource-aware routing
@@ -82,7 +82,6 @@ declare class URLStore extends Observable<URLState> {
     private __resourceLoaders;
     private __activeRoute;
     private __navigationState;
-    private __persistentParams;
     private __beforeNavigateHooks;
     private __afterNavigateHooks;
     private __bootstrapFn;
@@ -120,6 +119,8 @@ declare class URLStore extends Observable<URLState> {
      * Find a matching route for the given path segments
      */
     private __findMatchingRoute;
+    private __cloneState;
+    private __hashForState;
     __updateStore(): Promise<void>;
     /**
      * Load resources required by a route
@@ -130,6 +131,14 @@ declare class URLStore extends Observable<URLState> {
      * Check if currently in a loading state
      */
     isLoading(): boolean;
+    /**
+     * Check if route processing is currently pending.
+     */
+    isPending(): boolean;
+    /**
+     * Get the currently active route and its extracted path parameters.
+     */
+    getActiveRoute(): RouteDefinition | null;
     /**
      * Navigate to a URL
      */
