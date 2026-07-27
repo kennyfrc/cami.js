@@ -1,33 +1,21 @@
-/**
- * @license
- * cami.js
- * Copyright (c) 2023 Kenn Costales
- * MIT License
- */
-/**
- * @module cami
- */
-import { html, svg } from "lit-html";
-import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
-import { keyed } from "lit-html/directives/keyed.js";
-import { repeat } from "lit-html/directives/repeat.js";
-import { ReactiveElement } from "./reactive-element";
-import { ObservableStore, store } from "./observables/observable-store";
-import { Model } from "./observables/observable-model";
-import { Observable } from "./observables/observable";
-import { ObservableState, effect } from "./observables/observable-state";
-import { Type, useValidationHook, useValidationThunk } from "./types/index";
-import { createURLStore } from "./observables/url-store";
-import {
-  createIdbPromise,
-  persistToIdbThunk,
-  createLocalStorage,
-  persistToLocalStorageThunk,
-} from "./storage/adapters";
-import invariant from "./invariant";
-import { _deepEqual, _deepMerge, _deepClone } from "./utils";
-declare const debug: import("./config").ConfigItem,
-  events: import("./config").ConfigItem;
+import { html, svg } from 'lit-html';
+import { keyed } from 'lit-html/directives/keyed.js';
+import { repeat } from 'lit-html/directives/repeat.js';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
+import { keyedRepeat } from './directives/keyed-repeat';
+import { ref } from './directives/ref';
+import invariant from './invariant';
+import { Observable } from './observables/observable';
+import { Model } from './observables/observable-model';
+import { ObservableState, effect } from './observables/observable-state';
+import { ObservableStore, store } from './observables/observable-store';
+import { URLStore, createURLStore } from './observables/url-store';
+import { ReactiveElement } from './reactive-element';
+import { useImage } from './resources/use-image';
+import { createIdbPromise, createLocalStorage, persistToIdbThunk, persistToLocalStorageThunk } from './storage/adapters';
+import { Type, useValidationHook, useValidationThunk } from './types/index';
+import { _deepClone, _deepEqual, _deepMerge } from './utils';
+declare const debug: import("./config").ConfigItem, events: import("./config").ConfigItem;
 /**
  * Main exports for the cami.js library with full TypeScript support
  *
@@ -50,96 +38,16 @@ declare const debug: import("./config").ConfigItem,
  * @exports repeat - lit-html repeat directive
  * @exports keyed - lit-html keyed directive
  */
-export {
-  store,
-  html,
-  svg,
-  ReactiveElement,
-  Observable,
-  ObservableState,
-  ObservableStore,
-  debug,
-  events,
-  effect,
-  Type,
-  useValidationHook,
-  useValidationThunk,
-  Model,
-  createIdbPromise,
-  persistToIdbThunk,
-  createLocalStorage,
-  persistToLocalStorageThunk,
-  createURLStore,
-  unsafeHTML,
-  repeat,
-  keyed,
-  invariant,
-  _deepEqual,
-  _deepMerge,
-  _deepClone,
-};
-export type { Observer, Subscription } from "./observables/observable";
-export type {
-  EffectCleanup,
-  DependencyTracker,
-} from "./observables/observable-state";
-export type {
-  StoreConfig,
-  StoreFactoryConfig,
-} from "./observables/observable-store";
-export type {
-  ModelConfig,
-  InferModelState,
-} from "./observables/observable-model";
-export type {
-  ObservableProperty,
-  AttributeParser,
-  ObservableAttributes,
-  SetupConfig,
-  EffectFunction,
-  DeriveFunction as ReactiveElementDeriveFunction,
-  UnsubscribeFunction,
-  DeriveResult,
-} from "./reactive-element";
-export type {
-  PrimitiveTypeName,
-  TypeDefinition,
-  InferType,
-  ComplexType,
-  ObjectType,
-  ArrayType,
-  SumType,
-  ProductType,
-  AnyType,
-  EnumType,
-  OptionalType,
-  RefinementType,
-  DependentPairType,
-  DependentRecordType,
-  DateType,
-  VectType,
-  TreeType,
-  RoseTreeType,
-  LiteralType,
-  FunctionType,
-  VoidType,
-  DependentFunctionType,
-  DependentArrayType,
-  DependentSumType,
-  ReferenceType,
-} from "./types/index";
-export type {
-  URLState,
-  RouteConfig,
-  RouteEnterContext,
-  RouteLeaveContext,
-  NavigationHookContext,
-  ResourceLoaderContext,
-  RouteDefinition,
-  NavigationState,
-  NavigateOptions,
-  URLStoreOptions,
-  NavigationHook,
-  ResourceLoader,
-} from "./observables/url-store";
+export { store, html, svg, ReactiveElement, Observable, ObservableState, ObservableStore, debug, events, effect, Type, useValidationHook, useValidationThunk, Model, createIdbPromise, persistToIdbThunk, createLocalStorage, persistToLocalStorageThunk, createURLStore, URLStore, unsafeHTML, repeat, keyed, keyedRepeat, ref, useImage, invariant, _deepEqual, _deepMerge, _deepClone, };
+export { setAfterRenderEnabled, flushAfterRender } from './reactive-element';
+export type { Observer, Subscription, } from './observables/observable';
+export type { EffectCleanup, DependencyTracker, } from './observables/observable-state';
+export type { StoreConfig, StoreFactoryConfig, } from './observables/observable-store';
+export type { ModelConfig, InferModelState, } from './observables/observable-model';
+export type { ObservableProperty, AttributeParser, ObservableAttributes, SetupConfig, EffectFunction, DeriveFunction as ReactiveElementDeriveFunction, UnsubscribeFunction, DeriveResult, } from './reactive-element';
+export type { Ref } from './directives/ref';
+export type { KeyedRepeatOptions } from './directives/keyed-repeat';
+export type { Resource, ResourceOptions } from './resources/resource';
+export type { PrimitiveTypeName, TypeDefinition, InferType, ComplexType, ObjectType, ArrayType, SumType, ProductType, AnyType, EnumType, OptionalType, RefinementType, DependentPairType, DependentRecordType, DateType, VectType, TreeType, RoseTreeType, LiteralType, FunctionType, VoidType, DependentFunctionType, DependentArrayType, DependentSumType, ReferenceType, } from './types/index';
+export type { URLState, RouteConfig, RouteEnterContext, RouteLeaveContext, NavigationHookContext, ResourceLoaderContext, RouteDefinition, NavigationState, NavigateOptions, URLStoreOptions, NavigationHook, ResourceLoader, } from './observables/url-store';
 //# sourceMappingURL=cami.d.ts.map

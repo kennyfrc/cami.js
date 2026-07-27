@@ -67,7 +67,7 @@
   cartStore.defineQuery('fetchProducts', {
     queryKey: ['products'],
     queryFn: () => {
-      return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
+      return fetch("https://cami-api.exe.xyz/products?_limit=3").then(res => res.json())
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     onFetch: ({ dispatch }) => {

@@ -81,7 +81,7 @@
       this.products = this.query({
         queryKey: ["products"],
         queryFn: () => {
-          return fetch("https://api.camijs.com/products?_limit=3").then((res) =>
+          return fetch("https://cami-api.exe.xyz/products?_limit=3").then((res) =>
             res.json()
           );
         },

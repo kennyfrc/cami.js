@@ -1,298 +1,151 @@
-import { Model } from "../observables/observable-model.js";
-export type PrimitiveTypeName =
-  | "string"
-  | "float"
-  | "integer"
-  | "natural"
-  | "boolean"
-  | "bigint"
-  | "symbol"
-  | "null";
-export interface ObjectType<
-  T extends Record<string, any> = Record<string, any>,
-> {
-  type: "object";
-  schema: T;
+import { Model } from '../observables/observable-model.js';
+export type PrimitiveTypeName = 'string' | 'float' | 'integer' | 'natural' | 'boolean' | 'bigint' | 'symbol' | 'null';
+export interface ObjectType<T extends Record<string, any> = Record<string, any>> {
+    type: 'object';
+    schema: T;
 }
 export interface ArrayType<T = any> {
-  type: "array";
-  itemType: TypeDefinition<T>;
-  allowEmpty: boolean;
+    type: 'array';
+    itemType: TypeDefinition<T>;
+    allowEmpty: boolean;
 }
 export interface SumType<T = any> {
-  type: "sum";
-  types: TypeDefinition<T>[];
+    type: 'sum';
+    types: TypeDefinition<T>[];
 }
-export interface ProductType<
-  T extends Record<string, any> = Record<string, any>,
-> {
-  type: "product";
-  fields: T;
+export interface ProductType<T extends Record<string, any> = Record<string, any>> {
+    type: 'product';
+    fields: T;
 }
 export interface AnyType {
-  type: "any";
+    type: 'any';
 }
 export interface EnumType<T = any> {
-  type: "enum";
-  values: T[];
+    type: 'enum';
+    values: T[];
 }
 export interface OptionalType<T = any> {
-  type: "optional";
-  optional: TypeDefinition<T>;
+    type: 'optional';
+    optional: TypeDefinition<T>;
 }
 export interface RefinementType<T = any> {
-  type: "refinement";
-  baseType: TypeDefinition<T>;
-  refinementFn: (value: T) => boolean;
+    type: 'refinement';
+    baseType: TypeDefinition<T>;
+    refinementFn: (value: T) => boolean;
 }
 export interface DependentPairType<F = any, S = any> {
-  type: "dependentPair";
-  fstType: TypeDefinition<F>;
-  sndTypeFn: (fst: F) => TypeDefinition<S>;
+    type: 'dependentPair';
+    fstType: TypeDefinition<F>;
+    sndTypeFn: (fst: F) => TypeDefinition<S>;
 }
-export interface DependentRecordType<
-  T extends Record<string, any> = Record<string, any>,
-> {
-  type: "dependentRecord";
-  fields: T;
-  validateFn?: (value: any, rootState: any) => boolean | string;
+export interface DependentRecordType<T extends Record<string, any> = Record<string, any>> {
+    type: 'dependentRecord';
+    fields: T;
+    validateFn?: (value: unknown, rootState: unknown) => boolean | string;
 }
 export interface DateType {
-  type: "date";
+    type: 'date';
 }
 export interface VectType<T = any> {
-  type: "vect";
-  length: number;
-  elemType: TypeDefinition<T>;
+    type: 'vect';
+    length: number;
+    elemType: TypeDefinition<T>;
 }
 export interface TreeType<T = any> {
-  type: "tree";
-  valueType: TypeDefinition<T>;
+    type: 'tree';
+    valueType: TypeDefinition<T>;
 }
 export interface RoseTreeType<T = any> {
-  type: "roseTree";
-  valueType: TypeDefinition<T>;
+    type: 'roseTree';
+    valueType: TypeDefinition<T>;
 }
 export interface LiteralType<T = any> {
-  type: "literal";
-  value: T;
+    type: 'literal';
+    value: T;
 }
 export interface FunctionType<P extends any[] = any[], R = any> {
-  type: "function";
-  paramTypes: TypeDefinition<P>[];
-  returnType: TypeDefinition<R>;
+    type: 'function';
+    paramTypes: TypeDefinition<P>[];
+    returnType: TypeDefinition<R>;
 }
 export interface VoidType {
-  type: "void";
+    type: 'void';
 }
 export interface DependentFunctionType<P extends any[] = any[], R = any> {
-  type: "dependentFunction";
-  paramTypes: TypeDefinition<P>[];
-  returnTypeFn: (...params: P) => TypeDefinition<R>;
+    type: 'dependentFunction';
+    paramTypes: TypeDefinition<P>[];
+    returnTypeFn: (...params: P) => TypeDefinition<R>;
 }
 export interface DependentArrayType<T = any> {
-  type: "dependentArray";
-  lengthFn: (value: T[]) => number;
-  itemTypeFn: (index: number, array: T[]) => TypeDefinition<T>;
+    type: 'dependentArray';
+    lengthFn: (value: T[]) => number;
+    itemTypeFn: (index: number, array: T[]) => TypeDefinition<T>;
 }
 export interface DependentSumType<T = any> {
-  type: "dependentSum";
-  discriminantFn: (value: T) => any;
-  typesFn: (discriminant: any) => TypeDefinition<T>[];
+    type: 'dependentSum';
+    discriminantFn: (value: T) => any;
+    typesFn: (discriminant: unknown) => TypeDefinition<T>[];
 }
 export interface ReferenceType {
-  type: "reference";
-  modelName: string;
+    type: 'reference';
+    modelName: string;
 }
-export type ComplexType<T = any> =
-  | ObjectType<T extends Record<string, any> ? T : Record<string, any>>
-  | ArrayType<T>
-  | SumType<T>
-  | ProductType<T extends Record<string, any> ? T : Record<string, any>>
-  | AnyType
-  | EnumType<T>
-  | OptionalType<T>
-  | RefinementType<T>
-  | DependentPairType
-  | DependentRecordType<T extends Record<string, any> ? T : Record<string, any>>
-  | DateType
-  | VectType<T>
-  | TreeType<T>
-  | RoseTreeType<T>
-  | LiteralType<T>
-  | FunctionType
-  | VoidType
-  | DependentFunctionType
-  | DependentArrayType<T>
-  | DependentSumType<T>
-  | ReferenceType;
-export type TypeDefinition<T = any> =
-  | PrimitiveTypeName
-  | ComplexType<T>
-  | Model;
-type InferPrimitive<T extends PrimitiveTypeName> = T extends "string"
-  ? string
-  : T extends "float" | "integer" | "natural"
-    ? number
-    : T extends "boolean"
-      ? boolean
-      : T extends "bigint"
-        ? bigint
-        : T extends "symbol"
-          ? symbol
-          : T extends "null"
-            ? null
-            : never;
-type InferType<T extends TypeDefinition> = T extends PrimitiveTypeName
-  ? InferPrimitive<T>
-  : T extends ObjectType<infer S>
-    ? {
-        [K in keyof S]: InferType<S[K]>;
-      }
-    : T extends ArrayType<infer E>
-      ? E extends TypeDefinition
-        ? InferType<E>[]
-        : any[]
-      : T extends SumType<infer U>
-        ? U extends TypeDefinition
-          ? InferType<U>
-          : any
-        : T extends ProductType<infer F>
-          ? {
-              [K in keyof F]: F[K] extends TypeDefinition
-                ? InferType<F[K]>
-                : any;
-            }
-          : T extends AnyType
-            ? any
-            : T extends EnumType<infer V>
-              ? V
-              : T extends OptionalType<infer O>
-                ? O extends TypeDefinition
-                  ? InferType<O> | undefined | null
-                  : any
-                : T extends RefinementType<infer R>
-                  ? R extends TypeDefinition
-                    ? InferType<R>
-                    : any
-                  : T extends DependentPairType<infer F, infer S>
-                    ? F extends TypeDefinition
-                      ? [InferType<F>, S]
-                      : [any, S]
-                    : T extends DateType
-                      ? Date
-                      : T extends VectType<infer E>
-                        ? E extends TypeDefinition
-                          ? InferType<E>[]
-                          : any[]
-                        : T extends TreeType<infer V>
-                          ? V extends TypeDefinition
-                            ? TreeNode<InferType<V>>
-                            : TreeNode<any>
-                          : T extends RoseTreeType<infer V>
-                            ? V extends TypeDefinition
-                              ? RoseTreeNode<InferType<V>>
-                              : RoseTreeNode<any>
-                            : T extends LiteralType<infer L>
-                              ? L
-                              : T extends FunctionType<infer P, infer R>
-                                ? (...args: P) => R
-                                : T extends VoidType
-                                  ? void
-                                  : T extends ReferenceType
-                                    ? number
-                                    : T extends Model
-                                      ? any
-                                      : any;
+export type ComplexType<T = any> = ObjectType<T extends Record<string, any> ? T : Record<string, any>> | ArrayType<T> | SumType<T> | ProductType<T extends Record<string, any> ? T : Record<string, any>> | AnyType | EnumType<T> | OptionalType<T> | RefinementType<T> | DependentPairType | DependentRecordType<T extends Record<string, any> ? T : Record<string, any>> | DateType | VectType<T> | TreeType<T> | RoseTreeType<T> | LiteralType<T> | FunctionType | VoidType | DependentFunctionType | DependentArrayType<T> | DependentSumType<T> | ReferenceType;
+export type TypeDefinition<T = any> = PrimitiveTypeName | ComplexType<T> | Model;
+type InferPrimitive<T extends PrimitiveTypeName> = T extends 'string' ? string : T extends 'float' | 'integer' | 'natural' ? number : T extends 'boolean' ? boolean : T extends 'bigint' ? bigint : T extends 'symbol' ? symbol : T extends 'null' ? null : never;
+type InferType<T extends TypeDefinition> = T extends PrimitiveTypeName ? InferPrimitive<T> : T extends ObjectType<infer S> ? {
+    [K in keyof S]: InferType<S[K]>;
+} : T extends ArrayType<infer E> ? E extends TypeDefinition ? InferType<E>[] : unknown[] : T extends SumType<infer U> ? U extends TypeDefinition ? InferType<U> : unknown : T extends ProductType<infer F> ? {
+    [K in keyof F]: F[K] extends TypeDefinition ? InferType<F[K]> : unknown;
+} : T extends AnyType ? any : T extends EnumType<infer V> ? V : T extends OptionalType<infer O> ? O extends TypeDefinition ? InferType<O> | undefined | null : unknown : T extends RefinementType<infer R> ? R extends TypeDefinition ? InferType<R> : unknown : T extends DependentPairType<infer F, infer S> ? F extends TypeDefinition ? [InferType<F>, S] : [any, S] : T extends DateType ? Date : T extends VectType<infer E> ? E extends TypeDefinition ? InferType<E>[] : unknown[] : T extends TreeType<infer V> ? V extends TypeDefinition ? TreeNode<InferType<V>> : TreeNode<any> : T extends RoseTreeType<infer V> ? V extends TypeDefinition ? RoseTreeNode<InferType<V>> : RoseTreeNode<any> : T extends LiteralType<infer L> ? L : T extends FunctionType<infer P, infer R> ? (...args: P) => R : T extends VoidType ? void : T extends ReferenceType ? number : T extends Model ? any : unknown;
 interface TreeNode<T> {
-  value: T;
-  left?: TreeNode<T>;
-  right?: TreeNode<T>;
+    value: T;
+    left?: TreeNode<T>;
+    right?: TreeNode<T>;
 }
 interface RoseTreeNode<T> {
-  value: T;
-  children: RoseTreeNode<T>[];
+    value: T;
+    children: RoseTreeNode<T>[];
 }
 declare const Type: {
-  String: "string";
-  Float: "float";
-  Number: "float";
-  Integer: "integer";
-  Natural: "natural";
-  Boolean: "boolean";
-  BigInt: "bigint";
-  Symbol: "symbol";
-  Null: "null";
-  Object: <T extends Record<string, TypeDefinition<any>>>(
-    schema: T,
-  ) => ObjectType<T>;
-  Array: <T_1>(
-    itemType: TypeDefinition<T_1>,
-    options?: {
-      allowEmpty?: boolean;
-    },
-  ) => ArrayType<T_1>;
-  Sum: <T_2>(...types: TypeDefinition<T_2>[]) => SumType<T_2>;
-  Product: <T_3 extends Record<string, TypeDefinition<any>>>(
-    fields: T_3,
-  ) => ProductType<T_3>;
-  Any: AnyType;
-  Enum: <T_4>(...values: T_4[]) => EnumType<T_4>;
-  Optional: <T_5>(type: TypeDefinition<T_5>) => OptionalType<T_5>;
-  Refinement: <T_6>(
-    baseType: TypeDefinition<T_6>,
-    refinementFn: (value: T_6) => boolean,
-  ) => RefinementType<T_6>;
-  DependentPair: <F, S>(
-    fstType: TypeDefinition<F>,
-    sndTypeFn: (fst: F) => TypeDefinition<S>,
-  ) => DependentPairType<F, S>;
-  DependentRecord: <T_7 extends Record<string, TypeDefinition<any>>>(
-    fields: T_7,
-    validateFn?: ((value: any, rootState: any) => boolean | string) | undefined,
-  ) => DependentRecordType<T_7>;
-  Date: DateType;
-  Vect: <T_8>(length: number, elemType: TypeDefinition<T_8>) => VectType<T_8>;
-  Tree: <T_9>(valueType: TypeDefinition<T_9>) => TreeType<T_9>;
-  RoseTree: <T_10>(valueType: TypeDefinition<T_10>) => RoseTreeType<T_10>;
-  Literal: <T_11>(value: T_11) => LiteralType<T_11>;
-  Function: <P extends any[], R>(
-    paramTypes: TypeDefinition<P>[],
-    returnType: TypeDefinition<R>,
-  ) => FunctionType<P, R>;
-  Void: VoidType;
-  DependentFunction: <P_1 extends any[], R_1>(
-    paramTypes: TypeDefinition<P_1>[],
-    returnTypeFn: (...params: P_1) => TypeDefinition<R_1>,
-  ) => DependentFunctionType<P_1, R_1>;
-  DependentArray: <T_12>(
-    lengthFn: (value: T_12[]) => number,
-    itemTypeFn: (index: number, array: T_12[]) => TypeDefinition<T_12>,
-  ) => DependentArrayType<T_12>;
-  DependentSum: <T_13>(
-    discriminantFn: (value: T_13) => any,
-    typesFn: (discriminant: any) => TypeDefinition<T_13>[],
-  ) => DependentSumType<T_13>;
-  Model: (
-    name: string,
-    properties: Record<string, TypeDefinition>,
-  ) => Model<Record<string, TypeDefinition<any>>>;
-  Reference: (modelName: string) => ReferenceType;
+    String: "string";
+    Float: "float";
+    Number: "float";
+    Integer: "integer";
+    Natural: "natural";
+    Boolean: "boolean";
+    BigInt: "bigint";
+    Symbol: "symbol";
+    Null: "null";
+    Object: <T extends Record<string, TypeDefinition>>(schema: T) => ObjectType<T>;
+    Array: <T>(itemType: TypeDefinition<T>, options?: {
+        allowEmpty?: boolean;
+    }) => ArrayType<T>;
+    Sum: <T>(...types: TypeDefinition<T>[]) => SumType<T>;
+    Product: <T extends Record<string, TypeDefinition>>(fields: T) => ProductType<T>;
+    Any: AnyType;
+    Enum: <T>(...values: T[]) => EnumType<T>;
+    Optional: <T>(type: TypeDefinition<T>) => OptionalType<T>;
+    Refinement: <T>(baseType: TypeDefinition<T>, refinementFn: (value: T) => boolean) => RefinementType<T>;
+    DependentPair: <F, S>(fstType: TypeDefinition<F>, sndTypeFn: (fst: F) => TypeDefinition<S>) => DependentPairType<F, S>;
+    DependentRecord: <T extends Record<string, TypeDefinition>>(fields: T, validateFn?: (value: unknown, rootState: unknown) => boolean | string) => DependentRecordType<T>;
+    Date: DateType;
+    Vect: <T>(length: number, elemType: TypeDefinition<T>) => VectType<T>;
+    Tree: <T>(valueType: TypeDefinition<T>) => TreeType<T>;
+    RoseTree: <T>(valueType: TypeDefinition<T>) => RoseTreeType<T>;
+    Literal: <T>(value: T) => LiteralType<T>;
+    Function: <P extends any[], R>(paramTypes: TypeDefinition<P>[], returnType: TypeDefinition<R>) => FunctionType<P, R>;
+    Void: VoidType;
+    DependentFunction: <P extends any[], R>(paramTypes: TypeDefinition<P>[], returnTypeFn: (...params: P) => TypeDefinition<R>) => DependentFunctionType<P, R>;
+    DependentArray: <T>(lengthFn: (value: T[]) => number, itemTypeFn: (index: number, array: T[]) => TypeDefinition<T>) => DependentArrayType<T>;
+    DependentSum: <T>(discriminantFn: (value: T) => any, typesFn: (discriminant: unknown) => TypeDefinition<T>[]) => DependentSumType<T>;
+    Model: (name: string, properties: Record<string, TypeDefinition>) => Model<Record<string, TypeDefinition<any>>>;
+    Reference: (modelName: string) => ReferenceType;
 };
-type ValidateTypeFn = (
-  value: any,
-  type: TypeDefinition,
-  path: string[],
-  rootState: any,
-  currentKey?: string,
-) => any;
+type ValidateTypeFn = (value: unknown, type: TypeDefinition, path: string[], rootState: unknown, currentKey?: string) => any;
 declare const validateType: ValidateTypeFn;
-declare const useValidationHook: (
-  schema: Record<string, TypeDefinition> | DependentRecordType,
-) => (state: any) => void;
-declare const useValidationThunk: (
-  schema: ProductType | ComplexType,
-) => (state: any) => void;
+declare const useValidationHook: (schema: Record<string, TypeDefinition> | DependentRecordType) => (state: unknown) => void;
+declare const useValidationThunk: (schema: ProductType | ComplexType) => (state: unknown) => void;
 export { Type, useValidationThunk, useValidationHook, validateType };
 export type { InferType };
 //# sourceMappingURL=index.d.ts.map

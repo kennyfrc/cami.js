@@ -17,7 +17,7 @@
     todos = this.query({
       queryKey: ["todos"],
       queryFn: () => {
-        return fetch("https://api.camijs.com/todos?_limit=5").then((res) =>
+        return fetch("https://cami-api.exe.xyz/todos?_limit=5").then((res) =>
           res.json()
         );
       },
@@ -26,7 +26,7 @@
 
     addTodo = this.mutation({
       mutationFn: (newTodo) => {
-        return fetch("https://api.camijs.com/todos", {
+        return fetch("https://cami-api.exe.xyz/todos", {
           method: "POST",
           body: JSON.stringify(newTodo),
           headers: {
@@ -42,7 +42,7 @@
 
     deleteTodo = this.mutation({
       mutationFn: (todo) => {
-        return fetch(`https://api.camijs.com/todos/${todo.id}`, {
+        return fetch(`https://cami-api.exe.xyz/todos/${todo.id}`, {
           method: "DELETE",
         }).then((res) => {
           document.querySelector(".note").innerHTML =

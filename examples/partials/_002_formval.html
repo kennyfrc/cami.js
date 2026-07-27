@@ -53,7 +53,7 @@
       queryEmail: {
         queryKey: (email) => ["Email", email],
         queryFn: (email) => {
-          return fetch(`https://api.camijs.com/users?email=${email}`).then(
+          return fetch(`https://cami-api.exe.xyz/users?email=${email}`).then(
             (res) => res.json()
           );
         },

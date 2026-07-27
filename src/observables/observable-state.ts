@@ -1,35 +1,37 @@
+import { Draft, produce } from 'immer'
+
+import { __config } from '../config'
+import { getRenderPhaseContext } from '../render-phase'
+import { __trace } from '../trace'
+import { _deepEqual } from '../utils'
 import {
-  Observable,
   Subscriber as BaseSubscriber,
   Subscription as BaseSubscription,
-} from "./observable";
-import { produce, Draft } from "immer";
-import { _deepEqual } from "../utils";
-import { __config } from "../config";
-import { __trace } from "../trace";
+  Observable,
+} from './observable'
 
 // Type definitions
-type ObserverFunction<T> = (value: T) => void;
+type ObserverFunction<T> = (value: T) => void
 type ObserverObject<T> = {
-  next: (value: T) => void;
-  complete?: () => void;
-};
-type ObserverOrNext<T> = ObserverFunction<T> | ObserverObject<T>;
+  next: (value: T) => void
+  complete?: () => void
+}
+type ObserverOrNext<T> = ObserverFunction<T> | ObserverObject<T>
 
 type Dependency = {
-  store: ObservableState<any> | { _uid?: string };
-  property?: string;
-};
+  store: ObservableState<any> | { _uid?: string }
+  property?: string
+}
 
-type UpdaterFunction<T> = (draft: Draft<T>) => void;
+type UpdaterFunction<T> = (draft: Draft<T>) => void
 
-type EffectCleanup = void | (() => void);
+type EffectCleanup = void | (() => void)
 
 // Use Subscription from observable.ts
 
 interface DeriveResult<T> {
-  value: T;
-  dispose: () => void;
+  value: T
+  dispose: () => void
 }
 
 /**
@@ -38,14 +40,14 @@ interface DeriveResult<T> {
  */
 class DependencyTracker {
   // Shared static context for tracking the current computation
-  static current: DependencyTracker | null = null;
+  static current: DependencyTracker | null = null
 
   // For small dependency sets, arrays are faster than Sets in V8
   // When dependency count grows large, we can switch to a Set
-  dependencies: Dependency[] = [];
+  dependencies: Dependency[] = []
 
   // For fast lookup to avoid duplicates (O(1) vs O(n))
-  private _depsMap: Map<string, Dependency> = new Map();
+  private _depsMap: Map<string, Dependency> = new Map()
 
   /**
    * Track dependencies used during the execution of an effect function
@@ -54,19 +56,19 @@ class DependencyTracker {
    */
   static track<T>(effectFn: () => T): Dependency[] {
     // Save previous context to support nested tracking
-    const previousTracker = DependencyTracker.current;
+    const previousTracker = DependencyTracker.current
 
     // Create new tracker for this computation
-    const tracker = new DependencyTracker();
-    DependencyTracker.current = tracker;
+    const tracker = new DependencyTracker()
+    DependencyTracker.current = tracker
 
     try {
       // Execute the function to track dependencies
-      effectFn();
-      return tracker.dependencies;
+      effectFn()
+      return tracker.dependencies
     } finally {
       // Restore previous context
-      DependencyTracker.current = previousTracker;
+      DependencyTracker.current = previousTracker
     }
   }
 
@@ -75,28 +77,23 @@ class DependencyTracker {
    * @param {Object} store - The store to track
    * @param {string} [property] - Optional property to track
    */
-  addDependency(
-    store: ObservableState<any> | { _uid?: string },
-    property?: string,
-  ): void {
+  addDependency(store: ObservableState<any> | { _uid?: string }, property?: string): void {
     // Create a unique key for the dependency
-    const key = property
-      ? `${store._uid || "store"}.${property}`
-      : store._uid || "store";
+    const key = property ? `${store._uid || 'store'}.${property}` : store._uid || 'store'
 
     // Only add if not already tracked (O(1) lookup)
     if (!this._depsMap.has(key)) {
       // Create dependency object with minimal properties
-      const dep: Dependency = { 
-        store, 
-        ...(property && { property })
-      };
+      const dep: Dependency = {
+        store,
+        ...(property && { property }),
+      }
 
       // Track in array for ordered iteration
-      this.dependencies.push(dep);
+      this.dependencies.push(dep)
 
       // Track in map for fast existence checks
-      this._depsMap.set(key, dep);
+      this._depsMap.set(key, dep)
     }
   }
 }
@@ -111,16 +108,16 @@ class DependencyTracker {
  * console.log(observable.value); // 10
  */
 class ObservableState<T = any> extends Observable<T> {
-  private __value: T;
-  private __pendingUpdates: UpdaterFunction<T>[] = [];
-  private __updateScheduled: boolean = false;
-  private __name: string | null;
-  private __isUpdating: boolean = false;
-  private __updateStack: string[] = [];
-  protected override __observers: BaseSubscriber<T>[] = [];
-  protected __lastObserver: ObserverOrNext<T> | null = null;
+  private __value: T
+  private __pendingUpdates: UpdaterFunction<T>[] = []
+  private __updateScheduled: boolean = false
+  private __name: string | null
+  private __isUpdating: boolean = false
+  private __updateStack: string[] = []
+  protected override __observers: BaseSubscriber<T>[] = []
+  protected __lastObserver: ObserverOrNext<T> | null = null
   // Add _uid property to match the dependency tracking
-  _uid?: string;
+  _uid?: string
 
   /**
    * @constructor
@@ -134,22 +131,19 @@ class ObservableState<T = any> extends Observable<T> {
   constructor(
     initialValue: T = null as T,
     subscriber: ObserverOrNext<T> | null = null,
-    {
-      last = false,
-      name = null,
-    }: { last?: boolean; name?: string | null } = {},
+    { last = false, name = null }: { last?: boolean; name?: string | null } = {}
   ) {
-    super();
+    super()
     if (subscriber) {
       if (last) {
-        this.__lastObserver = subscriber;
+        this.__lastObserver = subscriber
       } else {
-        const sub = new BaseSubscriber(subscriber);
-        this.__observers.push(sub);
+        const sub = new BaseSubscriber(subscriber)
+        this.__observers.push(sub)
       }
     }
-    this.__value = produce(initialValue, (_draft) => {}) as T;
-    this.__name = name;
+    this.__value = produce(initialValue, _draft => {}) as T
+    this.__name = name
   }
 
   /**
@@ -160,9 +154,9 @@ class ObservableState<T = any> extends Observable<T> {
    */
   override onValue(callback: (value: T) => void): BaseSubscription {
     // Add observer to array - O(1) operation
-    const subscriber = new BaseSubscriber(callback);
-    const index = this.__observers.length;
-    this.__observers.push(subscriber);
+    const subscriber = new BaseSubscriber(callback)
+    const index = this.__observers.length
+    this.__observers.push(subscriber)
 
     // Return subscription with direct index removal for O(1) unsubscribe when possible
     return {
@@ -170,34 +164,32 @@ class ObservableState<T = any> extends Observable<T> {
         // Fast path: if the subscriber is still at the original index, use direct removal
         if (this.__observers[index] === subscriber) {
           // Fast removal by swapping with last element and popping - O(1)
-          const lastIndex = this.__observers.length - 1;
+          const lastIndex = this.__observers.length - 1
           if (index < lastIndex) {
-            const lastObserver = this.__observers[lastIndex];
+            const lastObserver = this.__observers[lastIndex]
             if (lastObserver !== undefined) {
-              this.__observers[index] = lastObserver;
+              this.__observers[index] = lastObserver
             }
           }
-          this.__observers.pop();
+          this.__observers.pop()
         } else {
           // Fallback to filter only when needed - O(n)
-          this.__observers = this.__observers.filter(
-            (obs) => obs !== subscriber,
-          );
+          this.__observers = this.__observers.filter(obs => obs !== subscriber)
         }
       },
       complete: () => {
         if (!subscriber.isUnsubscribed && subscriber.complete) {
-          subscriber.complete();
-          subscriber.unsubscribe();
+          subscriber.complete()
+          subscriber.unsubscribe()
         }
       },
       error: (err: unknown) => {
         if (!subscriber.isUnsubscribed && subscriber.error) {
-          subscriber.error(err);
-          subscriber.unsubscribe();
+          subscriber.error(err)
+          subscriber.unsubscribe()
         }
       },
-    };
+    }
   }
 
   /**
@@ -208,9 +200,9 @@ class ObservableState<T = any> extends Observable<T> {
    */
   get value(): T {
     if (DependencyTracker.current != null) {
-      DependencyTracker.current.addDependency(this);
+      DependencyTracker.current.addDependency(this)
     }
-    return this.__value;
+    return this.__value
   }
 
   /**
@@ -221,24 +213,26 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.value = 20;
    */
   set value(newValue: T) {
+    this.__assertMutationOutsideRenderPhase()
+
     if (this.__isUpdating) {
-      const cycle = [...this.__updateStack, this.__name].join(" -> ");
-      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
+      const cycle = [...this.__updateStack, this.__name].join(' -> ')
+      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`)
       // Optionally, return here to prevent the update
       // return;
     }
 
-    this.__isUpdating = true;
-    this.__updateStack.push(this.__name || "unknown");
+    this.__isUpdating = true
+    this.__updateStack.push(this.__name || 'unknown')
 
     try {
       if (!_deepEqual(newValue, this.__value)) {
-        this.__value = newValue;
-        this.__notifyObservers();
+        this.__value = newValue
+        this.__notifyObservers()
       }
     } finally {
-      this.__updateStack.pop();
-      this.__isUpdating = false;
+      this.__updateStack.pop()
+      this.__isUpdating = false
     }
   }
 
@@ -250,10 +244,10 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.assign({ key: 'value' });
    */
   assign(obj: Partial<T>): void {
-    if (typeof this.__value !== "object" || this.__value === null) {
-      throw new Error("[Cami.js] Observable value is not an object");
+    if (typeof this.__value !== 'object' || this.__value === null) {
+      throw new Error('[Cami.js] Observable value is not an object')
     }
-    this.update((value) => Object.assign(value as Record<string, unknown>, obj));
+    this.update(value => Object.assign(value as Record<string, unknown>, obj))
   }
 
   /**
@@ -266,23 +260,23 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.set('key.subkey', 'new value');
    */
   set(key: string, value: unknown): void {
-    if (typeof this.__value !== "object" || this.__value === null) {
-      throw new Error("[Cami.js] Observable value is not an object");
+    if (typeof this.__value !== 'object' || this.__value === null) {
+      throw new Error('[Cami.js] Observable value is not an object')
     }
-    this.update((state) => {
-      const keys = key.split(".");
-      let current: unknown = state;
+    this.update(state => {
+      const keys = key.split('.')
+      let current: unknown = state
       for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
+        const key = keys[i]
         if (key !== undefined && typeof current === 'object' && current !== null) {
-          current = (current as Record<string, unknown>)[key];
+          current = (current as Record<string, unknown>)[key]
         }
       }
-      const lastKey = keys[keys.length - 1];
+      const lastKey = keys[keys.length - 1]
       if (lastKey !== undefined) {
-        (current as Record<string, unknown>)[lastKey] = value;
+        ;(current as Record<string, unknown>)[lastKey] = value
       }
-    });
+    })
   }
 
   /**
@@ -294,23 +288,23 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.delete('key.subkey');
    */
   delete(key: string): void {
-    if (typeof this.__value !== "object" || this.__value === null) {
-      throw new Error("[Cami.js] Observable value is not an object");
+    if (typeof this.__value !== 'object' || this.__value === null) {
+      throw new Error('[Cami.js] Observable value is not an object')
     }
-    this.update((state) => {
-      const keys = key.split(".");
-      let current: unknown = state;
+    this.update(state => {
+      const keys = key.split('.')
+      let current: unknown = state
       for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
+        const key = keys[i]
         if (key !== undefined && typeof current === 'object' && current !== null) {
-          current = (current as Record<string, unknown>)[key];
+          current = (current as Record<string, unknown>)[key]
         }
       }
-      const lastKey = keys[keys.length - 1];
+      const lastKey = keys[keys.length - 1]
       if (lastKey !== undefined) {
-        delete (current as Record<string, unknown>)[lastKey];
+        delete (current as Record<string, unknown>)[lastKey]
       }
-    });
+    })
   }
 
   /**
@@ -320,7 +314,7 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.clear();
    */
   clear(): void {
-    this.update(() => ({}) as T);
+    this.update(() => ({}) as T)
   }
 
   /**
@@ -332,11 +326,11 @@ class ObservableState<T = any> extends Observable<T> {
    */
   push(...elements: T extends Array<infer U> ? U[] : never): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((value) => {
-      (value as unknown[]).push(...elements);
-    });
+    this.update(value => {
+      ;(value as unknown[]).push(...elements)
+    })
   }
 
   /**
@@ -347,11 +341,11 @@ class ObservableState<T = any> extends Observable<T> {
    */
   pop(): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((value) => {
-      (value as unknown[]).pop();
-    });
+    this.update(value => {
+      ;(value as unknown[]).pop()
+    })
   }
 
   /**
@@ -362,11 +356,11 @@ class ObservableState<T = any> extends Observable<T> {
    */
   shift(): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((value) => {
-      (value as unknown[]).shift();
-    });
+    this.update(value => {
+      ;(value as unknown[]).shift()
+    })
   }
 
   /**
@@ -384,11 +378,11 @@ class ObservableState<T = any> extends Observable<T> {
     ...items: T extends Array<infer U> ? U[] : never
   ): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((arr) => {
-      (arr as unknown[]).splice(start, deleteCount ?? 0, ...items);
-    });
+    this.update(arr => {
+      ;(arr as unknown[]).splice(start, deleteCount ?? 0, ...items)
+    })
   }
 
   /**
@@ -400,11 +394,11 @@ class ObservableState<T = any> extends Observable<T> {
    */
   unshift(...elements: T extends Array<infer U> ? U[] : never): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((value) => {
-      (value as unknown[]).unshift(...elements);
-    });
+    this.update(value => {
+      ;(value as unknown[]).unshift(...elements)
+    })
   }
 
   /**
@@ -415,11 +409,11 @@ class ObservableState<T = any> extends Observable<T> {
    */
   reverse(): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((value) => {
-      (value as unknown[]).reverse();
-    });
+    this.update(value => {
+      ;(value as unknown[]).reverse()
+    })
   }
 
   /**
@@ -431,11 +425,11 @@ class ObservableState<T = any> extends Observable<T> {
    */
   sort(compareFunction?: (a: unknown, b: unknown) => number): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    this.update((value) => {
-      (value as unknown[]).sort(compareFunction);
-    });
+    this.update(value => {
+      ;(value as unknown[]).sort(compareFunction)
+    })
   }
 
   /**
@@ -447,18 +441,14 @@ class ObservableState<T = any> extends Observable<T> {
    * @example
    * observable.fill('newElement', 0, 2);
    */
-  fill(
-    value: T extends Array<infer U> ? U : never,
-    start: number = 0,
-    end?: number,
-  ): void {
+  fill(value: T extends Array<infer U> ? U : never, start: number = 0, end?: number): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    const arrayEnd = end !== undefined ? end : (this.__value as unknown[]).length;
-    this.update((arr) => {
-      (arr as unknown[]).fill(value, start, arrayEnd);
-    });
+    const arrayEnd = end !== undefined ? end : (this.__value as unknown[]).length
+    this.update(arr => {
+      ;(arr as unknown[]).fill(value, start, arrayEnd)
+    })
   }
 
   /**
@@ -472,12 +462,12 @@ class ObservableState<T = any> extends Observable<T> {
    */
   copyWithin(target: number, start: number, end?: number): void {
     if (!Array.isArray(this.__value)) {
-      throw new Error("[Cami.js] Observable value is not an array");
+      throw new Error('[Cami.js] Observable value is not an array')
     }
-    const arrayEnd = end !== undefined ? end : (this.__value as unknown[]).length;
-    this.update((arr) => {
-      (arr as unknown[]).copyWithin(target, start, arrayEnd);
-    });
+    const arrayEnd = end !== undefined ? end : (this.__value as unknown[]).length
+    this.update(arr => {
+      ;(arr as unknown[]).copyWithin(target, start, arrayEnd)
+    })
   }
 
   /**
@@ -490,29 +480,41 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.update(value => value + 1);
    */
   update(updater: UpdaterFunction<T>): void {
+    this.__assertMutationOutsideRenderPhase()
+
     if (this.__isUpdating) {
-      const cycle = [...this.__updateStack, this.__name].join(" -> ");
-      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`);
+      const cycle = [...this.__updateStack, this.__name].join(' -> ')
+      console.warn(`[Cami.js] Cyclic dependency detected: ${cycle}`)
       // Optionally, return here to prevent the update
       // return;
     }
 
-    this.__isUpdating = true;
-    this.__updateStack.push(this.__name || "unknown");
+    this.__isUpdating = true
+    this.__updateStack.push(this.__name || 'unknown')
 
     try {
-      this.__pendingUpdates.push(updater);
-      this.__scheduleupdate();
+      this.__pendingUpdates.push(updater)
+      this.__scheduleupdate()
     } finally {
-      this.__updateStack.pop();
-      this.__isUpdating = false;
+      this.__updateStack.pop()
+      this.__isUpdating = false
     }
+  }
+
+  private __assertMutationOutsideRenderPhase(): void {
+    const renderContext = getRenderPhaseContext()
+    if (!renderContext.inRenderPhase) return
+
+    const activeElementTagName = renderContext.activeElementTagName || 'unknown'
+    throw new Error(
+      `[Cami.js] Observable state mutation is not allowed during render phase (element: <${activeElementTagName}>). Keep templates pure and move writes into actions, event handlers, or afterRender().`
+    )
   }
 
   private __scheduleupdate(): void {
     if (!this.__updateScheduled) {
-      this.__updateScheduled = true;
-      this.__applyUpdates();
+      this.__updateScheduled = true
+      this.__applyUpdates()
     }
   }
 
@@ -523,40 +525,54 @@ class ObservableState<T = any> extends Observable<T> {
   private __notifyObservers(): void {
     // Fast path: no observers
     if (this.__observers.length === 0 && !this.__lastObserver) {
-      return;
+      return
     }
 
     // Cache the current value for consistent notifications
-    const value = this.__value;
+    const value = this.__value
 
     // Use direct array access with for-loop instead of creating a new array and using forEach
-    const observers = this.__observers;
-    const len = observers.length;
+    const observers = this.__observers
+    const len = observers.length
 
     // Highly optimized path for single observer (common case)
     if (len === 1 && !this.__lastObserver) {
-      const observer = observers[0];
+      const observer = observers[0]
       if (observer && observer.next && !observer.isUnsubscribed) {
-        observer.next(value);
+        try {
+          observer.next(value)
+        } catch (err) {
+          console.error('[Cami.js] Error in observer notification:', err)
+        }
       }
-      return;
+      return
     }
 
-    // Handle multiple observers with faster while-loop counting down
-    let i = len;
+    // Handle multiple observers with faster while-loop counting down.
+    // Each observer is isolated so one throwing observer cannot prevent
+    // remaining observers from being notified.
+    let i = len
     while (i--) {
-      const observer = observers[i];
+      const observer = observers[i]
       if (observer && observer.next && !observer.isUnsubscribed) {
-        observer.next(value);
+        try {
+          observer.next(value)
+        } catch (err) {
+          console.error('[Cami.js] Error in observer notification:', err)
+        }
       }
     }
 
     // Handle the last observer separately (if exists)
     if (this.__lastObserver) {
-      if (typeof this.__lastObserver === "function") {
-        this.__lastObserver(value);
-      } else if (this.__lastObserver && this.__lastObserver.next) {
-        this.__lastObserver.next(value);
+      try {
+        if (typeof this.__lastObserver === 'function') {
+          this.__lastObserver(value)
+        } else if (this.__lastObserver && this.__lastObserver.next) {
+          this.__lastObserver.next(value)
+        }
+      } catch (err) {
+        console.error('[Cami.js] Error in observer notification:', err)
       }
     }
   }
@@ -567,153 +583,154 @@ class ObservableState<T = any> extends Observable<T> {
    */
   private __applyUpdates(): void {
     // Skip the expensive _deepEqual check by tracking changes explicitly
-    let hasChanged = false;
+    let hasChanged = false
 
     // Cache the old value only if needed for event emission
-    const needsEventOrTrace =
-      __config.events.isEnabled || __config.debug.isEnabled;
-    const oldValue = needsEventOrTrace ? this.__value : undefined;
+    const needsEventOrTrace = __config.events.isEnabled || __config.debug.isEnabled
+    const oldValue = needsEventOrTrace ? this.__value : undefined
 
     // Process all pending updates at once
-    const updates = this.__pendingUpdates;
-    const updateCount = updates.length;
+    const updates = this.__pendingUpdates
+    const updateCount = updates.length
 
     if (updateCount === 0) {
       // No updates, nothing to do
-      this.__updateScheduled = false;
-      return;
+      this.__updateScheduled = false
+      return
     }
 
     // Fast path for simple values (not objects or arrays)
     const isComplexValue =
-      typeof this.__value === "object" &&
+      typeof this.__value === 'object' &&
       this.__value !== null &&
       ((this.__value as Record<string, unknown>).constructor === Object ||
-        Array.isArray(this.__value));
+        Array.isArray(this.__value))
 
     if (isComplexValue) {
       // For objects/arrays, use immer's produce
       // Apply all updates in a batch
       if (updateCount === 1) {
         // Fast path for single update (common case)
-        const updater = updates[0];
+        const updater = updates[0]
         if (updater === undefined) {
-          return;
+          return
         }
-        const newValue = produce(this.__value, updater) as T;
+        const newValue = produce(this.__value, updater) as T
 
         // First try reference equality (fast)
         if (newValue !== this.__value) {
           // For objects/arrays, do deep equality check to avoid unnecessary updates
           if (
-            typeof newValue === "object" &&
+            typeof newValue === 'object' &&
             newValue !== null &&
-            typeof this.__value === "object" &&
+            typeof this.__value === 'object' &&
             this.__value !== null
           ) {
             if (!_deepEqual(newValue, this.__value)) {
-              hasChanged = true;
-              this.__value = newValue;
+              hasChanged = true
+              this.__value = newValue
             }
           } else {
-            hasChanged = true;
-            this.__value = newValue;
+            hasChanged = true
+            this.__value = newValue
           }
         }
       } else {
         // When multiple updates exist, apply them in sequence
-        let currentValue = this.__value;
+        let currentValue = this.__value
         for (let i = 0; i < updateCount; i++) {
-          const updater = updates[i];
+          const updater = updates[i]
           if (updater === undefined) {
-            continue;
+            continue
           }
-          const newValue = produce(currentValue, updater) as T;
+          const newValue = produce(currentValue, updater) as T
           // First try reference equality (fast)
           if (newValue !== currentValue) {
             // For objects/arrays, do deep equality check to avoid unnecessary updates
             if (
-              typeof newValue === "object" &&
+              typeof newValue === 'object' &&
               newValue !== null &&
-              typeof currentValue === "object" &&
+              typeof currentValue === 'object' &&
               currentValue !== null
             ) {
               if (!_deepEqual(newValue, currentValue)) {
-                hasChanged = true;
-                currentValue = newValue;
+                hasChanged = true
+                currentValue = newValue
               }
             } else {
-              hasChanged = true;
-              currentValue = newValue;
+              hasChanged = true
+              currentValue = newValue
             }
           }
         }
 
         if (hasChanged) {
-          this.__value = currentValue;
+          this.__value = currentValue
         }
       }
     } else {
       // For primitive values, apply updaters directly in sequence
-      let currentValue = this.__value;
+      let currentValue = this.__value
       for (let i = 0; i < updateCount; i++) {
-        const updater = updates[i];
+        const updater = updates[i]
         if (updater === undefined) {
-          continue;
+          continue
         }
-        const result = updater(currentValue as Draft<T>);
-        const newValue = (result !== undefined ? result : currentValue) as T;
+        const result = updater(currentValue as Draft<T>)
+        const newValue = (result !== undefined ? result : currentValue) as T
         // First try reference equality (fast)
         if (newValue !== currentValue) {
           // For objects/arrays, do deep equality check to avoid unnecessary updates
           if (
-            typeof newValue === "object" &&
+            typeof newValue === 'object' &&
             newValue !== null &&
-            typeof currentValue === "object" &&
+            typeof currentValue === 'object' &&
             currentValue !== null
           ) {
             if (!_deepEqual(newValue, currentValue)) {
-              hasChanged = true;
-              currentValue = newValue;
+              hasChanged = true
+              currentValue = newValue
             }
           } else {
-            hasChanged = true;
-            currentValue = newValue;
+            hasChanged = true
+            currentValue = newValue
           }
         }
       }
 
       if (hasChanged) {
-        this.__value = currentValue;
+        this.__value = currentValue
       }
     }
 
     // Clear the update queue - faster than multiple shift() calls
-    updates.length = 0;
+    updates.length = 0
 
-    // Only notify observers if the value actually changed
-    if (hasChanged) {
-      this.__notifyObservers();
+    try {
+      // Only notify observers if the value actually changed
+      if (hasChanged) {
+        this.__notifyObservers()
 
-      // Only emit events if necessary and configured
-      if (__config.events.isEnabled && typeof window !== "undefined") {
-        const event = new CustomEvent("cami:elem:state:change", {
-          detail: {
-            name: this.__name,
-            oldValue: oldValue,
-            newValue: this.__value,
-          },
-        });
-        window.dispatchEvent(event);
+        // Only emit events if necessary and configured
+        if (__config.events.isEnabled && typeof window !== 'undefined') {
+          const event = new CustomEvent('cami:elem:state:change', {
+            detail: {
+              name: this.__name,
+              oldValue: oldValue,
+              newValue: this.__value,
+            },
+          })
+          window.dispatchEvent(event)
+        }
+
+        // Only trace if enabled
+        if (needsEventOrTrace) {
+          __trace('cami:elem:state:change', this.__name, oldValue, this.__value)
+        }
       }
-
-      // Only trace if enabled
-      if (needsEventOrTrace) {
-        __trace("cami:elem:state:change", this.__name, oldValue, this.__value);
-      }
+    } finally {
+      this.__updateScheduled = false
     }
-
-    this.__updateScheduled = false;
   }
 
   /**
@@ -723,11 +740,11 @@ class ObservableState<T = any> extends Observable<T> {
    * observable.complete();
    */
   override complete(): void {
-    this.__observers.forEach((observer) => {
+    this.__observers.forEach(observer => {
       if (observer && observer.complete && !observer.isUnsubscribed) {
-        observer.complete();
+        observer.complete()
       }
-    });
+    })
   }
 }
 
@@ -741,12 +758,13 @@ class ObservableState<T = any> extends Observable<T> {
  * const effectFunction = effect(effectFn);
  */
 const effect = function (effectFn: () => EffectCleanup): () => void {
-  let cleanup: () => void = () => {};
-  let dependencies = new Set<ObservableState<any>>();
+  let cleanup: () => void = () => {}
+  let dependencies = new Set<ObservableState<any>>()
+  const subscriptions = new Map<ObservableState<any>, BaseSubscription>()
 
   const _runEffect = () => {
     // Clean up previous effect
-    cleanup();
+    cleanup()
 
     // Create a custom tracker for this effect
     const tracker = {
@@ -754,38 +772,36 @@ const effect = function (effectFn: () => EffectCleanup): () => void {
       _depsMap: new Map(),
       addDependency(observable: ObservableState<any>) {
         if (!dependencies.has(observable)) {
-          dependencies.add(observable);
-          observable.onValue(_runEffect);
+          dependencies.add(observable)
+          const subscription = observable.onValue(_runEffect)
+          subscriptions.set(observable, subscription)
         }
       },
-    };
+    }
 
     // Track dependencies
-    DependencyTracker.current = tracker as unknown as DependencyTracker;
+    DependencyTracker.current = tracker as unknown as DependencyTracker
 
     // Run the effect
     try {
-      const result = effectFn();
-      cleanup = result || (() => {});
+      const result = effectFn()
+      cleanup = result || (() => {})
     } finally {
-      DependencyTracker.current = null;
+      DependencyTracker.current = null
     }
-  };
+  }
 
   // Initial run
-  _runEffect();
+  _runEffect()
 
   // Return dispose function
   return () => {
-    cleanup();
-    dependencies.forEach((dep) => {
-      dep["__observers"] = dep["__observers"].filter(
-        (obs: unknown) => obs !== _runEffect,
-      );
-    });
-    dependencies.clear();
-  };
-};
+    cleanup()
+    subscriptions.forEach(subscription => subscription.unsubscribe())
+    subscriptions.clear()
+    dependencies.clear()
+  }
+}
 
 /**
  * @function
@@ -801,45 +817,48 @@ const effect = function (effectFn: () => EffectCleanup): () => void {
  * dispose(); // Clean up when no longer needed
  */
 const derive = function <T>(deriveFn: () => T): DeriveResult<T> {
-  let dependencies = new Set<ObservableState<any>>();
-  let subscriptions = new Map<ObservableState<any>, BaseSubscription>();
-  let currentValue: T;
+  let dependencies = new Set<ObservableState<any>>()
+  let subscriptions = new Map<ObservableState<any>, BaseSubscription>()
+  let currentValue: T
 
   const tracker = {
     addDependency: (observable: ObservableState<any>) => {
       if (!dependencies.has(observable)) {
-        const subscription = observable.onValue(_computeDerivedValue);
-        dependencies.add(observable);
-        subscriptions.set(observable, subscription);
+        const subscription = observable.onValue(_computeDerivedValue)
+        dependencies.add(observable)
+        subscriptions.set(observable, subscription)
       }
     },
-  };
+  }
 
   const _computeDerivedValue = () => {
-    DependencyTracker.current = tracker as unknown as DependencyTracker;
+    DependencyTracker.current = tracker as unknown as DependencyTracker
     try {
-      currentValue = deriveFn();
+      currentValue = deriveFn()
     } catch (error: unknown) {
-      console.warn("[Cami.js] Error in derive function:", error instanceof Error ? error.message : String(error));
+      console.warn(
+        '[Cami.js] Error in derive function:',
+        error instanceof Error ? error.message : String(error)
+      )
     } finally {
-      DependencyTracker.current = null;
+      DependencyTracker.current = null
     }
-  };
+  }
 
-  _computeDerivedValue();
+  _computeDerivedValue()
 
   const dispose = () => {
-    subscriptions.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-    subscriptions.clear();
-    dependencies.clear();
-  };
+    subscriptions.forEach(subscription => {
+      subscription.unsubscribe()
+    })
+    subscriptions.clear()
+    dependencies.clear()
+  }
 
-  return { value: currentValue!, dispose };
-};
+  return { value: currentValue!, dispose }
+}
 
-export { ObservableState, effect, derive, DependencyTracker };
+export { ObservableState, effect, derive, DependencyTracker }
 export type {
   ObserverOrNext as Subscriber,
   Dependency,
@@ -847,4 +866,4 @@ export type {
   EffectCleanup,
   BaseSubscription as Subscription,
   DeriveResult,
-};
+}

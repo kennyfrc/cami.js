@@ -261,11 +261,22 @@ class URLStore extends Observable {
      * Navigate to a URL
      */
     navigate(options = {}) {
-        const { path, params = {}, hashParams = {}, focusSelector, pageTitle, announcement, updateCurrentPage = true, fullReplace = false } = options;
+        const { path, params = {}, hashParams = {}, focusSelector, pageTitle, announcement, updateCurrentPage = true, fullReplace = false, shallow = false } = options;
         // If navigation is pending, defer
         if (this.__navigationState.isPending) {
             setTimeout(() => this.navigate(options), 100);
             return;
+        }
+        if (shallow) {
+            if (path !== undefined) {
+                throw new Error("URLStore.navigate: shallow updates cannot change the path");
+            }
+            if (Object.keys(hashParams).length > 0) {
+                throw new Error("URLStore.navigate: shallow updates cannot modify hashParams");
+            }
+            if (fullReplace) {
+                throw new Error("URLStore.navigate: shallow updates cannot use fullReplace");
+            }
         }
         let newUrl = new URL(window.location.href);
         let newHash = '#';
@@ -310,8 +321,26 @@ class URLStore extends Observable {
             return;
         newUrl.hash = newHash;
         window.history.pushState(null, '', newUrl.toString());
-        // Trigger hash change handling
-        this.__updateStore();
+        if (shallow) {
+            const updatedParams = {};
+            searchParams.forEach((value, key) => {
+                updatedParams[key] = value;
+            });
+            const updatedHashParams = {};
+            hashSearchParams.forEach((value, key) => {
+                updatedHashParams[key] = value;
+            });
+            this._state = {
+                ...currentState,
+                params: updatedParams,
+                hashParams: updatedHashParams
+            };
+            this.next(this._state);
+        }
+        else {
+            // Trigger hash change handling
+            this.__updateStore();
+        }
         // Handle accessibility
         if (focusSelector) {
             setTimeout(() => {

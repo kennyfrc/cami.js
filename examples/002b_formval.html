@@ -91,7 +91,7 @@
   formStore.defineQuery("fetchEmail", {
     queryKey: (payload) => ["Email", payload.email],
     queryFn: (payload) => {
-      return fetch(`https://api.camijs.com/users?email=${payload.email}`).then(
+      return fetch(`https://cami-api.exe.xyz/users?email=${payload.email}`).then(
         (res) => res.json()
       );
     },

@@ -28,7 +28,7 @@
 
   document.getElementById("get").addEventListener("click", () => {
     http
-      .get("https://api.camijs.com/posts/1")
+      .get("https://cami-api.exe.xyz/posts/1")
       .toJson()
       .then((data) => {
         console.log("GET:", data);
@@ -42,7 +42,7 @@
 
   document.getElementById("post").addEventListener("click", () => {
     http
-      .post("https://api.camijs.com/posts", {
+      .post("https://cami-api.exe.xyz/posts", {
         title: "foo",
         body: "bar",
         userId: 1,
@@ -60,7 +60,7 @@
 
   document.getElementById("put").addEventListener("click", () => {
     http
-      .put("https://api.camijs.com/posts/1", {
+      .put("https://cami-api.exe.xyz/posts/1", {
         id: 1,
         title: "foo",
         body: "bar",
@@ -79,7 +79,7 @@
 
   document.getElementById("patch").addEventListener("click", () => {
     http
-      .patch("https://api.camijs.com/posts/1", { title: "foo updated" })
+      .patch("https://cami-api.exe.xyz/posts/1", { title: "foo updated" })
       .toJson()
       .then((data) => {
         console.log("PATCH:", data);
@@ -93,7 +93,7 @@
 
   document.getElementById("delete").addEventListener("click", () => {
     http
-      .delete("https://api.camijs.com/posts/1")
+      .delete("https://cami-api.exe.xyz/posts/1")
       .toJson()
       .then((data) => {
         console.log("DELETE:", data);
@@ -106,7 +106,7 @@
   });
 
   document.getElementById("getStream").addEventListener("click", () => {
-    const stream = http.get("https://api.camijs.com/posts/1");
+    const stream = http.get("https://cami-api.exe.xyz/posts/1");
 
     stream
       .catchError((error) => {

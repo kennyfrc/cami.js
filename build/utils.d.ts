@@ -1,17 +1,15 @@
 declare global {
-  var Buffer:
-    | {
+    var Buffer: {
         isBuffer(obj: any): obj is Buffer;
         from(source: any): Buffer;
-      }
-    | undefined;
-  interface Buffer {}
+    } | undefined;
 }
-declare const _deepEqual: (
-  a: any,
-  b: any,
-  visited?: WeakMap<any, any>,
-) => boolean;
+declare const _deepEqual: (a: any, b: any) => boolean;
+/**
+ * Deep equality implementation WITH circular reference support.
+ * Use this when you need to handle circular references safely.
+ */
+declare const _deepEqualCircular: (a: any, b: any, visited?: Set<any>) => boolean;
 /**
  * @private
  * @function _deepMerge
@@ -31,9 +29,6 @@ declare const _deepMerge: (target: any, source: any) => any;
  * @description Creates a deep clone of the provided value. This function is optimized for performance and handles various types including objects, arrays, dates, regex, Maps, Sets, and TypedArrays.
  */
 declare const _deepClone: (value: any, cache?: WeakMap<object, any>) => any;
-declare function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number,
-): (...args: Parameters<T>) => void;
-export { _deepEqual, _deepMerge, _deepClone, debounce };
+declare function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void;
+export { _deepEqual, _deepEqualCircular, _deepMerge, _deepClone, debounce };
 //# sourceMappingURL=utils.d.ts.map

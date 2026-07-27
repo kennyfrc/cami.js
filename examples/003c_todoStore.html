@@ -60,7 +60,7 @@
   todoStore.defineQuery("fetchTodos", {
     queryKey: ["todos"],
     queryFn: () =>
-      fetch("https://api.camijs.com/todos?_limit=5").then((res) => {
+      fetch("https://cami-api.exe.xyz/todos?_limit=5").then((res) => {
         if (res.ok) {
           return res.json();
         }
@@ -92,7 +92,7 @@
 
   todoStore.defineMutation("createTodo", {
     mutationFn: (newTodo) => {
-      return fetch("https://api.camijs.com/todos", {
+      return fetch("https://cami-api.exe.xyz/todos", {
         method: "POST",
         body: JSON.stringify(newTodo),
         headers: {
@@ -119,7 +119,7 @@
 
   todoStore.defineMutation("deleteTodo", {
     mutationFn: (todo) => {
-      return fetch(`https://api.camijs.com/todos/${todo.id}`, {
+      return fetch(`https://cami-api.exe.xyz/todos/${todo.id}`, {
         method: "DELETE",
       }).then((res) => {
         document.querySelector(".note").innerHTML =

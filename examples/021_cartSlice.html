@@ -84,7 +84,7 @@
       fetchProducts: {
         queryKey: "products/fetch",
         queryFn: () =>
-          fetch("https://api.camijs.com/products?_limit=3").then((res) =>
+          fetch("https://cami-api.exe.xyz/products?_limit=3").then((res) =>
             res.json()
           ),
         refetchOnWindowFocus: true,

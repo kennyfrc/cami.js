@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "off",
+    "suspicious": "off",
+    "pedantic": "off",
+    "perf": "off",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off"
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    "build/**",
+    "dist/**",
+    "docs/**",
+    "examples/**",
+    "site/**",
+    "analysis/**",
+    "src/exp/**"
+  ],
+  "jsPlugins": ["../../../scripts/oxlint-plugin-ai21.js"],
+  "rules": {
+    "ai21/filename-convention": "off",
+    "ai21/cami-rules": "error",
+    "ai21/cami-field-invariants": "error",
+    "no-debugger": "error"
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.{js,ts}", "benchmark/**/*.{js,ts}"],
+      "rules": {
+        "ai21/cami-rules": "off"
+      }
+    }
+  ]
+}

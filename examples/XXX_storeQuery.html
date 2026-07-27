@@ -54,7 +54,7 @@
       appStore.query("posts/fetchAll", {
         queryKey: "posts/fetchAll",
         queryFn: () =>
-          fetch("https://api.camijs.com/posts").then((res) => res.json()),
+          fetch("https://cami-api.exe.xyz/posts").then((res) => res.json()),
         refetchOnWindowFocus: true,
         onStart: (actions) => {
           actions.setQueryState({ isLoading: true, posts: [], error: null });

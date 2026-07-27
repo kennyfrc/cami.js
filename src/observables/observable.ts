@@ -2,46 +2,44 @@
  * Observer interface for handling observable emissions
  */
 export interface Observer<T> {
-  next?: (value: T) => void;
-  error?: (error: unknown) => void;
-  complete?: () => void;
+  next?: (value: T) => void
+  error?: (error: unknown) => void
+  complete?: () => void
 }
 
 /**
  * Subscription interface for managing observable subscriptions
  */
 export interface Subscription {
-  unsubscribe(): void;
-  complete(): void;
-  error(err: unknown): void;
+  unsubscribe(): void
+  complete(): void
+  error(err: unknown): void
 }
 
 /**
  * Teardown function type
  */
-export type TeardownFn = () => void;
+export type TeardownFn = () => void
 
 /**
  * Subscribe callback function type
  */
-export type SubscribeCallback<T> = (
-  subscriber: Subscriber<T>,
-) => TeardownFn | void;
+export type SubscribeCallback<T> = (subscriber: Subscriber<T>) => TeardownFn | void
 
 /**
  * Observer or next function type
  */
-export type ObserverOrNext<T> = Observer<T> | ((value: T) => void);
+export type ObserverOrNext<T> = Observer<T> | ((value: T) => void)
 
 /**
  * High-performance Subscriber implementation
  */
 export class Subscriber<T> implements Observer<T> {
-  public next?: (value: T) => void;
-  public error?: (error: unknown) => void;
-  public complete?: () => void;
-  private teardowns: TeardownFn[] | null;
-  public isUnsubscribed: boolean;
+  public next?: (value: T) => void
+  public error?: (error: unknown) => void
+  public complete?: () => void
+  private teardowns: TeardownFn[] | null
+  public isUnsubscribed: boolean
 
   /**
    * Creates a new Subscriber instance with optimized memory layout
@@ -49,33 +47,29 @@ export class Subscriber<T> implements Observer<T> {
    */
   constructor(observer: ObserverOrNext<T>) {
     // Fast path for the common case: just a function (>90% of cases)
-    if (typeof observer === "function") {
-      this.next = observer;
-    } else if (observer && typeof observer === "object") {
+    if (typeof observer === 'function') {
+      this.next = observer
+    } else if (observer && typeof observer === 'object') {
       // Avoid unnecessary binding for performance
-      if (observer.next && typeof observer.next === "function") {
-        this.next = observer.next.bind
-          ? observer.next.bind(observer)
-          : observer.next;
+      if (observer.next && typeof observer.next === 'function') {
+        this.next = observer.next.bind ? observer.next.bind(observer) : observer.next
       }
 
       // Only create these properties if they exist
-      if (observer.error && typeof observer.error === "function") {
-        this.error = observer.error.bind
-          ? observer.error.bind(observer)
-          : observer.error;
+      if (observer.error && typeof observer.error === 'function') {
+        this.error = observer.error.bind ? observer.error.bind(observer) : observer.error
       }
 
-      if (observer.complete && typeof observer.complete === "function") {
+      if (observer.complete && typeof observer.complete === 'function') {
         this.complete = observer.complete.bind
           ? observer.complete.bind(observer)
-          : observer.complete;
+          : observer.complete
       }
     }
 
     // Most subscribers won't have teardowns, so initialize on first use
-    this.teardowns = null;
-    this.isUnsubscribed = false;
+    this.teardowns = null
+    this.isUnsubscribed = false
   }
 
   /**
@@ -85,9 +79,9 @@ export class Subscriber<T> implements Observer<T> {
   addTeardown(teardown: TeardownFn): void {
     if (!this.teardowns) {
       // Initialize only when needed
-      this.teardowns = [teardown];
+      this.teardowns = [teardown]
     } else {
-      this.teardowns.push(teardown);
+      this.teardowns.push(teardown)
     }
   }
 
@@ -95,34 +89,34 @@ export class Subscriber<T> implements Observer<T> {
    * Unsubscribes from the observable, preventing any further notifications
    */
   unsubscribe(): void {
-    if (this.isUnsubscribed) return;
+    if (this.isUnsubscribed) return
 
-    this.isUnsubscribed = true;
+    this.isUnsubscribed = true
 
     // Fast path if no teardowns
     if (!this.teardowns) {
       // Clear references to aid GC
-      delete this.next;
-      delete this.error;
-      delete this.complete;
-      return;
+      delete this.next
+      delete this.error
+      delete this.complete
+      return
     }
 
     // Execute teardowns with optimized while loop
-    const teardowns = this.teardowns;
-    let i = teardowns.length;
+    const teardowns = this.teardowns
+    let i = teardowns.length
     while (i--) {
-      const teardown = teardowns[i];
-      if (typeof teardown === "function") {
-        teardown();
+      const teardown = teardowns[i]
+      if (typeof teardown === 'function') {
+        teardown()
       }
     }
 
     // Clear references to aid garbage collection
-    this.teardowns = null;
-    delete this.next;
-    delete this.error;
-    delete this.complete;
+    this.teardowns = null
+    delete this.next
+    delete this.error
+    delete this.complete
   }
 }
 
@@ -130,15 +124,15 @@ export class Subscriber<T> implements Observer<T> {
  * High-performance Observable implementation
  */
 export class Observable<T> {
-  protected __observers: Subscriber<T>[];
-  private subscribeCallback?: SubscribeCallback<T>;
+  protected __observers: Subscriber<T>[]
+  private subscribeCallback?: SubscribeCallback<T>
 
   /**
    * Protected method to check if there are any observers
    * @returns true if there are observers, false otherwise
    */
   protected get hasObservers(): boolean {
-    return this.__observers.length > 0;
+    return this.__observers.length > 0
   }
 
   /**
@@ -146,7 +140,7 @@ export class Observable<T> {
    * @returns number of observers
    */
   protected get observerCount(): number {
-    return this.__observers.length;
+    return this.__observers.length
   }
 
   /**
@@ -154,12 +148,28 @@ export class Observable<T> {
    * @param value - The value to emit to observers
    */
   protected notifyObservers(value: T): void {
-    const observers = this.__observers;
-    const length = observers.length;
-    for (let i = 0; i < length; i++) {
-      const observer = observers[i];
-      if (observer.next && !observer.isUnsubscribed) {
-        observer.next(value);
+    const observers = this.__observers
+    const length = observers.length
+
+    if (length === 0) return
+
+    // Fast path for the common single-observer case.
+    if (length === 1) {
+      const observer = observers[0]
+      if (observer && observer.next && !observer.isUnsubscribed) {
+        observer.next(value)
+      }
+      return
+    }
+
+    // Snapshot to make delivery resilient when observers unsubscribe while notifying.
+    // (A live array + cached length can produce undefined slots via swap/pop teardown.)
+    const snapshot = observers.slice()
+    const snapshotLength = snapshot.length
+    for (let i = 0; i < snapshotLength; i++) {
+      const observer = snapshot[i]
+      if (observer && observer.next && !observer.isUnsubscribed) {
+        observer.next(value)
       }
     }
   }
@@ -170,10 +180,10 @@ export class Observable<T> {
    */
   constructor(subscribeCallback?: SubscribeCallback<T> | null) {
     // Use array for better performance than linked lists or sets
-    this.__observers = [];
+    this.__observers = []
     // Only create this property if provided
     if (subscribeCallback) {
-      this.subscribeCallback = subscribeCallback;
+      this.subscribeCallback = subscribeCallback
     }
   }
 
@@ -187,50 +197,54 @@ export class Observable<T> {
   subscribe(
     observerOrNext: ObserverOrNext<T>,
     error?: ((error: unknown) => void) | null,
-    complete?: (() => void) | null,
+    complete?: (() => void) | null
   ): Subscription {
     // Fast path for function observer (most common case)
     const subscriber =
-      typeof observerOrNext === "function"
+      typeof observerOrNext === 'function'
         ? new Subscriber<T>(observerOrNext)
         : new Subscriber<T>({
             ...observerOrNext,
             ...(error && { error }),
             ...(complete && { complete }),
-          });
+          })
 
     // Fast path for no subscribeCallback (common case)
     if (!this.subscribeCallback) {
-      this.__observers.push(subscriber);
+      this.__observers.push(subscriber)
 
       // Add teardown to remove from observers array - this is allocated only once per subscriber
-      subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
+      subscriber.addTeardown(this.__createRemoveTeardown(subscriber))
 
-      return this.__createSubscription(subscriber);
+      return this.__createSubscription(subscriber)
     }
 
     // Path for subscribeCallback
-    let teardown: TeardownFn | void;
+    let teardown: TeardownFn | void
     try {
-      teardown = this.subscribeCallback(subscriber);
+      teardown = this.subscribeCallback(subscriber)
     } catch (err) {
       if (subscriber.error) {
-        subscriber.error(err);
+        subscriber.error(err)
       }
-      return { unsubscribe: () => {}, complete: () => {}, error: () => {} };
+      return {
+        unsubscribe: () => {},
+        complete: () => {},
+        error: () => {},
+      }
     }
 
     if (teardown) {
-      subscriber.addTeardown(teardown);
+      subscriber.addTeardown(teardown)
     }
 
     // Only add to observers if not immediately unsubscribed
     if (!subscriber.isUnsubscribed) {
-      this.__observers.push(subscriber);
-      subscriber.addTeardown(this.__createRemoveTeardown(subscriber));
+      this.__observers.push(subscriber)
+      subscriber.addTeardown(this.__createRemoveTeardown(subscriber))
     }
 
-    return this.__createSubscription(subscriber);
+    return this.__createSubscription(subscriber)
   }
 
   /**
@@ -240,17 +254,17 @@ export class Observable<T> {
    */
   private __createRemoveTeardown(subscriber: Subscriber<T>): TeardownFn {
     return () => {
-      const observers = this.__observers;
-      const index = observers.indexOf(subscriber);
+      const observers = this.__observers
+      const index = observers.indexOf(subscriber)
       if (index !== -1) {
         // Faster removal by swapping with last element and popping - O(1)
-        const lastIndex = observers.length - 1;
+        const lastIndex = observers.length - 1
         if (index < lastIndex) {
-          observers[index] = observers[lastIndex];
+          observers[index] = observers[lastIndex]
         }
-        observers.pop();
+        observers.pop()
       }
-    };
+    }
   }
 
   /**
@@ -264,17 +278,17 @@ export class Observable<T> {
       // Only add these methods if needed in the future:
       complete: () => {
         if (!subscriber.isUnsubscribed && subscriber.complete) {
-          subscriber.complete();
-          subscriber.unsubscribe();
+          subscriber.complete()
+          subscriber.unsubscribe()
         }
       },
       error: (err: unknown) => {
         if (!subscriber.isUnsubscribed && subscriber.error) {
-          subscriber.error(err);
-          subscriber.unsubscribe();
+          subscriber.error(err)
+          subscriber.unsubscribe()
         }
       },
-    };
+    }
   }
 
   /**
@@ -282,28 +296,28 @@ export class Observable<T> {
    * @param value - The value to emit
    */
   next(value: T): void {
-    const observers = this.__observers;
-    const len = observers.length;
+    const observers = this.__observers
+    const len = observers.length
 
     // Highly optimized loop with minimal checks
-    if (len === 0) return;
+    if (len === 0) return
 
     // Special case for single observer (common case)
     if (len === 1) {
-      const observer = observers[0];
+      const observer = observers[0]
       if (!observer.isUnsubscribed && observer.next) {
-        observer.next(value);
+        observer.next(value)
       }
-      return;
+      return
     }
 
     // Using direct array access and while loop counting down for maximum performance
-    let i = len;
+    let i = len
     while (i--) {
-      const observer = observers[i];
+      const observer = observers[i]
       // Minimal condition check
       if (!observer.isUnsubscribed && observer.next) {
-        observer.next(value);
+        observer.next(value)
       }
     }
   }
@@ -314,18 +328,18 @@ export class Observable<T> {
    */
   error(error: unknown): void {
     // Create a snapshot to prevent modification during iteration
-    const observers = this.__observers.slice();
-    const len = observers.length;
+    const observers = this.__observers.slice()
+    const len = observers.length
 
     for (let i = 0; i < len; i++) {
-      const observer = observers[i];
+      const observer = observers[i]
       if (!observer.isUnsubscribed && observer.error) {
-        observer.error(error);
+        observer.error(error)
       }
     }
 
     // Clear all observers after error
-    this.__observers.length = 0;
+    this.__observers.length = 0
   }
 
   /**
@@ -333,18 +347,18 @@ export class Observable<T> {
    */
   complete(): void {
     // Create a snapshot to prevent modification during iteration
-    const observers = this.__observers.slice();
-    const len = observers.length;
+    const observers = this.__observers.slice()
+    const len = observers.length
 
     for (let i = 0; i < len; i++) {
-      const observer = observers[i];
+      const observer = observers[i]
       if (!observer.isUnsubscribed && observer.complete) {
-        observer.complete();
+        observer.complete()
       }
     }
 
     // Clear all observers after completion
-    this.__observers.length = 0;
+    this.__observers.length = 0
   }
 
   /**
@@ -353,7 +367,7 @@ export class Observable<T> {
    * @returns Subscription object with unsubscribe method
    */
   onValue(callbackFn: (value: T) => void): Subscription {
-    return this.subscribe(callbackFn);
+    return this.subscribe(callbackFn)
   }
 
   /**
@@ -362,7 +376,7 @@ export class Observable<T> {
    * @returns Subscription object with unsubscribe method
    */
   onError(callbackFn: (error: unknown) => void): Subscription {
-    return this.subscribe(() => {}, callbackFn);
+    return this.subscribe(() => {}, callbackFn)
   }
 
   /**
@@ -371,7 +385,7 @@ export class Observable<T> {
    * @returns Subscription object with unsubscribe method
    */
   onEnd(callbackFn: () => void): Subscription {
-    return this.subscribe(() => {}, undefined, callbackFn);
+    return this.subscribe(() => {}, undefined, callbackFn)
   }
 
   /**
@@ -379,45 +393,45 @@ export class Observable<T> {
    * @returns AsyncIterator implementation
    */
   [Symbol.asyncIterator](): AsyncIterator<T> {
-    let resolve: (value: IteratorResult<T>) => void;
-    let promise = new Promise<IteratorResult<T>>((r) => (resolve = r));
-    let subscription: Subscription | null;
+    let resolve: (value: IteratorResult<T>) => void
+    let promise = new Promise<IteratorResult<T>>(r => (resolve = r))
+    let subscription: Subscription | null
 
     const cleanup = () => {
       if (subscription) {
-        subscription.unsubscribe();
-        subscription = null;
+        subscription.unsubscribe()
+        subscription = null
       }
-    };
+    }
 
     subscription = this.subscribe(
       // Next handler
       (value: T) => {
-        resolve({ value, done: false });
-        promise = new Promise<IteratorResult<T>>((r) => (resolve = r));
+        resolve({ value, done: false })
+        promise = new Promise<IteratorResult<T>>(r => (resolve = r))
       },
       // Error handler
       (err: unknown) => {
-        cleanup();
-        throw err;
+        cleanup()
+        throw err
       },
       // Complete handler
       () => {
-        cleanup();
-        resolve({ done: true } as IteratorResult<T>);
-      },
-    );
+        cleanup()
+        resolve({ done: true } as IteratorResult<T>)
+      }
+    )
 
     return {
       next: () => promise,
       return: () => {
-        cleanup();
-        return Promise.resolve({ done: true } as IteratorResult<T>);
+        cleanup()
+        return Promise.resolve({ done: true } as IteratorResult<T>)
       },
       throw: (err: unknown) => {
-        cleanup();
-        return Promise.reject(err);
+        cleanup()
+        return Promise.reject(err)
       },
-    };
+    }
   }
 }

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cami v2 Gemini: Completion Demo</title>
+    <style>
+        :root { --primary: #6366f1; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 2rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+        h1 { text-align: center; margin-bottom: 2rem; color: #0f172a; }
+        h2 { margin-top: 0; font-size: 1.25rem; display: flex; justify-content: space-between; align-items: center; }
+        button { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        .stat { font-size: 2rem; font-weight: 700; color: var(--primary); }
+        .log { font-family: monospace; font-size: 0.8rem; background: #1e293b; color: #34d399; padding: 1rem; border-radius: 8px; max-height: 200px; overflow-y: auto; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>Cami v2 Gemini: Selectors, Reactions & Resources</h1>
+
+    <div class="grid">
+        <!-- Selector Demo -->
+        <div class="card">
+            <h2>Memoized Selectors</h2>
+            <selector-demo></selector-demo>
+        </div>
+
+        <!-- Reaction Demo -->
+        <div class="card">
+            <h2>Store Reactions</h2>
+            <reaction-demo></reaction-demo>
+        </div>
+
+        <!-- Resource Demo -->
+        <div class="card">
+            <h2>Store Resources</h2>
+            <resource-demo></resource-demo>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createStore, CamiElement, html, defineSelector, mount } from './v2_demo_bundle_full.js';
+
+        const log = (msg) => {
+            console.log(msg);
+            const logEl = document.getElementById('debug-log');
+            if (logEl) {
+                const entry = document.createElement('div');
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                logEl.prepend(entry);
+            }
+        };
+
+        // --- Store with Reactions and Resources ---
+        const appStore = createStore({
+            state: {
+                count: 0,
+                items: [
+                    { id: 1, price: 10 },
+                    { id: 2, price: 20 }
+                ],
+                title: 'Cami v2'
+            },
+            actions: {
+                increment(state) {
+                    state.count++;
+                },
+                addItem(state) {
+                    state.items.push({ id: Date.now(), price: Math.floor(Math.random() * 50) + 1 });
+                }
+            },
+            reactions: [
+                (state) => {
+                    log(`Reaction: Count is now ${state.count}`);
+                    document.title = `${state.title} (${state.count})`;
+                }
+            ],
+            resources: {
+                timer: {
+                    onConnect: (store) => {
+                        log('Resource: Timer Connected');
+                        store.refs.interval = setInterval(() => {
+                            // store.increment(); // We can call actions
+                        }, 5000);
+                    },
+                    onDisconnect: (store) => {
+                        log('Resource: Timer Disconnected');
+                        clearInterval(store.refs.interval);
+                    }
+                }
+            }
+        });
+
+        // --- Selectors ---
+        const cartTotal = defineSelector(() => {
+            log('Computing Cart Total...');
+            return appStore.state.items.reduce((sum, item) => sum + item.price, 0);
+        });
+
+        // --- Components ---
+        class SelectorDemo extends CamiElement {
+            view() {
+                const total = cartTotal();
+                return html`
+                    <div>
+                        <div class="stat">$${total}</div>
+                        <p>Items in cart: ${appStore.state.items.length}</p>
+                        <button @click=${() => appStore.addItem()}>Add Random Item</button>
+                        <p><small>(Check console/log to see re-computations)</small></p>
+                    </div>
+                `;
+            }
+        }
+
+        class ReactionDemo extends CamiElement {
+            view() {
+                return html`
+                    <div>
+                        <div class="stat">${appStore.state.count}</div>
+                        <button @click=${() => appStore.increment()}>Increment Count</button>
+                        <p><small>(Reaction updates document title & logs)</small></p>
+                    </div>
+                `;
+            }
+        }
+
+        class ResourceDemo extends CamiElement {
+            view() {
+                return html`
+                    <div>
+                        <button @click=${() => appStore.dispose()}>Dispose Store (Kill Resource)</button>
+                        <div id="debug-log" class="log"></div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Orchestration via mount() ---
+        mount('selector-demo', SelectorDemo);
+        mount('reaction-demo', ReactionDemo);
+        mount('resource-demo', ResourceDemo);
+
+    </script>
+</body>
+</html>

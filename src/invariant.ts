@@ -12,78 +12,74 @@
 
 let isProduction = (function (): boolean {
   const hostname =
-    (typeof window !== "undefined" &&
-      window.location &&
-      window.location.hostname) ||
-    "";
-  return hostname.indexOf("localhost") === -1 && hostname !== "0.0.0.0";
-})();
+    (typeof window !== 'undefined' && window.location && window.location.hostname) || ''
+  return hostname.indexOf('localhost') === -1 && hostname !== '0.0.0.0'
+})()
 
-let alwaysEnabled = false;
+let alwaysEnabled = false
 
 function captureStackTrace(error: Error): void {
   const ErrorConstructor = Error as unknown as {
-    captureStackTrace?: (targetObject: Error, constructorOpt?: (...args: unknown[]) => unknown) => void;
-  };
-  
+    captureStackTrace?: (
+      targetObject: Error,
+      constructorOpt?: (...args: unknown[]) => unknown
+    ) => void
+  }
+
   if (ErrorConstructor.captureStackTrace) {
-    ErrorConstructor.captureStackTrace(error, invariant as (...args: unknown[]) => unknown);
+    ErrorConstructor.captureStackTrace(error, invariant as (...args: unknown[]) => unknown)
   } else {
-    error.stack = new Error().stack || "";
+    error.stack = new Error().stack || ''
   }
 }
 
 class InvariantViolationError extends Error {
   constructor(message: string) {
-    super(message);
-    this.name = "InvariantViolationError";
-    captureStackTrace(this);
+    super(message)
+    this.name = 'InvariantViolationError'
+    captureStackTrace(this)
   }
 }
 
 interface InvariantConfig {
-  development?: () => boolean;
-  production?: () => boolean;
-  alwaysEnabled?: boolean;
+  development?: () => boolean
+  production?: () => boolean
+  alwaysEnabled?: boolean
 }
 
 interface InvariantFunction {
-  (message: string, callback: () => boolean): void;
-  config(config: InvariantConfig): void;
+  (message: string, callback: () => boolean): void
+  config(config: InvariantConfig): void
 }
 
 function invariant(message: string, callback: () => boolean): void {
-  if (!alwaysEnabled && isProduction) return; // No-op in production unless alwaysEnabled is true
+  if (!alwaysEnabled && isProduction) return // No-op in production unless alwaysEnabled is true
 
   if (!callback()) {
-    const error = new InvariantViolationError(
-      "Invariant Violation: " + message,
-    );
+    const error = new InvariantViolationError('Invariant Violation: ' + message)
 
     // In non-production environments, capture the stack trace
     if (!isProduction) {
-      captureStackTrace(error);
+      captureStackTrace(error)
     }
 
-    throw error;
+    throw error
   }
 }
 
-(invariant as InvariantFunction).config = function (
-  config: InvariantConfig,
-): void {
-  const development = config.development;
-  const production = config.production;
+;(invariant as InvariantFunction).config = function (config: InvariantConfig): void {
+  const development = config.development
+  const production = config.production
 
-  if (typeof development === "function" && typeof production === "function") {
-    const isDev = development();
-    const isProd = production();
-    isProduction = isProd && !isDev; // Cache the result
-    alwaysEnabled = false; // Disable alwaysEnabled if both development and production are defined
-  } else if (Object.hasOwn(config, "alwaysEnabled")) {
-    alwaysEnabled = config.alwaysEnabled!;
+  if (typeof development === 'function' && typeof production === 'function') {
+    const isDev = development()
+    const isProd = production()
+    isProduction = isProd && !isDev // Cache the result
+    alwaysEnabled = false // Disable alwaysEnabled if both development and production are defined
+  } else if (Object.hasOwn(config, 'alwaysEnabled')) {
+    alwaysEnabled = config.alwaysEnabled!
   }
-};
+}
 
-export default invariant as InvariantFunction;
-export type { InvariantConfig, InvariantFunction };
+export default invariant as InvariantFunction
+export type { InvariantConfig, InvariantFunction }

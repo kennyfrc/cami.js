@@ -35,7 +35,7 @@
   appStore.query("fetchPosts", {
     queryKey: () => ["posts"],
     queryFn: () =>
-      fetch("https://api.camijs.com/posts").then((res) => res.json()),
+      fetch("https://cami-api.exe.xyz/posts").then((res) => res.json()),
     onSuccess: (ctx) => {
       ctx.actions.setPosts(ctx.result);
     },
@@ -46,7 +46,7 @@
 
   appStore.mutation("deletePost", {
     mutationFn: (id) =>
-      fetch(`https://api.camijs.com/posts/${id}`, { method: "DELETE" }).then(
+      fetch(`https://cami-api.exe.xyz/posts/${id}`, { method: "DELETE" }).then(
         (res) => res.json()
       ),
     onMutate: (context) => {

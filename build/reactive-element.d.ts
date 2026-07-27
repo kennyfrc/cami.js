@@ -1,27 +1,46 @@
-import { TemplateResult } from "./html";
+import { TemplateResult } from './html';
+import type { Resource, ResourceOptions } from './resources/resource';
 type AttributeParser = (value: string) => any;
 interface ObservableAttributes {
-  [attrName: string]: AttributeParser;
+    [attrName: string]: AttributeParser;
 }
 interface SetupConfig {
-  infer?: boolean;
+    infer?: boolean;
 }
 type EffectFunction = () => void;
 type DeriveFunction<T = any> = () => T;
 type UnsubscribeFunction = () => void;
+type AfterRenderFunction = () => void | (() => void);
+/**
+ * Test seam: globally enable/disable afterRender effects.
+ * Usage in tests:
+ *   import { setAfterRenderEnabled } from '../../lib/cami/src/reactive-element'
+ *   beforeEach(() => setAfterRenderEnabled(false))
+ *   afterEach(() => setAfterRenderEnabled(true))
+ *
+ * Note: the flag is checked in __scheduleAfterRender() at schedule time.
+ * Tests should typically remove elements in afterEach to ensure pending
+ * microtasks are invalidated via generation bump in disconnectedCallback.
+ */
+export declare function setAfterRenderEnabled(enabled: boolean): void;
+/**
+ * Test seam: manually flush pending afterRender effects for an element.
+ * Invalidates any pending microtask to prevent double-execution. (P2 fix)
+ */
+export declare function flushAfterRender(el: ReactiveElement): void;
 interface DeriveResult<T> {
-  value: T;
-  dispose: UnsubscribeFunction;
+    value: T;
+    dispose: UnsubscribeFunction;
 }
 /**
  * ObservableProperty interface
  * A property that provides reactive getter/setter behavior
  */
 interface ObservableProperty<T = any> {
-  /** A getter function that returns the current value of the property */
-  get(): T;
-  /** A setter function that updates the value of the property */
-  set(value: T): void;
+    /** A getter function that returns the current value of the property */
+    get(): T;
+    /** A setter function that updates the value of the property */
+    set(value: T): void;
 }
 /**
  * This class is needed to create reactive web components that can automatically update their view when their state changes.
@@ -51,253 +70,314 @@ interface ObservableProperty<T = any> {
  * ```
  */
 declare class ReactiveElement extends HTMLElement {
-  private __unsubscribers;
-  private __prevTemplate?;
-  effect: (effectFn: EffectFunction) => void;
-  derive: <T>(deriveFn: DeriveFunction<T>) => T;
-  /**
-   * Constructs a new instance of ReactiveElement.
-   */
-  constructor();
-  /**
-   * Creates ObservableProperty or ObservableProxy instances for all properties in the provided object.
-   * @param attributes - An object with attribute names as keys and optional parsing functions as values.
-   * @example
-   * // In _009_dataFromProps.html, the todos attribute is parsed as JSON and the data property is extracted:
-   * this.observableAttributes({
-   *   todos: (v) => JSON.parse(v).data
-   * });
-   */
-  observableAttributes(attributes: ObservableAttributes): void;
-  /**
-   * Creates an effect and registers its dispose function. The effect is used to perform side effects in response to state changes.
-   * This method is useful when working with ObservableProperties or ObservableProxies because it triggers the effect whenever the value of the underlying ObservableState changes.
-   * @param effectFn - The function to create the effect
-   * @example
-   * // Assuming `this.count` is an ObservableProperty
-   * this.effect(() => {
-   *   console.log(`The count is now: ${this.count}`);
-   * });
-   * // The console will log the current count whenever `this.count` changes
-   */
-  private __effect;
-  /**
-   * Creates a derived value that updates when its dependencies change.
-   * @param deriveFn - The function to compute the derived value
-   * @returns The derived value
-   * @example
-   * // Assuming `this.count` is an ObservableProperty
-   * this.doubleCount = this.derive(() => this.count * 2);
-   * console.log(this.doubleCount); // If this.count is 5, this will log 10
-   */
-  private __derive;
-  /**
-   * Called when the component is created. Can be overridden by subclasses to add initialization logic.
-   * This method is a hook for the connectedCallback, which is invoked each time the custom element is appended into a document-connected element.
-   */
-  onCreate(): void;
-  /**
-   * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
-   * This is typically used to initialize component state, fetch data, and set up event listeners.
-   *
-   * @example
-   * // In a TodoList component
-   * connectedCallback() {
-   *   super.connectedCallback();
-   *   this.fetchTodos(); // Fetch todos when the component is added to the DOM
-   * }
-   */
-  connectedCallback(): void;
-  /**
-   * Invoked when the custom element is connected to the document's DOM.
-   * Subclasses can override this to add initialization logic when the component is added to the DOM.
-   *
-   * @example
-   * // In a UserCard component
-   * onConnect() {
-   *   this.showUserDetails(); // Display user details when the component is connected
-   * }
-   */
-  onConnect(): void;
-  /**
-   * Invoked when the custom element is disconnected from the document's DOM.
-   * This is a good place to remove event listeners, cancel any ongoing network requests, or clean up any resources.
-   * @example
-   * // In a Modal component
-   * disconnectedCallback() {
-   *   super.disconnectedCallback();
-   *   this.close(); // Close the modal when it's disconnected from the DOM
-   * }
-   */
-  disconnectedCallback(): void;
-  /**
-   * Invoked when the custom element is disconnected from the document's DOM.
-   * Subclasses can override this to add cleanup logic when the component is removed from the DOM.
-   *
-   * @example
-   * // In a VideoPlayer component
-   * onDisconnect() {
-   *   this.stopPlayback(); // Stop video playback when the component is removed
-   * }
-   */
-  onDisconnect(): void;
-  /**
-   * Invoked when an attribute of the custom element is added, removed, updated, or replaced.
-   * This can be used to react to attribute changes, such as updating the component state or modifying its appearance.
-   *
-   * @param name - The name of the attribute that changed
-   * @param oldValue - The old value of the attribute
-   * @param newValue - The new value of the attribute
-   * @example
-   * // In a ThemeSwitcher component
-   * attributeChangedCallback(name, oldValue, newValue) {
-   *   super.attributeChangedCallback(name, oldValue, newValue);
-   *   if (name === 'theme') {
-   *     this.updateTheme(newValue); // Update the theme when the `theme` attribute changes
-   *   }
-   * }
-   */
-  attributeChangedCallback(
-    name: string,
-    oldValue: string | null,
-    newValue: string | null,
-  ): void;
-  /**
-   * Invoked when an attribute of the custom element is added, removed, updated, or replaced.
-   * Subclasses can override this to add logic that should run when an attribute changes.
-   *
-   * @param name - The name of the attribute that changed
-   * @param oldValue - The old value of the attribute
-   * @param newValue - The new value of the attribute
-   * @example
-   * // In a CollapsiblePanel component
-   * onAttributeChange(name, oldValue, newValue) {
-   *   if (name === 'collapsed') {
-   *     this.toggleCollapse(newValue === 'true'); // Toggle collapse when the `collapsed` attribute changes
-   *   }
-   * }
-   */
-  onAttributeChange(
-    _name: string,
-    _oldValue: string | null,
-    _newValue: string | null,
-  ): void;
-  /**
-   * Invoked when the custom element is moved to a new document.
-   * This can be used to update bindings or perform re-initialization as needed when the component is adopted into a new DOM context.
-   * @example
-   * // In a DragDropContainer component
-   * adoptedCallback() {
-   *   super.adoptedCallback();
-   *   this.updateDragDropContext(); // Update context when the component is moved to a new document
-   * }
-   */
-  adoptedCallback(): void;
-  /**
-   * Invoked when the custom element is moved to a new document.
-   * Subclasses can override this to add logic that should run when the component is moved to a new document.
-   * @example
-   * // In a DataGrid component
-   * onAdopt() {
-   *   this.refreshData(); // Refresh data when the component is adopted into a new document
-   * }
-   */
-  onAdopt(): void;
-  /**
-   * Checks if the provided value is an object or an array.
-   * @param value - The value to check.
-   * @returns True if the value is an object or an array, false otherwise.
-   */
-  private __isObjectOrArray;
-  /**
-   * Private method. Creates an ObservableProperty for the provided key in the given context when the provided value is an object or an array.
-   * @param context - The context in which the property is defined.
-   * @param key - The property key.
-   * @param observable - The observable to bind to the property.
-   * @param isAttribute - Whether the property is an attribute.
-   * @throws {TypeError} If observable is not an instance of ObservableState.
-   */
-  private __createObservablePropertyForObjOrArr;
-  /**
-   * Private method. Handles the case when the provided value is not an object or an array.
-   * This method creates an ObservableProperty for the provided key in the given context.
-   * An ObservableProperty is a special type of property that can notify about changes in its state.
-   * This is achieved by defining a getter and a setter for the property using Object.defineProperty.
-   * The getter simply returns the current value of the observable.
-   * The setter updates the observable with the new value and, if the property is an attribute, also updates the attribute.
-   * @param context - The context in which the property is defined.
-   * @param key - The property key.
-   * @param observable - The observable to bind to the property.
-   * @param isAttribute - Whether the property is an attribute.
-   * @throws {TypeError} If observable is not an instance of ObservableState.
-   */
-  private __createObservablePropertyForPrimitive;
-  /**
-   * Creates a proxy for the observable.
-   * @param observable - The observable for which a proxy is to be created.
-   * @throws {TypeError} If observable is not an instance of ObservableState.
-   * @returns The created proxy.
-   */
-  private __observableProxy;
-  /**
-   * Defines the observables, effects, and attributes for the element.
-   * @param config - The configuration object.
-   */
-  private __setup;
-  /**
-   * Creates an observable with an initial value.
-   * @param initialValue - The initial value for the observable.
-   * @param name - The name of the observable.
-   * @throws {Error} If the type of initialValue is not allowed in observables.
-   * @returns The created observable state.
-   */
-  private __observable;
-  /**
-   * Checks if the provided value is of an allowed type
-   * @param value - The value to check
-   * @returns True if the value is of an allowed type, false otherwise
-   */
-  private __isAllowedType;
-  /**
-   * Checks if the provided value is a plain object
-   * @param value - The value to check
-   * @returns True if the value is a plain object, false otherwise
-   */
-  private __isPlainObject;
-  /**
-   * Registers an observable state to the list of unsubscribers
-   * @param observableState - The observable state to register
-   */
-  private __registerObservables;
-  /**
-   * Hook called after rendering. Can be overridden by subclasses.
-   */
-  afterRender(): void;
-  /**
-   * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
-   * Uses memoization to avoid unnecessary rendering when the template result hasn't changed.
-   */
-  render(): void;
-  /**
-   * Template method that should be overridden by subclasses to define the component's template.
-   * @returns The template result for rendering
-   */
-  template?(): TemplateResult;
-  /**
-   * Warns if required properties are missing from the component.
-   * @param properties - Array of property names to check
-   */
-  warnIfMissingProperties(properties: string[]): void;
+    [key: string]: unknown;
+    private __unsubscribers;
+    private __prevTemplate?;
+    private __afterRenderRegistry;
+    private __afterRenderDraft;
+    private __afterRenderCleanups;
+    private __afterRenderPrevDeps;
+    __afterRenderScheduled: boolean;
+    __afterRenderGeneration: number;
+    __afterRenderManualFlushGen: number;
+    private __camiResourceEntries;
+    private __camiEphemeralEntries;
+    private __settleReactions;
+    private __renderInProgress;
+    effect: (effectFn: EffectFunction) => void;
+    derive: <T>(deriveFn: DeriveFunction<T>) => T;
+    /**
+     * Properties listed here will NOT be converted to observables.
+     * Subclasses inherit parent non-reactive properties automatically.
+     * Treat as immutable after class definition.
+     * @example
+     * ```typescript
+     * class MyElement extends ReactiveElement {
+     *   static nonReactiveProperties = ['_handler', '_cache'];
+     *   private _handler: Function | null = null;
+     * }
+     * ```
+     */
+    static nonReactiveProperties: readonly string[];
+    /**
+     * Gets the merged set of non-reactive property names for a class,
+     * walking the prototype chain to inherit parent declarations.
+     * Results are cached per class constructor.
+     */
+    private static __getNonReactiveSet;
+    /**
+     * Constructs a new instance of ReactiveElement.
+     */
+    constructor();
+    /**
+     * Creates ObservableProperty or ObservableProxy instances for all properties in the provided object.
+     * @param attributes - An object with attribute names as keys and optional parsing functions as values.
+     * @example
+     * // In _009_dataFromProps.html, the todos attribute is parsed as JSON and the data property is extracted:
+     * this.observableAttributes({
+     *   todos: (v) => JSON.parse(v).data
+     * });
+     */
+    observableAttributes(attributes: ObservableAttributes): void;
+    /**
+     * Creates an effect and registers its dispose function. The effect is used to perform side effects in response to state changes.
+     * This method is useful when working with ObservableProperties or ObservableProxies because it triggers the effect whenever the value of the underlying ObservableState changes.
+     * @param effectFn - The function to create the effect
+     * @example
+     * // Assuming `this.count` is an ObservableProperty
+     * this.effect(() => {
+     *   console.log(`The count is now: ${this.count}`);
+     * });
+     * // The console will log the current count whenever `this.count` changes
+     */
+    private __effect;
+    /**
+     * Creates a derived value that updates when its dependencies change.
+     * @param deriveFn - The function to compute the derived value
+     * @returns The derived value
+     * @example
+     * // Assuming `this.count` is an ObservableProperty
+     * this.doubleCount = this.derive(() => this.count * 2);
+     * console.log(this.doubleCount); // If this.count is 5, this will log 10
+     */
+    private __derive;
+    /**
+     * Registers a commit-phase effect keyed by a stable string.
+     * Effects run after DOM commit and are cleaned up on disconnect or when the key is removed.
+     */
+    afterRender(key: string, effectFn: AfterRenderFunction, deps?: unknown[]): void;
+    /**
+     * Registers a post-settle reaction that watches a reactive source.
+     *
+     * Unlike `afterRender` (which runs on every re-render of the owning
+     * element), `afterSettle` runs whenever its reactive source changes,
+     * regardless of whether the owning element re-renders.
+     *
+     * The callback runs after all renders settle — after afterRender effects
+     * have flushed — ensuring it sees a DOM consistent with the latest state.
+     *
+     * @param source - A reactive getter (e.g., `() => store.getState().value`)
+     * @param callback - Called with (newValue, oldValue) after renders settle
+     *
+     * @example
+     * // Watch a store value and react after DOM settles
+     * this.afterSettle(
+     *   () => myStore.getState().isOpen,
+     *   (isOpen) => {
+     *     if (isOpen) this.scrollIntoView()
+     *   }
+     * )
+     */
+    afterSettle<T>(source: () => T, callback: (value: T, oldValue: T | undefined) => void): void;
+    /**
+     * Creates or retrieves a resource state machine for async data.
+     */
+    resource<T>(key: string, loader: (signal: AbortSignal) => Promise<T>, opts?: ResourceOptions): Resource<T>;
+    /**
+     * Returns ephemeral UI state stored per element instance.
+     */
+    ephemeral<T>(key: string, init: () => T, opts?: {
+        ttlMs?: number;
+        resetOnDisconnect?: boolean;
+    }): T;
+    /**
+     * Updates ephemeral UI state by key.
+     */
+    setEphemeral<T>(key: string, value: T): void;
+    /**
+     * Called when the component is created. Can be overridden by subclasses to add initialization logic.
+     * This method is a hook for the connectedCallback, which is invoked each time the custom element is appended into a document-connected element.
+     */
+    onCreate(): void;
+    /**
+     * Invoked when the custom element is appended into a document-connected element. Sets up initial state and triggers initial rendering.
+     * This is typically used to initialize component state, fetch data, and set up event listeners.
+     *
+     * @example
+     * // In a TodoList component
+     * connectedCallback() {
+     *   super.connectedCallback();
+     *   this.fetchTodos(); // Fetch todos when the component is added to the DOM
+     * }
+     */
+    connectedCallback(): void;
+    /**
+     * Invoked when the custom element is connected to the document's DOM.
+     * Subclasses can override this to add initialization logic when the component is added to the DOM.
+     *
+     * @example
+     * // In a UserCard component
+     * onConnect() {
+     *   this.showUserDetails(); // Display user details when the component is connected
+     * }
+     */
+    onConnect(): void;
+    /**
+     * Invoked when the custom element is disconnected from the document's DOM.
+     * This is a good place to remove event listeners, cancel any ongoing network requests, or clean up any resources.
+     * @example
+     * // In a Modal component
+     * disconnectedCallback() {
+     *   super.disconnectedCallback();
+     *   this.close(); // Close the modal when it's disconnected from the DOM
+     * }
+     */
+    disconnectedCallback(): void;
+    /**
+     * Invoked when the custom element is disconnected from the document's DOM.
+     * Subclasses can override this to add cleanup logic when the component is removed from the DOM.
+     *
+     * @example
+     * // In a VideoPlayer component
+     * onDisconnect() {
+     *   this.stopPlayback(); // Stop video playback when the component is removed
+     * }
+     */
+    onDisconnect(): void;
+    /**
+     * Invoked when an attribute of the custom element is added, removed, updated, or replaced.
+     * This can be used to react to attribute changes, such as updating the component state or modifying its appearance.
+     *
+     * @param name - The name of the attribute that changed
+     * @param oldValue - The old value of the attribute
+     * @param newValue - The new value of the attribute
+     * @example
+     * // In a ThemeSwitcher component
+     * attributeChangedCallback(name, oldValue, newValue) {
+     *   super.attributeChangedCallback(name, oldValue, newValue);
+     *   if (name === 'theme') {
+     *     this.updateTheme(newValue); // Update the theme when the `theme` attribute changes
+     *   }
+     * }
+     */
+    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void;
+    /**
+     * Invoked when an attribute of the custom element is added, removed, updated, or replaced.
+     * Subclasses can override this to add logic that should run when an attribute changes.
+     *
+     * @param name - The name of the attribute that changed
+     * @param oldValue - The old value of the attribute
+     * @param newValue - The new value of the attribute
+     * @example
+     * // In a CollapsiblePanel component
+     * onAttributeChange(name, oldValue, newValue) {
+     *   if (name === 'collapsed') {
+     *     this.toggleCollapse(newValue === 'true'); // Toggle collapse when the `collapsed` attribute changes
+     *   }
+     * }
+     */
+    onAttributeChange(_name: string, _oldValue: string | null, _newValue: string | null): void;
+    /**
+     * Invoked when the custom element is moved to a new document.
+     * This can be used to update bindings or perform re-initialization as needed when the component is adopted into a new DOM context.
+     * @example
+     * // In a DragDropContainer component
+     * adoptedCallback() {
+     *   super.adoptedCallback();
+     *   this.updateDragDropContext(); // Update context when the component is moved to a new document
+     * }
+     */
+    adoptedCallback(): void;
+    /**
+     * Invoked when the custom element is moved to a new document.
+     * Subclasses can override this to add logic that should run when the component is moved to a new document.
+     * @example
+     * // In a DataGrid component
+     * onAdopt() {
+     *   this.refreshData(); // Refresh data when the component is adopted into a new document
+     * }
+     */
+    onAdopt(): void;
+    /**
+     * Checks if the provided value is an object or an array.
+     * @param value - The value to check.
+     * @returns True if the value is an object or an array, false otherwise.
+     */
+    private __isObjectOrArray;
+    /**
+     * Private method. Creates an ObservableProperty for the provided key in the given context when the provided value is an object or an array.
+     * @param context - The context in which the property is defined.
+     * @param key - The property key.
+     * @param observable - The observable to bind to the property.
+     * @param isAttribute - Whether the property is an attribute.
+     * @throws {TypeError} If observable is not an instance of ObservableState.
+     */
+    private __createObservablePropertyForObjOrArr;
+    /**
+     * Private method. Handles the case when the provided value is not an object or an array.
+     * This method creates an ObservableProperty for the provided key in the given context.
+     * An ObservableProperty is a special type of property that can notify about changes in its state.
+     * This is achieved by defining a getter and a setter for the property using Object.defineProperty.
+     * The getter simply returns the current value of the observable.
+     * The setter updates the observable with the new value and, if the property is an attribute, also updates the attribute.
+     * @param context - The context in which the property is defined.
+     * @param key - The property key.
+     * @param observable - The observable to bind to the property.
+     * @param isAttribute - Whether the property is an attribute.
+     * @throws {TypeError} If observable is not an instance of ObservableState.
+     */
+    private __createObservablePropertyForPrimitive;
+    /**
+     * Creates a proxy for the observable.
+     * @param observable - The observable for which a proxy is to be created.
+     * @throws {TypeError} If observable is not an instance of ObservableState.
+     * @returns The created proxy.
+     */
+    private __observableProxy;
+    /**
+     * Defines the observables, effects, and attributes for the element.
+     * @param config - The configuration object.
+     */
+    private __setup;
+    /**
+     * Creates an observable with an initial value.
+     * @param initialValue - The initial value for the observable.
+     * @param name - The name of the observable.
+     * @throws {Error} If the type of initialValue is not allowed in observables.
+     * @returns The created observable state.
+     */
+    private __observable;
+    /**
+     * Checks if the provided value is of an allowed type
+     * @param value - The value to check
+     * @returns True if the value is of an allowed type, false otherwise
+     */
+    private __isAllowedType;
+    /**
+     * Checks if the provided value is a plain object
+     * @param value - The value to check
+     * @returns True if the value is a plain object, false otherwise
+     */
+    private __isPlainObject;
+    /**
+     * Registers an observable state to the list of unsubscribers
+     * @param observableState - The observable state to register
+     */
+    private __registerObservables;
+    private __scheduleAfterRender;
+    __flushAfterRender(): void;
+    private __cleanupAfterRender;
+    private __cleanupSettleReactions;
+    private __cleanupResources;
+    private __cleanupEphemeralState;
+    /**
+     * This method is responsible for updating the view whenever the state changes. It does this by rendering the template with the current state.
+     * Uses memoization to avoid unnecessary rendering when the template result hasn't changed.
+     */
+    render(): void;
+    private __renderOnce;
+    private __isLitTemplateResult;
+    /**
+     * Template method that should be overridden by subclasses to define the component's template.
+     * @returns The template result for rendering
+     */
+    template?(): TemplateResult;
+    /**
+     * Warns if required properties are missing from the component.
+     * @param properties - Array of property names to check
+     */
+    warnIfMissingProperties(properties: string[]): void;
 }
-export type {
-  ObservableProperty,
-  AttributeParser,
-  ObservableAttributes,
-  SetupConfig,
-  EffectFunction,
-  DeriveFunction,
-  UnsubscribeFunction,
-  DeriveResult,
-};
+export type { ObservableProperty, AttributeParser, ObservableAttributes, SetupConfig, EffectFunction, DeriveFunction, UnsubscribeFunction, DeriveResult, };
 export { ReactiveElement };
 //# sourceMappingURL=reactive-element.d.ts.map

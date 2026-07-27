@@ -1,13 +1,13 @@
 interface ConfigItem {
-  __state: boolean;
-  readonly isEnabled: boolean;
-  enable(): void;
-  disable(): void;
+  __state: boolean
+  readonly isEnabled: boolean
+  enable(): void
+  disable(): void
 }
 
 interface Config {
-  events: ConfigItem;
-  debug: ConfigItem;
+  events: ConfigItem
+  debug: ConfigItem
 }
 
 /**
@@ -18,28 +18,28 @@ const __config: Config = {
   events: {
     __state: true,
     get isEnabled(): boolean {
-      return this.__state;
+      return this.__state
     },
     enable: function (this: ConfigItem): void {
-      this.__state = true;
+      this.__state = true
     },
     disable: function (this: ConfigItem): void {
-      this.__state = false;
+      this.__state = false
     },
   },
   debug: {
     __state: false,
     get isEnabled(): boolean {
-      return this.__state;
+      return this.__state
     },
     enable: function (this: ConfigItem): void {
-      console.log("Cami.js debug mode enabled");
-      this.__state = true;
+      console.log('Cami.js debug mode enabled')
+      this.__state = true
     },
     disable: function (this: ConfigItem): void {
-      this.__state = false;
+      this.__state = false
     },
   },
-};
+}
 
-export { __config, type Config, type ConfigItem };
+export { __config, type Config, type ConfigItem }

@@ -4,40 +4,44 @@
  * Copyright (c) 2023 Kenn Costales
  * MIT License
  */
-
 /**
  * @module cami
  */
-import { html, svg } from "lit-html";
-import { unsafeHTML } from "lit-html/directives/unsafe-html.js";
-import { keyed } from "lit-html/directives/keyed.js";
-import { repeat } from "lit-html/directives/repeat.js";
-import { enableMapSet } from "immer";
-enableMapSet();
-import { ReactiveElement } from "./reactive-element";
-// Import the optimized store implementation and use it as the default
-import { ObservableStore, store } from "./observables/observable-store";
+import { enableMapSet } from 'immer'
+import { html, svg } from 'lit-html'
+import { keyed } from 'lit-html/directives/keyed.js'
+import { repeat } from 'lit-html/directives/repeat.js'
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js'
+
+import { __config } from './config'
+import { keyedRepeat } from './directives/keyed-repeat'
+import { ref } from './directives/ref'
+import invariant from './invariant'
+import { Observable } from './observables/observable'
 // import { ObservableStore, storeOptimized } from "./observables/observable-store-optimized";
 
 // Replace the standard store with the optimized version
 // const store = storeOptimized;
-import { Model } from "./observables/observable-model";
-import { Observable } from "./observables/observable";
-import { ObservableState, effect } from "./observables/observable-state";
-import { __config } from "./config";
-import { __trace } from "./trace";
-import { Type, useValidationHook, useValidationThunk } from "./types/index";
-import { createURLStore, URLStore } from "./observables/url-store";
+import { Model } from './observables/observable-model'
+import { ObservableState, effect } from './observables/observable-state'
+// Import the optimized store implementation and use it as the default
+import { ObservableStore, store } from './observables/observable-store'
+import { URLStore, createURLStore } from './observables/url-store'
+import { ReactiveElement } from './reactive-element'
+import { useImage } from './resources/use-image'
 import {
   createIdbPromise,
-  persistToIdbThunk,
   createLocalStorage,
+  persistToIdbThunk,
   persistToLocalStorageThunk,
-} from "./storage/adapters";
-import invariant from "./invariant";
-import { _deepEqual, _deepMerge, _deepClone } from "./utils";
+} from './storage/adapters'
+import { __trace } from './trace'
+import { Type, useValidationHook, useValidationThunk } from './types/index'
+import { _deepClone, _deepEqual, _deepMerge } from './utils'
 
-const { debug, events } = __config;
+enableMapSet()
+
+const { debug, events } = __config
 
 /**
  * Main exports for the cami.js library with full TypeScript support
@@ -89,36 +93,42 @@ export {
   unsafeHTML,
   repeat,
   keyed,
+  keyedRepeat,
+  ref,
+  useImage,
   invariant,
   _deepEqual,
   _deepMerge,
   _deepClone,
-};
+}
+
+// Export test seam utilities
+export { setAfterRenderEnabled, flushAfterRender } from './reactive-element'
 
 // Export types for TypeScript users
 export type {
   // Observable types
   Observer,
   Subscription,
-} from "./observables/observable";
+} from './observables/observable'
 
 export type {
   // Observable State types
   EffectCleanup,
   DependencyTracker,
-} from "./observables/observable-state";
+} from './observables/observable-state'
 
 export type {
   // Observable Store types
   StoreConfig,
   StoreFactoryConfig,
-} from "./observables/observable-store";
+} from './observables/observable-store'
 
 export type {
   // Model types
   ModelConfig,
   InferModelState,
-} from "./observables/observable-model";
+} from './observables/observable-model'
 
 export type {
   // ReactiveElement types
@@ -130,7 +140,11 @@ export type {
   DeriveFunction as ReactiveElementDeriveFunction,
   UnsubscribeFunction,
   DeriveResult,
-} from "./reactive-element";
+} from './reactive-element'
+
+export type { Ref } from './directives/ref'
+export type { KeyedRepeatOptions } from './directives/keyed-repeat'
+export type { Resource, ResourceOptions } from './resources/resource'
 
 export type {
   // Type system types
@@ -159,7 +173,7 @@ export type {
   DependentArrayType,
   DependentSumType,
   ReferenceType,
-} from "./types/index";
+} from './types/index'
 
 export type {
   // URL Store types
@@ -175,4 +189,4 @@ export type {
   URLStoreOptions,
   NavigationHook,
   ResourceLoader,
-} from "./observables/url-store";
+} from './observables/url-store'

@@ -83,7 +83,7 @@
       fetchTodos: {
         queryKey: ["todos"],
         queryFn: () => {
-          return fetch("https://api.camijs.com/todos?_limit=5").then((res) =>
+          return fetch("https://cami-api.exe.xyz/todos?_limit=5").then((res) =>
             res.json()
           );
         },
@@ -118,7 +118,7 @@
     mutations: {
       createTodo: {
         mutationFn: (newTodo) => {
-          return fetch("https://api.camijs.com/todos", {
+          return fetch("https://cami-api.exe.xyz/todos", {
             method: "POST",
             body: JSON.stringify(newTodo),
             headers: { "Content-type": "application/json; charset=UTF-8" },
@@ -140,7 +140,7 @@
       },
       deleteTodo: {
         mutationFn: (todo) => {
-          return fetch(`https://api.camijs.com/todos/${todo.id}`, {
+          return fetch(`https://cami-api.exe.xyz/todos/${todo.id}`, {
             method: "DELETE",
           }).then((res) => res.json());
         },
@@ -155,7 +155,7 @@
       },
       updateTodo: {
         mutationFn: (updatedTodo) => {
-          return fetch(`https://api.camijs.com/todos/${updatedTodo.id}`, {
+          return fetch(`https://cami-api.exe.xyz/todos/${updatedTodo.id}`, {
             method: "PUT",
             body: JSON.stringify(updatedTodo),
             headers: { "Content-type": "application/json; charset=UTF-8" },

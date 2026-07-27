@@ -1,130 +1,135 @@
-import { Observable } from "./observable.js";
-import { DependencyTracker } from "./observable-state.js";
-import { _deepEqual } from "../utils";
+import { _deepEqual } from '../utils'
+import { DependencyTracker } from './observable-state.js'
+import { Observable } from './observable.js'
 
 // Type definitions for URLStore
 interface URLState {
-  params: Record<string, string>;
-  hashPaths: string[];
-  hashParams: Record<string, string>;
-  routeParams?: Record<string, string>;
+  params: Record<string, string>
+  hashPaths: string[]
+  hashParams: Record<string, string>
+  routeParams?: Record<string, string>
 }
 
 interface RouteConfig {
-  params?: Record<string, { persist?: boolean }>;
-  resources?: string[];
-  onEnter?: (context: RouteEnterContext) => Promise<void> | void;
-  onLeave?: (context: RouteLeaveContext) => Promise<void> | void;
+  params?: Record<string, { persist?: boolean }>
+  resources?: string[]
+  onEnter?: (context: RouteEnterContext) => Promise<void> | void
+  onLeave?: (context: RouteLeaveContext) => Promise<void> | void
 }
 
 interface RouteEnterContext {
-  state: URLState;
-  params: Record<string, string>;
+  state: URLState
+  params: Record<string, string>
 }
 
 interface RouteLeaveContext {
-  from: URLState;
-  to: URLState;
+  from: URLState
+  to: URLState
 }
 
 interface NavigationHookContext {
-  from: URLState;
-  to: URLState;
-  route: RouteDefinition | null;
+  from: URLState
+  to: URLState
+  route: RouteDefinition | null
 }
 
 interface ResourceLoaderContext {
-  route: RouteDefinition;
-  params: Record<string, string>;
-  url: string;
-  signal?: AbortSignal;
+  route: RouteDefinition
+  params: Record<string, string>
+  url: string
+  signal?: AbortSignal
 }
 
 interface RouteDefinition {
-  pattern: string;
-  segments: string[];
-  paramNames: string[];
-  resources: string[];
-  params: Record<string, { persist?: boolean }>;
-  onEnter?: (context: RouteEnterContext) => Promise<void> | void;
-  onLeave?: (context: RouteLeaveContext) => Promise<void> | void;
-  extractedParams?: Record<string, string>;
+  pattern: string
+  segments: string[]
+  paramNames: string[]
+  resources: string[]
+  params: Record<string, { persist?: boolean }>
+  onEnter?: (context: RouteEnterContext) => Promise<void> | void
+  onLeave?: (context: RouteLeaveContext) => Promise<void> | void
+  extractedParams?: Record<string, string>
 }
 
 interface NavigationState {
-  isPending: boolean;
-  isLoading: boolean;
+  isPending: boolean
+  isLoading: boolean
 }
 
 interface NavigateOptions {
-  path?: string;
-  params?: Record<string, string | null | undefined>;
-  hashParams?: Record<string, string | null | undefined>;
-  focusSelector?: string;
-  pageTitle?: string;
-  announcement?: string;
-  updateCurrentPage?: boolean;
-  fullReplace?: boolean;
+  path?: string
+  params?: Record<string, string | null | undefined>
+  hashParams?: Record<string, string | null | undefined>
+  focusSelector?: string
+  pageTitle?: string
+  announcement?: string
+  updateCurrentPage?: boolean
+  fullReplace?: boolean
+  /**
+   * If true, use history.replaceState instead of pushState.
+   * Useful for repairing/normalizing URLs without polluting back-button history.
+   */
+  replace?: boolean
+  shallow?: boolean
 }
 
 interface URLStoreOptions {
-  onInit?: (state: URLState) => Promise<void> | void;
-  onChange?: (state: URLState) => void;
+  onInit?: (state: URLState) => Promise<void> | void
+  onChange?: (state: URLState) => void
 }
 
-type NavigationHook = (context: NavigationHookContext) => Promise<void> | void;
-type ResourceLoader = (context: ResourceLoaderContext) => Promise<void> | void;
+type NavigationHook = (context: NavigationHookContext) => Promise<void> | void
+type ResourceLoader = (context: ResourceLoaderContext) => Promise<void> | void
 
 /**
  * Enhanced URLStore with resource-aware routing
  * Solves race conditions by defining route dependencies and loading resources before navigation completes
  */
 class URLStore extends Observable<URLState> {
-  private _state: URLState;
-  private __onChange: ((state: URLState) => void) | null | undefined;
-  public _uid?: string;
-  private __routes: Map<string, RouteDefinition>;
-  private __resourceLoaders: Map<string, ResourceLoader>;
-  private __activeRoute: RouteDefinition | null;
-  private __navigationState: NavigationState;
-  private __persistentParams: Set<string>;
-  private __beforeNavigateHooks: NavigationHook[];
-  private __afterNavigateHooks: NavigationHook[];
-  private __bootstrapFn: ((state: URLState) => Promise<void> | void) | null;
-  private __bootstrapPromise: Promise<void> | null;
-  private __navigationController: AbortController | null;
-  private __initialized: boolean;
+  private _state: URLState
+  private __onChange: ((state: URLState) => void) | null | undefined
+  public _uid?: string
+  private __routes: Map<string, RouteDefinition>
+  private __resourceLoaders: Map<string, ResourceLoader>
+  private __activeRoute: RouteDefinition | null
+  private __navigationState: NavigationState
+  private __persistentParams: Set<string>
+  private __beforeNavigateHooks: NavigationHook[]
+  private __afterNavigateHooks: NavigationHook[]
+  private __bootstrapFn: ((state: URLState) => Promise<void> | void) | null
+  private __bootstrapPromise: Promise<void> | null
+  private __navigationController: AbortController | null
+  private __initialized: boolean
+  private __firstRouteProcessed: boolean
 
-  constructor({
-    onInit = undefined,
-    onChange = undefined,
-  }: URLStoreOptions = {}) {
-    super();
-    this._state = this.__parseURL();
-    this._uid = "URLStore";
-    this.__onChange = onChange;
-    this.__routes = new Map<string, RouteDefinition>();
-    this.__resourceLoaders = new Map<string, ResourceLoader>();
-    this.__activeRoute = null;
+  constructor({ onInit = undefined, onChange = undefined }: URLStoreOptions = {}) {
+    super()
+    this._state = this.__parseURL()
+    this._uid = 'URLStore'
+    this.__onChange = onChange
+    this.__routes = new Map<string, RouteDefinition>()
+    this.__resourceLoaders = new Map<string, ResourceLoader>()
+    this.__activeRoute = null
     this.__navigationState = {
       isPending: false,
       isLoading: false,
-    };
-    this.__persistentParams = new Set<string>();
-    this.__beforeNavigateHooks = [];
-    this.__afterNavigateHooks = [];
-    this.__bootstrapFn = null;
-    this.__bootstrapPromise = null;
-    this.__navigationController = null;
-    this.__initialized = false;
+    }
+    this.__persistentParams = new Set<string>()
+    this.__beforeNavigateHooks = []
+    this.__afterNavigateHooks = []
+    this.__bootstrapFn = null
+    this.__bootstrapPromise = null
+    this.__navigationController = null
+    this.__initialized = false
+    this.__firstRouteProcessed = false
 
     // Store onInit for later use, but don't initialize yet
     if (onInit) {
-      this.__bootstrapFn = onInit;
+      this.__bootstrapFn = onInit
     }
 
     if (this.__onChange) {
-      this.subscribe(this.__onChange);
+      this.subscribe(this.__onChange)
     }
   }
 
@@ -132,21 +137,21 @@ class URLStore extends Observable<URLState> {
    * Register a route with associated resource dependencies
    */
   registerRoute(pattern: string, options: RouteConfig = {}): URLStore {
-    const { resources = [], params = {}, onEnter, onLeave } = options;
+    const { resources = [], params = {}, onEnter, onLeave } = options
 
     // Parse pattern to get segments and param names
-    const segments = pattern.split("/").filter(Boolean);
+    const segments = pattern.split('/').filter(Boolean)
     const paramNames = segments
-      .filter((segment) => segment.startsWith(":"))
-      .map((segment) => segment.substring(1));
+      .filter(segment => segment.startsWith(':'))
+      .map(segment => segment.substring(1))
 
     // Mark persistent params
     if (params) {
       Object.entries(params).forEach(([paramName, paramConfig]) => {
         if (paramConfig.persist) {
-          this.__persistentParams.add(paramName);
+          this.__persistentParams.add(paramName)
         }
-      });
+      })
     }
 
     this.__routes.set(pattern, {
@@ -157,36 +162,33 @@ class URLStore extends Observable<URLState> {
       params,
       ...(onEnter && { onEnter }),
       ...(onLeave && { onLeave }),
-    });
+    })
 
-    return this;
+    return this
   }
 
   /**
    * Register a resource loader function
    */
-  registerResourceLoader(
-    resourceName: string,
-    loaderFn: ResourceLoader,
-  ): URLStore {
-    this.__resourceLoaders.set(resourceName, loaderFn);
-    return this;
+  registerResourceLoader(resourceName: string, loaderFn: ResourceLoader): URLStore {
+    this.__resourceLoaders.set(resourceName, loaderFn)
+    return this
   }
 
   /**
    * Add a hook to be executed before navigation
    */
   beforeNavigate(hookFn: NavigationHook): URLStore {
-    this.__beforeNavigateHooks.push(hookFn);
-    return this;
+    this.__beforeNavigateHooks.push(hookFn)
+    return this
   }
 
   /**
    * Add a hook to be executed after navigation
    */
   afterNavigate(hookFn: NavigationHook): URLStore {
-    this.__afterNavigateHooks.push(hookFn);
-    return this;
+    this.__afterNavigateHooks.push(hookFn)
+    return this
   }
 
   /**
@@ -194,10 +196,10 @@ class URLStore extends Observable<URLState> {
    */
   bootstrap(loaderFn: () => Promise<void>): URLStore {
     if (this.__initialized) {
-      throw new Error("Cannot set bootstrap after initialization");
+      throw new Error('Cannot set bootstrap after initialization')
     }
-    this.__bootstrapFn = loaderFn;
-    return this;
+    this.__bootstrapFn = loaderFn
+    return this
   }
 
   /**
@@ -205,57 +207,56 @@ class URLStore extends Observable<URLState> {
    */
   async initialize(): Promise<void> {
     if (this.__initialized) {
-      return;
+      return
     }
 
     // Run bootstrap if provided
     if (this.__bootstrapFn && !this.__bootstrapPromise) {
-      this.__bootstrapPromise = Promise.resolve(this.__bootstrapFn(this._state));
+      this.__bootstrapPromise = Promise.resolve(this.__bootstrapFn(this._state))
     }
 
     // Wait for bootstrap to complete
     if (this.__bootstrapPromise) {
-      await this.__bootstrapPromise;
+      await this.__bootstrapPromise
     }
 
     // Mark as initialized
-    this.__initialized = true;
+    this.__initialized = true
 
     // Process the initial URL
-    await this.__updateStore();
+    await this.__updateStore()
 
     // Start listening for URL changes
-    window.addEventListener("hashchange", () => this.__updateStore());
+    window.addEventListener('hashchange', () => this.__updateStore())
 
     // Notify onChange handler of initial state
     if (this.__onChange) {
-      this.__onChange(this._state);
+      this.__onChange(this._state)
     }
   }
 
-
   private __parseURL(): URLState {
-    const hash = window.location.hash.slice(1);
-    const [hashPathAndParams, hashParamsString] = hash.split("#");
-    const [hashPath, queryString] = hashPathAndParams.split("?");
-    const hashPaths = hashPath.split("/").filter(Boolean);
+    const hash = window.location.hash.slice(1)
+    const [hashPathAndParams, hashParamsString] = hash.split('#')
+    const [hashPath, queryString] = hashPathAndParams.split('?')
+    const hashPaths = hashPath.split('/').filter(Boolean)
 
-    const params: Record<string, string> = {};
-    const hashParams: Record<string, string> = {};
+    const params: Record<string, string> = {}
+    const hashParams: Record<string, string> = {}
 
     if (queryString) {
       new URLSearchParams(queryString).forEach((value, key) => {
-        params[key] = value;
-      });
+        params[key] = value
+      })
     }
 
     if (hashParamsString) {
       new URLSearchParams(hashParamsString).forEach((value, key) => {
-        hashParams[key] = value;
-      });
+        hashParams[key] = value
+      })
     }
 
-    return { params, hashPaths, hashParams };
+    return { params, hashPaths, hashParams }
   }
 
   /**
@@ -264,66 +265,71 @@ class URLStore extends Observable<URLState> {
   private __findMatchingRoute(pathSegments: string[]): RouteDefinition | null {
     for (const [, route] of this.__routes.entries()) {
       // Quick length check
-      if (route.segments.length !== pathSegments.length) continue;
+      if (route.segments.length !== pathSegments.length) continue
 
-      let isMatch = true;
-      const extractedParams: Record<string, string> = {};
+      let isMatch = true
+      const extractedParams: Record<string, string> = {}
 
       for (let i = 0; i < route.segments.length; i++) {
-        const routeSegment = route.segments[i];
-        const pathSegment = pathSegments[i];
+        const routeSegment = route.segments[i]
+        const pathSegment = pathSegments[i]
 
-        if (routeSegment.startsWith(":")) {
+        if (routeSegment.startsWith(':')) {
           // Parameter segment - extract value
-          const paramName = routeSegment.substring(1);
-          extractedParams[paramName] = pathSegment;
+          const paramName = routeSegment.substring(1)
+          extractedParams[paramName] = pathSegment
         } else if (routeSegment !== pathSegment) {
           // Static segment - must match exactly
-          isMatch = false;
-          break;
+          isMatch = false
+          break
         }
       }
 
       if (isMatch) {
-        return { ...route, extractedParams };
+        return { ...route, extractedParams }
       }
     }
 
-    return null;
+    return null
   }
 
   public async __updateStore(): Promise<void> {
     // Don't process if already navigating
-    if (this.__navigationState.isPending) return;
+    if (this.__navigationState.isPending) return
 
     // Cancel any previous navigation
     if (this.__navigationController) {
-      this.__navigationController.abort();
+      this.__navigationController.abort()
     }
 
     // Create new controller for this navigation
-    this.__navigationController = new AbortController();
-    const signal = this.__navigationController.signal;
+    this.__navigationController = new AbortController()
+    const signal = this.__navigationController.signal
 
     // Parse the current URL
-    const urlState = this.__parseURL();
+    const urlState = this.__parseURL()
 
     // Skip if URL hasn't changed - use proper deep equality check
-    if (_deepEqual(this._state, urlState)) return;
+    // BUT always process the first route after initialization (to run onEnter handlers)
+    const isFirstRoute = !this.__firstRouteProcessed
+    if (!isFirstRoute && _deepEqual(this._state, urlState)) return
+
+    // Mark first route as processed
+    this.__firstRouteProcessed = true
 
     // Set navigation state
-    this.__navigationState.isPending = true;
+    this.__navigationState.isPending = true
 
     try {
       // Wait for bootstrap if not yet complete (for initial navigation)
       if (this.__bootstrapPromise) {
-        await this.__bootstrapPromise;
+        await this.__bootstrapPromise
       }
 
-      if (signal.aborted) return;
+      if (signal.aborted) return
 
       // Find matching route
-      const matchingRoute = this.__findMatchingRoute(urlState.hashPaths);
+      const matchingRoute = this.__findMatchingRoute(urlState.hashPaths)
 
       // Execute before navigate hooks
       for (const hook of this.__beforeNavigateHooks) {
@@ -331,56 +337,54 @@ class URLStore extends Observable<URLState> {
           from: this._state,
           to: urlState,
           route: matchingRoute,
-        });
+        })
       }
 
-      if (signal.aborted) return;
+      if (signal.aborted) return
 
       // If there's a matching route with resources, load them
-      if (
-        matchingRoute &&
-        matchingRoute.resources &&
-        matchingRoute.resources.length > 0
-      ) {
-        this.__navigationState.isLoading = true;
+      if (matchingRoute && matchingRoute.resources && matchingRoute.resources.length > 0) {
+        this.__navigationState.isLoading = true
 
         // Update URL state with extracted params
-        urlState.routeParams = { ...(matchingRoute.extractedParams || {}) };
+        urlState.routeParams = {
+          ...(matchingRoute.extractedParams || {}),
+        }
 
         // Set preliminary state to show loading indicators
-        this._state = { ...urlState };
-        this.next(this._state);
+        this._state = { ...urlState }
+        this.next(this._state)
 
         // Load resources with signal
-        await this.__loadResources(matchingRoute!, urlState, signal);
+        await this.__loadResources(matchingRoute!, urlState, signal)
       }
 
-      if (signal.aborted) return;
+      if (signal.aborted) return
 
       // Handle route change - execute onLeave for old route
       if (this.__activeRoute?.onLeave) {
         await this.__activeRoute.onLeave({
           from: this._state,
           to: urlState,
-        });
+        })
       }
 
       // Update active route
-      this.__activeRoute = matchingRoute;
+      this.__activeRoute = matchingRoute
 
       // Update state
-      this._state = urlState;
-      this.next(urlState);
+      this._state = urlState
+      this.next(urlState)
 
       // Execute onEnter for new route
       if (matchingRoute?.onEnter) {
         await matchingRoute.onEnter({
           state: urlState,
           params: matchingRoute.extractedParams || {},
-        });
+        })
       }
 
-      if (signal.aborted) return;
+      if (signal.aborted) return
 
       // Execute after navigate hooks
       for (const hook of this.__afterNavigateHooks) {
@@ -388,16 +392,16 @@ class URLStore extends Observable<URLState> {
           from: this._state,
           to: urlState,
           route: matchingRoute,
-        });
+        })
       }
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
-        console.error("Error in navigation:", error);
+        console.error('Error in navigation:', error)
       }
     } finally {
       // Reset navigation state
-      this.__navigationState.isPending = false;
-      this.__navigationState.isLoading = false;
+      this.__navigationState.isPending = false
+      this.__navigationState.isLoading = false
     }
   }
 
@@ -407,9 +411,9 @@ class URLStore extends Observable<URLState> {
   private async __loadResources(
     route: RouteDefinition,
     urlState: URLState,
-    signal?: AbortSignal,
+    signal?: AbortSignal
   ): Promise<void> {
-    if (!route.resources || route.resources.length === 0) return;
+    if (!route.resources || route.resources.length === 0) return
 
     // Build context
     const context: ResourceLoaderContext = {
@@ -417,40 +421,40 @@ class URLStore extends Observable<URLState> {
       params: { ...urlState.params, ...urlState.routeParams },
       url: window.location.hash,
       ...(signal && { signal }),
-    };
+    }
 
     // Load all required resources in parallel
     await Promise.all(
-      route.resources.map(async (resourceName) => {
-        if (signal?.aborted) return;
-        
-        const loader = this.__resourceLoaders.get(resourceName);
-        if (!loader) return;
+      route.resources.map(async resourceName => {
+        if (signal?.aborted) return
+
+        const loader = this.__resourceLoaders.get(resourceName)
+        if (!loader) return
 
         try {
-          await loader(context);
+          await loader(context)
         } catch (error) {
           if (error instanceof Error && error.name !== 'AbortError') {
-            console.error(`Error loading resource ${resourceName}:`, error);
-            throw error;
+            console.error(`Error loading resource ${resourceName}:`, error)
+            throw error
           }
         }
-      }),
-    );
+      })
+    )
   }
 
   getState(): URLState {
     if (DependencyTracker.current) {
-      DependencyTracker.current.addDependency(this);
+      DependencyTracker.current.addDependency(this)
     }
-    return this._state;
+    return this._state
   }
 
   /**
    * Check if currently in a loading state
    */
   isLoading(): boolean {
-    return this.__navigationState.isLoading;
+    return this.__navigationState.isLoading
   }
 
   /**
@@ -466,216 +470,245 @@ class URLStore extends Observable<URLState> {
       announcement,
       updateCurrentPage = true,
       fullReplace = false,
-    } = options;
+      replace = false,
+      shallow = false,
+    } = options
 
     // If navigation is pending, defer
     if (this.__navigationState.isPending) {
-      setTimeout(() => this.navigate(options), 100);
-      return;
+      setTimeout(() => this.navigate(options), 100)
+      return
     }
 
-    let newUrl = new URL(window.location.href);
-    let newHash = "#";
+    if (shallow) {
+      if (path !== undefined) {
+        throw new Error('URLStore.navigate: shallow updates cannot change the path')
+      }
+      if (Object.keys(hashParams).length > 0) {
+        throw new Error('URLStore.navigate: shallow updates cannot modify hashParams')
+      }
+      if (fullReplace) {
+        throw new Error('URLStore.navigate: shallow updates cannot use fullReplace')
+      }
+    }
+
+    let newUrl = new URL(window.location.href)
+    let newHash = '#'
 
     // Preserve existing hashPaths if path not provided
-    const currentState = this.getState();
-    const hashPaths =
-      path !== undefined
-        ? path.split("/").filter(Boolean)
-        : currentState.hashPaths;
+    const currentState = this.getState()
+    const hashPaths = path !== undefined ? path.split('/').filter(Boolean) : currentState.hashPaths
 
-    newHash += hashPaths.join("/");
+    newHash += hashPaths.join('/')
 
-    const searchParams = new URLSearchParams();
-    const hashSearchParams = new URLSearchParams();
+    const searchParams = new URLSearchParams()
+    const hashSearchParams = new URLSearchParams()
 
     if (!fullReplace) {
-      Object.entries(currentState.params).forEach(([key, value]) =>
-        searchParams.set(key, value),
-      );
+      Object.entries(currentState.params).forEach(([key, value]) => searchParams.set(key, value))
       Object.entries(currentState.hashParams).forEach(([key, value]) =>
-        hashSearchParams.set(key, value),
-      );
+        hashSearchParams.set(key, value)
+      )
     }
 
     Object.entries(params).forEach(([key, value]) => {
       if (value === null || value === undefined) {
-        searchParams.delete(key);
+        searchParams.delete(key)
       } else {
-        searchParams.set(key, value);
+        searchParams.set(key, value)
       }
-    });
+    })
 
     Object.entries(hashParams).forEach(([key, value]) => {
       if (value === null || value === undefined) {
-        hashSearchParams.delete(key);
+        hashSearchParams.delete(key)
       } else {
-        hashSearchParams.set(key, value);
+        hashSearchParams.set(key, value)
       }
-    });
+    })
 
-    const searchString = searchParams.toString();
-    const hashSearchString = hashSearchParams.toString();
+    const searchString = searchParams.toString()
+    const hashSearchString = hashSearchParams.toString()
 
     if (searchString) {
-      newHash += "?" + searchString;
+      newHash += '?' + searchString
     }
     if (hashSearchString) {
-      newHash += "#" + hashSearchString;
+      newHash += '#' + hashSearchString
     }
 
     // Skip if hash hasn't changed
-    if (newUrl.hash === newHash) return;
+    if (newUrl.hash === newHash) return
 
-    newUrl.hash = newHash;
-    window.history.pushState(null, "", newUrl.toString());
+    newUrl.hash = newHash
+    if (replace) {
+      window.history.replaceState(null, '', newUrl.toString())
+    } else {
+      window.history.pushState(null, '', newUrl.toString())
+    }
 
-    // Trigger hash change handling
-    this.__updateStore();
+    if (shallow) {
+      const updatedParams: Record<string, string> = {}
+      searchParams.forEach((value, key) => {
+        updatedParams[key] = value
+      })
+      const updatedHashParams: Record<string, string> = {}
+      hashSearchParams.forEach((value, key) => {
+        updatedHashParams[key] = value
+      })
+
+      this._state = {
+        ...currentState,
+        params: updatedParams,
+        hashParams: updatedHashParams,
+      }
+      this.next(this._state)
+    } else {
+      // Trigger hash change handling
+      this.__updateStore()
+    }
 
     // Handle accessibility
     if (focusSelector) {
       setTimeout(() => {
-        const targetElement = document.querySelector(focusSelector);
-        if (targetElement) (targetElement as HTMLElement).focus();
-      }, 0);
+        const targetElement = document.querySelector(focusSelector)
+        if (targetElement) (targetElement as HTMLElement).focus()
+      }, 0)
     }
 
     // Set page title
     if (pageTitle) {
-      document.title = pageTitle;
+      document.title = pageTitle
     } else if (path) {
       // Set default page title based on the domain and hash path
-      const domain = window.location.hostname;
+      const domain = window.location.hostname
       const formattedDomain = domain
-        .split(".")
-        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-        .join(".");
+        .split('.')
+        .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join('.')
 
-      const pathSegments = path.split("/").filter(Boolean);
+      const pathSegments = path.split('/').filter(Boolean)
       const formattedPath = pathSegments
-        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-        .join(" - ");
+        .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join(' - ')
 
-      document.title = `${formattedDomain} | ${formattedPath}`;
+      document.title = `${formattedDomain} | ${formattedPath}`
     }
 
     // Handle screen reader announcement
     if (announcement) {
-      const liveRegion = document.getElementById("liveRegion");
+      const liveRegion = document.getElementById('liveRegion')
       if (liveRegion) {
-        liveRegion.textContent = announcement;
+        liveRegion.textContent = announcement
       }
     } else if (path) {
-      const pathSegments = path.split("/").filter(Boolean);
-      const lastSegment = pathSegments[pathSegments.length - 1] || "home page";
-      const liveRegion = document.getElementById("liveRegion");
+      const pathSegments = path.split('/').filter(Boolean)
+      const lastSegment = pathSegments[pathSegments.length - 1] || 'home page'
+      const liveRegion = document.getElementById('liveRegion')
       if (liveRegion) {
-        liveRegion.textContent = `Navigated to ${lastSegment}`;
+        liveRegion.textContent = `Navigated to ${lastSegment}`
       }
     }
 
     if (updateCurrentPage) {
       document
         .querySelectorAll('[aria-current="page"]')
-        .forEach((el) => el.removeAttribute("aria-current"));
+        .forEach(el => el.removeAttribute('aria-current'))
 
-      const currentPageLink = document.querySelector(`a[href="#/${path}"]`);
+      const currentPageLink = document.querySelector(`a[href="#/${path}"]`)
       if (currentPageLink) {
-        currentPageLink.setAttribute("aria-current", "page");
+        currentPageLink.setAttribute('aria-current', 'page')
       }
     }
   }
 
   matches(stateSlice: Partial<URLState>): boolean {
-    const currentState = this.getState();
+    const currentState = this.getState()
 
     for (const key in stateSlice) {
       if (Object.hasOwn(stateSlice, key)) {
-        if (key === "hashPaths") {
-          if (
-            !this._isArrayPrefix(currentState.hashPaths, stateSlice.hashPaths!)
-          ) {
-            return false;
+        if (key === 'hashPaths') {
+          if (!this._isArrayPrefix(currentState.hashPaths, stateSlice.hashPaths!)) {
+            return false
           }
-        } else if (["params", "hashParams"].includes(key)) {
-          const stateSliceKey = key as "params" | "hashParams";
+        } else if (['params', 'hashParams'].includes(key)) {
+          const stateSliceKey = key as 'params' | 'hashParams'
           for (const paramKey in stateSlice[stateSliceKey]) {
             // Get values to compare
-            const currentValue = currentState[stateSliceKey][paramKey];
-            const sliceValue = stateSlice[stateSliceKey]![paramKey];
+            const currentValue = currentState[stateSliceKey][paramKey]
+            const sliceValue = stateSlice[stateSliceKey]![paramKey]
 
             // Use deep equality for objects
             if (
-              typeof currentValue === "object" &&
+              typeof currentValue === 'object' &&
               currentValue !== null &&
-              typeof sliceValue === "object" &&
+              typeof sliceValue === 'object' &&
               sliceValue !== null
             ) {
               if (!_deepEqual(currentValue, sliceValue)) {
-                return false;
+                return false
               }
             } else if (currentValue !== sliceValue) {
-              return false;
+              return false
             }
           }
         } else {
           // Use deep equality for other object values
-          const currentValue = currentState[key as keyof URLState];
-          const sliceValue = stateSlice[key as keyof URLState];
+          const currentValue = currentState[key as keyof URLState]
+          const sliceValue = stateSlice[key as keyof URLState]
 
           if (
-            typeof currentValue === "object" &&
+            typeof currentValue === 'object' &&
             currentValue !== null &&
-            typeof sliceValue === "object" &&
+            typeof sliceValue === 'object' &&
             sliceValue !== null
           ) {
             if (!_deepEqual(currentValue, sliceValue)) {
-              return false;
+              return false
             }
           } else if (currentValue !== sliceValue) {
-            return false;
+            return false
           }
         }
       }
     }
 
-    return true;
+    return true
   }
 
   isEmpty(): boolean {
-    const { hashPaths, params, hashParams } = this.getState();
+    const { hashPaths, params, hashParams } = this.getState()
     return (
       hashPaths.length === 0 &&
       Object.keys(params).length === 0 &&
       Object.keys(hashParams).length === 0 &&
-      !hashPaths.some((path) => path.trim() !== "")
-    );
+      !hashPaths.some(path => path.trim() !== '')
+    )
   }
 
   private _isArrayPrefix(arr: string[], prefix: string[]): boolean {
-    if (prefix.length > arr.length) return false;
-    return prefix.every((value, index) => value === arr[index]);
+    if (prefix.length > arr.length) return false
+    return prefix.every((value, index) => value === arr[index])
   }
 }
 
 // Singleton instance
-let urlStoreInstance: URLStore | null = null;
+let urlStoreInstance: URLStore | null = null
 
 /**
  * Creates or returns the singleton instance of URLStore
  */
 const createURLStore = (options: URLStoreOptions = {}): URLStore => {
   if (!urlStoreInstance) {
-    urlStoreInstance = new URLStore(options);
+    urlStoreInstance = new URLStore(options)
   } else if (options.onChange) {
-    urlStoreInstance.subscribe(options.onChange);
+    urlStoreInstance.subscribe(options.onChange)
   }
-  return urlStoreInstance;
-};
+  return urlStoreInstance
+}
 
 // Export the URLStore class
-export { URLStore };
+export { URLStore }
 
 // Export types for external use
 export type {
@@ -691,6 +724,6 @@ export type {
   URLStoreOptions,
   NavigationHook,
   ResourceLoader,
-};
+}
 
-export { createURLStore };
+export { createURLStore }
