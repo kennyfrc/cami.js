@@ -1,91 +1,118 @@
-site_name: Cami Web Components
+site_name: Cami.js
+site_description: Drop-in reactive islands for MPAs, with strong TypeScript support for compiled applications
+site_url: https://camijs.com/
 repo_url: https://github.com/kennyfrc/cami.js
-repo_name: Cami.js
+repo_name: kennyfrc/cami.js
 theme:
   name: material
   icon:
-      repo: fontawesome/brands/github
+    repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/lightbulb-outline
-        name: Switch to light mode
+        icon: material/brightness-auto
+        name: Use light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: indigo
+      accent: deep purple
       toggle:
-        icon: material/lightbulb
-        name: Switch to dark mode
+        icon: material/weather-sunny
+        name: Use dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: indigo
+      accent: deep purple
       toggle:
-        icon: material/lightbulb-outline
-        name: Switch to system preference
+        icon: material/weather-night
+        name: Use system preference
   font:
     text: Noto Sans
-  language: en
+    code: JetBrains Mono
   features:
     - navigation.tracking
     - navigation.tabs
-    - navigation.expand
     - navigation.sections
     - navigation.indexes
     - navigation.footer
     - content.code.copy
+    - content.tabs.link
     - search.suggest
     - search.highlight
-    - search.share
     - toc.follow
+extra_css:
+  - stylesheets/extra.css
 markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: .
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
 plugins:
-  - blog
   - search
 nav:
-  - Introduction:
-    - index.md
-    - features/features.md
-    - features/observable_property.md
-    - features/reactive_web_components.md
-    - features/async_state_management.md
-    - features/client_state_management.md
-  - API Reference:
-    - API Index: api/index.md
-    - api/reactive_element.md
-    - api/console_functions.md
-    - api/observable.md
-    - api/observable_state.md
-    - api/observable_store.md
-  - Learn by Example:
-    - learn_by_example/counter.md
-    - learn_by_example/counter_interval.md
-    - learn_by_example/form_validation.md
-    - learn_by_example/todo_list_server.md
-    - learn_by_example/todo_list_simple.md
-    - learn_by_example/todo_list_attributes.md
-    - learn_by_example/cart.md
-    - learn_by_example/blog.md
-    - learn_by_example/nested_updates.md
-    - learn_by_example/modal.md
-    - learn_by_example/popover.md
-    - learn_by_example/anchored_popover.md
-    - learn_by_example/temperature_converter.md
-    - learn_by_example/flight_booker.md
-    - learn_by_example/timer.md
-    - learn_by_example/contact_manager.md
-    - learn_by_example/circle_drawer.md
+  - Home: index.md
+  - Tutorials:
+      - Your first interactive island: tutorials/first-island.md
+      - Share state between islands: tutorials/shared-state.md
+      - More worked examples:
+          - Counter: learn_by_example/counter.md
+          - Counter with an interval: learn_by_example/counter_interval.md
+          - Form validation: learn_by_example/form_validation.md
+          - Server-backed todo list: learn_by_example/todo_list_server.md
+          - Simple todo list: learn_by_example/todo_list_simple.md
+          - Attribute-driven todo list: learn_by_example/todo_list_attributes.md
+          - Shopping cart: learn_by_example/cart.md
+          - Optimistic blog: learn_by_example/blog.md
+          - Nested updates: learn_by_example/nested_updates.md
+          - Modal: learn_by_example/modal.md
+          - Popover: learn_by_example/popover.md
+          - Anchored popover: learn_by_example/anchored_popover.md
+          - Temperature converter: learn_by_example/temperature_converter.md
+          - Flight booker: learn_by_example/flight_booker.md
+          - Timer: learn_by_example/timer.md
+          - Contact manager: learn_by_example/contact_manager.md
+          - Circle drawer: learn_by_example/circle_drawer.md
+  - How-to guides:
+      - Install and load Cami: how-to/installation.md
+      - Render lists and access DOM nodes: how-to/collections-and-dom.md
+      - Load async UI resources: how-to/async-ui.md
+      - Persist state and route by URL: how-to/persistence-and-routing.md
+      - Async store state: features/async_state_management.md
+      - Shared client state: features/client_state_management.md
+      - Persistence adapters: features/persistence.md
+      - Production practices: best_practices.md
+  - Reference:
+      - Public exports: api/index.md
+      - ReactiveElement: api/reactive_element.md
+      - ObservableStore: api/observable_store.md
+      - ObservableState: api/observable_state.md
+      - Observable streams: api/observable.md
+      - Models: api/model.md
+      - Runtime type system: api/type_system.md
+      - URLStore: api/url_store.md
+      - Directives and resources: api/directives_and_resources.md
+      - Console and debug controls: api/console_functions.md
+  - Explanation:
+      - Mental model: explanation/mental-model.md
+      - Choose a state interface: explanation/state-interfaces.md
+      - Feature map: features/features.md
+      - Reactive web components: features/reactive_web_components.md
+      - Project notes: blog/index.md
 extra_javascript:
   - javascripts/cami.cdn.js
+  - javascripts/demo-islands.js
 extra:
   social:
-    -
-      icon: fontawesome/brands/github
+    - icon: fontawesome/brands/github
       link: https://github.com/kennyfrc/cami.js
-copyright: Copyright &copy; 2023 Kenn Costales
-extra_files:
-  - CNAME
+copyright: Copyright &copy; 2023–2026 Kenn Costales

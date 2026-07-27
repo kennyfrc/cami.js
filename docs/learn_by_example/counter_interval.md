@@ -6,9 +6,12 @@ Similarly, we have two effects that are run whenever `count` changes. An `effect
 
 `Effects` are observer methods, which track the changes in the observed properties. If you're coming from other frameworks, this is similar to a `watcher` or `autorun`. Under the hood, Cami uses `effect` to render the template whenever the observed properties in the `template` method change.
 
-<iframe width="100%" height="200" src="//jsfiddle.net/kennyfrc12/cdzhtpLf/7/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<div class="cami-live-example">
+  <div class="cami-live-example__header"><span class="cami-live-example__label">Live island</span><span class="cami-live-example__note">Runs locally in this page</span></div>
+  <div class="cami-live-example__stage"><cami-demo-island kind="counter-interval"></cami-demo-island></div>
+</div>
 
-## HTML:
+## Page shell
 
 ```html
 <article>
@@ -17,30 +20,21 @@ Similarly, we have two effects that are run whenever `count` changes. An `effect
 </article>
 <script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
-<!-- <script src="https://unpkg.com/cami@latest/build/cami.cdn.js"></script> -->
-<script type="module">
-  const { html, ReactiveElement } = cami;
-
-class CounterElement extends ReactiveElement {
-  count = 0;
-
-  get doubleCount() {
-    return this.count * 2;
-  }
-
-  onConnect() {
-    setInterval(() => this.count++, 1000);
-    this.effect(() => console.log(`Count: ${this.count}`));
-    this.effect(() => console.log(`Double Count: ${this.doubleCount}`));
-  }
-
-  template() {
-    return html`
-      <div>Double Count: ${this.doubleCount}</div>
-    `;
-  }
-}
-
-customElements.define('counter-component', CounterElement);
-</script>
+<!-- <script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script> -->
+<script type="module" src="./island.js"></script>
 ```
+
+## Island source
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    --8<-- "docs/examples/islands/counter_interval.js"
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    --8<-- "docs/examples/islands/counter_interval.ts"
+    ```

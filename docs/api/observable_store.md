@@ -1,409 +1,1305 @@
-## Classes
-
-<dl>
-<dt><a href="#ObservableStore">ObservableStore</a> ⇐ <code>Observable</code></dt>
-<dd></dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#slice">slice(store, options)</a> ⇒ <code>Object</code></dt>
-<dd><p>Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.</p>
-</dd>
-<dt><a href="#store">store(initialState, [options])</a> ⇒ <code><a href="#ObservableStore">ObservableStore</a></code></dt>
-<dd><p>This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store&#39;s state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The <code>localStorage</code> option enables this behavior and can be toggled off if persistence is not needed.</p>
-</dd>
-</dl>
-
-<a name="ObservableStore"></a>
-
-## ObservableStore ⇐ <code>Observable</code>
-**Kind**: global class  
-**Extends**: <code>Observable</code>  
-
-* [ObservableStore](#ObservableStore) ⇐ <code>Observable</code>
-    * [new ObservableStore()](#new_ObservableStore_new)
-    * _instance_
-        * [.dispatch(action, [payload])](#ObservableStore+dispatch)
-    * _static_
-        * [.use(middleware)](#ObservableStore.use)
-        * [.getState()](#ObservableStore.getState) ⇒ <code>Object</code>
-        * [.register(action, reducer)](#ObservableStore.register)
-        * [.onPatch(key, callback)](#ObservableStore.onPatch)
-        * [.applyPatch(patches)](#ObservableStore.applyPatch)
-        * [.query(queryName, config)](#ObservableStore.query)
-        * [.fetch(queryName, ...args)](#ObservableStore.fetch) ⇒ <code>Promise</code>
-        * [.invalidateQueries(queryName)](#ObservableStore.invalidateQueries)
-        * [.mutation(mutationName, config)](#ObservableStore.mutation)
-        * [.mutate(mutationName, ...args)](#ObservableStore.mutate) ⇒ <code>Promise</code>
-
-<a name="new_ObservableStore_new"></a>
-
-### new ObservableStore()
-This class is used to create a store that can be observed for changes. It supports registering actions and middleware, making it flexible for various use cases.
-
-**Example**  
-```javascript
-// Creating a store with initial state and registering actions
-const CartStore = cami.store({
-  cartItems: [],
-});
-
-CartStore.register('add', (state, product) => {
-  const cartItem = { ...product, cartItemId: Date.now() };
-  state.cartItems.push(cartItem);
-});
-
-CartStore.register('remove', (state, product) => {
-  state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-});
-
-// Using middleware for logging
-const loggerMiddleware = (context) => {
-  console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
-};
-CartStore.use(loggerMiddleware);
-```
-<a name="ObservableStore+dispatch"></a>
-
-### observableStore.dispatch(action, [payload])
-Dispatches an action to update the store's state.
-
-**Kind**: instance method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| action | <code>string</code> \| <code>function</code> | The action type (string) or action creator (function). |
-| [payload] | <code>any</code> | The optional payload object to pass to the reducer. |
-
-**Example**  
-```js
-// Dispatching a simple action
-store.dispatch('increment');
-
-// Dispatching an action with payload
-store.dispatch('addItem', { id: 1, name: 'New Item' });
-```
-<a name="ObservableStore.use"></a>
-
-### ObservableStore.use(middleware)
-This method registers a middleware function to be used with the store. Useful if you like redux-style middleware.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| middleware | <code>function</code> | The middleware function to use |
-
-**Example**  
-```javascript
-const loggerMiddleware = (context) => {
-  console.log(`Action ${context.action} was dispatched with payload:`, context.payload);
-};
-CartStore.use(loggerMiddleware);
-```
-<a name="ObservableStore.getState"></a>
-
-### ObservableStore.getState() ⇒ <code>Object</code>
-Retrieves the current state of the store. This method is crucial in asynchronous operations or event-driven environments to ensure the most current state is accessed, as the state might change frequently due to user interactions or other asynchronous updates.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-**Returns**: <code>Object</code> - - The current state of the store.  
-<a name="ObservableStore.register"></a>
-
-### ObservableStore.register(action, reducer)
-This method registers a reducer function for a given action type. Useful if you like redux-style reducers.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-**Throws**:
-
-- <code>Error</code> - Throws an error if the action type is already registered
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| action | <code>string</code> | The action type |
-| reducer | <code>function</code> | The reducer function for the action |
-
-**Example**  
-```javascript
-// Creating a store with initial state and registering actions
-const CartStore = cami.store({
-  cartItems: [],
-});
-
-CartStore.register('add', (state, product) => {
-  const cartItem = { ...product, cartItemId: Date.now() };
-  state.cartItems.push(cartItem);
-});
-
-CartStore.register('remove', (state, product) => {
-  state.cartItems = state.cartItems.filter(item => item.cartItemId !== product.cartItemId);
-});
-
-```
-<a name="ObservableStore.onPatch"></a>
-
-### ObservableStore.onPatch(key, callback)
-Registers a callback to be invoked whenever patches are applied to the specified state key.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | The state key to listen for patches. |
-| callback | <code>function</code> | The callback to invoke when patches are applied. |
-
-**Example**  
-```javascript
-appStore.onPatch('posts', (patch) => {
-  console.log('Patch applied:', patch);
-});
-```
-<a name="ObservableStore.applyPatch"></a>
-
-### ObservableStore.applyPatch(patches)
-Applies the given patches to the store's state.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| patches | <code>Array</code> | The patches to apply to the state. |
-
-**Example**  
-```javascript
-const patches = [{ op: 'replace', path: ['posts', 0, 'title'], value: 'New Title' }];
-appStore.applyPatch(patches);
-```
-<a name="ObservableStore.query"></a>
-
-### ObservableStore.query(queryName, config)
-Registers a query with the given configuration. This method sets up the query with the provided options and handles refetching based on various triggers like window focus, reconnect, and intervals.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| queryName | <code>string</code> |  | The name of the query to register. |
-| config | <code>Object</code> |  | The configuration object for the query. |
-| config.queryKey | <code>string</code> \| <code>Array</code> |  | The unique key for the query. |
-| config.queryFn | <code>function</code> |  | The function to fetch data for the query. |
-| [config.staleTime] | <code>number</code> | <code>0</code> | The time in milliseconds before the query is considered stale. |
-| [config.refetchOnWindowFocus] | <code>boolean</code> | <code>false</code> | Whether to refetch the query on window focus. |
-| [config.refetchInterval] | <code>number</code> \| <code>null</code> | <code></code> | The interval in milliseconds to refetch the query. |
-| [config.refetchOnReconnect] | <code>boolean</code> | <code>true</code> | Whether to refetch the query on reconnect. |
-| [config.gcTime] | <code>number</code> | <code>300000</code> | The time in milliseconds before garbage collecting the query. |
-| [config.retry] | <code>number</code> | <code>1</code> | The number of retry attempts for the query. |
-| [config.retryDelay] | <code>function</code> |  | The function to calculate the delay between retries. |
-| [config.onSuccess] | <code>function</code> |  | The callback function to execute when the query succeeds. Receives a context object with `result`, `state`, `actions`, `mutations`, and `invalidateQueries`. |
-| [config.onError] | <code>function</code> |  | The callback function to execute when the query fails. Receives a context object with `error`, `state`, `actions`, `mutations`, and `invalidateQueries`. |
-| [config.actions] | <code>Object</code> | <code>this.actions</code> | The actions available in the store. |
-
-**Example**  
-```javascript
-appStore.register('setPosts', (state, posts) => {
-  state.posts = posts;
-});
-
-appStore.query('fetchPosts', {
-  queryKey: 'posts',
-  queryFn: () => fetch('https://api.camijs.com/posts').then(res => res.json()),
-  onSuccess: (ctx) => {
-    ctx.actions.setPosts(ctx.result);
-  },
-  onError: (ctx) => {
-    // console.error('Query failed:', ctx.error);
-  }
-});
-```
-<a name="ObservableStore.fetch"></a>
-
-### ObservableStore.fetch(queryName, ...args) ⇒ <code>Promise</code>
-Fetches data for the given query name. If the data is cached and not stale, it returns the cached data.
-Otherwise, it fetches new data using the query function. Supports retry logic and calls lifecycle hooks.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-**Returns**: <code>Promise</code> - A promise that resolves to the query result.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryName | <code>string</code> | The name of the query to fetch. |
-| ...args | <code>any</code> | The arguments to pass to the query function. |
-
-**Example**  
-```js
-// Fetching data for a query named 'fetchPosts'
-appStore.fetch('fetchPosts')
-```
-<a name="ObservableStore.invalidateQueries"></a>
-
-### ObservableStore.invalidateQueries(queryName)
-Invalidates the cache and any associated intervals or event listeners for a given query name.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| queryName | <code>string</code> | The name of the query to invalidate. |
-
-<a name="ObservableStore.mutation"></a>
-
-### ObservableStore.mutation(mutationName, config)
-Registers a mutation with the given configuration. This method sets up the mutation with the provided options and handles the mutation lifecycle.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| mutationName | <code>string</code> |  | The name of the mutation to register. |
-| config | <code>Object</code> |  | The configuration object for the mutation. |
-| config.mutationFn | <code>function</code> |  | The function to perform the mutation. |
-| [config.onMutate] | <code>function</code> |  | The function to be called before the mutation is performed. |
-| [config.onError] | <code>function</code> |  | The function to be called if the mutation encounters an error. |
-| [config.onSuccess] | <code>function</code> |  | The function to be called if the mutation is successful. |
-| [config.onSettled] | <code>function</code> |  | The function to be called after the mutation has either succeeded or failed. |
-| [config.actions] | <code>Object</code> | <code>this.actions</code> | The actions available in the store. |
-| [config.queries] | <code>Object</code> | <code>this.queries</code> | The queries available in the store. |
-
-**Example**  
-```javascript
-appStore.mutation('deletePost', {
-  mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
-  onMutate: (context) => {
-    context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
-  },
-  onError: (context) => {
-    context.actions.setPosts(context.previousState.posts);
-  },
-  onSuccess: (context) => {
-    console.log('Mutation successful:', context);
-  },
-  onSettled: (context) => {
-    console.log('Mutation settled');
-    context.invalidateQueries('posts');
-  }
-});
-
-appStore.mutate('deletePost', id);
-```
-<a name="ObservableStore.mutate"></a>
-
-### ObservableStore.mutate(mutationName, ...args) ⇒ <code>Promise</code>
-Performs the mutation with the given name and arguments. This method handles the mutation lifecycle, including optimistic updates, success handling, and error handling.
-
-**Kind**: static method of [<code>ObservableStore</code>](#ObservableStore)  
-**Returns**: <code>Promise</code> - A promise that resolves to the mutation result.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| mutationName | <code>string</code> | The name of the mutation to perform. |
-| ...args | <code>any</code> | The arguments to pass to the mutation function. |
-
-**Example**  
-```javascript
-// Define a mutation named 'deletePost'
-appStore.mutation('deletePost', {
-  // The function that performs the actual mutation logic
-  mutationFn: (id) => fetch(`https://api.camijs.com/posts/${id}`, { method: 'DELETE' }).then(res => res.json()),
-  // Optional: Optimistically update the state before the mutation
-  onMutate: (context) => {
-    context.actions.setPosts(context.state.posts.filter(post => post.id !== context.args[0]));
-  },
-  // Optional: Handle errors during mutation
-  onError: (context) => {
-    context.actions.setPosts(context.previousState.posts);
-  },
-  // Optional: Perform actions after a successful mutation
-  onSuccess: (context) => {
-    console.log('Mutation successful:', context);
-  },
-  // Optional: Perform actions after the mutation is settled (success or error)
-  onSettled: (context) => {
-    console.log('Mutation settled');
-    context.invalidateQueries('posts');
-  }
-});
-
-// Execute the 'deletePost' mutation with a post ID
-appStore.mutate('deletePost', 1);
-```
-<a name="slice"></a>
-
-## slice(store, options) ⇒ <code>Object</code>
-Creates a slice of the store with its own state and actions, namespaced to avoid conflicts.
-
-**Kind**: global function  
-**Returns**: <code>Object</code> - - An object containing the action methods for the slice, including getState, actions, queries, mutations, and subscribe methods.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| store | <code>Object</code> | The main store instance. |
-| options | <code>Object</code> | The options for creating the slice. |
-| options.name | <code>string</code> | The name of the slice. |
-| options.state | <code>Object</code> | The initial state of the slice. |
-| options.actions | <code>Object</code> | The actions for the slice. |
-| [options.queries] | <code>Object</code> | The queries for the slice. |
-| [options.mutations] | <code>Object</code> | The mutations for the slice. |
-
-**Example**  
-```js
-const appStore = store({
-  // Initial state for other parts of the application
-});
-
-const postsSlice = slice(appStore, {
-  name: 'posts',
-  state: [
-    { id: 1, title: 'First Post' },
-    { id: 2, title: 'Second Post' }
-  ],
-  actions: {
-    updatePost: (state, { id, title }) => {
-      const postIndex = state.findIndex(post => post.id === id);
-      if (postIndex !== -1) {
-        state[postIndex].title = title;
+# ObservableStore
+
+The `ObservableStore` is Cami's reactive state container. It holds your application's state, provides methods to read and update it, and automatically notifies reactive components when state changes.
+
+## Overview
+
+An `ObservableStore` is built on these principles:
+
+- **Immutable reads**: `getState()` returns a frozen snapshot—safe to pass around without mutation.
+- **Mutable writes via Immer**: Inside action handlers, you mutate `state` directly; Immer converts this to immutable updates.
+- **Reactive**: Components that call `getState()` inside `template()` are automatically re-rendered when state changes.
+- **Single source of truth**: Client state, UI state, cached server data, and derived state all belong in stores.
+
+**The golden rule**: Components read via `getState()` and write via `dispatch()`.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    import { store, html, ReactiveElement } from "cami";
+    // Create a store
+    const CounterStore = store({
+        name: "counter",
+        state: { count: 0 },
+    });
+    // Define actions
+    CounterStore.defineAction("increment", ({ state }) => {
+        state.count += 1;
+    });
+    CounterStore.defineAction("decrement", ({ state }) => {
+        state.count -= 1;
+    });
+    // Use in a component
+    class CounterElement extends ReactiveElement {
+        template() {
+            const { count } = CounterStore.getState();
+            return html `
+          <button @click=${() => CounterStore.dispatch("decrement")}>-</button>
+          <span>${count}</span>
+          <button @click=${() => CounterStore.dispatch("increment")}>+</button>
+        `;
+        }
+    }
+    customElements.define("counter-element", CounterElement);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { store, html, ReactiveElement } from "cami";
+
+    interface CounterState {
+      count: number;
+    }
+
+    // Create a store
+    const CounterStore = store<CounterState>({
+      name: "counter",
+      state: { count: 0 },
+    });
+
+    // Define actions
+    CounterStore.defineAction("increment", ({ state }) => {
+      state.count += 1;
+    });
+
+    CounterStore.defineAction("decrement", ({ state }) => {
+      state.count -= 1;
+    });
+
+    // Use in a component
+    class CounterElement extends ReactiveElement {
+      template(): ReturnType<typeof html> {
+        const { count } = CounterStore.getState();
+        return html`
+          <button @click=${() => CounterStore.dispatch("decrement")}>-</button>
+          <span>${count}</span>
+          <button @click=${() => CounterStore.dispatch("increment")}>+</button>
+        `;
       }
     }
-  }
-});
+    customElements.define("counter-element", CounterElement);
+    ```
 
-// Accessing the slice's state
-postsSlice.getState();
+---
 
-// Dispatching actions
-postsSlice.actions.updatePost({ id: 1, title: 'Updated Title' });
+## Creating Stores
 
-// Subscribing to state changes
-const unsubscribe = postsSlice.subscribe(state => {
-  console.log('Posts slice state changed:', state);
-});
+### `store(config)`
 
-// Unsubscribe when no longer needed
-unsubscribe();
-```
-<a name="store"></a>
+Creates a new store instance or returns an existing one with the same name (singleton by name).
 
-## store(initialState, [options]) ⇒ [<code>ObservableStore</code>](#ObservableStore)
-This function creates a new instance of ObservableStore with the provided initial state and enhances it with localStorage support if enabled. The store's state will be automatically persisted to and loaded from localStorage, using the provided name as the key. The `localStorage` option enables this behavior and can be toggled off if persistence is not needed.
+<!-- cami-language-pair -->
+=== "JavaScript"
 
-**Kind**: global function  
-**Returns**: [<code>ObservableStore</code>](#ObservableStore) - A new instance of ObservableStore with the provided initial state, enhanced with localStorage if enabled.  
+    ```javascript
+    import { store } from "cami";
+    const CartStore = store({
+        name: "CartStore",
+        state: { cartItems: [] },
+    });
+    ```
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| initialState | <code>Object</code> |  | The initial state of the store. |
-| [options] | <code>Object</code> |  | Configuration options for the store. |
-| [options.localStorage] | <code>boolean</code> | <code>true</code> | Whether to use localStorage for state persistence. |
-| [options.name] | <code>string</code> | <code>&quot;&#x27;cami-store&#x27;&quot;</code> | The name of the store to use as the key in localStorage. |
-| [options.expiry] | <code>number</code> | <code>86400000</code> | The time in milliseconds until the stored state expires (default is 24 hours). |
+=== "TypeScript"
 
-**Example**  
-```javascript
-// Create a store with default localStorage support
-const CartStore = store({ cartItems: [] });
+    ```typescript
+    import { store } from "cami";
 
-// Create a store without localStorage support
-const NonPersistentStore = store({ items: [] }, { localStorage: false });
-```
+    interface CartState {
+      cartItems: Array<{ id: string; name: string; price: number }>;
+    }
+
+    const CartStore = store<CartState>({
+      name: "CartStore",
+      state: { cartItems: [] },
+    });
+    ```
+
+**Config options:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `state` | `TState` | `{}` | Initial state |
+| `name` | `string` | `"cami-store"` | Store name (also used for singleton lookup) |
+| `schema` | `Record<string, TypeDefinition>` | `{}` | Optional schema for runtime validation |
+| `enableLogging` | `boolean` | `false` | Enable debug logging |
+| `enableDevtools` | `boolean` | `false` | Enable devtools integration |
+
+**Singleton behavior:** Calling `store({ name: "foo" })` multiple times returns the same instance. This is useful for accessing stores across modules without explicit imports.
+
+---
+
+## Reading State
+
+### `getState()` and `state`
+
+Both return a frozen snapshot of current state.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const { cartItems } = CartStore.getState();
+    const total = cartItems.reduce((acc, item) => acc + item.price, 0);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    const { cartItems } = CartStore.getState();
+    const total: number = cartItems.reduce(
+      (acc: number, item: CartState['cartItems'][number]) => acc + item.price,
+      0,
+    );
+    ```
+
+**Dependency tracking:** When called inside a reactive context (like `template()`), the component automatically subscribes to state changes.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    class CartTotal extends ReactiveElement {
+        template() {
+            // This registers a dependency—component re-renders when cartItems changes
+            const { cartItems } = CartStore.getState();
+            const total = cartItems.reduce((acc, item) => acc + item.price, 0);
+            return html `<div>Total: $${(total / 100).toFixed(2)}</div>`;
+        }
+    }
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    class CartTotal extends ReactiveElement {
+      template() {
+        // This registers a dependency—component re-renders when cartItems changes
+        const { cartItems } = CartStore.getState();
+        const total = cartItems.reduce((acc, item) => acc + item.price, 0);
+        return html`<div>Total: $${(total / 100).toFixed(2)}</div>`;
+      }
+    }
+    ```
+
+---
+
+## Actions
+
+Actions are the only way to modify store state. They receive a context object with the current state draft and various utilities.
+
+### `defineAction(name, handler)`
+
+Defines a synchronous action.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    CartStore.defineAction("add", ({ state, payload }) => {
+        state.cartItems.push(payload);
+    });
+    CartStore.defineAction("remove", ({ state, payload }) => {
+        state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
+    });
+    CartStore.defineAction("clear", ({ state }) => {
+        state.cartItems = [];
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    CartStore.defineAction("add", ({ state, payload }) => {
+      state.cartItems.push(payload as CartState['cartItems'][number]);
+    });
+
+    CartStore.defineAction("remove", ({ state, payload }) => {
+      const { id } = payload as Pick<CartState['cartItems'][number], 'id'>;
+      state.cartItems = state.cartItems.filter(item => item.id !== id);
+    });
+
+    CartStore.defineAction("clear", ({ state }) => {
+      state.cartItems = [];
+    });
+    ```
+
+**Handler context:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `state` | `Draft<TState>` | Mutable state draft (Immer) |
+| `payload` | `any` | Data passed to `dispatch()` |
+| `dispatch` | `(action, payload?) => TState` | Dispatch another action |
+| `query` | `(name, payload?) => Promise` | Execute a query |
+| `mutate` | `(name, payload?) => Promise` | Execute a mutation |
+| `invalidateQueries` | `(options) => void` | Invalidate cached queries |
+| `memo` | `(name, payload?) => any` | Get a memoized value |
+| `trigger` | `(event, payload?) => Promise` | Trigger a state machine event |
+| `dispatchAsync` | `(name, payload?) => Promise` | Dispatch an async action |
+
+### `dispatch(action, payload?)`
+
+Dispatches an action and returns the new state.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    CartStore.dispatch("add", { id: "p1", name: "Widget", price: 999 });
+    CartStore.dispatch("remove", { id: "p1" });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    CartStore.dispatch("add", { id: "p1", name: "Widget", price: 999 });
+    CartStore.dispatch("remove", { id: "p1" });
+    ```
+
+**Convenience methods:** `defineAction` also creates `store.actions[actionName]`:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    CartStore.actions.add({ id: "p1", name: "Widget", price: 999 });
+    CartStore.actions.remove({ id: "p1" });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    CartStore.actions.add({ id: "p1", name: "Widget", price: 999 });
+    CartStore.actions.remove({ id: "p1" });
+    ```
+
+---
+
+## Hooks
+
+Hooks replace the old middleware system. They run before or after every action dispatch.
+
+### `beforeHook(hook)` / `afterHook(hook)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    // Logging hook
+    const unsubscribe = CartStore.beforeHook(({ action, payload }) => {
+        console.log(`[${action}]`, payload);
+    });
+    // Persistence hook (runs after state changes)
+    CartStore.afterHook(({ action, state, patches }) => {
+        localStorage.setItem("cart", JSON.stringify(state.cartItems));
+    });
+    // Unsubscribe when done
+    unsubscribe();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    // Logging hook
+    const unsubscribe = CartStore.beforeHook(({ action, payload }) => {
+      console.log(`[${action}]`, payload);
+    });
+
+    // Persistence hook (runs after state changes)
+    CartStore.afterHook(({ action, state, patches }) => {
+      localStorage.setItem("cart", JSON.stringify(state.cartItems));
+    });
+
+    // Unsubscribe when done
+    unsubscribe();
+    ```
+
+**Hook context:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `action` | `string` | Action name |
+| `payload` | `any` | Action payload |
+| `state` | `TState` | Current state |
+| `previousState` | `TState` | State before action (afterHook only) |
+| `patches` | `Patch[]` | Immer patches (afterHook only) |
+| `inversePatches` | `Patch[]` | Inverse patches for undo (afterHook only) |
+| `dispatch` | `(action, payload?) => TState` | Dispatch another action |
+
+---
+
+## Queries
+
+Queries handle async data fetching with caching, refetching, and lifecycle callbacks.
+
+### `defineQuery(name, config)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const PostsStore = store({
+        name: "PostsStore",
+        state: { posts: { status: "idle", data: [] } },
+    });
+    // Actions to update state
+    PostsStore.defineAction("posts:setPending", ({ state }) => {
+        state.posts.status = "pending";
+        state.posts.error = undefined;
+    });
+    PostsStore.defineAction("posts:setSuccess", ({ state, payload }) => {
+        state.posts.status = "success";
+        state.posts.data = payload;
+    });
+    PostsStore.defineAction("posts:setError", ({ state, payload }) => {
+        state.posts.status = "error";
+        state.posts.error = String(payload?.message || payload);
+    });
+    // Define the query
+    PostsStore.defineQuery("posts:fetch", {
+        queryKey: () => ["posts"],
+        queryFn: async () => {
+            const res = await fetch("/api/posts");
+            return res.json();
+        },
+        onFetch: ({ dispatch }) => {
+            dispatch("posts:setPending");
+        },
+        onSuccess: ({ data, dispatch }) => {
+            dispatch("posts:setSuccess", data);
+        },
+        onError: ({ error, dispatch }) => {
+            dispatch("posts:setError", error);
+        },
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    interface PostsState {
+      posts: {
+        status: "idle" | "pending" | "success" | "error";
+        data: any[];
+        error?: string;
+      };
+    }
+
+    const PostsStore = store<PostsState>({
+      name: "PostsStore",
+      state: { posts: { status: "idle", data: [] } },
+    });
+
+    // Actions to update state
+    PostsStore.defineAction("posts:setPending", ({ state }) => {
+      state.posts.status = "pending";
+      state.posts.error = undefined;
+    });
+
+    PostsStore.defineAction("posts:setSuccess", ({ state, payload }) => {
+      state.posts.status = "success";
+      state.posts.data = payload;
+    });
+
+    PostsStore.defineAction("posts:setError", ({ state, payload }) => {
+      state.posts.status = "error";
+      state.posts.error = String(payload?.message || payload);
+    });
+
+    // Define the query
+    PostsStore.defineQuery("posts:fetch", {
+      queryKey: () => ["posts"],
+      queryFn: async () => {
+        const res = await fetch("/api/posts");
+        return res.json();
+      },
+      onFetch: ({ dispatch }) => {
+        dispatch("posts:setPending");
+      },
+      onSuccess: ({ data, dispatch }) => {
+        dispatch("posts:setSuccess", data);
+      },
+      onError: ({ error, dispatch }) => {
+        dispatch("posts:setError", error);
+      },
+    });
+    ```
+
+**Query config:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `queryKey` | `string \| string[] \| (args) => string[]` | Cache key |
+| `queryFn` | `(args) => Promise<TResult>` | Function to fetch data |
+| `staleTime` | `number` | Milliseconds before data is considered stale (default: 0) |
+| `gcTime` | `number` | Milliseconds before unused cache is garbage collected |
+| `retry` | `number` | Number of retry attempts (default: 1) |
+| `retryDelay` | `number \| (attempt) => number` | Delay between retries |
+| `refetchOnWindowFocus` | `boolean` | Refetch when window regains focus |
+| `refetchOnReconnect` | `boolean` | Refetch when network reconnects |
+| `refetchInterval` | `number \| null` | Polling interval in milliseconds |
+| `onFetch` | `(context) => void` | Called when query starts |
+| `onSuccess` | `(context) => void` | Called on success |
+| `onError` | `(context) => void` | Called on error |
+| `onSettled` | `(context) => void` | Called after success or error |
+
+### `query(name, payload?)`
+
+Executes a query and returns the result.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    await PostsStore.query("posts:fetch");
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    await PostsStore.query("posts:fetch");
+    ```
+
+**Convenience method:** `store.queries[queryName]`:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    await PostsStore.queries["posts:fetch"]();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    await PostsStore.queries["posts:fetch"]();
+    ```
+
+### `invalidateQueries(options)`
+
+Marks queries as stale, causing them to refetch on next access.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    // Invalidate by key (recommended)
+    PostsStore.invalidateQueries({ queryKey: ["posts"] });
+    // Invalidate by predicate (advanced)
+    // Note: predicate receives the QueryConfig object, not the resolved key
+    PostsStore.invalidateQueries({
+        predicate: (queryConfig) => {
+            // Handle both string keys and function-based keys safely
+            try {
+                const key = typeof queryConfig.queryKey === 'function'
+                    ? queryConfig.queryKey({})
+                    : Array.isArray(queryConfig.queryKey)
+                        ? queryConfig.queryKey
+                        : [queryConfig.queryKey];
+                return key.some(k => k === "posts" || k?.includes?.("posts"));
+            }
+            catch {
+                // If queryKey function throws (e.g., expects specific payload), skip this query
+                return false;
+            }
+        },
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    // Invalidate by key (recommended)
+    PostsStore.invalidateQueries({ queryKey: ["posts"] });
+
+    // Invalidate by predicate (advanced)
+    // Note: predicate receives the QueryConfig object, not the resolved key
+    PostsStore.invalidateQueries({
+      predicate: (queryConfig) => {
+        // Handle both string keys and function-based keys safely
+        try {
+          const key = typeof queryConfig.queryKey === 'function'
+            ? queryConfig.queryKey({})
+            : Array.isArray(queryConfig.queryKey)
+              ? queryConfig.queryKey
+              : [queryConfig.queryKey];
+          return key.some(k => k === "posts" || k?.includes?.("posts"));
+        } catch {
+          // If queryKey function throws (e.g., expects specific payload), skip this query
+          return false;
+        }
+      },
+    });
+    ```
+
+---
+
+## Mutations
+
+Mutations handle async write operations with optimistic updates and rollback support.
+
+### `defineMutation(name, config)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    PostsStore.defineMutation("posts:create", {
+        mutationFn: async (payload) => {
+            const res = await fetch("/api/posts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            return res.json();
+        },
+        onMutate: ({ dispatch }) => {
+            dispatch("posts:setPending");
+        },
+        onSuccess: ({ data, dispatch, invalidateQueries }) => {
+            dispatch("posts:setSuccess", data);
+            invalidateQueries({ queryKey: ["posts"] });
+        },
+        onError: ({ error, dispatch }) => {
+            dispatch("posts:setError", error);
+        },
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    PostsStore.defineMutation("posts:create", {
+      mutationFn: async (payload) => {
+        const res = await fetch("/api/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        return res.json();
+      },
+      onMutate: ({ dispatch }) => {
+        dispatch("posts:setPending");
+      },
+      onSuccess: ({ data, dispatch, invalidateQueries }) => {
+        dispatch("posts:setSuccess", data);
+        invalidateQueries({ queryKey: ["posts"] });
+      },
+      onError: ({ error, dispatch }) => {
+        dispatch("posts:setError", error);
+      },
+    });
+    ```
+
+**Mutation config:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `mutationFn` | `(args) => Promise<TResult>` | Function to perform mutation |
+| `onMutate` | `(context) => any` | Called before mutation (for optimistic updates) |
+| `onSuccess` | `(context) => void` | Called on success |
+| `onError` | `(context) => void` | Called on error |
+| `onSettled` | `(context) => void` | Called after success or error |
+
+**Mutation context** includes `previousState` for rollback:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    PostsStore.defineMutation("posts:delete", {
+        mutationFn: async (id) => {
+            await fetch(`/api/posts/${id}`, { method: "DELETE" });
+        },
+        onMutate: ({ state, payload, dispatch }) => {
+            // Optimistic: remove item immediately
+            dispatch("posts:setSuccess", state.posts.data.filter(p => p.id !== payload));
+            // Note: previousState is automatically captured and available in onError
+        },
+        onError: ({ error, dispatch, previousState }) => {
+            // Rollback on error using previousState (captured before onMutate ran)
+            dispatch("posts:setSuccess", previousState.posts.data);
+            dispatch("posts:setError", error);
+        },
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    PostsStore.defineMutation("posts:delete", {
+      mutationFn: async (id) => {
+        await fetch(`/api/posts/${id}`, { method: "DELETE" });
+      },
+      onMutate: ({ state, payload, dispatch }) => {
+        // Optimistic: remove item immediately
+        dispatch("posts:setSuccess", state.posts.data.filter(p => p.id !== payload));
+        // Note: previousState is automatically captured and available in onError
+      },
+      onError: ({ error, dispatch, previousState }) => {
+        // Rollback on error using previousState (captured before onMutate ran)
+        dispatch("posts:setSuccess", previousState.posts.data);
+        dispatch("posts:setError", error);
+      },
+    });
+    ```
+
+### `mutate(name, payload?)`
+
+Executes a mutation.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    await PostsStore.mutate("posts:create", { title: "New Post", body: "..." });
+    await PostsStore.mutate("posts:delete", "post-123");
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    await PostsStore.mutate("posts:create", { title: "New Post", body: "..." });
+    await PostsStore.mutate("posts:delete", "post-123");
+    ```
+
+---
+
+## Memos (Derived State)
+
+Memos compute and cache derived values. They're recomputed when their dependencies change.
+
+### `defineMemo(name, fn)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    CartStore.defineMemo("cart:totalCents", ({ state }) => {
+        return state.cartItems.reduce((acc, item) => acc + item.price, 0);
+    });
+    CartStore.defineMemo("cart:itemCount", ({ state }) => {
+        return state.cartItems.length;
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    CartStore.defineMemo("cart:totalCents", ({ state }) => {
+      return state.cartItems.reduce((acc, item) => acc + item.price, 0);
+    });
+
+    CartStore.defineMemo("cart:itemCount", ({ state }) => {
+      return state.cartItems.length;
+    });
+    ```
+
+### `memo(name, payload?)`
+
+Returns the memoized value.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const total = CartStore.memo("cart:totalCents");
+    const count = CartStore.memo("cart:itemCount");
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    const total = CartStore.memo("cart:totalCents");
+    const count = CartStore.memo("cart:itemCount");
+    ```
+
+**Memo context:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `state` | `TState` | Current state (tracked for dependency invalidation) |
+| `payload` | `any` | Optional payload |
+| `dispatch` | `(action, payload?) => TState` | Dispatch an action |
+| `memo` | `(name, payload?) => any` | Call another memo |
+| `query` | `(name, payload?) => Promise` | Execute a query |
+| `mutate` | `(name, payload?) => Promise` | Execute a mutation |
+
+---
+
+## Async Actions (Thunks)
+
+Async actions handle complex async workflows that need access to store context.
+
+### `defineAsyncAction(name, fn)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    PostsStore.defineAsyncAction("posts:bootstrap", async ({ dispatch, query }) => {
+        dispatch("posts:setPending");
+        try {
+            await query("posts:fetch");
+        }
+        catch (error) {
+            dispatch("posts:setError", error);
+        }
+    });
+    PostsStore.defineAsyncAction("posts:refresh", async ({ dispatch, query, invalidateQueries }) => {
+        invalidateQueries({ queryKey: ["posts"] });
+        await query("posts:fetch");
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    PostsStore.defineAsyncAction("posts:bootstrap", async ({ dispatch, query }) => {
+      dispatch("posts:setPending");
+      try {
+        await query("posts:fetch");
+      } catch (error) {
+        dispatch("posts:setError", error);
+      }
+    });
+
+    PostsStore.defineAsyncAction("posts:refresh", async ({ dispatch, query, invalidateQueries }) => {
+      invalidateQueries({ queryKey: ["posts"] });
+      await query("posts:fetch");
+    });
+    ```
+
+### `dispatchAsync(name, payload?)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    await PostsStore.dispatchAsync("posts:bootstrap");
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    await PostsStore.dispatchAsync("posts:bootstrap");
+    ```
+
+---
+
+## Action Specs (Validation)
+
+Specs add preconditions and postconditions to actions for runtime validation.
+
+### `defineSpec(actionName, spec)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    import { invariant } from "cami";
+    CartStore.defineSpec("add", {
+        precondition: ({ payload }) => {
+            invariant("item must have id", () => typeof payload?.id === "string");
+            invariant("price must be positive", () => typeof payload?.price === "number" && payload.price > 0);
+            return true;
+        },
+        postcondition: ({ state, payload }) => {
+            invariant("item was added", () => state.cartItems.some(item => item.id === payload.id));
+            return true;
+        },
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { invariant } from "cami";
+
+    CartStore.defineSpec("add", {
+      precondition: ({ payload }) => {
+        invariant("item must have id", () => typeof payload?.id === "string");
+        invariant("price must be positive", () => typeof payload?.price === "number" && payload.price > 0);
+        return true;
+      },
+      postcondition: ({ state, payload }) => {
+        invariant("item was added", () => state.cartItems.some(item => item.id === payload.id));
+        return true;
+      },
+    });
+    ```
+
+**Spec options:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `precondition` | `(context) => boolean` | Checked before action runs |
+| `postcondition` | `(context) => boolean` | Checked after action runs |
+
+Precondition context: `{ state, payload, action }`
+Postcondition context: `{ state, payload, action, previousState }`
+
+---
+
+## State Machines
+
+State machines define valid state transitions with guards and lifecycle hooks.
+
+### `defineMachine(name, definition)`
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const UIStore = store({
+        name: "UIStore",
+        state: { modal: "closed" },
+    });
+    UIStore.defineMachine("modal", {
+        open: {
+            from: { modal: "closed" },
+            to: { modal: "open" },
+            guard: ({ payload }) => payload?.allowed !== false,
+            onEntry: ({ state, payload }) => {
+                console.log("Modal opened with", payload);
+            },
+        },
+        close: {
+            from: { modal: "open" },
+            to: { modal: "closed" },
+            onExit: ({ state }) => {
+                console.log("Modal closing");
+            },
+        },
+        startLoading: {
+            from: { modal: "open" },
+            to: { modal: "loading" },
+        },
+        finishLoading: {
+            from: { modal: "loading" },
+            to: { modal: "open" },
+        },
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    interface ModalState {
+      modal: "closed" | "open" | "loading";
+    }
+
+    const UIStore = store<ModalState>({
+      name: "UIStore",
+      state: { modal: "closed" },
+    });
+
+    UIStore.defineMachine("modal", {
+      open: {
+        from: { modal: "closed" },
+        to: { modal: "open" },
+        guard: ({ payload }) => payload?.allowed !== false,
+        onEntry: ({ state, payload }) => {
+          console.log("Modal opened with", payload);
+        },
+      },
+      close: {
+        from: { modal: "open" },
+        to: { modal: "closed" },
+        onExit: ({ state }) => {
+          console.log("Modal closing");
+        },
+      },
+      startLoading: {
+        from: { modal: "open" },
+        to: { modal: "loading" },
+      },
+      finishLoading: {
+        from: { modal: "loading" },
+        to: { modal: "open" },
+      },
+    });
+    ```
+
+### `trigger(event, payload?)`
+
+Triggers a state machine transition.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    await UIStore.trigger("modal:open", { contentId: "123" });
+    await UIStore.trigger("modal:close");
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    await UIStore.trigger("modal:open", { contentId: "123" });
+    await UIStore.trigger("modal:close");
+    ```
+
+**Machine event options:**
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `from` | `Partial<TState> \| Partial<TState>[] \| (state) => boolean` | Valid source states |
+| `to` | `Partial<TState> \| (context) => Partial<TState>` | Target state |
+| `guard` | `(context) => boolean` | Condition for transition |
+| `onEntry` | `(context) => void` | Called when entering new state |
+| `onExit` | `(context) => void` | Called when leaving current state |
+| `onTransition` | `(context) => void` | Called during transition |
+
+---
+
+## Patches
+
+Patches provide fine-grained change tracking using Immer's patch format.
+
+### `onPatch(key, listener)`
+
+Subscribe to patches for a specific state key.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const unsubscribe = CartStore.onPatch("cartItems", (patches) => {
+        console.log("Cart changes:", patches);
+        // patches: [{ op: "add", path: ["cartItems", 0], value: {...} }]
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    const unsubscribe = CartStore.onPatch("cartItems", (patches) => {
+      console.log("Cart changes:", patches);
+      // patches: [{ op: "add", path: ["cartItems", 0], value: {...} }]
+    });
+    ```
+
+### `applyPatch(patches)`
+
+Apply patches to the store state (useful for undo/redo or sync).
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const patches = [
+        { op: "replace", path: ["cartItems", 0, "price"], value: 1999 },
+    ];
+    CartStore.applyPatch(patches);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    const patches = [
+      { op: "replace", path: ["cartItems", 0, "price"], value: 1999 },
+    ];
+    CartStore.applyPatch(patches);
+    ```
+
+---
+
+## Subscriptions
+
+### `subscribe(observer)`
+
+Subscribe to all state changes.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const unsubscribe = CartStore.subscribe((state) => {
+        console.log("State changed:", state);
+    });
+    // Later
+    unsubscribe();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    const unsubscribe = CartStore.subscribe((state) => {
+      console.log("State changed:", state);
+    });
+
+    // Later
+    unsubscribe();
+    ```
+
+---
+
+## Complete Example
+
+Here's a full example showing the recommended patterns:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    import { store, html, ReactiveElement } from "cami";
+    // 2. Create store
+    const TodoStore = store({
+        name: "TodoStore",
+        state: {
+            todos: [],
+            filter: "all",
+        },
+    });
+    // 3. Define actions
+    TodoStore.defineAction("add", ({ state, payload }) => {
+        state.todos.push({
+            id: crypto.randomUUID(),
+            text: payload.text,
+            done: false,
+        });
+    });
+    TodoStore.defineAction("toggle", ({ state, payload }) => {
+        const todo = state.todos.find(t => t.id === payload.id);
+        if (todo)
+            todo.done = !todo.done;
+    });
+    TodoStore.defineAction("remove", ({ state, payload }) => {
+        state.todos = state.todos.filter(t => t.id !== payload.id);
+    });
+    TodoStore.defineAction("setFilter", ({ state, payload }) => {
+        state.filter = payload;
+    });
+    // 4. Define memos for derived state
+    TodoStore.defineMemo("filteredTodos", ({ state }) => {
+        switch (state.filter) {
+            case "active":
+                return state.todos.filter(t => !t.done);
+            case "completed":
+                return state.todos.filter(t => t.done);
+            default:
+                return state.todos;
+        }
+    });
+    TodoStore.defineMemo("stats", ({ state }) => ({
+        total: state.todos.length,
+        active: state.todos.filter(t => !t.done).length,
+        completed: state.todos.filter(t => t.done).length,
+    }));
+    // 5. Create a pure component
+    class TodoApp extends ReactiveElement {
+        template() {
+            // Read state (registers dependency)
+            const { filter } = TodoStore.getState();
+            const todos = TodoStore.memo("filteredTodos");
+            const stats = TodoStore.memo("stats");
+            return html `
+          <div>
+            <h1>Todos (${stats.active} active)</h1>
+
+            <form @submit=${this.handleAdd}>
+              <input type="text" name="text" placeholder="What needs to be done?" />
+              <button type="submit">Add</button>
+            </form>
+
+            <div>
+              <button @click=${() => TodoStore.dispatch("setFilter", "all")}
+                      ?disabled=${filter === "all"}>All (${stats.total})</button>
+              <button @click=${() => TodoStore.dispatch("setFilter", "active")}
+                      ?disabled=${filter === "active"}>Active (${stats.active})</button>
+              <button @click=${() => TodoStore.dispatch("setFilter", "completed")}
+                      ?disabled=${filter === "completed"}>Completed (${stats.completed})</button>
+            </div>
+
+            <ul>
+              ${todos.map(todo => html `
+                <li>
+                  <input type="checkbox"
+                         ?checked=${todo.done}
+                         @change=${() => TodoStore.dispatch("toggle", { id: todo.id })} />
+                  <span style=${todo.done ? "text-decoration: line-through" : ""}>
+                    ${todo.text}
+                  </span>
+                  <button @click=${() => TodoStore.dispatch("remove", { id: todo.id })}>×</button>
+                </li>
+              `)}
+            </ul>
+          </div>
+        `;
+        }
+        handleAdd(e) {
+            e.preventDefault();
+            const form = e.target;
+            const input = form.elements.namedItem("text");
+            if (input.value.trim()) {
+                TodoStore.dispatch("add", { text: input.value.trim() });
+                input.value = "";
+            }
+        }
+    }
+    customElements.define("todo-app", TodoApp);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { store, html, ReactiveElement } from "cami";
+
+    // 1. Define state shape
+    interface TodoState {
+      todos: Array<{ id: string; text: string; done: boolean }>;
+      filter: "all" | "active" | "completed";
+    }
+
+    // 2. Create store
+    const TodoStore = store<TodoState>({
+      name: "TodoStore",
+      state: {
+        todos: [],
+        filter: "all",
+      },
+    });
+
+    // 3. Define actions
+    TodoStore.defineAction("add", ({ state, payload }) => {
+      state.todos.push({
+        id: crypto.randomUUID(),
+        text: payload.text,
+        done: false,
+      });
+    });
+
+    TodoStore.defineAction("toggle", ({ state, payload }) => {
+      const todo = state.todos.find(t => t.id === payload.id);
+      if (todo) todo.done = !todo.done;
+    });
+
+    TodoStore.defineAction("remove", ({ state, payload }) => {
+      state.todos = state.todos.filter(t => t.id !== payload.id);
+    });
+
+    TodoStore.defineAction("setFilter", ({ state, payload }) => {
+      state.filter = payload;
+    });
+
+    // 4. Define memos for derived state
+    TodoStore.defineMemo("filteredTodos", ({ state }) => {
+      switch (state.filter) {
+        case "active":
+          return state.todos.filter(t => !t.done);
+        case "completed":
+          return state.todos.filter(t => t.done);
+        default:
+          return state.todos;
+      }
+    });
+
+    TodoStore.defineMemo("stats", ({ state }) => ({
+      total: state.todos.length,
+      active: state.todos.filter(t => !t.done).length,
+      completed: state.todos.filter(t => t.done).length,
+    }));
+
+    // 5. Create a pure component
+    class TodoApp extends ReactiveElement {
+      template() {
+        // Read state (registers dependency)
+        const { filter } = TodoStore.getState();
+        const todos = TodoStore.memo("filteredTodos");
+        const stats = TodoStore.memo("stats");
+
+        return html`
+          <div>
+            <h1>Todos (${stats.active} active)</h1>
+
+            <form @submit=${this.handleAdd}>
+              <input type="text" name="text" placeholder="What needs to be done?" />
+              <button type="submit">Add</button>
+            </form>
+
+            <div>
+              <button @click=${() => TodoStore.dispatch("setFilter", "all")}
+                      ?disabled=${filter === "all"}>All (${stats.total})</button>
+              <button @click=${() => TodoStore.dispatch("setFilter", "active")}
+                      ?disabled=${filter === "active"}>Active (${stats.active})</button>
+              <button @click=${() => TodoStore.dispatch("setFilter", "completed")}
+                      ?disabled=${filter === "completed"}>Completed (${stats.completed})</button>
+            </div>
+
+            <ul>
+              ${todos.map(todo => html`
+                <li>
+                  <input type="checkbox"
+                         ?checked=${todo.done}
+                         @change=${() => TodoStore.dispatch("toggle", { id: todo.id })} />
+                  <span style=${todo.done ? "text-decoration: line-through" : ""}>
+                    ${todo.text}
+                  </span>
+                  <button @click=${() => TodoStore.dispatch("remove", { id: todo.id })}>×</button>
+                </li>
+              `)}
+            </ul>
+          </div>
+        `;
+      }
+
+      handleAdd(e: Event) {
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const input = form.elements.namedItem("text") as HTMLInputElement;
+        if (input.value.trim()) {
+          TodoStore.dispatch("add", { text: input.value.trim() });
+          input.value = "";
+        }
+      }
+    }
+
+    customElements.define("todo-app", TodoApp);
+    ```
+
+---
+
+## API Reference
+
+### Store Factory
+
+| Function | Description |
+|----------|-------------|
+| `store<TState>(config)` | Create or get a store instance |
+
+### Instance Methods
+
+| Method | Description |
+|--------|-------------|
+| `getState()` | Get frozen state snapshot |
+| `dispatch(action, payload?)` | Dispatch a sync action |
+| `defineAction(name, handler)` | Define a sync action |
+| `defineAsyncAction(name, handler)` | Define an async action |
+| `dispatchAsync(name, payload?)` | Dispatch an async action |
+| `defineQuery(name, config)` | Define a query |
+| `query(name, payload?)` | Execute a query |
+| `invalidateQueries(options)` | Invalidate cached queries |
+| `defineMutation(name, config)` | Define a mutation |
+| `mutate(name, payload?)` | Execute a mutation |
+| `defineMemo(name, fn)` | Define a memoized value |
+| `memo(name, payload?)` | Get a memoized value |
+| `defineMachine(name, definition)` | Define a state machine |
+| `trigger(event, payload?)` | Trigger a state machine event |
+| `defineSpec(action, spec)` | Define action validation |
+| `beforeHook(hook)` | Add a before-action hook |
+| `afterHook(hook)` | Add an after-action hook |
+| `onPatch(key, listener)` | Subscribe to patches |
+| `applyPatch(patches)` | Apply Immer patches |
+| `subscribe(observer)` | Subscribe to state changes |
+
+### Convenience Properties
+
+| Property | Description |
+|----------|-------------|
+| `store.state` | Alias for `getState()` |
+| `store.actions` | Object with action methods |
+| `store.queries` | Object with query methods |
+| `store.mutations` | Object with mutation methods |

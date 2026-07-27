@@ -25,9 +25,18 @@ The following functions can be invoked in the developer tools console. When you 
 This function enables logging.
 
 **Example**
-```javascript
-cami.debug.enable();
-```
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    cami.debug.enable();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    cami.debug.enable();
+    ```
 
 <a name="debug.disable"></a>
 
@@ -35,9 +44,18 @@ cami.debug.enable();
 This function disables logging. This is the default setting.
 
 **Example**
-```javascript
-cami.debug.disable();
-```
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    cami.debug.disable();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    cami.debug.disable();
+    ```
 
 <a name="events.enable"></a>
 
@@ -45,12 +63,24 @@ cami.debug.disable();
 This function enables event emissions. This emits the `cami:elem:state:change` event. One can then attach an eventListener to the window to capture this event. This is the default setting.
 
 **Example**
-```javascript
-cami.events.enable();
-window.addEventListener('cami:elem:state:change', function(e) {
-  console.log('State changed:', e.detail);
-});
-```
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    cami.events.enable();
+    window.addEventListener('cami:elem:state:change', function(e) {
+      console.log('State changed:', e.detail);
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    cami.events.enable();
+    window.addEventListener('cami:elem:state:change', function(e) {
+      console.log('State changed:', e.detail);
+    });
+    ```
 
 <a name="events.disable"></a>
 
@@ -58,6 +88,15 @@ window.addEventListener('cami:elem:state:change', function(e) {
 This function disables event emissions.
 
 **Example**
-```javascript
-cami.events.disable();
-```
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    cami.events.disable();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    cami.events.disable();
+    ```

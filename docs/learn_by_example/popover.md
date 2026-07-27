@@ -8,9 +8,12 @@ It inherits from `ReactivePopoverElement`, which has all the logic for positioni
 
 Note that if you want a background click to close the popover, you'll need to define a backdrop `div` and add a click handler to it that calls `this.closeDialog()`. See the [Modal](modal.md) component for an example.
 
-<iframe width="100%" height="900" src="//jsfiddle.net/kennyfrc12/0dt5oy9e/68/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<div class="cami-live-example">
+  <div class="cami-live-example__header"><span class="cami-live-example__label">Live island</span><span class="cami-live-example__note">Runs locally in this page</span></div>
+  <div class="cami-live-example__stage"><cami-demo-island kind="popover"></cami-demo-island></div>
+</div>
 
-## HTML:
+## Page shell
 
 ```html
 <h1>Popover</h1>
@@ -37,167 +40,20 @@ Note that if you want a background click to close the popover, you'll need to de
 <!--  --><script src="./build/cami.cdn.js"></script>
 <!-- CDN version below -->
 <script src="https://unpkg.com/cami@0.3.5/build/cami.cdn.js"></script>
-<script type="module">
-  const { html, ReactiveElement } = cami;
-
-  class ReactiveModalElement extends ReactiveElement {
-    isOpen = false;
-    lastFocusedElement = null;
-    focusableElements = [];
-
-    connectedCallback() {
-    	super.connectedCallback();
-      this.addEventListener('keydown', (event) => {
-        const preventDefault = () => { event.preventDefault(); return true; };
-        const isEscape = event.key === 'Escape';
-        const isTab = event.key === 'Tab';
-        const isShiftTab = isTab && event.shiftKey;
-        const isTabAtStart = isTab && document.activeElement === this.focusableElements[0];
-        const isTabAtEnd = isTab && document.activeElement === this.focusableElements[this.focusableElements.length - 1];
-
-        isEscape && this.closeDialog();
-        isTabAtStart && preventDefault() && this.focusableElements[this.focusableElements.length - 1]?.focus();
-        isTabAtEnd && preventDefault() && this.focusFirstElement();
-      });
-    }
-
-    openDialog() {
-      this.isOpen = true;
-      this.querySelector('dialog').setAttribute('open', '');
-      this.lastFocusedElement = document.activeElement;
-      this.focusFirstElement();
-    }
-
-    closeDialog() {
-      this.isOpen = false;
-      this.querySelector('dialog').removeAttribute('open');
-      this.lastFocusedElement && this.lastFocusedElement.focus();
-    }
-
-    focusFirstElement() {
-      const dialog = this.querySelector('dialog');
-      this.focusableElements = Array.from(dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
-      const hasFocusables = this.focusableElements.length > 0;
-      hasFocusables && this.focusableElements[0].focus();
-    }
-  }
-
-  class ReactivePopoverElement extends ReactiveModalElement {
-    referenceElement = null;
-    placement = null;
-
-    openDialog() {
-      super.openDialog();
-      this.positionPopover();
-    }
-
-    positionPopover() {
-      if (!this.referenceElement) return;
-      const rect = this.referenceElement.getBoundingClientRect();
-      let popover = this.querySelector('dialog');
-
-      ['top', 'left', 'right', 'bottom'].forEach((prop) => popover.style[prop] = 'auto');
-
-      let popoverRect = popover.getBoundingClientRect();
-      const placements = {
-        'top-start': { top: rect.top - popoverRect.height, left: rect.left },
-        'top': { top: rect.top - popoverRect.height, left: rect.left + rect.width / 2 - popoverRect.width / 2 },
-        'top-end': { top: rect.top - popoverRect.height, left: rect.right - popoverRect.width },
-               'right-start': { top: rect.top, left: rect.right },
-        'right': { top: rect.top + rect.height / 2 - popoverRect.height / 2, left: rect.right },
-               'right-end': { top: rect.bottom - popoverRect.height, left: rect.right },
-        'bottom-start': { top: rect.bottom, left: rect.left },
-        'bottom': { top: rect.bottom, left: rect.left + rect.width / 2 - popoverRect.width / 2 },
-        'bottom-end': { top: rect.bottom, left: rect.right - popoverRect.width },
-        'left-start': { top: rect.top, left: rect.left - popoverRect.width },
-        'left': { top: rect.top + rect.height / 2 - popoverRect.height / 2, left: rect.left - popoverRect.width },
-        'left-end': { top: rect.bottom - popoverRect.height, left: rect.left - popoverRect.width }
-      };
-
-      const availableSpaceLeft = rect.left;
-      const availableSpaceRight = window.innerWidth - rect.right;
-
-      const spaceAbove = rect.top;
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const hasSpaceAbove = spaceAbove >= popoverRect.height;
-
-      // If not enough space above, flip to bottom
-      if (!hasSpaceAbove && spaceBelow >= popoverRect.height) {
-        this.placement = this.placement.replace('top', 'bottom');
-      }
-
-      let position = placements[this.placement];
-
-      // Adjust for viewport overflow
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      // Flip to the right if it would cover the reference element when placed to the left
-      if (this.placement === 'left' && availableSpaceLeft < popoverRect.width) {
-        this.placement = 'right';
-        position.left = availableSpaceLeft + rect.width;
-      }
-
-      // If flipping to the right causes overflow, adjust the left position
-      if (this.placement === 'right' && availableSpaceRight < popoverRect.width) {
-        position.left = viewportWidth - popoverRect.width * 1.3;
-      }
-
-      // Check for right overflow
-      if (position.left + popoverRect.width > viewportWidth) {
-        position.left = viewportWidth - popoverRect.width;
-      }
-      // Check for bottom overflow
-      if (position.top + popoverRect.height > viewportHeight) {
-        position.top = viewportHeight - popoverRect.height;
-      }
-      // Check for left overflow
-      if (position.left < 0) {
-        position.left = 0;
-      }
-      // Check for top overflow
-      if (position.top < 0) {
-        position.top = 0;
-      }
-
-      // Apply the adjusted position
-      popover.style.position = 'absolute';
-      popover.style.top = `${position.top + window.scrollY}px`;
-      popover.style.left = `${position.left + window.scrollX}px`;
-    }
-  }
-
-  class DemoPopoverElement extends ReactivePopoverElement {
-  	referenceElement = null
-    placement = null
-
-  	onConnect() {
-    	this.render(); // early render because we need the referenceElement to be set
-  	  this.referenceElement = document.querySelector(".referenceElement");
-      this.placement = 'top';
-    }
-
-    template() {
-      return html`
-          <dialog @click=${(event) => event.stopPropagation()} role="dialog" aria-modal=${this.isOpen} aria-labelledby="dialog-title">
-            <article>
-              <small id="dialog-title">Hi! I'm a Popover</small>
-              <button @click=${() => this.closeDialog()} aria-label="Close Popover">Close</button>
-            </article>
-          </dialog>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 200px;">
-          <button @click=${() => { this.placement = 'top'; this.openDialog(); }}>Top</button>
-          <div style="display: flex; gap: 200px;">
-            <button @click=${() => { this.placement = 'left'; this.openDialog(); }}>Left</button>
-            <button class="referenceElement" style="margin-left: 10px;" disabled>Reference</button>
-            <button @click=${() => { this.placement = 'right'; this.openDialog(); }}>Right</button>
-          </div>
-          <button @click=${() => { this.placement = 'bottom'; this.openDialog(); }}>Bottom</button>
-        </div>
-      `;
-    }
-  }
-
-  customElements.define('cami-popover', DemoPopoverElement);
-</script>
+<script type="module" src="./island.js"></script>
 ```
+
+## Island source
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    --8<-- "docs/examples/islands/popover.js"
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    --8<-- "docs/examples/islands/popover.ts"
+    ```

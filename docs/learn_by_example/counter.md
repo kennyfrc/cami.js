@@ -8,9 +8,12 @@ If you don't use a callback (like `@click=${this.count++}`), then the event list
 
 If you only want to display values, then you don't need to use a callback. For example, `Count: ${this.count}` will display the count value.
 
-<iframe width="100%" height="500" src="//jsfiddle.net/kennyfrc12/69w128vd/13/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+<div class="cami-live-example">
+  <div class="cami-live-example__header"><span class="cami-live-example__label">Live island</span><span class="cami-live-example__note">Runs locally in this page</span></div>
+  <div class="cami-live-example__stage"><cami-demo-island kind="counter"></cami-demo-island></div>
+</div>
 
-## HTML
+## Page shell
 
 ```html
 <article>
@@ -18,22 +21,21 @@ If you only want to display values, then you don't need to use a callback. For e
   <cami-counter
   ></cami-counter>
 </article>
-<script type="module">
-  const { html, ReactiveElement } = cami;
-
-  class CounterElement extends ReactiveElement {
-    count = 0
-
-    template() {
-      return html`
-        <button @click=${() => this.count--}>-</button>
-        <button @click=${() => this.count++}>+</button>
-        <div>Count: ${this.count}</div>
-      `;
-    }
-  }
-
-  customElements.define('cami-counter', CounterElement);
-</script>
+<script type="module" src="./island.js"></script>
 
 ```
+
+## Island source
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    --8<-- "docs/examples/islands/counter.js"
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    --8<-- "docs/examples/islands/counter.ts"
+    ```

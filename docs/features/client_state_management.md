@@ -1,166 +1,556 @@
 # Cross-Component Client State Management
 
-In Cami, cross-component state management is achieved through the use of stores. A store is a reactive state container that components can connect to and interact with. By default, Cami's store uses localStorage to persist state with an expiry of 24 hours, ensuring that the state is maintained across browser sessions. This expiry is configurable by passing a configuration object with an `expiry` property to the store.
+In Cami, cross-component state management is achieved through stores. A store is a reactive state container that components can read from and dispatch actions to. This enables multiple components to share the same state and stay in sync.
 
-Here's an example of defining a store with a custom expiry and using it in two components:
+## Creating a Store
 
-```javascript
-const CartStore = cami.store({
-  cartItems: [],
-}, {
-  name: 'CartStore',
-  expiry: 1000 * 60 * 60 * 24 * 3 // 3 days
-});
+Use the `store()` function to create a store with initial state:
 
-// Register actions for adding and removing items
-CartStore.register('add', (state, payload) => {
-  const newItem = {...payload, id: Date.now()}; // Generate a unique id
-  state.cartItems.push(newItem);
-});
+<!-- cami-language-pair -->
+=== "JavaScript"
 
-CartStore.register('remove', (state, payload) => {
-  state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
-});
+    ```javascript
+    const { store } = cami;
 
-class ProductListElement extends ReactiveElement {
-  cartItems = [];
-  products = [];
-
-  onConnect() {
-    CartStore.subscribe(state => {
-      this.cartItems = state.cartItems;
-    });
-    this.products = this.query({
-      queryKey: ['products'],
-      queryFn: () => {
-        return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json())
+    const CartStore = store({
+      name: "CartStore",
+      state: {
+        cartItems: [],
       },
-      staleTime: 1000 * 60 * 5 // 5 minutes
     });
-    // ...
-  }
+    ```
 
-  // ...
-}
+=== "TypeScript"
 
-// Define a component for the cart
-class CartElement extends ReactiveElement {
-  cartItems = [];
+    ```typescript
+    import { store } from 'cami';
 
-  onConnect() {
-    CartStore.subscribe(state => {
-      this.cartItems = state.cartItems;
-    });
-  }
-  // ...
-}
-```
+    interface CartItem {
+      id: string;
+      name: string;
+      price: number;
+    }
 
-Above, both `ProductListElement` and `CartElement` subscribe to `CartStore`. When a product is added or removed in `ProductListElement`, the changes are reflected in `CartElement` because they both share the same state from `CartStore`. The store's expiry is set to 24 hours, after which the state will no longer be persisted.
+    interface CartState {
+      cartItems: CartItem[];
+    }
 
-The `ProductListElement` is initialized with a `query` that fetches product data from an API. This data is used to populate the `products` property. The `query` is configured with a `staleTime` of 5 minutes, indicating that the fetched data will be considered fresh for this duration before a new fetch is triggered.
-
-The `ProductListElement` also includes methods to add products to the cart, check if a product is already in the cart, and determine if a product is out of stock. The `template` method defines the HTML structure for the component, including a loading state, error handling, and the list of products with an "Add to cart" button that is disabled if the product is out of stock.
-
-Here is the relevant code for `ProductListElement`:
-```javascript
-// Define a component for listing products
-class ProductListElement extends ReactiveElement {
-  cartItems = [];
-  products = [];
-
-  onConnect() {
-    CartStore.subscribe(state => {
-      this.cartItems = state.cartItems;
-    });
-    this.products = this.query({
-      queryKey: ['products'],
-      queryFn: () => {
-        return fetch("https://api.camijs.com/products?_limit=3").then(res => res.json());
+    const CartStore = store<CartState>({
+      name: "CartStore",
+      state: {
+        cartItems: [],
       },
-      staleTime: 1000 * 60 * 5 // 5 minutes
     });
-  }
+    ```
 
-  isProductInCart(product) {
-    return this.cartItems ? this.cartItems.some(item => item.id === product.id) : false;
-  }
+The `name` option is used for debugging and singleton behavior—calling `store({ name: "CartStore" })` again returns the same instance.
 
-  isOutOfStock(product) {
-    return product.stock === 0;
-  }
+## Defining Actions
 
-  template() {
-    if (this.products.status === "pending") {
-      return html`<div>Loading...</div>`;
+Actions are the only way to modify store state. Use `defineAction()` to register them:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    CartStore.defineAction("add", ({ state, payload }) => {
+      const newItem = { ...payload, id: Date.now().toString() };
+      state.cartItems.push(newItem);
+    });
+
+    CartStore.defineAction("remove", ({ state, payload }) => {
+      state.cartItems = state.cartItems.filter(item => item.id !== payload.id);
+    });
+
+    CartStore.defineAction("clear", ({ state }) => {
+      state.cartItems = [];
+    });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    CartStore.defineAction("add", ({ state, payload }) => {
+      const newItem: CartItem = { ...(payload as Omit<CartItem, 'id'>), id: crypto.randomUUID() };
+      state.cartItems.push(newItem);
+    });
+
+    CartStore.defineAction("remove", ({ state, payload }) => {
+      const { id } = payload as Pick<CartItem, 'id'>;
+      state.cartItems = state.cartItems.filter((item: CartItem) => item.id !== id);
+    });
+
+    CartStore.defineAction("clear", ({ state }) => {
+      state.cartItems = [];
+    });
+    ```
+
+Inside the action handler, you mutate `state` directly—Immer handles the immutable update behind the scenes.
+
+## Reading State in Components
+
+Components read state using `getState()`. When called inside `template()`, it automatically registers a dependency so the component re-renders when state changes:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    class CartElement extends ReactiveElement {
+      template() {
+        const { cartItems } = CartStore.getState();
+
+        if (cartItems.length === 0) {
+          return html`<p>Cart is empty</p>`;
+        }
+
+        const total = cartItems.reduce((acc, item) => acc + item.price, 0);
+
+        return html`
+          <p>Cart value: $${(total / 100).toFixed(2)}</p>
+          <ul>
+            ${cartItems.map(item => html`
+              <li>
+                ${item.name} - $${(item.price / 100).toFixed(2)}
+                <button @click=${() => CartStore.dispatch("remove", item)}>Remove</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
     }
 
-    if (this.products.status === "error") {
-      return html`<div>Error: ${this.products.errorDetails.message}</div>`;
+    customElements.define('cart-component', CartElement);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    class CartElement extends ReactiveElement {
+      template(): ReturnType<typeof html> {
+        const { cartItems } = CartStore.getState();
+
+        if (cartItems.length === 0) {
+          return html`<p>Cart is empty</p>`;
+        }
+
+        const total: number = cartItems.reduce((acc: number, item: CartItem) => acc + item.price, 0);
+
+        return html`
+          <p>Cart value: $${(total / 100).toFixed(2)}</p>
+          <ul>
+            ${cartItems.map((item: CartItem) => html`
+              <li>
+                ${item.name} - $${(item.price / 100).toFixed(2)}
+                <button @click=${() => CartStore.dispatch("remove", item)}>Remove</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
     }
 
-    if (this.products && this.products.data) {
-      return html`
-        <ul>
-          ${this.products.data.map(product => html`<li>
-            ${product.name} - ${(product.price / 100).toFixed(2)}
-            <button @click=${() => CartStore.dispatch('add', product)} ?disabled=${this.isOutOfStock(product)}>
-              Add to cart
-            </button>
-          </li>`)}
-        </ul>
-      `;
-    }
-  }
-}
+    customElements.define('cart-component', CartElement);
+    ```
 
-customElements.define('product-list-component', ProductListElement);
+## Dispatching Actions
+
+Dispatch actions from event handlers to update state:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    class ProductListElement extends ReactiveElement {
+      products = [];
+
+      onConnect() {
+        // Fetch products (simplified)
+        this.products = [
+          { id: "1", name: "Widget", price: 999, stock: 5 },
+          { id: "2", name: "Gadget", price: 1999, stock: 3 },
+          { id: "3", name: "Doohickey", price: 499, stock: 0 },
+        ];
+      }
+
+      isInCart(product) {
+        const { cartItems } = CartStore.getState();
+        return cartItems.some(item => item.id === product.id);
+      }
+
+      template() {
+        return html`
+          <ul>
+            ${this.products.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button
+                  @click=${() => CartStore.dispatch("add", product)}
+                  ?disabled=${product.stock === 0 || this.isInCart(product)}>
+                  ${this.isInCart(product) ? "In Cart" : product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    customElements.define('product-list-component', ProductListElement);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    interface Product {
+      id: string;
+      name: string;
+      price: number;
+      stock: number;
+    }
+
+    class ProductListElement extends ReactiveElement {
+      products: Product[] = [];
+
+      onConnect(): void {
+        // Fetch products (simplified)
+        this.products = [
+          { id: "1", name: "Widget", price: 999, stock: 5 },
+          { id: "2", name: "Gadget", price: 1999, stock: 3 },
+          { id: "3", name: "Doohickey", price: 499, stock: 0 },
+        ];
+      }
+
+      isInCart(product: Product): boolean {
+        const { cartItems } = CartStore.getState();
+        return cartItems.some((item: CartItem) => item.id === product.id);
+      }
+
+      template(): ReturnType<typeof html> {
+        return html`
+          <ul>
+            ${this.products.map((product: Product) => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button
+                  @click=${() => CartStore.dispatch("add", product)}
+                  ?disabled=${product.stock === 0 || this.isInCart(product)}>
+                  ${this.isInCart(product) ? "In Cart" : product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    customElements.define('product-list-component', ProductListElement);
+    ```
+
+## Using Memos for Derived State
+
+For computed values that are used in multiple places or are expensive to calculate, use memos:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    CartStore.defineMemo("cartTotal", ({ state }) => {
+      return state.cartItems.reduce((acc, item) => acc + item.price, 0);
+    });
+
+    CartStore.defineMemo("cartCount", ({ state }) => {
+      return state.cartItems.length;
+    });
+
+    // In a component
+    class CartSummary extends ReactiveElement {
+      template() {
+        const total = CartStore.memo("cartTotal");
+        const count = CartStore.memo("cartCount");
+
+        return html`
+          <div>
+            <span>Items: ${count}</span>
+            <span>Total: $${(total / 100).toFixed(2)}</span>
+          </div>
+        `;
+      }
+    }
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    CartStore.defineMemo<number>("cartTotal", ({ state }) => {
+      return state.cartItems.reduce((acc: number, item: CartItem) => acc + item.price, 0);
+    });
+
+    CartStore.defineMemo<number>("cartCount", ({ state }) => {
+      return state.cartItems.length;
+    });
+
+    // In a component
+    class CartSummary extends ReactiveElement {
+      template(): ReturnType<typeof html> {
+        const total = CartStore.memo("cartTotal") as number;
+        const count = CartStore.memo("cartCount") as number;
+
+        return html`
+          <div>
+            <span>Items: ${count}</span>
+            <span>Total: $${(total / 100).toFixed(2)}</span>
+          </div>
+        `;
+      }
+    }
+    ```
+
+## Adding Hooks for Side Effects
+
+Hooks let you run code before or after actions. This is useful for logging, analytics, or persistence:
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    // Logging hook
+    CartStore.beforeHook(({ action, payload }) => {
+      console.log(`[CartStore] ${action}`, payload);
+    });
+
+    // Persistence hook
+    CartStore.afterHook(({ state }) => {
+      localStorage.setItem("cart", JSON.stringify(state.cartItems));
+    });
+
+    // Load persisted state on startup
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      CartStore.defineAction("hydrate", ({ state, payload }) => {
+        state.cartItems = payload;
+      });
+      CartStore.dispatch("hydrate", JSON.parse(savedCart));
+    }
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    // Logging hook
+    CartStore.beforeHook(({ action, payload }) => {
+      console.log(`[CartStore] ${action}`, payload);
+    });
+
+    // Persistence hook
+    CartStore.afterHook(({ state }) => {
+      localStorage.setItem("cart", JSON.stringify(state.cartItems));
+    });
+
+    // Load persisted state on startup
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      CartStore.defineAction("hydrate", ({ state, payload }) => {
+        state.cartItems = payload;
+      });
+      CartStore.dispatch("hydrate", JSON.parse(savedCart));
+    }
+    ```
+
+## Complete Example
+
+Here's a full working example with multiple components sharing cart state:
+
+```html
+<product-list-component></product-list-component>
+<cart-component></cart-component>
+
+<script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script>
+<script type="module" src="./island.js"></script>
 ```
 
-This example demonstrates how `ProductListElement` interacts with `CartStore` and manages its own local state and UI rendering logic.
+### Island source
 
-Lastly, we then add the cart component to the page:
+<!-- cami-language-pair -->
+=== "JavaScript"
 
-The way this works is that `CartElement` extends `ReactiveElement` to create a reactive cart component. It connects to `CartStore` to listen for changes in the cart items and defines a getter `cartValue` to calculate the total value of the cart. It also includes a method `removeFromCart` to handle the removal of items from the cart. The `template` method returns the HTML structure for the cart, including the total cart value and a list of items with remove buttons.
+    ```javascript
+    const { store, html, ReactiveElement } = cami;
 
-```javascript
-// Define a component for the cart
-class CartElement extends ReactiveElement {
-  cartItems = [];
-
-  onConnect() {
-    CartStore.subscribe(state => {
-      this.cartItems = state.cartItems;
+    // Create the store
+    const CartStore = store({
+      name: "CartStore",
+      state: { cartItems: [] },
     });
-  }
 
-  template() {
-    return html`
-      ${this.cartItems.length > 0 ? html`
-        <p>Cart value: ${(this.cartItems.reduce((acc, item) => acc + item.price, 0) / 100).toFixed(2)}</p>
-        <ul>
-          ${this.cartItems.map(item => html`
-            <li>${item.name} - ${(item.price / 100).toFixed(2)} <button @click=${() => CartStore.dispatch('remove', item)}>Remove</button></li>
-          `)}
-        </ul>
-      ` : html`
-        <p>Cart is empty</p>
-      `}
-    `;
-  }
-}
+    // Define actions
+    CartStore.defineAction("add", ({ state, payload }) => {
+      state.cartItems.push({ ...payload, cartItemId: Date.now().toString() });
+    });
 
-customElements.define('cart-component', CartElement);
-```
+    CartStore.defineAction("remove", ({ state, payload }) => {
+      state.cartItems = state.cartItems.filter(item => item.cartItemId !== payload.cartItemId);
+    });
 
-Below is the live demo.
+    // Define memos
+    CartStore.defineMemo("cartTotal", ({ state }) => {
+      return state.cartItems.reduce((acc, item) => acc + item.price, 0);
+    });
 
-<hr>
+    // Product list component
+    class ProductListElement extends ReactiveElement {
+      products = [
+        { id: "1", name: "Widget", price: 999, stock: 5 },
+        { id: "2", name: "Gadget", price: 1999, stock: 3 },
+        { id: "3", name: "Doohickey", price: 499, stock: 0 },
+      ];
 
-### Live Demo - Cross-Component State Management
+      template() {
+        // Read cart state to check if items are already added
+        const { cartItems } = CartStore.getState();
 
-  <article>
-  <h4>Products</h4>
-  <p>This fetches the products from an API, and uses a client-side store to manage the cart. After adding a product to the cart, you can refresh the page and the cart will still be there as we are persisting the cart to localStorage, which is what you want in a cart.</p>
+        const isInCart = (product) => cartItems.some(item => item.id === product.id);
 
-<iframe width="100%" height="300" src="//jsfiddle.net/kennyfrc12/qjs8c2gb/27/embedded/result/" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0"></iframe>
+        return html`
+          <h3>Products</h3>
+          <ul>
+            ${this.products.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button
+                  @click=${() => CartStore.dispatch("add", product)}
+                  ?disabled=${product.stock === 0 || isInCart(product)}>
+                  ${isInCart(product) ? "In Cart" : product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    // Cart component
+    class CartElement extends ReactiveElement {
+      template() {
+        const { cartItems } = CartStore.getState();
+        const total = CartStore.memo("cartTotal");
+
+        if (cartItems.length === 0) {
+          return html`<p>Cart is empty</p>`;
+        }
+
+        return html`
+          <h3>Cart</h3>
+          <p>Total: $${(total / 100).toFixed(2)}</p>
+          <ul>
+            ${cartItems.map(item => html`
+              <li>
+                ${item.name} - $${(item.price / 100).toFixed(2)}
+                <button @click=${() => CartStore.dispatch("remove", item)}>Remove</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    customElements.define('product-list-component', ProductListElement);
+    customElements.define('cart-component', CartElement);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { store, html, ReactiveElement } from 'cami'
+
+    // Create the store
+    const CartStore = store({
+      name: "CartStore",
+      state: { cartItems: [] },
+    });
+
+    // Define actions
+    CartStore.defineAction("add", ({ state, payload }) => {
+      state.cartItems.push({ ...payload, cartItemId: Date.now().toString() });
+    });
+
+    CartStore.defineAction("remove", ({ state, payload }) => {
+      state.cartItems = state.cartItems.filter(item => item.cartItemId !== payload.cartItemId);
+    });
+
+    // Define memos
+    CartStore.defineMemo("cartTotal", ({ state }) => {
+      return state.cartItems.reduce((acc, item) => acc + item.price, 0);
+    });
+
+    // Product list component
+    class ProductListElement extends ReactiveElement {
+      products = [
+        { id: "1", name: "Widget", price: 999, stock: 5 },
+        { id: "2", name: "Gadget", price: 1999, stock: 3 },
+        { id: "3", name: "Doohickey", price: 499, stock: 0 },
+      ];
+
+      template() {
+        // Read cart state to check if items are already added
+        const { cartItems } = CartStore.getState();
+
+        const isInCart = (product) => cartItems.some(item => item.id === product.id);
+
+        return html`
+          <h3>Products</h3>
+          <ul>
+            ${this.products.map(product => html`
+              <li>
+                ${product.name} - $${(product.price / 100).toFixed(2)}
+                <button
+                  @click=${() => CartStore.dispatch("add", product)}
+                  ?disabled=${product.stock === 0 || isInCart(product)}>
+                  ${isInCart(product) ? "In Cart" : product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                </button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    // Cart component
+    class CartElement extends ReactiveElement {
+      template() {
+        const { cartItems } = CartStore.getState();
+        const total = CartStore.memo("cartTotal");
+
+        if (cartItems.length === 0) {
+          return html`<p>Cart is empty</p>`;
+        }
+
+        return html`
+          <h3>Cart</h3>
+          <p>Total: $${(total / 100).toFixed(2)}</p>
+          <ul>
+            ${cartItems.map(item => html`
+              <li>
+                ${item.name} - $${(item.price / 100).toFixed(2)}
+                <button @click=${() => CartStore.dispatch("remove", item)}>Remove</button>
+              </li>
+            `)}
+          </ul>
+        `;
+      }
+    }
+
+    customElements.define('product-list-component', ProductListElement);
+    customElements.define('cart-component', CartElement);
+    ```
+
+## Best Practices
+
+1. **Keep components pure**: Components should read state and dispatch actions, not hold local mirrors of store state.
+
+2. **Use memos for derived state**: Instead of computing values in multiple components, define memos once in the store.
+
+3. **Name your stores**: Use descriptive names for easier debugging.
+
+4. **Use hooks for side effects**: Persistence, logging, and analytics belong in hooks, not in action handlers.
+
+See the [Best Practices](../best_practices.md) page for more production patterns.

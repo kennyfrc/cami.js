@@ -1,14 +1,75 @@
 # Feature Overview
 
-* **Reactive Web Components**: Simplifies front-end web development with `ReactiveElement`. This is done through [Observable Properties](observable_property.md). They are properties of a `ReactiveElement` instance that are automatically observed for changes. When a change occurs, the `ReactiveElement` instance is notified and can react accordingly by re-rendering the component. Observable properties support deep updates, array changes, and reactive attributes, making it easier to manage dynamic content. Lastly, this removes the boilerplate of `signal()`, `setState()`, or `reactive()` that you might find in other libraries.
-* **Async State Management**: Easily manage server data. Our library provides a simple API for fetching and updating data with [`query` and `mutation`](async_state_management.md). Use the `query` method to fetch and cache data, with options to control how often it refreshes. The `mutation` method lets you update data and immediately reflect those changes in the UI, providing a smooth experience without waiting for server responses.
-* **Cross-component State Management with  Stores**: Share state across different components with ease using a single store using [`cami.store`](client_state_management.md). By default, this uses `localStorage` to persist state across page refreshes. This is useful for storing user preferences, authentication tokens, and other data that needs to be shared across components. This is also useful for storing data that needs to be shared across tabs.
-* **Streams & Functional Reactive Programming (FRP)**: Handle asynchronous events gracefully with [Observable Streams](streams.md). They offer powerful functions like `map`, `filter`, `flatMap`, and `debounce` to process events in a sophisticated yet manageable way, for clean & declarative code.
+Cami.js provides a complete toolkit for building interactive web applications:
 
+## Core Features
 
-<h2>Internals that You Don't Need to Worry About</h2>
+* **Reactive Web Components**: Build UI with `ReactiveElement`, which automatically re-renders when properties change. No boilerplate like `signal()`, `setState()`, or `reactive()` needed—just define properties and they're reactive. See the [ReactiveElement API](../api/reactive_element.md) for details.
 
-* **Caching, Refetching, and Stale Data Handling for Server-side State**: Keep your data fresh with automatic caching and refetching. Our library automatically caches data and refetches it when needed, so you don't have to worry about stale data.
-* **Automatic Expiry of Client-Side State**: Keep your client-side state fresh with automatic expiry. Our store automatically expires state after a configurable duration (default is 24 hours), so you don't have to worry about stale data.
-* **Dependency Tracking**: Keep your app's data in sync automatically. Our dependency tracker observes the relationships between your data and updates them as needed, so you can focus on writing the logic that matters.
-* **Automatic Disposal & Garbage Collection**: Avoid memory leaks with automatic disposal. Our library automatically disposes of streams, dependencies, and effects when they are no longer needed, so you don't have to worry about it.
+* **Store-Based State Management**: Centralize application state in [ObservableStores](../api/observable_store.md). Stores provide:
+  - **Actions** for synchronous state updates
+  - **Queries** for async data fetching with caching
+  - **Mutations** for async data modifications with optimistic updates
+  - **Memos** for cached derived computations
+  - **Hooks** for middleware-like side effects
+  - **State Machines** for complex state transitions
+
+* **Async Data Management**: Fetch and cache server data with [queries and mutations](async_state_management.md). Built-in support for caching, refetching, retry logic, and optimistic updates.
+
+* **Cross-Component State**: Share state across components with ease using [stores](client_state_management.md). Multiple components can read from and dispatch to the same store.
+
+* **State Persistence**: Persist state to [localStorage or IndexedDB](persistence.md) using storage adapters. State survives page refreshes and browser restarts.
+
+* **Type System**: Define schemas with the [Type system](../api/type_system.md) for runtime validation. Create [Models](../api/model.md) that combine schemas with stores.
+
+* **URL Routing**: Handle navigation with [URLStore](../api/url_store.md)—hash-based routing with resource loading and navigation hooks.
+
+## Architecture
+
+Cami follows a **store-centric architecture**:
+
+```
+┌─────────────────────────────────────────────────┐
+│  Components (ReactiveElement)                    │
+│  - Read state via getState()                     │
+│  - Write state via dispatch()                    │
+│  - Render UI via template()                      │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│  Stores (ObservableStore)                        │
+│  - State: single source of truth                 │
+│  - Actions: sync state updates                   │
+│  - Queries: async data fetching + caching        │
+│  - Mutations: async data modifications           │
+│  - Memos: derived computations                   │
+│  - Hooks: side effects (logging, persistence)    │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│  Persistence (optional)                          │
+│  - LocalStorage adapter                          │
+│  - IndexedDB adapter                             │
+└─────────────────────────────────────────────────┘
+```
+
+## Internals You Don't Need to Worry About
+
+* **Dependency Tracking**: Components automatically re-render when their dependencies change. The `DependencyTracker` observes which stores are accessed during render.
+
+* **Immutable Updates**: State mutations use Immer internally—you write mutable code, but updates are immutable under the hood.
+
+* **Query Caching**: Queries automatically cache results and manage staleness. Configure `staleTime` to control when data is refetched.
+
+* **Automatic Disposal**: Effects, subscriptions, and observers are cleaned up when components disconnect.
+
+## Best Practices
+
+See the [Best Practices](../best_practices.md) guide for production patterns:
+
+- Keep components pure (render + dispatch only)
+- Centralize state in stores
+- Use memos for derived values
+- Avoid `effect()` in application code

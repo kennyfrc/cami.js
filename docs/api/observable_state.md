@@ -16,8 +16,8 @@
 <a name="ObservableState"></a>
 
 ## ObservableState ⇐ <code>Observable</code>
-**Kind**: global class  
-**Extends**: <code>Observable</code>  
+**Kind**: global class
+**Extends**: <code>Observable</code>
 
 * [ObservableState](#ObservableState) ⇐ <code>Observable</code>
     * [new ObservableState(initialValue, subscriber, options)](#new_ObservableState_new)
@@ -52,57 +52,95 @@ This class extends the Observable class and adds methods for updating the value 
 | options | <code>Object</code> |  | Additional options for the observable |
 | options.last | <code>boolean</code> |  | Whether the subscriber is the last observer |
 
-**Example**  
-```js
-import { ObservableState } from 'cami-js';
-const observable = new ObservableState(10);
-console.log(observable.value); // 10
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    import { ObservableState } from 'cami';
+    const observable = new ObservableState(10);
+    console.log(observable.value); // 10
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { ObservableState } from 'cami';
+    const observable = new ObservableState<number>(10);
+    console.log(observable.value); // 10
+    ```
 <a name="ObservableState+value"></a>
 
 ### observableState.value() ⇒ <code>any</code>
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
-**Returns**: <code>any</code> - The current value of the observable  
-**Example**  
-```js
-const value = observable.value;
-```
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
+**Returns**: <code>any</code> - The current value of the observable
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    const value = observable.value;
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    const value = observable.value;
+    ```
 <a name="ObservableState+value"></a>
 
 ### observableState.value(newValue)
 This method sets a new value for the observable by calling the update method with the new value.
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | newValue | <code>any</code> | The new value to set for the observable |
 
-**Example**  
-```js
-observable.value = 20;
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.value = 20;
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.value = 20;
+    ```
 <a name="ObservableState+assign"></a>
 
 ### observableState.assign(obj)
 Merges properties from the provided object into the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | obj | <code>Object</code> | The object whose properties to merge |
 
-**Example**  
-```js
-observable.assign({ key: 'value' });
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.assign({ key: 'value' });
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.assign({ key: 'value' });
+    ```
 <a name="ObservableState+set"></a>
 
 ### observableState.set(key, value)
 Sets a new value for a specific key in the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 **Throws**:
 
 - Will throw an error if the observable's value is not an object
@@ -113,16 +151,25 @@ Sets a new value for a specific key in the observable's value. If the key is nes
 | key | <code>string</code> | The key to set the new value for |
 | value | <code>any</code> | The new value to set |
 
-**Example**  
-```js
-observable.set('key.subkey', 'new value');
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.set('key.subkey', 'new value');
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.set('key.subkey', 'new value');
+    ```
 <a name="ObservableState+delete"></a>
 
 ### observableState.delete(key)
 Deletes a specific key from the observable's value. If the key is nested, it should be provided as a string with keys separated by dots.
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 **Throws**:
 
 - Will throw an error if the observable's value is not an object
@@ -132,61 +179,106 @@ Deletes a specific key from the observable's value. If the key is nested, it sho
 | --- | --- | --- |
 | key | <code>string</code> | The key to delete |
 
-**Example**  
-```js
-observable.delete('key.subkey');
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.delete('key.subkey');
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.delete('key.subkey');
+    ```
 <a name="ObservableState+clear"></a>
 
 ### observableState.clear()
 Removes all key/value pairs from the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
-**Example**  
-```js
-observable.clear();
-```
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.clear();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.clear();
+    ```
 <a name="ObservableState+push"></a>
 
 ### observableState.push(...elements)
 Adds one or more elements to the end of the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | ...elements | <code>any</code> | The elements to add |
 
-**Example**  
-```js
-observable.push(1, 2, 3);
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.push(1, 2, 3);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.push(1, 2, 3);
+    ```
 <a name="ObservableState+pop"></a>
 
 ### observableState.pop()
 Removes the last element from the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
-**Example**  
-```js
-observable.pop();
-```
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.pop();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.pop();
+    ```
 <a name="ObservableState+shift"></a>
 
 ### observableState.shift()
 Removes the first element from the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
-**Example**  
-```js
-observable.shift();
-```
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.shift();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.shift();
+    ```
 <a name="ObservableState+splice"></a>
 
 ### observableState.splice(start, deleteCount, ...items)
 Changes the contents of the observable's value by removing, replacing, or adding elements
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -194,56 +286,92 @@ Changes the contents of the observable's value by removing, replacing, or adding
 | deleteCount | <code>number</code> | The number of elements to remove |
 | ...items | <code>any</code> | The elements to add to the array |
 
-**Example**  
-```js
-observable.splice(0, 1, 'newElement');
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.splice(0, 1, 'newElement');
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.splice(0, 1, 'newElement');
+    ```
 <a name="ObservableState+unshift"></a>
 
 ### observableState.unshift(...elements)
 Adds one or more elements to the beginning of the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | ...elements | <code>any</code> | The elements to add |
 
-**Example**  
-```js
-observable.unshift('newElement');
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.unshift('newElement');
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.unshift('newElement');
+    ```
 <a name="ObservableState+reverse"></a>
 
 ### observableState.reverse()
 Reverses the order of the elements in the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
-**Example**  
-```js
-observable.reverse();
-```
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.reverse();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.reverse();
+    ```
 <a name="ObservableState+sort"></a>
 
 ### observableState.sort([compareFunction])
 Sorts the elements in the observable's value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | [compareFunction] | <code>function</code> | The function used to determine the order of the elements |
 
-**Example**  
-```js
-observable.sort((a, b) => a - b);
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.sort((a, b) => a - b);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.sort((a, b) => a - b);
+    ```
 <a name="ObservableState+fill"></a>
 
 ### observableState.fill(value, [start], [end])
 Changes all elements in the observable's value to a static value
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -251,16 +379,25 @@ Changes all elements in the observable's value to a static value
 | [start] | <code>number</code> | <code>0</code> | The index to start filling at |
 | [end] | <code>number</code> | <code>this.__value.length</code> | The index to stop filling at |
 
-**Example**  
-```js
-observable.fill('newElement', 0, 2);
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.fill('newElement', 0, 2);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.fill('newElement', 0, 2);
+    ```
 <a name="ObservableState+copyWithin"></a>
 
 ### observableState.copyWithin(target, start, [end])
 Shallow copies part of the observable's value to another location in the same array
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -268,10 +405,19 @@ Shallow copies part of the observable's value to another location in the same ar
 | start | <code>number</code> |  | The start index to begin copying elements from |
 | [end] | <code>number</code> | <code>this.__value.length</code> | The end index to stop copying elements from |
 
-**Example**  
-```js
-observable.copyWithin(0, 1, 2);
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.copyWithin(0, 1, 2);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.copyWithin(0, 1, 2);
+    ```
 <a name="ObservableState+update"></a>
 
 ### observableState.update(updater)
@@ -279,43 +425,71 @@ This method adds the updater function to the pending updates queue.
 It uses a synchronous approach to schedule the updates, ensuring the whole state is consistent at each tick.
 This is done to batch multiple updates together and avoid unnecessary re-renders.
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | updater | <code>function</code> | The function to update the value |
 
-**Example**  
-```js
-observable.update(value => value + 1);
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.update(value => value + 1);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.update(value => value + 1);
+    ```
 <a name="ObservableState+complete"></a>
 
 ### observableState.complete()
 Calls the complete method of all observers.
 
-**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)  
-**Example**  
-```js
-observable.complete();
-```
+**Kind**: instance method of [<code>ObservableState</code>](#ObservableState)
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    observable.complete();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    observable.complete();
+    ```
 <a name="effect"></a>
 
 ## effect(effectFn) ⇒ <code>function</code>
 This function sets up an effect that is run when the observable changes
 
-**Kind**: global function  
-**Returns**: <code>function</code> - A function that when called, unsubscribes from all dependencies and runs cleanup function  
+**Kind**: global function
+**Returns**: <code>function</code> - A function that when called, unsubscribes from all dependencies and runs cleanup function
 
 | Param | Type | Description |
 | --- | --- | --- |
 | effectFn | <code>function</code> | The function to call for the effect |
 
-**Example**  
-```js
-// Assuming `effectFn` is a function that is called when the observable changes
-const effectFunction = effect(effectFn);
-```
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    // Assuming `effectFn` is a function that is called when the observable changes
+    const effectFunction = effect(effectFn);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    // Assuming `effectFn` is a function that is called when the observable changes
+    const effectFunction = effect(effectFn);
+    ```
 
 * [effect(effectFn)](#effect) ⇒ <code>function</code>
     * [~tracker](#effect..tracker)
@@ -331,7 +505,7 @@ If the observable is not already a dependency, it is added to the set and a subs
 to run the effect function whenever the observable's value changes.
 This mechanism allows the effect function to respond to state changes in its dependencies.
 
-**Kind**: inner constant of [<code>effect</code>](#effect)  
+**Kind**: inner constant of [<code>effect</code>](#effect)
 <a name="effect.._runEffect"></a>
 
 ### effect~\_runEffect()
@@ -343,15 +517,25 @@ from being added outside of the effect function.
 The effect function is expected to return a cleanup function, which is saved for the next run.
 The cleanup function, initially empty, is replaced by the one returned from effectFn (run by the observable) before each new run and on effect disposal.
 
-**Kind**: inner method of [<code>effect</code>](#effect)  
+**Kind**: inner method of [<code>effect</code>](#effect)
 <a name="effect..dispose"></a>
 
 ### effect~dispose() ⇒ <code>void</code>
 Unsubscribes from all dependencies and runs cleanup function
 
-**Kind**: inner method of [<code>effect</code>](#effect)  
-**Example**  
-```js
-// Assuming `dispose` is the function returned by `effect`
-dispose(); // This will unsubscribe from all dependencies and run cleanup function
-```
+**Kind**: inner method of [<code>effect</code>](#effect)
+**Example**
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    // Assuming `dispose` is the function returned by `effect`
+    dispose(); // This will unsubscribe from all dependencies and run cleanup function
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    // Assuming `dispose` is the function returned by `effect`
+    dispose(); // This will unsubscribe from all dependencies and run cleanup function
+    ```
