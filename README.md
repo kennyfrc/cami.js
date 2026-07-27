@@ -68,11 +68,11 @@ The browser-global CDN bundle is the shortest path for an MPA or server-rendered
 
 ## Current public surface
 
-- **Components and templates:** `ReactiveElement`, `html`, `svg`, `ref`, `keyedRepeat`, `useImage`
+- **Components and templates:** `ReactiveElement`, `html`, `svg`, `repeat`, `keyed`, `unsafeHTML`, `useImage`
 - **Shared state:** `store`, `ObservableStore`, actions, memos, queries, mutations, hooks, state machines
-- **Reactive primitives:** `Observable`, `ObservableState`, `effect`
-- **Typed models:** `Model`, `Type`, validation hooks
-- **Browser integration:** `URLStore`, localStorage, and IndexedDB adapters
+- **Browser integration:** `URLStore` and versioned localStorage
+
+`Observable`, `ObservableState`, and `effect()` remain available only for Cami 0.3 compatibility. New code should use component fields, stores, and `afterRender()`.
 
 Read the [documentation](https://camijs.com/), start with the [first-island tutorial](https://camijs.com/tutorials/first-island/), or use the [API reference](https://camijs.com/api/).
 

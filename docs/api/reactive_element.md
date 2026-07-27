@@ -1,18 +1,24 @@
-# `ReactiveElement`
+# ReactiveElement
 
-`ReactiveElement` extends `HTMLElement`. Fields assigned on a connected subclass instance become reactive, and state reads during `template()` establish dependencies.
+`ReactiveElement` is Cami's custom-element base class. Public fields become reactive after connection. Reading them during `template()` records dependencies; writing them schedules a render.
+
+## Minimal component
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-    import { html, ReactiveElement } from 'cami';
-    class StatusBadge extends ReactiveElement {
-        status = 'ready';
-        template() {
-            return html `<span>${this.status}</span>`;
-        }
+    import { html, ReactiveElement } from 'cami'
+
+    class CamiCounter extends ReactiveElement {
+      count = 0
+
+      template() {
+        return html`<button @click=${() => this.count++}>${this.count}</button>`
+      }
     }
+
+    customElements.define('cami-counter', CamiCounter)
     ```
 
 === "TypeScript"
@@ -20,89 +26,52 @@
     ```typescript
     import { html, ReactiveElement } from 'cami'
 
-    class StatusBadge extends ReactiveElement {
-      status: 'ready' | 'busy' = 'ready'
+    class CamiCounter extends ReactiveElement {
+      count: number = 0
 
-      template() {
-        return html`<span>${this.status}</span>`
+      template(): ReturnType<typeof html> {
+        return html`<button @click=${() => this.count++}>${this.count}</button>`
       }
     }
-    ```
 
-## Rendering
-
-### `template(): TemplateResult`
-
-Override `template()` and return an `html` or `svg` result. Keep rendering pure: read state and describe UI. Move writes, fetches, focus, measurements, and third-party integration outside the render phase.
-
-### `render(): void`
-
-Runs `template()` and commits changed parts. Cami calls this as dependencies change. Direct calls are rarely needed.
-
-### `static nonReactiveProperties`
-
-List internal fields that Cami must not convert into reactive properties:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    class ChartView extends ReactiveElement {
-        static nonReactiveProperties = ['chart'];
-        chart = null;
+    declare global {
+      interface HTMLElementTagNameMap {
+        'cami-counter': CamiCounter
+      }
     }
+
+    customElements.define('cami-counter', CamiCounter)
     ```
 
-=== "TypeScript"
+Keep `template()` declarative. It may read fields and stores. State writes belong in event handlers, store actions, lifecycle callbacks, or post-render work.
 
-    ```typescript
-    class ChartView extends ReactiveElement {
-      static nonReactiveProperties = ['chart']
-      chart: ExternalChart | null = null
-    }
-    ```
+## Browser lifecycle
 
-The list is inherited and merged across subclasses.
+Override native custom-element callbacks and call `super`:
 
-## Component effects
+| Callback | Use |
+| --- | --- |
+| `connectedCallback()` | Start browser subscriptions owned by the element |
+| `disconnectedCallback()` | Stop browser subscriptions and call base cleanup |
+| `attributeChangedCallback()` | React to an observed attribute |
+| `adoptedCallback()` | Handle a move to another document |
 
-These APIs run at different lifecycle phases:
+`onConnect()` and `onDisconnect()` are deprecated compatibility wrappers.
 
-| API | Runs | Use it for |
-|---|---|---|
-| `effect(fn)` | Synchronously when its reactive reads change | Low-level integration that does not need committed DOM |
-| `afterRender(key, fn, deps?)` | After this component commits DOM | Focus, measurement, scrolling, positioning, editors, charts, and third-party widgets |
-| `afterSettle(source, callback)` | After affected renders and post-render work settle | Watch-like analytics, external synchronization, and guarded follow-up state changes |
+## `afterRender(key, effect, deps?)`
 
-There is no separate `commit()` or `watch()` method. Earlier development versions called `afterRender()` a commit effect. `afterSettle()` is the watch-like API in `0.4.0`.
-
-### `effect(fn): void`
-
-Tracks reactive values read by `fn` and reruns it when they change. Cami disposes the effect on disconnect.
-
-Register component effects once, normally in `onConnect()`. Do not create an effect during every `template()` call. Prefer `afterRender()` when the callback reads or changes rendered DOM.
-
-### `derive(fn): T`
-
-Creates a derived reactive value and registers its disposal with the component.
-
-### `afterRender(key, effect, deps?): void`
-
-Declare a keyed commit-phase effect during `template()`. It runs after DOM commit. A returned cleanup runs before the keyed effect reruns, when the key disappears, or when the component disconnects.
-
-The key identifies one post-render responsibility. With no dependency array, the callback runs after every successful render. An empty array runs it once per connection. Other arrays rerun it when an item changes by `Object.is()` comparison.
+Registers work that runs after lit-html commits this element's DOM. Declare it while rendering so Cami can remove effects that are no longer part of the template.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
     template() {
-      this.afterRender('chart', () => {
-        const chart = createChart(this.querySelector('canvas'))
-        return () => chart.destroy()
-      }, [this.dataset.series])
+      this.afterRender('scroll-active-item', () => {
+        this.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest' })
+      }, [this.activeItemId])
 
-      return html`<canvas></canvas>`
+      return html`...`
     }
     ```
 
@@ -110,121 +79,39 @@ The key identifies one post-render responsibility. With no dependency array, the
 
     ```typescript
     template(): ReturnType<typeof html> {
-      this.afterRender('chart', () => {
-        const canvas = this.querySelector<HTMLCanvasElement>('canvas')
-        if (!canvas) return
-        const chart = createChart(canvas)
-        return () => chart.destroy()
-      }, [this.dataset.series])
+      this.afterRender('scroll-active-item', () => {
+        this.querySelector<HTMLElement>('[aria-current="true"]')
+          ?.scrollIntoView({ block: 'nearest' })
+      }, [this.activeItemId])
 
-      return html`<canvas></canvas>`
+      return html`...`
     }
     ```
 
-### `afterSettle(source, callback): void`
+The effect may return cleanup. Cleanup runs before changed dependencies rerun the effect, when the key disappears, or when the element disconnects.
 
-Watches a reactive getter. The callback receives the new and previous values after all affected renders and `afterRender` effects settle.
+## `afterSettle(source, callback)`
 
-Register a watcher once in `onConnect()`. Its first callback observes the transition from `undefined` to the current value. Cami removes the watcher on disconnect. A callback may update state, but guard the update so it converges; Cami stops continuous settle loops after ten passes.
+Advanced API for a reaction that must wait until the current render batch settles. The callback receives the new value and previous value. Cami limits repeated settle passes to prevent an infinite reaction loop.
 
-<!-- cami-language-pair -->
-=== "JavaScript"
+Prefer actions, memos, and `afterRender()` unless the work truly depends on the whole render batch.
 
-    ```javascript
-    onConnect() {
-      this.afterSettle(
-        () => PreferencesStore.getState().theme,
-        (theme, previousTheme) => {
-          if (theme !== previousTheme) {
-            analytics.track('theme changed', { theme })
-          }
-        },
-      )
-    }
-    ```
+## `resource(key, loader, options?)`
 
-=== "TypeScript"
+Owns asynchronous work for one component. Cami exposes status, data, and error through a `Resource<T>` value and aborts stale requests.
 
-    ```typescript
-    type Theme = 'light' | 'dark'
+Use a store query instead when several islands share the same server data or cache.
 
-    onConnect(): void {
-      this.afterSettle<Theme>(
-        () => PreferencesStore.getState().theme,
-        (theme: Theme, previousTheme: Theme | undefined): void => {
-          if (theme !== previousTheme) {
-            analytics.track('theme changed', { theme })
-          }
-        },
-      )
-    }
-    ```
+## `ephemeral(key, initial, options?)`
 
-## Component resources
+Stores a local draft outside the shared store. It is useful for high-frequency slider, drag, resize, or editor input that should commit only when the interaction finishes.
 
-### `resource(key, loader, options?): Resource<T>`
-
-Creates or retrieves a component-owned async state machine. The loader receives an `AbortSignal`.
-
-Options:
-
-| Option | Type | Meaning |
-| --- | --- | --- |
-| `keepPrevious` | `boolean` | Keep previous data while refreshing |
-| `dedupeMs` | `number` | Suppress starts inside the interval |
-| `race` | `'latest' \| 'first'` | Abort older work or keep the first in-flight request |
-
-### `ephemeral(key, init, options?): T`
-
-Returns component-local keyed state. Options are `ttlMs` and `resetOnDisconnect`.
-
-### `setEphemeral(key, value): void`
-
-Updates an ephemeral entry and schedules dependents.
+`resetOnDisconnect` controls whether the draft survives a temporary element disconnect.
 
 ## Attributes
 
-### `observableAttributes(map): void`
+Use `static observableAttributes` to map attributes into reactive properties. Attribute parsers should return the property value expected by the component.
 
-Converts selected attributes into reactive properties, optionally parsing their string values.
+## Deprecated low-level APIs
 
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    onCreate() {
-      this.observableAttributes({
-        count: value => Number(value),
-        items: value => JSON.parse(value),
-      })
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    onCreate() {
-      this.observableAttributes({
-        count: value => Number(value),
-        items: value => JSON.parse(value),
-      })
-    }
-    ```
-
-### `warnIfMissingProperties(names): void`
-
-Logs a warning for property names not present on the element.
-
-## Lifecycle hooks
-
-Override these no-op hooks rather than replacing the platform callbacks:
-
-| Hook | Runs when |
-| --- | --- |
-| `onCreate()` | The element is constructed |
-| `onConnect()` | The element connects to a document |
-| `onDisconnect()` | The element disconnects |
-| `onAttributeChange(name, oldValue, newValue)` | An observed attribute changes |
-| `onAdopt()` | The element moves to another document |
-
-Cami's platform callbacks perform rendering and cleanup before or around these hooks.
+The public `effect()` helper and direct `ObservableState` construction remain for v0.3 compatibility. New components should use reactive fields, `afterRender()`, and shared stores instead.

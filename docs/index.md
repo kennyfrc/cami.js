@@ -79,9 +79,9 @@ Class fields become reactive after the element connects. Updating `count` schedu
 
 - **Reactive UI:** `ReactiveElement`, `html`, `svg`, lifecycle hooks, commit-phase effects, and post-settle reactions.
 - **Shared and server state:** `store`, `ObservableStore`, actions, memos, queries, mutations, hooks, and state machines.
-- **Small primitives:** `Observable`, `ObservableState`, `effect`, and typed `Model` schemas.
-- **Browser integration:** `ref`, `keyedRepeat`, `useImage`, component resources, localStorage, IndexedDB, and `URLStore`.
+- **Browser integration:** `repeat`, `keyed`, `unsafeHTML`, `useImage`, component resources, localStorage, and `URLStore`.
 - **MPA-friendly delivery:** load the prebuilt CDN bundle directly in server-rendered or static pages.
+
 - **Compiled application support:** install the ES module in JavaScript or TypeScript projects, including SPAs.
 
 ## Next step

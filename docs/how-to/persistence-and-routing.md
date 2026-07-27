@@ -46,16 +46,16 @@ Persistence and routing are independent browser integrations. Add them only wher
       Object.assign(state, payload as Partial<PreferencesState>)
     })
 
-    const storage = createLocalStorage({ name: 'preferences', version: 1 })
+    const storage = createLocalStorage<PreferencesState>({ name: 'preferences', version: 1 })
     PreferencesStore.afterHook(persistToLocalStorageThunk(storage))
 
-    const saved = await storage.getState() as PreferencesState | null
+    const saved = await storage.getState()
     if (saved !== null) PreferencesStore.dispatch('hydrate', saved)
     ```
 
 Use a versioned storage name or migration strategy when the persisted state shape changes. Do not persist secrets or authentication tokens in browser storage.
 
-For larger collections, use `createIdbPromise()` with `persistToIdbThunk()`. See [State persistence](../features/persistence.md) for adapter options.
+For larger collections or offline databases, use an application-owned adapter with explicit indexes, migrations, and error handling. Cami keeps only the small localStorage case in its core API.
 
 ## Create a hash router
 

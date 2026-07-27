@@ -19,9 +19,7 @@ Keep state writes out of `template()`. Put them in event handlers, actions, or p
 | --- | --- | --- |
 | Browser APIs | HTML, focus, form behavior, custom-element lifecycle | Semantic page structure and progressive enhancement |
 | `ReactiveElement` | One island's reactive fields and rendered DOM | Local interaction state |
-| `ObservableStore` | Named shared state and state transitions | Cross-island state, queries, mutations, orchestration |
-| `ObservableState` | One reactive value | Small standalone reactive computations |
-| `Model` + `Type` | Runtime-validated state shape | Data whose runtime schema matters |
+| `store()` / `ObservableStore` | Named shared state and state transitions | Cross-island state, queries, mutations, orchestration |
 | `URLStore` | URL-derived navigation state | Hash routes and route resources |
 
 ## Rendering is declarative
@@ -32,7 +30,7 @@ Use:
 
 - event handlers for user-driven writes;
 - `afterRender(key, effect, deps)` for DOM work after a commit;
-- `afterSettle(source, callback)` for reactions after the render batch;
+- `afterSettle(source, callback)` for advanced reactions that must wait for the render batch;
 - `resource(key, loader, options)` for component-owned async values;
 - store queries and mutations for shared server state.
 

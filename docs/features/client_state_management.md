@@ -161,16 +161,11 @@ Dispatch actions from event handlers to update state:
 
     ```javascript
     class ProductListElement extends ReactiveElement {
-      products = [];
-
-      onConnect() {
-        // Fetch products (simplified)
-        this.products = [
-          { id: "1", name: "Widget", price: 999, stock: 5 },
-          { id: "2", name: "Gadget", price: 1999, stock: 3 },
-          { id: "3", name: "Doohickey", price: 499, stock: 0 },
-        ];
-      }
+      products = [
+        { id: "1", name: "Widget", price: 999, stock: 5 },
+        { id: "2", name: "Gadget", price: 1999, stock: 3 },
+        { id: "3", name: "Doohickey", price: 499, stock: 0 },
+      ];
 
       isInCart(product) {
         const { cartItems } = CartStore.getState();
@@ -209,16 +204,11 @@ Dispatch actions from event handlers to update state:
     }
 
     class ProductListElement extends ReactiveElement {
-      products: Product[] = [];
-
-      onConnect(): void {
-        // Fetch products (simplified)
-        this.products = [
-          { id: "1", name: "Widget", price: 999, stock: 5 },
-          { id: "2", name: "Gadget", price: 1999, stock: 3 },
-          { id: "3", name: "Doohickey", price: 499, stock: 0 },
-        ];
-      }
+      products: Product[] = [
+        { id: "1", name: "Widget", price: 999, stock: 5 },
+        { id: "2", name: "Gadget", price: 1999, stock: 3 },
+        { id: "3", name: "Doohickey", price: 499, stock: 0 },
+      ];
 
       isInCart(product: Product): boolean {
         const { cartItems } = CartStore.getState();

@@ -1,105 +1,28 @@
-# Automatic Reactivity in Web Components
+# Automatic reactivity in web components
 
-Let's take the example of creating a counter component. In contrast to other frameworks where you might need to define a counter with something like `count = signal(0)` or `count = ref(0)`, and then retrieve the value with `count()` or `count.value`, Cami.js simplifies this process significantly.
+`ReactiveElement` makes public component fields reactive after connection. Read a field during `template()` and Cami records the dependency. Write that field later and Cami schedules another render.
 
-You can directly define `count = 0` within your `CounterElement` class and access it just like a regular JavaScript variable.
-
-Define a `CounterElement` class that extends `ReactiveElement` and define a `count` property initialized to 0:
+## Define a component
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
+    import { html, ReactiveElement } from 'cami'
+
     class CounterElement extends ReactiveElement {
-      count = 0;
-      // ...
-    }
-    ```
+      count = 0
 
-=== "TypeScript"
-
-    ```typescript
-    class CounterElement extends ReactiveElement {
-      count = 0;
-      // ...
-    }
-    ```
-
-Then define a `template` method that returns an HTML template using the `html` function:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    template() {
-      return html`
-        <button @click=${() => this.count--}>-</button>
-        <button @click=${() => this.count++}>+</button>
-        <div>Count: ${this.count}</div>
-      `;
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    template() {
-      return html`
-        <button @click=${() => this.count--}>-</button>
-        <button @click=${() => this.count++}>+</button>
-        <div>Count: ${this.count}</div>
-      `;
-    }
-    ```
-
-Finally, register your custom element.
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    customElements.define('counter-component', CounterElement);
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    customElements.define('counter-component', CounterElement);
-    ```
-
-Add the element to your HTML file:
-
-```html
-<counter-component></counter-component>
-```
-
-This is how everything comes together:
-
-```html
-<counter-component></counter-component>
-<script type="module" src="./island.js"></script>
-```
-
-### Island source
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    const { html, ReactiveElement } = cami;
-
-      class CounterElement extends ReactiveElement {
-        count = 0;
-        template() {
-          return html`
-            <button @click=${() => this.count--}>-</button>
-            <button @click=${() => this.count++}>+</button>
-            <div>Count: ${this.count}</div>
-          `;
-        }
+      template() {
+        return html`
+          <button @click=${() => this.count--}>-</button>
+          <output>${this.count}</output>
+          <button @click=${() => this.count++}>+</button>
+        `
       }
+    }
 
-      customElements.define('counter-component', CounterElement);
+    customElements.define('counter-component', CounterElement)
     ```
 
 === "TypeScript"
@@ -107,50 +30,37 @@ This is how everything comes together:
     ```typescript
     import { html, ReactiveElement } from 'cami'
 
-      class CounterElement extends ReactiveElement {
-        count = 0;
-        template() {
-          return html`
-            <button @click=${() => this.count--}>-</button>
-            <button @click=${() => this.count++}>+</button>
-            <div>Count: ${this.count}</div>
-          `;
-        }
-      }
+    class CounterElement extends ReactiveElement {
+      count: number = 0
 
-      customElements.define('counter-component', CounterElement);
+      template(): ReturnType<typeof html> {
+        return html`
+          <button @click=${() => this.count--}>-</button>
+          <output>${this.count}</output>
+          <button @click=${() => this.count++}>+</button>
+        `
+      }
+    }
+
+    declare global {
+      interface HTMLElementTagNameMap {
+        'counter-component': CounterElement
+      }
+    }
+
+    customElements.define('counter-component', CounterElement)
     ```
 
-<hr>
+Then place the custom element in HTML:
 
-#### Live Demo of Reactive Web Components (Simple Counter)
+```html
+<counter-component></counter-component>
+```
 
-Now, when you load your HTML file, you will see a counter with two buttons to increment and decrement the count. The count is displayed and updated in real-time as you click the buttons.
+## Keep state local until it is shared
 
-<article>
-  <counter-component
-  ></counter-component>
-</article>
-<script type="module">
-  const { html, ReactiveElement } = cami;
+Use reactive fields for state owned by one component. Move state to a typed store module only when several islands need the same values or transitions.
 
-  class CounterElement extends ReactiveElement {
-    count = 0
+Compute display-only values in `template()`. Use keyed `afterRender()` effects for focus, measurement, scrolling, or third-party widgets that require committed DOM.
 
-    template() {
-      return html`
-        <button class="md-button md-button--primary"
-        @click=${() => this.count--}>-</button>
-        <button class="md-button md-button--primary"
-        @click=${() => this.count++}>+</button>
-        <p>Count: ${this.count}</p>
-      `;
-    }
-  }
-
-  customElements.define('counter-component', CounterElement);
-</script>
-
-<hr>
-
-
+See [ReactiveElement](../api/reactive_element.md) for lifecycle details and [Choose a state interface](../explanation/state-interfaces.md) for ownership guidance.

@@ -1,61 +1,60 @@
 # Public API reference
 
-This reference follows the exports in `src/cami.ts`, the package's public entry point. Experimental code under `src/exp/` is not exported and is not part of this API.
+The package entry point is `src/cami.ts`. Application code should start with components, typed stores, and browser integration.
 
-## Rendering and components
+## Supported core
+
+### Rendering and components
 
 | Export | Purpose |
 | --- | --- |
 | `ReactiveElement` | Reactive custom-element base class |
 | `html`, `svg` | lit-html template tags |
-| `unsafeHTML` | Render explicitly trusted HTML strings |
-| `repeat`, `keyed` | Re-exported lit-html list/key directives |
-| `keyedRepeat` | String-keyed list helper with development checks |
-| `ref` | Assign a rendered element to an object or callback ref |
-| `useImage` | Component-owned image loading resource |
+| `repeat`, `keyed` | Stable collection rendering |
+| `unsafeHTML` | Render content that has already crossed an application trust check |
+| `useImage` | Load and decode an image through a component's resource lifecycle |
 
-## State and data
+### State and server data
 
 | Export | Purpose |
 | --- | --- |
-| `store`, `ObservableStore` | Named shared state, actions, async operations, and orchestration |
-| `ObservableState`, `effect` | Fine-grained reactive state and effects |
-| `Observable` | Push stream primitive with operators |
-| `Model`, `Type` | Runtime-validated model state and schema definitions |
-| `useValidationHook`, `useValidationThunk` | Attach runtime validation to store workflows |
+| `store` | Create or retrieve a named store module |
+| `ObservableStore` | Store implementation and TypeScript interface |
+| Store actions and memos | Named state transitions and derived values |
+| Store queries and mutations | Shared server state, caching, retries, and optimistic updates |
+| Store async actions, hooks, specs, and machines | Advanced orchestration |
 
-## Browser integration
-
-| Export | Purpose |
-| --- | --- |
-| `createURLStore`, `URLStore` | Hash-based navigation state and route resources |
-| `createLocalStorage`, `persistToLocalStorageThunk` | localStorage adapter and persistence hook |
-| `createIdbPromise`, `persistToIdbThunk` | IndexedDB adapter and persistence hook |
-
-## Configuration and utilities
+### Browser integration
 
 | Export | Purpose |
 | --- | --- |
-| `debug`, `events` | Runtime debug and event configuration |
-| `invariant` | Configurable invariant assertion |
-| `_deepEqual`, `_deepMerge`, `_deepClone` | Internal-style data utilities currently exported publicly |
-| `setAfterRenderEnabled`, `flushAfterRender` | Test seams for deterministic post-render effects |
+| `URLStore`, `createURLStore` | Hash navigation, route guards, and route-owned resources |
+| `createLocalStorage` | Versioned localStorage adapter |
+| `persistToLocalStorageThunk` | Persist store state from an `afterHook` |
+| `debug`, `events` | Runtime diagnostics and browser event configuration |
 
-## TypeScript-only exports
 
-The entry point exports types for observables, store configuration, models, components, refs, keyed lists, resources, runtime type definitions, and URL routing. Import them with `import type`:
+## TypeScript exports
+
+Cami exports component, store, query, mutation, resource, and routing types from the package entry point.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-    export {};
+    export {}
     ```
 
 === "TypeScript"
 
     ```typescript
-    import type { Ref, Resource, StoreFactoryConfig, URLStoreOptions } from 'cami'
+    import type {
+      MutationConfig,
+      QueryConfig,
+      Resource,
+      StoreFactoryConfig,
+      URLStoreOptions,
+    } from 'cami'
     ```
 
-Use the detailed pages in this section for method signatures and examples.
+Use the detailed reference pages for method signatures and lifecycle contracts.

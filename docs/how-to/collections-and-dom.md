@@ -1,6 +1,6 @@
-# Render collections and access DOM nodes
+# Render collections and access committed DOM
 
-Use `keyedRepeat()` when a list can be inserted, removed, or reordered. Use `ref()` when post-render code needs a specific DOM node.
+Use lit-html's `repeat()` for collections with stable item keys. Use `afterRender()` when code needs a node that the template just committed.
 
 ## Render a stable keyed list
 
@@ -8,7 +8,7 @@ Use `keyedRepeat()` when a list can be inserted, removed, or reordered. Use `ref
 === "JavaScript"
 
     ```javascript
-    import { html, keyedRepeat, ReactiveElement } from 'cami'
+    import { html, ReactiveElement, repeat } from 'cami'
 
     class TodoList extends ReactiveElement {
       todos = [
@@ -19,7 +19,7 @@ Use `keyedRepeat()` when a list can be inserted, removed, or reordered. Use `ref
       template() {
         return html`
           <ul>
-            ${keyedRepeat(
+            ${repeat(
               this.todos,
               todo => todo.id,
               todo => html`<li>${todo.title}</li>`,
@@ -33,7 +33,7 @@ Use `keyedRepeat()` when a list can be inserted, removed, or reordered. Use `ref
 === "TypeScript"
 
     ```typescript
-    import { html, keyedRepeat, ReactiveElement } from 'cami'
+    import { html, ReactiveElement, repeat } from 'cami'
 
     interface Todo {
       id: string
@@ -49,7 +49,7 @@ Use `keyedRepeat()` when a list can be inserted, removed, or reordered. Use `ref
       template(): ReturnType<typeof html> {
         return html`
           <ul>
-            ${keyedRepeat(
+            ${repeat(
               this.todos,
               (todo: Todo) => todo.id,
               (todo: Todo) => html`<li>${todo.title}</li>`,
@@ -60,74 +60,53 @@ Use `keyedRepeat()` when a list can be inserted, removed, or reordered. Use `ref
     }
     ```
 
-Keys must be non-empty strings and unique within the collection. In debug mode, `keyedRepeat()` warns about unstable keys.
+The key must be stable for the lifetime of an item. Do not use an array index when items can move, be inserted, or be removed.
 
-## Hold a DOM reference
+## Focus a node after commit
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-    import { html, ref, ReactiveElement } from 'cami'
+    import { html, ReactiveElement } from 'cami'
 
     class SearchBox extends ReactiveElement {
-      inputRef: { current: HTMLInputElement | null } = { current: null }
-
-      template(): ReturnType<typeof html> {
-        this.afterRender('initial-focus', () => {
-          this.inputRef.current?.focus()
-        }, [])
-
-        return html`
-          <label>
-            Search
-            <input ${ref(this.inputRef)} type="search" />
-          </label>
-        `
-      }
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    import { html, ref, ReactiveElement } from 'cami'
-
-    class SearchBox extends ReactiveElement {
-      inputRef = { current: null }
-
       template() {
         this.afterRender('initial-focus', () => {
-          this.inputRef.current?.focus()
+          this.querySelector('[data-role="search"]')?.focus()
         }, [])
 
         return html`
           <label>
             Search
-            <input ${ref(this.inputRef)} type="search" />
+            <input data-role="search" type="search" />
           </label>
         `
       }
     }
     ```
 
-Declare `afterRender()` while rendering. Its stable key identifies the effect. The empty dependency array runs it once for the mounted effect, and any cleanup function it returns runs when the effect changes or the element disconnects.
-
-## Use callback refs
-
-`ref()` also accepts a callback:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    <canvas ${ref(node => { this.canvas = node })}></canvas>
-    ```
-
 === "TypeScript"
 
     ```typescript
-    <canvas ${ref((node: HTMLCanvasElement | null) => { this.canvas = node })}></canvas>
+    import { html, ReactiveElement } from 'cami'
+
+    class SearchBox extends ReactiveElement {
+      template(): ReturnType<typeof html> {
+        this.afterRender('initial-focus', () => {
+          this.querySelector<HTMLInputElement>('[data-role="search"]')?.focus()
+        }, [])
+
+        return html`
+          <label>
+            Search
+            <input data-role="search" type="search" />
+          </label>
+        `
+      }
+    }
     ```
 
-The callback receives the element and later receives `null` when lit-html clears the part.
+The stable effect key identifies the integration. The empty dependency list runs the setup once per connection. A returned cleanup function runs when dependencies change or the element disconnects.
+
+Use semantic attributes such as `data-role` for integration targets. Avoid selectors tied to visual styling.

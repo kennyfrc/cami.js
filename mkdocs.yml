@@ -92,16 +92,12 @@ nav:
       - Persistence adapters: features/persistence.md
       - Production practices: best_practices.md
   - Reference:
-      - Public exports: api/index.md
+      - Public API: api/index.md
       - ReactiveElement: api/reactive_element.md
       - ObservableStore: api/observable_store.md
-      - ObservableState: api/observable_state.md
-      - Observable streams: api/observable.md
-      - Models: api/model.md
-      - Runtime type system: api/type_system.md
       - URLStore: api/url_store.md
       - Directives and resources: api/directives_and_resources.md
-      - Console and debug controls: api/console_functions.md
+      - Debug and events: api/console_functions.md
   - Explanation:
       - Mental model: explanation/mental-model.md
       - Choose a state interface: explanation/state-interfaces.md
