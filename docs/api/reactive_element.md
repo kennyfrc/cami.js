@@ -66,9 +66,21 @@ The list is inherited and merged across subclasses.
 
 ## Component effects
 
+These APIs run at different lifecycle phases:
+
+| API | Runs | Use it for |
+|---|---|---|
+| `effect(fn)` | Synchronously when its reactive reads change | Low-level integration that does not need committed DOM |
+| `afterRender(key, fn, deps?)` | After this component commits DOM | Focus, measurement, scrolling, positioning, editors, charts, and third-party widgets |
+| `afterSettle(source, callback)` | After affected renders and post-render work settle | Watch-like analytics, external synchronization, and guarded follow-up state changes |
+
+There is no separate `commit()` or `watch()` method. Earlier development versions called `afterRender()` a commit effect. `afterSettle()` is the watch-like API in `0.4.0`.
+
 ### `effect(fn): void`
 
 Tracks reactive values read by `fn` and reruns it when they change. Cami disposes the effect on disconnect.
+
+Register component effects once, normally in `onConnect()`. Do not create an effect during every `template()` call. Prefer `afterRender()` when the callback reads or changes rendered DOM.
 
 ### `derive(fn): T`
 
@@ -77,6 +89,8 @@ Creates a derived reactive value and registers its disposal with the component.
 ### `afterRender(key, effect, deps?): void`
 
 Declare a keyed commit-phase effect during `template()`. It runs after DOM commit. A returned cleanup runs before the keyed effect reruns, when the key disappears, or when the component disconnects.
+
+The key identifies one post-render responsibility. With no dependency array, the callback runs after every successful render. An empty array runs it once per connection. Other arrays rerun it when an item changes by `Object.is()` comparison.
 
 <!-- cami-language-pair -->
 === "JavaScript"
@@ -95,9 +109,11 @@ Declare a keyed commit-phase effect during `template()`. It runs after DOM commi
 === "TypeScript"
 
     ```typescript
-    template() {
+    template(): ReturnType<typeof html> {
       this.afterRender('chart', () => {
-        const chart = createChart(this.querySelector('canvas'))
+        const canvas = this.querySelector<HTMLCanvasElement>('canvas')
+        if (!canvas) return
+        const chart = createChart(canvas)
         return () => chart.destroy()
       }, [this.dataset.series])
 
@@ -108,6 +124,41 @@ Declare a keyed commit-phase effect during `template()`. It runs after DOM commi
 ### `afterSettle(source, callback): void`
 
 Watches a reactive getter. The callback receives the new and previous values after all affected renders and `afterRender` effects settle.
+
+Register a watcher once in `onConnect()`. Its first callback observes the transition from `undefined` to the current value. Cami removes the watcher on disconnect. A callback may update state, but guard the update so it converges; Cami stops continuous settle loops after ten passes.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    onConnect() {
+      this.afterSettle(
+        () => PreferencesStore.getState().theme,
+        (theme, previousTheme) => {
+          if (theme !== previousTheme) {
+            analytics.track('theme changed', { theme })
+          }
+        },
+      )
+    }
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    type Theme = 'light' | 'dark'
+
+    onConnect(): void {
+      this.afterSettle<Theme>(
+        () => PreferencesStore.getState().theme,
+        (theme: Theme, previousTheme: Theme | undefined): void => {
+          if (theme !== previousTheme) {
+            analytics.track('theme changed', { theme })
+          }
+        },
+      )
+    }
+    ```
 
 ## Component resources
 

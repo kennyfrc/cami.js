@@ -1,99 +1,45 @@
 # URLStore
 
-The `URLStore` provides reactive hash routing, resource loading, and navigation hooks. Use it inside an island that owns client-side navigation; the rest of an MPA can keep using normal document requests.
+`URLStore` turns the hash portion of the browser URL into reactive application state. It is useful when one island owns navigation inside an otherwise server-rendered application.
 
-## Overview
+Use it for state that should survive reloads, browser history, copied links, or back/forward navigation. Common examples include an active conversation, selected document, open overlay, workspace tab, and filtered view.
 
-<!-- cami-language-pair -->
-=== "JavaScript"
+## URL model
 
-    ```javascript
-    import { createURLStore } from "cami";
-    // Create the URL store
-    const router = createURLStore({
-        onChange: (state) => {
-            console.log("URL changed:", state);
-        },
-    });
-    // Register routes
-    router.registerRoute("/posts/:id", {
-        resources: ["post"],
-        onEnter: ({ params }) => {
-            console.log("Entering post", params.id);
-        },
-    });
-    // Register resource loaders
-    router.registerResourceLoader("post", async ({ params }) => {
-        const response = await fetch(`/api/posts/${params.id}`);
-        return response.json();
-    });
-    // Initialize
-    await router.initialize();
-    ```
+Cami parses this URL:
 
-=== "TypeScript"
+```text
+#chats/42?tab=documents#preview=page-2
+```
 
-    ```typescript
-    import {
-      createURLStore,
-      type ResourceLoaderContext,
-      type URLState,
-    } from "cami";
+into:
 
-    interface Post {
-      id: string;
-      title: string;
-    }
+```text
+hashPaths  = ["chats", "42"]
+params     = { tab: "documents" }
+hashParams = { preview: "page-2" }
+```
 
-    // Create the URL store
-    const router = createURLStore({
-      onChange: (state: URLState): void => {
-        console.log("URL changed:", state);
-      },
-    });
+When a registered route contains path parameters, `routeParams` contains the extracted values.
 
-    // Register routes
-    router.registerRoute("/posts/:id", {
-      resources: ["post"],
-      onEnter: ({ params }): void => {
-        console.log("Entering post", params.id);
-      },
-    });
+## Create and initialize the store
 
-    // Register resource loaders
-    router.registerResourceLoader("post", async ({ params }: ResourceLoaderContext): Promise<void> => {
-      const response = await fetch(`/api/posts/${params.id}`);
-      const post = await response.json() as Post;
-      console.log("Loaded post", post.title);
-    });
-
-    // Initialize
-    await router.initialize();
-    ```
-
----
-
-## Creating a URL Store
-
-### `createURLStore(options?)`
-
-Creates a singleton URL store:
+`createURLStore()` returns one shared instance. Register routes, loaders, and hooks before calling `initialize()` once during application startup.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
     import { createURLStore } from "cami";
+
     const router = createURLStore({
-        onInit: async (state) => {
-            // Called once during initialization
-            console.log("Initial URL state:", state);
-        },
-        onChange: (state) => {
-            // Called on every URL change
-            console.log("URL changed:", state);
-        },
+      onChange: state => {
+        console.log("URL changed", state);
+      },
     });
+
+    router.registerRoute("chats/:id");
+    await router.initialize();
     ```
 
 === "TypeScript"
@@ -102,879 +48,283 @@ Creates a singleton URL store:
     import { createURLStore, type URLState } from "cami";
 
     const router = createURLStore({
-      onInit: async (state: URLState): Promise<void> => {
-        // Called once during initialization
-        console.log("Initial URL state:", state);
-      },
       onChange: (state: URLState): void => {
-        // Called on every URL change
-        console.log("URL changed:", state);
+        console.log("URL changed", state);
       },
     });
+
+    router.registerRoute("chats/:id");
+    await router.initialize();
     ```
 
-**Options:**
+`onInit` is an alias for initial bootstrap work. For fluent setup, use `bootstrap()` instead.
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `onInit` | `(state) => void \| Promise<void>` | Called once during initialization |
-| `onChange` | `(state) => void` | Called on every URL change |
+## Register routes and load their data
 
----
-
-## URL State
-
-The URL store maintains state parsed from the current URL:
+Route resources run in parallel before `onEnter`. Loaders receive route and query parameters together, plus an `AbortSignal`. A newer navigation aborts loaders from the older navigation.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-
+    router
+      .registerRoute("chats/:id", {
+        resources: ["conversation"],
+        onEnter: ({ params }) => {
+          console.log("Opened conversation", params.id);
+        },
+      })
+      .registerResourceLoader("conversation", async ({ params, signal }) => {
+        const response = await fetch(`/api/conversations/${params.id}`, { signal });
+        if (!response.ok) throw new Error("Conversation request failed");
+        ConversationStore.dispatch("setConversation", await response.json());
+      });
     ```
 
 === "TypeScript"
 
     ```typescript
-    interface URLState {
-      params: Record<string, string>;      // Query parameters (?key=value)
-      hashPaths: string[];                  // Hash path segments (#/a/b/c)
-      hashParams: Record<string, string>;  // Hash query params (#/path?key=value)
-      routeParams?: Record<string, string>; // Matched route parameters
+    import type { ResourceLoaderContext, RouteEnterContext } from "cami";
+
+    interface Conversation {
+      id: string;
+      title: string;
     }
-    ```
 
-### Reading State
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    const state = router.getState();
-    console.log(state.hashPaths); // ["posts", "123"]
-    console.log(state.routeParams); // { id: "123" }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    const state = router.getState();
-    console.log(state.hashPaths);   // ["posts", "123"]
-    console.log(state.routeParams); // { id: "123" }
-    ```
-
----
-
-## Routes
-
-### `registerRoute(pattern, options?)`
-
-Register a route pattern:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    // Simple route
-    router.registerRoute("/posts");
-    // Route with parameter
-    router.registerRoute("/posts/:id");
-    // Route with multiple parameters
-    router.registerRoute("/users/:userId/posts/:postId");
-    // Route with options
-    router.registerRoute("/posts/:id", {
-        resources: ["post", "comments"], // Resources to load
-        params: {
-            id: { persist: true }, // Persist param across navigations
+    router
+      .registerRoute("chats/:id", {
+        resources: ["conversation"],
+        onEnter: ({ params }: RouteEnterContext): void => {
+          console.log("Opened conversation", params.id);
         },
-        onEnter: ({ state, params }) => {
-            console.log("Entering post", params.id);
+      })
+      .registerResourceLoader(
+        "conversation",
+        async ({ params, signal }: ResourceLoaderContext): Promise<void> => {
+          const response = await fetch(`/api/conversations/${params.id}`, { signal });
+          if (!response.ok) throw new Error("Conversation request failed");
+          const conversation = await response.json() as Conversation;
+          ConversationStore.dispatch("setConversation", conversation);
         },
-        onLeave: ({ from, to }) => {
-            console.log("Leaving post route");
-        },
-    });
+      );
     ```
 
-=== "TypeScript"
+### Route options
 
-    ```typescript
-    // Simple route
-    router.registerRoute("/posts");
+| Option | Meaning |
+|---|---|
+| `resources` | Loader names that must finish before route entry |
+| `params` | Query-parameter settings; `{ persist: true }` preserves that parameter during `fullReplace` navigation into this route |
+| `onEnter` | Runs after resources load and the route becomes active |
+| `onLeave` | Runs before the next route becomes active |
 
-    // Route with parameter
-    router.registerRoute("/posts/:id");
+Missing resource loaders are ignored. Loader errors are logged and stop that navigation from entering the route.
 
-    // Route with multiple parameters
-    router.registerRoute("/users/:userId/posts/:postId");
+## Navigate
 
-    // Route with options
-    router.registerRoute("/posts/:id", {
-      resources: ["post", "comments"],  // Resources to load
-      params: {
-        id: { persist: true },  // Persist param across navigations
-      },
-      onEnter: ({ state, params }) => {
-        console.log("Entering post", params.id);
-      },
-      onLeave: ({ from, to }) => {
-        console.log("Leaving post route");
-      },
-    });
-    ```
-
-**Route Options:**
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `resources` | `string[]` | Resources to load before route activates |
-| `params` | `Record<string, { persist?: boolean }>` | Parameter options |
-| `onEnter` | `(context) => void \| Promise<void>` | Called when entering route |
-| `onLeave` | `(context) => void \| Promise<void>` | Called when leaving route |
-
----
-
-## Resource Loaders
-
-### `registerResourceLoader(name, loader)`
-
-Register a function to load route resources:
+Path navigation performs the full route lifecycle. Existing parameters remain unless you remove them or request `fullReplace`.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-    router.registerResourceLoader("post", async ({ route, params, signal }) => {
-        const response = await fetch(`/api/posts/${params.id}`, { signal });
-        if (!response.ok)
-            throw new Error("Failed to load post");
-        return response.json();
+    router.navigate({
+      path: "chats/42",
+      params: { tab: "documents" },
+      hashParams: { preview: "page-2" },
+      pageTitle: "Conversation · Cami",
+      announcement: "Opened conversation 42",
+      focusSelector: "main h1",
     });
-    router.registerResourceLoader("comments", async ({ params, signal }) => {
-        const response = await fetch(`/api/posts/${params.id}/comments`, { signal });
-        return response.json();
-    });
+
+    // Remove one parameter without clearing the others.
+    router.navigate({ params: { tab: null } });
+
+    // Replace the current history entry instead of adding one.
+    router.navigate({ path: "chats/42", replace: true });
     ```
 
 === "TypeScript"
 
     ```typescript
-    router.registerResourceLoader("post", async ({ route, params, signal }) => {
-      const response = await fetch(`/api/posts/${params.id}`, { signal });
-      if (!response.ok) throw new Error("Failed to load post");
-      return response.json();
-    });
+    import type { NavigateOptions } from "cami";
 
-    router.registerResourceLoader("comments", async ({ params, signal }) => {
-      const response = await fetch(`/api/posts/${params.id}/comments`, { signal });
-      return response.json();
-    });
+    const destination: NavigateOptions = {
+      path: "chats/42",
+      params: { tab: "documents" },
+      hashParams: { preview: "page-2" },
+      pageTitle: "Conversation · Cami",
+      announcement: "Opened conversation 42",
+      focusSelector: "main h1",
+    };
+
+    router.navigate(destination);
+    router.navigate({ params: { tab: null } });
+    router.navigate({ path: "chats/42", replace: true });
     ```
 
-**Loader Context:**
+### Navigation options
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `route` | `RouteDefinition` | Matched route definition |
-| `params` | `Record<string, string>` | Route parameters |
-| `url` | `string` | Current URL |
-| `signal` | `AbortSignal` | Abort signal for cancellation |
+| Option | Meaning |
+|---|---|
+| `path` | New hash path |
+| `params` | Query parameters; `null` or `undefined` removes a key |
+| `hashParams` | Parameters after the second `#` |
+| `fullReplace` | Clear existing parameters except target-route parameters marked persistent |
+| `replace` | Use `history.replaceState()` instead of `pushState()` |
+| `shallow` | Update `params` and subscribers without running routes or loaders |
+| `focusSelector` | Focus an element after navigation |
+| `pageTitle` | Set `document.title` |
+| `announcement` | Write a message to `#liveRegion` |
+| `updateCurrentPage` | Update matching navigation links with `aria-current="page"` |
 
----
+## Use shallow updates for view state
 
-## Navigation
-
-### `navigate(options)`
-
-Navigate to a new URL:
+Shallow navigation is designed for query state inside the current route: selected tabs, panels, filters, sort order, and overlay state. It updates the URL store immediately but skips route matching, resource loading, and entry hooks.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-    // Navigate by path
-    router.navigate({ path: "/posts/123" });
-    // Update query parameters
-    router.navigate({ params: { sort: "date", order: "desc" } });
-    // Update hash parameters
-    router.navigate({ hashParams: { tab: "comments" } });
-    // Combined navigation
     router.navigate({
-        path: "/posts/123",
-        hashParams: { tab: "details" },
-    });
-    // Full replace (clear other params)
-    router.navigate({
-        path: "/posts/456",
-        fullReplace: true,
-    });
-    // Shallow navigation (skip resource loading)
-    router.navigate({
-        path: "/posts/789",
-        shallow: true,
-    });
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    // Navigate by path
-    router.navigate({ path: "/posts/123" });
-
-    // Update query parameters
-    router.navigate({ params: { sort: "date", order: "desc" } });
-
-    // Update hash parameters
-    router.navigate({ hashParams: { tab: "comments" } });
-
-    // Combined navigation
-    router.navigate({
-      path: "/posts/123",
-      hashParams: { tab: "details" },
-    });
-
-    // Full replace (clear other params)
-    router.navigate({
-      path: "/posts/456",
-      fullReplace: true,
-    });
-
-    // Shallow navigation (skip resource loading)
-    router.navigate({
-      path: "/posts/789",
+      params: { tab: "documents", document: "doc-7" },
       shallow: true,
-    });
-    ```
-
-**Navigate Options:**
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `path` | `string` | Hash path to navigate to |
-| `params` | `Record<string, string \| null>` | Query parameters (null removes) |
-| `hashParams` | `Record<string, string \| null>` | Hash query parameters |
-| `fullReplace` | `boolean` | Clear other params on navigate |
-| `shallow` | `boolean` | Skip resource loading |
-| `focusSelector` | `string` | Element to focus after navigation |
-| `pageTitle` | `string` | Update document title |
-| `announcement` | `string` | Accessibility announcement |
-
----
-
-## Navigation Hooks
-
-### `beforeNavigate(hook)`
-
-Run code before navigation:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    router.beforeNavigate(async ({ from, to, route }) => {
-        // Check authentication
-        if (route?.pattern.startsWith("/admin") && !isAuthenticated()) {
-            router.navigate({ path: "/login" });
-            return; // Cancel navigation
-        }
-    });
-    // Guard navigation with confirmation
-    router.beforeNavigate(({ from }) => {
-        if (hasUnsavedChanges()) {
-            if (!confirm("You have unsaved changes. Leave anyway?")) {
-                return; // Cancel navigation
-            }
-        }
+      replace: true,
     });
     ```
 
 === "TypeScript"
 
     ```typescript
-    router.beforeNavigate(async ({ from, to, route }) => {
-      // Check authentication
-      if (route?.pattern.startsWith("/admin") && !isAuthenticated()) {
-        router.navigate({ path: "/login" });
-        return; // Cancel navigation
-      }
-    });
+    const viewState: NavigateOptions = {
+      params: { tab: "documents", document: "doc-7" },
+      shallow: true,
+      replace: true,
+    };
 
-    // Guard navigation with confirmation
-    router.beforeNavigate(({ from }) => {
-      if (hasUnsavedChanges()) {
-        if (!confirm("You have unsaved changes. Leave anyway?")) {
-          return; // Cancel navigation
-        }
-      }
-    });
+    router.navigate(viewState);
     ```
 
-### `afterNavigate(hook)`
+`shallow: true` cannot be combined with `path`, `hashParams`, or `fullReplace`. Use normal navigation when the route or its resources must change.
 
-Run code after navigation completes:
+## Guard and observe navigation
+
+A `beforeNavigate` hook cancels navigation only when it returns `false`. Returning `undefined` allows navigation. The `from` state is the previous committed URL state; `to` is the candidate state.
 
 <!-- cami-language-pair -->
 === "JavaScript"
 
     ```javascript
-    router.afterNavigate(({ from, to, route }) => {
-        // Analytics tracking
-        analytics.trackPageView(to.hashPaths.join("/"));
-        // Scroll to top
-        window.scrollTo(0, 0);
+    router.beforeNavigate(({ to, route }) => {
+      if (route?.pattern.startsWith("admin") && !SessionStore.getState().user) {
+        router.navigate({ path: "login", replace: true });
+        return false;
+      }
+
+      return true;
     });
-    ```
 
-=== "TypeScript"
-
-    ```typescript
-    router.afterNavigate(({ from, to, route }) => {
-      // Analytics tracking
-      analytics.trackPageView(to.hashPaths.join("/"));
-
-      // Scroll to top
+    router.afterNavigate(({ from, to }) => {
+      analytics.track("navigation", { from, to });
       window.scrollTo(0, 0);
     });
     ```
 
----
-
-## Bootstrap
-
-### `bootstrap(loader)`
-
-Register a function to run once before the first route:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    router.bootstrap(async () => {
-        // Load initial data, check auth, etc.
-        const user = await checkAuthentication();
-        UserStore.dispatch("setUser", user);
-    });
-    // Initialize must be called to start routing
-    await router.initialize();
-    ```
-
 === "TypeScript"
 
     ```typescript
-    router.bootstrap(async () => {
-      // Load initial data, check auth, etc.
-      const user = await checkAuthentication();
-      UserStore.dispatch("setUser", user);
-    });
+    import type { NavigationHookContext } from "cami";
 
-    // Initialize must be called to start routing
-    await router.initialize();
-    ```
-
-### `initialize()`
-
-Start the router and process the initial URL:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    await router.initialize();
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    await router.initialize();
-    ```
-
----
-
-## Route Matching
-
-### `matches(pattern)`
-
-Check if the current URL matches a pattern:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    if (router.matches("/posts/:id")) {
-        console.log("On a post page");
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    if (router.matches("/posts/:id")) {
-      console.log("On a post page");
-    }
-    ```
-
-### `getActiveRoute()`
-
-Get the currently matched route:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    const route = router.getActiveRoute();
-    if (route) {
-        console.log("Current pattern:", route.pattern);
-        console.log("Route params:", route.extractedParams);
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    const route = router.getActiveRoute();
-    if (route) {
-      console.log("Current pattern:", route.pattern);
-      console.log("Route params:", route.extractedParams);
-    }
-    ```
-
----
-
-## Navigation State
-
-### `isLoading()`
-
-Check if resources are currently loading:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    if (router.isLoading()) {
-        // Show loading indicator
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    if (router.isLoading()) {
-      // Show loading indicator
-    }
-    ```
-
-### `isPending()`
-
-Check if navigation is pending:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    if (router.isPending()) {
-        // Navigation in progress
-    }
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    if (router.isPending()) {
-      // Navigation in progress
-    }
-    ```
-
----
-
-## Using with Components
-
-Here's how to use URLStore with ReactiveElement:
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    import { createURLStore, store, html, ReactiveElement } from "cami";
-    // Create stores
-    const router = createURLStore();
-    const AppStore = store({
-        name: "AppStore",
-        state: {
-            currentPost: null,
-            loading: false,
-        },
-    });
-    // Define actions
-    AppStore.defineAction("setPost", ({ state, payload }) => {
-        state.currentPost = payload;
-        state.loading = false;
-    });
-    AppStore.defineAction("setLoading", ({ state }) => {
-        state.loading = true;
-    });
-    // Register routes
-    router.registerRoute("/", {
-        onEnter: () => AppStore.dispatch("setPost", null),
-    });
-    router.registerRoute("/posts/:id", {
-        resources: ["post"],
-        onEnter: () => AppStore.dispatch("setLoading"),
-    });
-    // Register resource loader
-    router.registerResourceLoader("post", async ({ params }) => {
-        const response = await fetch(`/api/posts/${params.id}`);
-        const post = await response.json();
-        AppStore.dispatch("setPost", post);
-        return post;
-    });
-    // Initialize
-    router.initialize();
-    // Router-aware component
-    class App extends ReactiveElement {
-        template() {
-            const state = router.getState();
-            const { currentPost, loading } = AppStore.getState();
-            return html `
-          <nav>
-            <a href="#/" @click=${(e) => this.handleNav(e, "/")}>Home</a>
-            <a href="#/posts/1" @click=${(e) => this.handleNav(e, "/posts/1")}>Post 1</a>
-            <a href="#/posts/2" @click=${(e) => this.handleNav(e, "/posts/2")}>Post 2</a>
-          </nav>
-
-          <main>
-            ${loading
-                ? html `<div>Loading...</div>`
-                : currentPost
-                    ? html `<article><h1>${currentPost.title}</h1><p>${currentPost.body}</p></article>`
-                    : html `<div>Welcome! Select a post.</div>`}
-          </main>
-        `;
-        }
-        handleNav(e, path) {
-            e.preventDefault();
-            router.navigate({ path });
-        }
-    }
-    customElements.define("app-root", App);
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    import { createURLStore, store, html, ReactiveElement } from "cami";
-
-    // Create stores
-    const router = createURLStore();
-    const AppStore = store({
-      name: "AppStore",
-      state: {
-        currentPost: null,
-        loading: false,
-      },
-    });
-
-    // Define actions
-    AppStore.defineAction("setPost", ({ state, payload }) => {
-      state.currentPost = payload;
-      state.loading = false;
-    });
-
-    AppStore.defineAction("setLoading", ({ state }) => {
-      state.loading = true;
-    });
-
-    // Register routes
-    router.registerRoute("/", {
-      onEnter: () => AppStore.dispatch("setPost", null),
-    });
-
-    router.registerRoute("/posts/:id", {
-      resources: ["post"],
-      onEnter: () => AppStore.dispatch("setLoading"),
-    });
-
-    // Register resource loader
-    router.registerResourceLoader("post", async ({ params }) => {
-      const response = await fetch(`/api/posts/${params.id}`);
-      const post = await response.json();
-      AppStore.dispatch("setPost", post);
-      return post;
-    });
-
-    // Initialize
-    router.initialize();
-
-    // Router-aware component
-    class App extends ReactiveElement {
-      template() {
-        const state = router.getState();
-        const { currentPost, loading } = AppStore.getState();
-
-        return html`
-          <nav>
-            <a href="#/" @click=${(e) => this.handleNav(e, "/")}>Home</a>
-            <a href="#/posts/1" @click=${(e) => this.handleNav(e, "/posts/1")}>Post 1</a>
-            <a href="#/posts/2" @click=${(e) => this.handleNav(e, "/posts/2")}>Post 2</a>
-          </nav>
-
-          <main>
-            ${loading
-              ? html`<div>Loading...</div>`
-              : currentPost
-                ? html`<article><h1>${currentPost.title}</h1><p>${currentPost.body}</p></article>`
-                : html`<div>Welcome! Select a post.</div>`
-            }
-          </main>
-        `;
+    router.beforeNavigate(({ route }: NavigationHookContext): boolean => {
+      if (route?.pattern.startsWith("admin") && !SessionStore.getState().user) {
+        router.navigate({ path: "login", replace: true });
+        return false;
       }
 
-      handleNav(e, path) {
-        e.preventDefault();
-        router.navigate({ path });
-      }
-    }
-
-    customElements.define("app-root", App);
-    ```
-
----
-
-## Complete Example
-
-<!-- cami-language-pair -->
-=== "JavaScript"
-
-    ```javascript
-    import { createURLStore, store } from "cami";
-    // Create the router
-    const router = createURLStore({
-        onChange: (state) => {
-            console.log("Route:", state.hashPaths.join("/"));
-        },
-    });
-    // App store for data
-    const AppStore = store({
-        name: "AppStore",
-        state: {
-            user: null,
-            posts: [],
-            currentPost: null,
-            loading: false,
-            error: null,
-        },
-    });
-    // Actions
-    AppStore.defineAction("setUser", ({ state, payload }) => {
-        state.user = payload;
-    });
-    AppStore.defineAction("setPosts", ({ state, payload }) => {
-        state.posts = payload;
-    });
-    AppStore.defineAction("setCurrentPost", ({ state, payload }) => {
-        state.currentPost = payload;
-        state.loading = false;
-    });
-    AppStore.defineAction("setLoading", ({ state, payload }) => {
-        state.loading = payload;
-    });
-    AppStore.defineAction("setError", ({ state, payload }) => {
-        state.error = payload;
-        state.loading = false;
-    });
-    // Bootstrap: check auth
-    router.bootstrap(async () => {
-        try {
-            const response = await fetch("/api/me");
-            if (response.ok) {
-                const user = await response.json();
-                AppStore.dispatch("setUser", user);
-            }
-        }
-        catch (e) {
-            console.log("Not authenticated");
-        }
-    });
-    // Routes
-    router.registerRoute("/", {
-        onEnter: () => {
-            AppStore.dispatch("setCurrentPost", null);
-        },
-    });
-    router.registerRoute("/posts", {
-        resources: ["posts"],
-        onEnter: () => AppStore.dispatch("setLoading", true),
-    });
-    router.registerRoute("/posts/:id", {
-        resources: ["post"],
-        onEnter: () => AppStore.dispatch("setLoading", true),
-    });
-    router.registerRoute("/login");
-    // Resource loaders
-    router.registerResourceLoader("posts", async ({ signal }) => {
-        const response = await fetch("/api/posts", { signal });
-        const posts = await response.json();
-        AppStore.dispatch("setPosts", posts);
-        return posts;
-    });
-    router.registerResourceLoader("post", async ({ params, signal }) => {
-        const response = await fetch(`/api/posts/${params.id}`, { signal });
-        const post = await response.json();
-        AppStore.dispatch("setCurrentPost", post);
-        return post;
-    });
-    // Navigation guards
-    router.beforeNavigate(({ to, route }) => {
-        const { user } = AppStore.getState();
-        // Protect admin routes
-        if (route?.pattern.startsWith("/admin") && !user) {
-            router.navigate({ path: "/login" });
-            return;
-        }
-    });
-    router.afterNavigate(() => {
-        window.scrollTo(0, 0);
-    });
-    // Start routing
-    router.initialize();
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    import { createURLStore, store, html, ReactiveElement } from "cami";
-
-    // Create the router
-    const router = createURLStore({
-      onChange: (state) => {
-        console.log("Route:", state.hashPaths.join("/"));
-      },
+      return true;
     });
 
-    // App store for data
-    const AppStore = store({
-      name: "AppStore",
-      state: {
-        user: null,
-        posts: [],
-        currentPost: null,
-        loading: false,
-        error: null,
-      },
-    });
-
-    // Actions
-    AppStore.defineAction("setUser", ({ state, payload }) => {
-      state.user = payload;
-    });
-
-    AppStore.defineAction("setPosts", ({ state, payload }) => {
-      state.posts = payload;
-    });
-
-    AppStore.defineAction("setCurrentPost", ({ state, payload }) => {
-      state.currentPost = payload;
-      state.loading = false;
-    });
-
-    AppStore.defineAction("setLoading", ({ state, payload }) => {
-      state.loading = payload;
-    });
-
-    AppStore.defineAction("setError", ({ state, payload }) => {
-      state.error = payload;
-      state.loading = false;
-    });
-
-    // Bootstrap: check auth
-    router.bootstrap(async () => {
-      try {
-        const response = await fetch("/api/me");
-        if (response.ok) {
-          const user = await response.json();
-          AppStore.dispatch("setUser", user);
-        }
-      } catch (e) {
-        console.log("Not authenticated");
-      }
-    });
-
-    // Routes
-    router.registerRoute("/", {
-      onEnter: () => {
-        AppStore.dispatch("setCurrentPost", null);
-      },
-    });
-
-    router.registerRoute("/posts", {
-      resources: ["posts"],
-      onEnter: () => AppStore.dispatch("setLoading", true),
-    });
-
-    router.registerRoute("/posts/:id", {
-      resources: ["post"],
-      onEnter: () => AppStore.dispatch("setLoading", true),
-    });
-
-    router.registerRoute("/login");
-
-    // Resource loaders
-    router.registerResourceLoader("posts", async ({ signal }) => {
-      const response = await fetch("/api/posts", { signal });
-      const posts = await response.json();
-      AppStore.dispatch("setPosts", posts);
-      return posts;
-    });
-
-    router.registerResourceLoader("post", async ({ params, signal }) => {
-      const response = await fetch(`/api/posts/${params.id}`, { signal });
-      const post = await response.json();
-      AppStore.dispatch("setCurrentPost", post);
-      return post;
-    });
-
-    // Navigation guards
-    router.beforeNavigate(({ to, route }) => {
-      const { user } = AppStore.getState();
-
-      // Protect admin routes
-      if (route?.pattern.startsWith("/admin") && !user) {
-        router.navigate({ path: "/login" });
-        return;
-      }
-    });
-
-    router.afterNavigate(() => {
+    router.afterNavigate(({ from, to }: NavigationHookContext): void => {
+      analytics.track("navigation", { from, to });
       window.scrollTo(0, 0);
     });
-
-    // Start routing
-    router.initialize();
     ```
 
----
+Calling `navigate()` inside a pending hook queues that navigation. Return `false` when the queued navigation replaces the current candidate.
 
-## API Reference
+## Read and match state
 
-### Factory
+`getState()` is dependency-tracked when called while a reactive component renders.
 
-| Function | Description |
-|----------|-------------|
-| `createURLStore(options?)` | Create or get singleton URLStore |
+<!-- cami-language-pair -->
+=== "JavaScript"
 
-### Instance Methods
+    ```javascript
+    const state = router.getState();
+    const isConversation = router.matches({ hashPaths: ["chats"] });
+    const isDocumentsTab = router.matches({ params: { tab: "documents" } });
+    const route = router.getActiveRoute();
 
-| Method | Description |
-|--------|-------------|
-| `registerRoute(pattern, options?)` | Register a route |
-| `registerResourceLoader(name, loader)` | Register a resource loader |
-| `beforeNavigate(hook)` | Add before-navigation hook |
-| `afterNavigate(hook)` | Add after-navigation hook |
-| `bootstrap(loader)` | Register bootstrap function |
-| `initialize()` | Start the router |
-| `navigate(options)` | Navigate to a URL |
-| `getState()` | Get current URL state |
-| `matches(pattern)` | Check if pattern matches |
-| `getActiveRoute()` | Get current matched route |
-| `isLoading()` | Check if resources are loading |
-| `isPending()` | Check if navigation is pending |
-| `subscribe(observer)` | Subscribe to URL changes |
+    console.log(state.routeParams?.id, isConversation, isDocumentsTab, route?.pattern);
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import type { RouteDefinition, URLState } from "cami";
+
+    const state: URLState = router.getState();
+    const isConversation: boolean = router.matches({ hashPaths: ["chats"] });
+    const isDocumentsTab: boolean = router.matches({ params: { tab: "documents" } });
+    const route: RouteDefinition | null = router.getActiveRoute();
+
+    console.log(state.routeParams?.id, isConversation, isDocumentsTab, route?.pattern);
+    ```
+
+`matches()` accepts a partial `URLState`. `hashPaths` uses prefix matching; parameter objects match only the keys you provide.
+
+## Navigation status
+
+- `isPending()` is true while hooks, loaders, and route handlers are running.
+- `isLoading()` is true only while route resources are loading.
+- `isEmpty()` is true when the hash path and both parameter maps are empty.
+
+Status methods are snapshots, not reactive subscriptions. Read URL state during rendering or subscribe to the store when the UI must update.
+
+## Bootstrap application state
+
+Use `bootstrap()` for work that must finish before the first route runs, such as restoring a session or loading feature flags.
+
+<!-- cami-language-pair -->
+=== "JavaScript"
+
+    ```javascript
+    router.bootstrap(async () => {
+      const response = await fetch("/api/session");
+      SessionStore.dispatch("setSession", await response.json());
+    });
+
+    await router.initialize();
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    interface Session {
+      userId: string | null;
+    }
+
+    router.bootstrap(async (): Promise<void> => {
+      const response = await fetch("/api/session");
+      const session = await response.json() as Session;
+      SessionStore.dispatch("setSession", session);
+    });
+
+    await router.initialize();
+    ```
+
+`bootstrap()` must be registered before `initialize()`. Repeated calls to `initialize()` do nothing.
+
+## Recommended ownership
+
+Create the URL store in one routing module. That module should own route registration, resource loading, redirects, and global hooks. Components can read state and call `navigate()`, but route definitions should not be scattered across component classes.
