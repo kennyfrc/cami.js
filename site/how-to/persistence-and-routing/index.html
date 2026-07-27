@@ -1244,14 +1244,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
@@ -1344,90 +1336,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/observable_state/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    ObservableState
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/observable/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/model/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Models
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/type_system/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Runtime type system
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../api/url_store/" class="md-nav__link">
         
   
@@ -1474,7 +1382,7 @@
         
   
   <span class="md-ellipsis">
-    Console and debug controls
+    Debug and events
   </span>
   
 
@@ -1751,17 +1659,17 @@
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="nb">Object</span><span class="p">.</span><span class="nx">assign</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">Partial</span><span class="o">&lt;</span><span class="nx">PreferencesState</span><span class="o">&gt;</span><span class="p">)</span>
 </span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="p">})</span>
 </span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="kd">const</span><span class="w"> </span><span class="nx">storage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createLocalStorage</span><span class="p">({</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;preferences&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">1</span><span class="w"> </span><span class="p">})</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="kd">const</span><span class="w"> </span><span class="nx">storage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createLocalStorage</span><span class="o">&lt;</span><span class="nx">PreferencesState</span><span class="o">&gt;</span><span class="p">({</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;preferences&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">1</span><span class="w"> </span><span class="p">})</span>
 </span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nx">PreferencesStore</span><span class="p">.</span><span class="nx">afterHook</span><span class="p">(</span><span class="nx">persistToLocalStorageThunk</span><span class="p">(</span><span class="nx">storage</span><span class="p">))</span>
 </span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="kd">const</span><span class="w"> </span><span class="nx">saved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">getState</span><span class="p">()</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="nx">PreferencesState</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="kd">const</span><span class="w"> </span><span class="nx">saved</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">storage</span><span class="p">.</span><span class="nx">getState</span><span class="p">()</span>
 </span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">saved</span><span class="w"> </span><span class="o">!==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="nx">PreferencesStore</span><span class="p">.</span><span class="nx">dispatch</span><span class="p">(</span><span class="s1">&#39;hydrate&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">saved</span><span class="p">)</span>
 </span></code></pre></div>
 </div>
 </div>
 </div>
 <p>Use a versioned storage name or migration strategy when the persisted state shape changes. Do not persist secrets or authentication tokens in browser storage.</p>
-<p>For larger collections, use <code>createIdbPromise()</code> with <code>persistToIdbThunk()</code>. See <a href="../../features/persistence/">State persistence</a> for adapter options.</p>
+<p>For larger collections or offline databases, use an application-owned adapter with explicit indexes, migrations, and error handling. Cami keeps only the small localStorage case in its core API.</p>
 <h2 id="create-a-hash-router">Create a hash router</h2>
 <!-- cami-language-pair -->
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">JavaScript</label><label for="__tabbed_2_2">TypeScript</label></div>

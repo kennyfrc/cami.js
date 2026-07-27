@@ -1186,14 +1186,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
@@ -1286,90 +1278,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../observable_state/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    ObservableState
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../observable/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../model/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Models
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../type_system/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Runtime type system
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../url_store/" class="md-nav__link">
         
   
@@ -1437,18 +1345,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#keyedrepeatitems-key-render-options" class="md-nav__link">
+  <a href="#repeatitems-key-render" class="md-nav__link">
     <span class="md-ellipsis">
-      keyedRepeat(items, key, render, options?)
+      repeat(items, key, render)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#reftarget" class="md-nav__link">
+  <a href="#keyedkey-template" class="md-nav__link">
     <span class="md-ellipsis">
-      ref(target)
+      keyed(key, template)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unsafehtmlvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      unsafeHTML(value)
     </span>
   </a>
   
@@ -1467,15 +1384,6 @@
   <a href="#resourcet" class="md-nav__link">
     <span class="md-ellipsis">
       Resource&lt;T&gt;
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#re-exported-lit-html-directives" class="md-nav__link">
-    <span class="md-ellipsis">
-      Re-exported lit-html directives
     </span>
   </a>
   
@@ -1501,7 +1409,7 @@
         
   
   <span class="md-ellipsis">
-    Console and debug controls
+    Debug and events
   </span>
   
 
@@ -1700,18 +1608,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#keyedrepeatitems-key-render-options" class="md-nav__link">
+  <a href="#repeatitems-key-render" class="md-nav__link">
     <span class="md-ellipsis">
-      keyedRepeat(items, key, render, options?)
+      repeat(items, key, render)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#reftarget" class="md-nav__link">
+  <a href="#keyedkey-template" class="md-nav__link">
     <span class="md-ellipsis">
-      ref(target)
+      keyed(key, template)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unsafehtmlvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      unsafeHTML(value)
     </span>
   </a>
   
@@ -1730,15 +1647,6 @@
   <a href="#resourcet" class="md-nav__link">
     <span class="md-ellipsis">
       Resource&lt;T&gt;
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#re-exported-lit-html-directives" class="md-nav__link">
-    <span class="md-ellipsis">
-      Re-exported lit-html directives
     </span>
   </a>
   
@@ -1763,39 +1671,38 @@
 
 
 <h1 id="directives-and-resources">Directives and resources</h1>
-<h2 id="keyedrepeatitems-key-render-options"><code>keyedRepeat(items, key, render, options?)</code></h2>
-<p>Renders a collection through lit-html's <code>repeat</code> directive. <code>key</code> must return a stable, non-empty string.</p>
+<h2 id="repeatitems-key-render"><code>repeat(items, key, render)</code></h2>
+<p>Renders a collection while preserving DOM identity by item key.</p>
 <!-- cami-language-pair -->
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">JavaScript</label><label for="__tabbed_1_2">TypeScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">keyedRepeat</span><span class="p">(</span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;tr&gt;&lt;td&gt;</span><span class="si">${</span><span class="nx">row</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">&lt;/td&gt;&lt;/tr&gt;`</span><span class="p">)</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nx">repeat</span><span class="p">(</span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;tr&gt;&lt;td&gt;</span><span class="si">${</span><span class="nx">row</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">&lt;/td&gt;&lt;/tr&gt;`</span><span class="p">)</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">keyedRepeat</span><span class="p">(</span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">row</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;tr&gt;&lt;td&gt;</span><span class="si">${</span><span class="nx">row</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">&lt;/td&gt;&lt;/tr&gt;`</span><span class="p">)</span>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">repeat</span><span class="p">(</span><span class="nx">rows</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">row</span><span class="o">:</span><span class="w"> </span><span class="kt">Row</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">row</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">row</span><span class="o">:</span><span class="w"> </span><span class="kt">Row</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;tr&gt;&lt;td&gt;</span><span class="si">${</span><span class="nx">row</span><span class="p">.</span><span class="nx">name</span><span class="si">}</span><span class="sb">&lt;/td&gt;&lt;/tr&gt;`</span><span class="p">)</span>
 </span></code></pre></div>
 </div>
 </div>
 </div>
-<p>Set <code>devAssertStable</code> to control key warnings. Debug mode enables warnings by default.</p>
-<h2 id="reftarget"><code>ref(target)</code></h2>
-<p>Creates a lit-html ref directive. <code>target</code> is either <code>{ current: Element | null }</code> or a callback that receives the element and later <code>null</code>.</p>
+<h2 id="keyedkey-template"><code>keyed(key, template)</code></h2>
+<p>Forces one template region to be replaced when its key changes. Use it when a new identity must reset DOM state.</p>
 <!-- cami-language-pair -->
 <div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">JavaScript</label><label for="__tabbed_2_2">TypeScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">current</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nx">html</span><span class="sb">`&lt;input </span><span class="si">${</span><span class="nx">ref</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="si">}</span><span class="sb"> /&gt;`</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nx">keyed</span><span class="p">(</span><span class="nx">activeDocumentId</span><span class="p">,</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;document-editor .document=</span><span class="si">${</span><span class="nb">document</span><span class="si">}</span><span class="sb">&gt;&lt;/document-editor&gt;`</span><span class="p">)</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">current</span><span class="o">:</span><span class="w"> </span><span class="kt">null</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nx">html</span><span class="sb">`&lt;input </span><span class="si">${</span><span class="nx">ref</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="si">}</span><span class="sb"> /&gt;`</span>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nx">keyed</span><span class="p">(</span><span class="nx">activeDocumentId</span><span class="p">,</span><span class="w"> </span><span class="nx">html</span><span class="sb">`&lt;document-editor .document=</span><span class="si">${</span><span class="nb">document</span><span class="si">}</span><span class="sb">&gt;&lt;/document-editor&gt;`</span><span class="p">)</span>
 </span></code></pre></div>
 </div>
 </div>
 </div>
+<h2 id="unsafehtmlvalue"><code>unsafeHTML(value)</code></h2>
+<p>Renders a string as HTML. Only pass content that your application has already trusted or sanitized. Cami does not sanitize it.</p>
 <h2 id="useimageelement-src"><code>useImage(element, src)</code></h2>
 <p>Loads and decodes an image through the owning element's resource lifecycle.</p>
 <!-- cami-language-pair -->
@@ -1811,17 +1718,15 @@
 </div>
 </div>
 </div>
-<p>It returns <code>Resource&lt;ImageResource&gt;</code>, where successful data contains <code>src</code>, <code>width</code>, and <code>height</code>.</p>
+<p>It returns <code>Resource&lt;ImageResource&gt;</code>. Successful data contains <code>src</code>, <code>width</code>, and <code>height</code>. Cami cancels stale work when the owner disconnects or the request changes.</p>
 <h2 id="resourcet"><code>Resource&lt;T&gt;</code></h2>
-<p>A discriminated union keyed by <code>status</code>:</p>
+<p><code>Resource&lt;T&gt;</code> is a discriminated union keyed by <code>status</code>:</p>
 <ul>
-<li><code>idle</code>, <code>loading</code>, or <code>refreshing</code>: optional previous <code>data</code>;</li>
-<li><code>success</code>: required <code>data</code>;</li>
-<li><code>error</code>: required <code>error</code> and optional previous <code>data</code>.</li>
+<li><code>idle</code>, <code>loading</code>, or <code>refreshing</code> may contain previous data;</li>
+<li><code>success</code> contains data;</li>
+<li><code>error</code> contains an error and may contain previous data.</li>
 </ul>
-<p>Every state also has a numeric <code>requestId</code>.</p>
-<h2 id="re-exported-lit-html-directives">Re-exported lit-html directives</h2>
-<p>Cami also exports <code>keyed</code>, <code>repeat</code>, and <code>unsafeHTML</code>. Only pass trusted or sanitized content to <code>unsafeHTML</code>.</p>
+<p>Use store queries for server data shared by several islands. Use a component resource for work owned by one element.</p>
 
 
 
@@ -1862,13 +1767,13 @@
         
         
           
-          <a href="../console_functions/" class="md-footer__link md-footer__link--next" aria-label="Next: Console and debug controls">
+          <a href="../console_functions/" class="md-footer__link md-footer__link--next" aria-label="Next: Debug and events">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Console and debug controls
+                Debug and events
               </div>
             </div>
             <div class="md-footer__button md-icon">

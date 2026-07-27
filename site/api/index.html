@@ -24,7 +24,7 @@
     
     
       
-        <title>Public exports - Cami.js</title>
+        <title>Public API - Cami.js</title>
       
     
     
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Public exports
+              Public API
             
           </span>
         </div>
@@ -1186,14 +1186,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
@@ -1286,90 +1278,6 @@
   
   
     <li class="md-nav__item">
-      <a href="observable_state/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    ObservableState
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="observable/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="model/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Models
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="type_system/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Runtime type system
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="url_store/" class="md-nav__link">
         
   
@@ -1416,7 +1324,7 @@
         
   
   <span class="md-ellipsis">
-    Console and debug controls
+    Debug and events
   </span>
   
 
@@ -1615,6 +1523,16 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#supported-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported core
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported core">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#rendering-and-components" class="md-nav__link">
     <span class="md-ellipsis">
       Rendering and components
@@ -1622,17 +1540,17 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#state-and-data" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#state-and-server-data" class="md-nav__link">
     <span class="md-ellipsis">
-      State and data
+      State and server data
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#browser-integration" class="md-nav__link">
     <span class="md-ellipsis">
       Browser integration
@@ -1640,20 +1558,16 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-and-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration and utilities
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#typescript-only-exports" class="md-nav__link">
+  <a href="#typescript-exports" class="md-nav__link">
     <span class="md-ellipsis">
-      TypeScript-only exports
+      TypeScript exports
     </span>
   </a>
   
@@ -1678,8 +1592,9 @@
 
 
 <h1 id="public-api-reference">Public API reference</h1>
-<p>This reference follows the exports in <code>src/cami.ts</code>, the package's public entry point. Experimental code under <code>src/exp/</code> is not exported and is not part of this API.</p>
-<h2 id="rendering-and-components">Rendering and components</h2>
+<p>The package entry point is <code>src/cami.ts</code>. Application code should start with components, typed stores, and browser integration.</p>
+<h2 id="supported-core">Supported core</h2>
+<h3 id="rendering-and-components">Rendering and components</h3>
 <table>
 <thead>
 <tr>
@@ -1697,28 +1612,20 @@
 <td>lit-html template tags</td>
 </tr>
 <tr>
-<td><code>unsafeHTML</code></td>
-<td>Render explicitly trusted HTML strings</td>
-</tr>
-<tr>
 <td><code>repeat</code>, <code>keyed</code></td>
-<td>Re-exported lit-html list/key directives</td>
+<td>Stable collection rendering</td>
 </tr>
 <tr>
-<td><code>keyedRepeat</code></td>
-<td>String-keyed list helper with development checks</td>
-</tr>
-<tr>
-<td><code>ref</code></td>
-<td>Assign a rendered element to an object or callback ref</td>
+<td><code>unsafeHTML</code></td>
+<td>Render content that has already crossed an application trust check</td>
 </tr>
 <tr>
 <td><code>useImage</code></td>
-<td>Component-owned image loading resource</td>
+<td>Load and decode an image through a component's resource lifecycle</td>
 </tr>
 </tbody>
 </table>
-<h2 id="state-and-data">State and data</h2>
+<h3 id="state-and-server-data">State and server data</h3>
 <table>
 <thead>
 <tr>
@@ -1728,28 +1635,28 @@
 </thead>
 <tbody>
 <tr>
-<td><code>store</code>, <code>ObservableStore</code></td>
-<td>Named shared state, actions, async operations, and orchestration</td>
+<td><code>store</code></td>
+<td>Create or retrieve a named store module</td>
 </tr>
 <tr>
-<td><code>ObservableState</code>, <code>effect</code></td>
-<td>Fine-grained reactive state and effects</td>
+<td><code>ObservableStore</code></td>
+<td>Store implementation and TypeScript interface</td>
 </tr>
 <tr>
-<td><code>Observable</code></td>
-<td>Push stream primitive with operators</td>
+<td>Store actions and memos</td>
+<td>Named state transitions and derived values</td>
 </tr>
 <tr>
-<td><code>Model</code>, <code>Type</code></td>
-<td>Runtime-validated model state and schema definitions</td>
+<td>Store queries and mutations</td>
+<td>Shared server state, caching, retries, and optimistic updates</td>
 </tr>
 <tr>
-<td><code>useValidationHook</code>, <code>useValidationThunk</code></td>
-<td>Attach runtime validation to store workflows</td>
+<td>Store async actions, hooks, specs, and machines</td>
+<td>Advanced orchestration</td>
 </tr>
 </tbody>
 </table>
-<h2 id="browser-integration">Browser integration</h2>
+<h3 id="browser-integration">Browser integration</h3>
 <table>
 <thead>
 <tr>
@@ -1759,62 +1666,45 @@
 </thead>
 <tbody>
 <tr>
-<td><code>createURLStore</code>, <code>URLStore</code></td>
-<td>Hash-based navigation state and route resources</td>
+<td><code>URLStore</code>, <code>createURLStore</code></td>
+<td>Hash navigation, route guards, and route-owned resources</td>
 </tr>
 <tr>
-<td><code>createLocalStorage</code>, <code>persistToLocalStorageThunk</code></td>
-<td>localStorage adapter and persistence hook</td>
+<td><code>createLocalStorage</code></td>
+<td>Versioned localStorage adapter</td>
 </tr>
 <tr>
-<td><code>createIdbPromise</code>, <code>persistToIdbThunk</code></td>
-<td>IndexedDB adapter and persistence hook</td>
+<td><code>persistToLocalStorageThunk</code></td>
+<td>Persist store state from an <code>afterHook</code></td>
 </tr>
-</tbody>
-</table>
-<h2 id="configuration-and-utilities">Configuration and utilities</h2>
-<table>
-<thead>
-<tr>
-<th>Export</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
 <tr>
 <td><code>debug</code>, <code>events</code></td>
-<td>Runtime debug and event configuration</td>
-</tr>
-<tr>
-<td><code>invariant</code></td>
-<td>Configurable invariant assertion</td>
-</tr>
-<tr>
-<td><code>_deepEqual</code>, <code>_deepMerge</code>, <code>_deepClone</code></td>
-<td>Internal-style data utilities currently exported publicly</td>
-</tr>
-<tr>
-<td><code>setAfterRenderEnabled</code>, <code>flushAfterRender</code></td>
-<td>Test seams for deterministic post-render effects</td>
+<td>Runtime diagnostics and browser event configuration</td>
 </tr>
 </tbody>
 </table>
-<h2 id="typescript-only-exports">TypeScript-only exports</h2>
-<p>The entry point exports types for observables, store configuration, models, components, refs, keyed lists, resources, runtime type definitions, and URL routing. Import them with <code>import type</code>:</p>
+<h2 id="typescript-exports">TypeScript exports</h2>
+<p>Cami exports component, store, query, mutation, resource, and routing types from the package entry point.</p>
 <!-- cami-language-pair -->
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">JavaScript</label><label for="__tabbed_1_2">TypeScript</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">export</span><span class="w"> </span><span class="p">{};</span>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">export</span><span class="w"> </span><span class="p">{}</span>
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Ref</span><span class="p">,</span><span class="w"> </span><span class="nx">Resource</span><span class="p">,</span><span class="w"> </span><span class="nx">StoreFactoryConfig</span><span class="p">,</span><span class="w"> </span><span class="nx">URLStoreOptions</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;cami&#39;</span>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">import</span><span class="w"> </span><span class="kr">type</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">MutationConfig</span><span class="p">,</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">QueryConfig</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">Resource</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">StoreFactoryConfig</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">URLStoreOptions</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;cami&#39;</span>
 </span></code></pre></div>
 </div>
 </div>
 </div>
-<p>Use the detailed pages in this section for method signatures and examples.</p>
+<p>Use the detailed reference pages for method signatures and lifecycle contracts.</p>
 
 
 

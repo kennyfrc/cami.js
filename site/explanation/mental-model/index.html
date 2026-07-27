@@ -1184,14 +1184,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
@@ -1284,90 +1276,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/observable_state/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    ObservableState
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/observable/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/model/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Models
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/type_system/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Runtime type system
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../api/url_store/" class="md-nav__link">
         
   
@@ -1414,7 +1322,7 @@
         
   
   <span class="md-ellipsis">
-    Console and debug controls
+    Debug and events
   </span>
   
 
@@ -1777,19 +1685,9 @@
 <td>Local interaction state</td>
 </tr>
 <tr>
-<td><code>ObservableStore</code></td>
+<td><code>store()</code> / <code>ObservableStore</code></td>
 <td>Named shared state and state transitions</td>
 <td>Cross-island state, queries, mutations, orchestration</td>
-</tr>
-<tr>
-<td><code>ObservableState</code></td>
-<td>One reactive value</td>
-<td>Small standalone reactive computations</td>
-</tr>
-<tr>
-<td><code>Model</code> + <code>Type</code></td>
-<td>Runtime-validated state shape</td>
-<td>Data whose runtime schema matters</td>
 </tr>
 <tr>
 <td><code>URLStore</code></td>
@@ -1804,7 +1702,7 @@
 <ul>
 <li>event handlers for user-driven writes;</li>
 <li><code>afterRender(key, effect, deps)</code> for DOM work after a commit;</li>
-<li><code>afterSettle(source, callback)</code> for reactions after the render batch;</li>
+<li><code>afterSettle(source, callback)</code> for advanced reactions that must wait for the render batch;</li>
 <li><code>resource(key, loader, options)</code> for component-owned async values;</li>
 <li>store queries and mutations for shared server state.</li>
 </ul>
@@ -1833,7 +1731,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../api/console_functions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Console and debug controls">
+          <a href="../../api/console_functions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Debug and events">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1843,7 +1741,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Console and debug controls
+                Debug and events
               </div>
             </div>
           </a>

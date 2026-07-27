@@ -81,7 +81,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#feature-overview" class="md-skip">
+        <a href="#features" class="md-skip">
           Skip to content
         </a>
       
@@ -1184,14 +1184,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
-        
-      
     
     
     
@@ -1284,90 +1276,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/observable_state/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    ObservableState
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/observable/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Observable streams
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/model/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Models
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../api/type_system/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Runtime type system
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../api/url_store/" class="md-nav__link">
         
   
@@ -1414,7 +1322,7 @@
         
   
   <span class="md-ellipsis">
-    Console and debug controls
+    Debug and events
   </span>
   
 
@@ -1590,36 +1498,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-features" class="md-nav__link">
+  <a href="#components" class="md-nav__link">
     <span class="md-ellipsis">
-      Core Features
+      Components
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
+  <a href="#shared-state" class="md-nav__link">
     <span class="md-ellipsis">
-      Architecture
+      Shared state
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#internals-you-dont-need-to-worry-about" class="md-nav__link">
+  <a href="#browser-integration" class="md-nav__link">
     <span class="md-ellipsis">
-      Internals You Don't Need to Worry About
+      Browser integration
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
+  <a href="#delivery" class="md-nav__link">
     <span class="md-ellipsis">
-      Best Practices
+      Delivery
     </span>
   </a>
   
@@ -1691,36 +1599,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-features" class="md-nav__link">
+  <a href="#components" class="md-nav__link">
     <span class="md-ellipsis">
-      Core Features
+      Components
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
+  <a href="#shared-state" class="md-nav__link">
     <span class="md-ellipsis">
-      Architecture
+      Shared state
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#internals-you-dont-need-to-worry-about" class="md-nav__link">
+  <a href="#browser-integration" class="md-nav__link">
     <span class="md-ellipsis">
-      Internals You Don't Need to Worry About
+      Browser integration
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
+  <a href="#delivery" class="md-nav__link">
     <span class="md-ellipsis">
-      Best Practices
+      Delivery
     </span>
   </a>
   
@@ -1744,90 +1652,34 @@
   
 
 
-<h1 id="feature-overview">Feature Overview</h1>
-<p>Cami.js provides a complete toolkit for building interactive web applications:</p>
-<h2 id="core-features">Core Features</h2>
+<h1 id="features">Features</h1>
+<p>Cami enhances server-rendered and static pages with focused interactive islands.</p>
+<h2 id="components">Components</h2>
 <ul>
-<li>
-<p><strong>Reactive Web Components</strong>: Build UI with <code>ReactiveElement</code>, which automatically re-renders when properties change. No boilerplate like <code>signal()</code>, <code>setState()</code>, or <code>reactive()</code> needed—just define properties and they're reactive. See the <a href="../../api/reactive_element/">ReactiveElement API</a> for details.</p>
-</li>
-<li>
-<p><strong>Store-Based State Management</strong>: Centralize application state in <a href="../../api/observable_store/">ObservableStores</a>. Stores provide:</p>
-</li>
-<li><strong>Actions</strong> for synchronous state updates</li>
-<li><strong>Queries</strong> for async data fetching with caching</li>
-<li><strong>Mutations</strong> for async data modifications with optimistic updates</li>
-<li><strong>Memos</strong> for cached derived computations</li>
-<li><strong>Hooks</strong> for middleware-like side effects</li>
-<li>
-<p><strong>State Machines</strong> for complex state transitions</p>
-</li>
-<li>
-<p><strong>Async Data Management</strong>: Fetch and cache server data with <a href="../async_state_management/">queries and mutations</a>. Built-in support for caching, refetching, retry logic, and optimistic updates.</p>
-</li>
-<li>
-<p><strong>Cross-Component State</strong>: Share state across components with ease using <a href="../client_state_management/">stores</a>. Multiple components can read from and dispatch to the same store.</p>
-</li>
-<li>
-<p><strong>State Persistence</strong>: Persist state to <a href="../persistence/">localStorage or IndexedDB</a> using storage adapters. State survives page refreshes and browser restarts.</p>
-</li>
-<li>
-<p><strong>Type System</strong>: Define schemas with the <a href="../../api/type_system/">Type system</a> for runtime validation. Create <a href="../../api/model/">Models</a> that combine schemas with stores.</p>
-</li>
-<li>
-<p><strong>URL Routing</strong>: Handle navigation with <a href="../../api/url_store/">URLStore</a>—hash-based routing with resource loading and navigation hooks.</p>
-</li>
+<li>reactive public fields on standard custom elements;</li>
+<li>lit-html templates through <code>html</code> and <code>svg</code>;</li>
+<li>native custom-element lifecycle callbacks;</li>
+<li>keyed <code>afterRender()</code> work after DOM commit;</li>
+<li>component-owned resources and ephemeral drafts.</li>
 </ul>
-<h2 id="architecture">Architecture</h2>
-<p>Cami follows a <strong>store-centric architecture</strong>:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────┐
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│  Components (ReactiveElement)                    │
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  - Read state via getState()                     │
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  - Write state via dispatch()                    │
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  - Render UI via template()                      │
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└─────────────────────────────────────────────────┘
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                      │
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                      ▼
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>┌─────────────────────────────────────────────────┐
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  Stores (ObservableStore)                        │
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  - State: single source of truth                 │
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  - Actions: sync state updates                   │
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  - Queries: async data fetching + caching        │
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  - Mutations: async data modifications           │
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  - Memos: derived computations                   │
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  - Hooks: side effects (logging, persistence)    │
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└─────────────────────────────────────────────────┘
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>                      │
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>                      ▼
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>┌─────────────────────────────────────────────────┐
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  Persistence (optional)                          │
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│  - LocalStorage adapter                          │
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│  - IndexedDB adapter                             │
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>└─────────────────────────────────────────────────┘
-</span></code></pre></div>
-<h2 id="internals-you-dont-need-to-worry-about">Internals You Don't Need to Worry About</h2>
+<h2 id="shared-state">Shared state</h2>
 <ul>
-<li>
-<p><strong>Dependency Tracking</strong>: Components automatically re-render when their dependencies change. The <code>DependencyTracker</code> observes which stores are accessed during render.</p>
-</li>
-<li>
-<p><strong>Immutable Updates</strong>: State mutations use Immer internally—you write mutable code, but updates are immutable under the hood.</p>
-</li>
-<li>
-<p><strong>Query Caching</strong>: Queries automatically cache results and manage staleness. Configure <code>staleTime</code> to control when data is refetched.</p>
-</li>
-<li>
-<p><strong>Automatic Disposal</strong>: Effects, subscriptions, and observers are cleaned up when components disconnect.</p>
-</li>
+<li>named typed store modules;</li>
+<li>synchronous actions and dependency-tracked memos;</li>
+<li>cached server queries and mutations;</li>
+<li>optimistic updates and query invalidation;</li>
+<li>async orchestration, hooks, specs, and state machines for advanced workflows.</li>
 </ul>
-<h2 id="best-practices">Best Practices</h2>
-<p>See the <a href="../../best_practices/">Best Practices</a> guide for production patterns:</p>
+<h2 id="browser-integration">Browser integration</h2>
 <ul>
-<li>Keep components pure (render + dispatch only)</li>
-<li>Centralize state in stores</li>
-<li>Use memos for derived values</li>
-<li>Avoid <code>effect()</code> in application code</li>
+<li>hash navigation and route resources through <code>URLStore</code>;</li>
+<li>versioned localStorage persistence;</li>
+<li>stable list rendering with <code>repeat</code> and <code>keyed</code>;</li>
+<li>explicit trusted HTML with <code>unsafeHTML</code>;</li>
+<li>component-owned image loading with <code>useImage</code>.</li>
 </ul>
+<h2 id="delivery">Delivery</h2>
+<p>Use the browser-global CDN bundle in an MPA without a build step. Compiled JavaScript and TypeScript projects can import the ES module and declarations.</p>
 
 
 
