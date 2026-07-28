@@ -16,7 +16,6 @@
     "docs/**",
     "examples/**",
     "site/**",
-    "analysis/**",
     "src/exp/**"
   ],
   "jsPlugins": ["./scripts/oxlint-plugin-cami.js"],
@@ -28,7 +27,7 @@
   },
   "overrides": [
     {
-      "files": ["tests/**/*.{js,ts}", "benchmark/**/*.{js,ts}"],
+      "files": ["tests/**/*.{js,ts}"],
       "rules": {
         "cami/cami-rules": "off"
       }

@@ -19,7 +19,6 @@
     "docs/**",
     "examples/**",
     "site/**",
-    "analysis/**",
     "src/exp/**"
   ]
 }
