@@ -8,7 +8,7 @@ Cami.js is a drop-in toolkit for adding interactive islands to server-rendered o
 
 ```html
 <cami-counter></cami-counter>
-<script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4.0/build/cami.cdn.js"></script>
 <script src="./counter.js"></script>
 ```
 
@@ -61,10 +61,10 @@ customElements.define('cami-counter', CamiCounter)
 ## Use JavaScript or TypeScript in a compiled project
 
 ```bash
-npm install cami@0.3.23
+npm install cami@0.4.0
 ```
 
-The browser-global CDN bundle is the shortest path for an MPA or server-rendered page. The ES module works in JavaScript and TypeScript builds. This `0.4.0` source snapshot generates declarations for the next package release.
+The browser-global CDN bundle is the shortest path for an MPA or server-rendered page. The ES module works in JavaScript and TypeScript builds and ships with type declarations.
 
 ## Current public surface
 
