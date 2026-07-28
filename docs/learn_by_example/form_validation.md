@@ -17,7 +17,7 @@ Email lookups use `https://cami-api.exe.xyz`. Try `user1@example.com` to exercis
   <registration-form></registration-form>
 </article>
 
-<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 

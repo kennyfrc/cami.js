@@ -354,7 +354,7 @@ Here's a full working example with multiple components sharing cart state:
 <product-list-component></product-list-component>
 <cart-component></cart-component>
 
-<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 

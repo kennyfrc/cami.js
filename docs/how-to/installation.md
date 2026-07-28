@@ -11,7 +11,7 @@ The TypeScript worked examples are source files compiled with `strict: true`. Th
 Install the latest published package:
 
 ```bash
-npm install cami@0.4.1
+npm install cami@0.4
 ```
 
 !!! note "Source and published versions"

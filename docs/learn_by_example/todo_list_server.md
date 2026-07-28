@@ -16,7 +16,7 @@ The example uses shared tutorial data from `https://cami-api.exe.xyz`.
   <todo-list-server></todo-list-server>
 </article>
 
-<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 

@@ -21,7 +21,7 @@ Product data comes from the public Cami mock API at `https://cami-api.exe.xyz`.
   <cart-component></cart-component>
 </article>
 
-<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 
