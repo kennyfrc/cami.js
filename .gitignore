@@ -187,3 +187,6 @@ src/test*.js
 src/assert.js
 src/runner.js
 .aider*
+
+# mkdocs build output (deploys via gh-pages branch)
+site/

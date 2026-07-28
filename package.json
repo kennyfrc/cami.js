@@ -10,29 +10,16 @@
   "module": "build/cami.module.js",
   "types": "build/cami.d.ts",
   "devDependencies": {
-    "@preact/signals-core": "^1.8.0",
-    "@reduxjs/toolkit": "^2.6.1",
-    "@types/lodash": "^4.17.18",
     "@vitest/ui": "^3.2.7",
     "@webcomponents/custom-elements": "^1.6.0",
-    "benchmark": "^2.1.4",
-    "bun-types": "latest",
     "concurrently": "^8.2.2",
     "esbuild": "^0.25.5",
     "jsdom": "^26.1.0",
-    "mobx": "^6.13.6",
-    "mobx-state-tree": "7.0.2",
     "nodemon": "^3.0.1",
     "oxfmt": "^0.60.0",
     "oxlint": "^1.75.0",
-    "react": "^19.0.0",
-    "redux": "5.0.1",
-    "rxjs": "^7.8.2",
     "typescript": "^5.8.3",
-    "valtio": "2.1.4",
-    "vitest": "^3.2.7",
-    "vue": "^3.5.13",
-    "zustand": "5.0.3"
+    "vitest": "^3.2.7"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -86,14 +73,7 @@
   "type": "module",
   "unpkg": "build/cami.cdn.js",
   "dependencies": {
-    "fast-copy": "^3.0.2",
-    "fast-deep-equal": "^3.1.3",
-    "fast-equals": "^5.2.2",
-    "idb": "^8.0.0",
     "immer": "^10.1.1",
-    "lit-html": "^3.3.0",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.isequal": "^4.5.0",
-    "rfdc": "^1.4.1"
+    "lit-html": "^3.3.0"
   }
 }
