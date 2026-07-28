@@ -20,7 +20,7 @@ Create `index.html`:
       <cami-counter></cami-counter>
     </main>
 
-    <script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script>
+    <script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
     <script src="./counter.js"></script>
   </body>
 </html>

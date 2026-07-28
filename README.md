@@ -2,13 +2,13 @@
 
 Cami.js is a drop-in toolkit for adding interactive islands to server-rendered or static HTML. Its CDN bundle fits multi-page applications without a build step. Compiled applications can use the same API through an ES module with strong TypeScript declarations.
 
-> **Version 0.4.0:** APIs may change before 1.0.
+> **Version 0.4:** APIs may change before 1.0.
 
 ## Start with a script tag
 
 ```html
 <cami-counter></cami-counter>
-<script src="https://unpkg.com/cami@0.4.0/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
 <script src="./counter.js"></script>
 ```
 
@@ -39,16 +39,31 @@ customElements.define('cami-counter', CamiCounter)
 <summary>TypeScript</summary>
 
 ```typescript
-import { html, ReactiveElement } from 'cami'
+import { html, ReactiveElement, store } from 'cami'
+
+interface CounterState {
+  count: number
+}
+
+const counter = store<CounterState>({
+  name: 'counter',
+  state: { count: 0 },
+})
+
+counter.defineAction('increment', ({ state }) => {
+  state.count++ // state is a typed Draft<CounterState>
+})
+
+counter.defineAction('decrement', ({ state }) => {
+  state.count--
+})
 
 class CamiCounter extends ReactiveElement {
-  count = 0
-
   template() {
     return html`
-      <button @click=${() => this.count--}>−</button>
-      <output>${this.count}</output>
-      <button @click=${() => this.count++}>+</button>
+      <button @click=${() => counter.dispatch('decrement')}>−</button>
+      <output>${counter.state.count}</output>
+      <button @click=${() => counter.dispatch('increment')}>+</button>
     `
   }
 }
@@ -56,12 +71,14 @@ class CamiCounter extends ReactiveElement {
 customElements.define('cami-counter', CamiCounter)
 ```
 
+State and actions are checked against `CounterState`. Misspell a field and `tsc` tells you at build time.
+
 </details>
 
 ## Use JavaScript or TypeScript in a compiled project
 
 ```bash
-npm install cami@0.4.0
+npm install cami@0.4.1
 ```
 
 The browser-global CDN bundle is the shortest path for an MPA or server-rendered page. The ES module works in JavaScript and TypeScript builds and ships with type declarations.

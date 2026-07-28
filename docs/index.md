@@ -20,7 +20,7 @@ Use it with Rails, FastAPI, Django, Laravel, or plain HTML. Cami enhances only t
 
 ```html
 <cami-counter></cami-counter>
-<script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 

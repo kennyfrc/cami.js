@@ -16,7 +16,7 @@ This is useful when you render an HTML page using a server template engine like 
 </article>
 <!-- <script src="./build/cami.cdn.js"></script> -->
 <!-- CDN version below -->
-<script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 

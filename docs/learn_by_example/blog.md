@@ -16,7 +16,7 @@ The example uses the public Cami mock API at `https://cami-api.exe.xyz`, not a p
   <blog-component></blog-component>
 </article>
 
-<script src="https://unpkg.com/cami@0.3.23/build/cami.cdn.js"></script>
+<script src="https://unpkg.com/cami@0.4.1/build/cami.cdn.js"></script>
 <script type="module" src="./island.js"></script>
 ```
 
