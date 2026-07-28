@@ -1,0 +1,20 @@
+<cdn-counter></cdn-counter>
+
+<script src="https://unpkg.com/cami@0.4/build/cami.cdn.js"></script>
+<script>
+  const { html, ReactiveElement } = cami
+
+  class CdnCounter extends ReactiveElement {
+    count = 0
+
+    template() {
+      return html`
+        <button @click=${() => this.count--}>−</button>
+        <output>${this.count}</output>
+        <button @click=${() => this.count++}>+</button>
+      `
+    }
+  }
+
+  customElements.define('cdn-counter', CdnCounter)
+</script>

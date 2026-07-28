@@ -1,0 +1,22 @@
+<cdn-module-counter></cdn-module-counter>
+
+<script type="module">
+  import {
+    html,
+    ReactiveElement,
+  } from 'https://cdn.jsdelivr.net/npm/cami@0.4/build/cami.module.js'
+
+  class CdnModuleCounter extends ReactiveElement {
+    count = 0
+
+    template() {
+      return html`
+        <button @click=${() => this.count--}>−</button>
+        <output>${this.count}</output>
+        <button @click=${() => this.count++}>+</button>
+      `
+    }
+  }
+
+  customElements.define('cdn-module-counter', CdnModuleCounter)
+</script>
